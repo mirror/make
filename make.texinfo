@@ -3130,7 +3130,7 @@ exported (unless you unexport them).
 on the command line, by putting them in the @code{MAKEFLAGS} variable.
 @iftex
 See the next section.
-@end iftext
+@end iftex
 @ifinfo
 @xref{Options/Recursion}.
 @end ifinfo
