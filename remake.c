@@ -75,8 +75,6 @@ static int library_search PARAMS ((char **lib, FILE_TIMESTAMP *mtime_ptr));
    should only make one goal at a time and return as soon as one goal whose
    `changed' member is nonzero is successfully made.  */
 
-/* We need to know this "lower down" for correct error handling.  */
-static int updating_makefiles = 0;
 
 int
 update_goal_chain (goals, makefiles)
@@ -87,7 +85,6 @@ update_goal_chain (goals, makefiles)
   unsigned int j = job_slots;
   int status = -1;
 
-  updating_makefiles = makefiles;
 
 #define	MTIME(file) (makefiles ? file_mtime_no_search (file) \
 		     : file_mtime (file))
@@ -285,8 +282,13 @@ update_file (file, depth)
       status |= update_file_1 (f, depth);
       check_renamed (f);
 
-      if (status == ts_failed && !keep_going_flag)
-	break;
+      if (status == ts_failed)
+	{
+	  if (keep_going_flag)
+	    break;
+	  else
+	    return ts_failed;
+	}
 
       if (status == ts_incomplete)
 	break;
@@ -310,7 +312,11 @@ update_file (file, depth)
       f->considered = considered;
 
       for (d = f->deps; d != 0; d = d->next)
-        status |= update_file (d->file, depth + 1);
+	if ((status |= update_file (d->file, depth + 1)) == ts_failed)
+	  {
+	    if (!keep_going_flag)
+	      return ts_failed;
+	  }
     }
 
   return status;
@@ -661,24 +667,17 @@ update_file_1 (file, depth)
       return ts_incomplete;
     }
 
-  switch (file->update_status)
+  if (file->update_status)
     {
-    case 0:
-      DBF (DB_BASIC, _("Successfully remade target file `%s'.\n"));
-      return ts_done;
-
-    case 1:
       DBF (DB_BASIC, (question_flag ? _("Target file `%s' needs remade under -q.\n")
 		      : _("Failed to remake target file `%s'.\n")));
       return ts_failed;
-
-    default:
-      assert (file->update_status >= 0 && file->update_status <= 1);
-      break;
     }
-
-  /* note: code can't get here */
-  return ts_failed;
+  else
+    {
+      DBF (DB_BASIC, _("Successfully remade target file `%s'.\n"));
+      return ts_done;
+    }
 }
 
 /* Set FILE's `updated' flag and re-check its mtime and the mtime's of all
