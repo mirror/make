@@ -21,7 +21,6 @@ AC_MINIX
 
 AC_CHECK_PROG(PERL, perl, perl, perl)	dnl Needed for the test suite (only)
 
-
 dnl This test must come as early as possible after the compiler configuration
 dnl tests, because the choice of the file model can (in principle) affect
 dnl whether functions and headers are available, whether they work, etc.
@@ -106,6 +105,11 @@ fi
 AC_MSG_RESULT($make_cv_union_wait)
 
 AC_DECL_SYS_SIGLIST
+
+dnl Handle internationalization
+
+ALL_LINGUAS=
+AM_GNU_GETTEXT
 
 # The presence of the following is not meant to imply
 # that make necessarily works on those systems.
@@ -222,7 +226,7 @@ if test -r "$srcdir/maintMakefile"; then
 fi
 AC_SUBST_FILE(MAINT_MAKEFILE)
 
-AC_OUTPUT(build.sh Makefile glob/Makefile)
+AC_OUTPUT(build.sh Makefile glob/Makefile intl/Makefile po/Makefile.in)
 
 dnl If we don't yet have build.sh.in, build.sh is a bogus 0-length file
 dnl so remove it.
