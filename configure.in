@@ -3,7 +3,7 @@ AC_REVISION([$Id$])
 AC_PREREQ(2.13)dnl		dnl Minimum Autoconf version required.
 AC_INIT(vpath.c)dnl		dnl A distinctive file to look for in srcdir.
 
-AM_INIT_AUTOMAKE(make, 3.78.91)
+AM_INIT_AUTOMAKE(make, 3.78.92)
 AM_CONFIG_HEADER(config.h)
 
 dnl Regular configure stuff
