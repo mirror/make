@@ -12,6 +12,7 @@
 @set VERSION 3.72 Beta
 @set UPDATED 5 July 1994
 @set UPDATE-MONTH July 1994
+@set ISBN 1-882114-50-7
 
 @c finalout
 
@@ -71,7 +72,7 @@ Published by the Free Software Foundation @*
 675 Massachusetts Avenue, @*
 Cambridge, MA 02139 USA @*
 Printed copies are available for $20 each. @*
-ISBN 1-882114-16-7 @*
+ISBN @value{ISBN} @*
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
