@@ -5012,7 +5012,12 @@ width0pt\relax} \fi
   % \epsfbox itself resets \epsf?size at each figure.
   \setbox0 = \hbox{\ignorespaces #2}\ifdim\wd0 > 0pt \epsfxsize=#2\relax \fi
   \setbox0 = \hbox{\ignorespaces #3}\ifdim\wd0 > 0pt \epsfysize=#3\relax \fi
-  \epsfbox{#1.eps}%
+  % If the image is by itself, center it.
+  \ifvmode
+    \centerline{\epsfbox{#1.eps}}%
+  \else
+    \epsfbox{#1.eps}%
+  \fi
 }
 
 % End of control word definitions.
