@@ -2569,10 +2569,22 @@ width0pt\relax} \fi
         % will have extra space inserted, because the \medbreak in the
         % start of the @defun won't see the skip inserted by the @end of
         % the previous defun.
+        % 
+        % But don't do any of this if we're not in vertical mode.  We
+        % don't want to do a \vskip and prematurely end a paragraph.
+        % 
+        % Avoid page breaks due to these extra skips, too.
+        % 
         \iflinks
-          \skip0 = \lastskip \ifdim\lastskip = 0pt \else \vskip-\lastskip \fi
-          \temp
-          \ifdim\skip0 = 0pt \else \vskip\skip0 \fi
+          \ifvmode
+            \skip0 = \lastskip
+            \ifdim\lastskip = 0pt \else \nobreak\vskip-\lastskip \fi
+          \fi
+          %
+          \temp % do the write
+          %
+          % 
+          \ifvmode \ifdim\skip0 = 0pt \else \nobreak\vskip\skip0 \fi \fi
         \fi
       }%
     }%
