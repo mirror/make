@@ -6,8 +6,6 @@ AC_INIT(vpath.c)dnl		dnl A distinctive file to look for in srcdir.
 AM_INIT_AUTOMAKE(make, 3.77.90)
 AM_CONFIG_HEADER(config.h)
 
-AM_CONDITIONAL(MAINT_MAKEFILE, test -r $srcdir/maintMakefile)
-
 dnl Regular configure stuff
 
 AC_PROG_MAKE_SET
@@ -173,6 +171,15 @@ case "$make_cv_sys_gnu_glob" in
   no)  AC_MSG_RESULT([no; using local copy])
        CPPFLAGS="$CPPFLAGS -I$srcdir/glob" ;;
 esac
+
+
+MAINT_MAKEFILE=/dev/null
+if test -r $srcdir/maintMakefile; then
+  MAINT_MAKEFILE="$srcdir/maintMakefile"
+fi
+AC_SUBST_FILE(MAINT_MAKEFILE)
+
+dnl AM_CONDITIONAL(MAINT_MAKEFILE, test -r $srcdir/maintMakefile)
 
 AC_OUTPUT(Makefile glob/Makefile build.sh)
 
