@@ -3295,7 +3295,9 @@ width0pt\relax} \fi
    \unnumbchapmacro{#1}\def\thischapter{}%
    \begingroup                  % Set up to handle contents files properly.
       \catcode`\\=0  \catcode`\{=1  \catcode`\}=2  \catcode`\@=11
-      \catcode`\^=7 % to see ^^e4 as \"a etc. juha@piuha.ydi.vtt.fi
+      % We can't do this, because then an actual ^ in a section
+      % title fails, e.g., @chapter ^ -- exponentiation.  --karl, 9jul97.
+      %\catcode`\^=7 % to see ^^e4 as \"a etc. juha@piuha.ydi.vtt.fi
       \raggedbottom             % Worry more about breakpoints than the bottom.
       \advance\hsize by -\contentsrightmargin % Don't use the full line length.
 }
