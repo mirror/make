@@ -634,7 +634,7 @@ The criterion for being out of date is specified in terms of the
 date if it does not exist or if it is older than any of the dependencies
 (by comparison of last-modification times).  The idea is that the contents
 of the target file are computed based on information in the dependencies,
-so if any of the dependencies changes the contents of the existing target
+so if any of the dependencies changes, the contents of the existing target
 file are no longer necessarily valid.
 
 How to update is specified by @var{commands}.  These are lines to be
