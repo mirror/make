@@ -4514,6 +4514,17 @@ width0pt\relax} \fi
   \catcode`\^^M=12
   \usembodybackslash}
 
+\def\macroargctxt{%
+  \catcode`\~=12
+  \catcode`\^=12
+  \catcode`\_=12
+  \catcode`\|=12
+  \catcode`\<=12
+  \catcode`\>=12
+  \catcode`\+=12
+  \catcode`\@=12
+  \catcode`\\=12}
+
 % \mbodybackslash is the definition of \ in @macro bodies.
 % It maps \foo\ => \csname macarg.foo\endcsname => #N 
 % where N is the macro parameter number.
@@ -4610,17 +4621,21 @@ width0pt\relax} \fi
         \noexpand\scanmacro{\temp}}%
     \or % 1
       \expandafter\xdef\csname\the\macname\endcsname{%
+         \bgroup\noexpand\macroargctxt
          \noexpand\braceorline\csname\the\macname xxx\endcsname}%
       \expandafter\xdef\csname\the\macname xxx\endcsname##1{%
-         \noexpand\scanmacro{\temp}}%
+         \egroup\noexpand\scanmacro{\temp}}%
     \else % many
-      \expandafter\xdef\csname\the\macname\endcsname##1{%
+      \expandafter\xdef\csname\the\macname\endcsname{%
+         \bgroup\noexpand\macroargctxt
+         \noexpand\csname\the\macname xx\endcsname}
+      \expandafter\xdef\csname\the\macname xx\endcsname##1{%
           \csname\the\macname xxx\endcsname ##1,}%
       \expandafter\expandafter
       \expandafter\xdef
       \expandafter\expandafter
         \csname\the\macname xxx\endcsname 
-          \paramlist{\noexpand\scanmacro{\temp}}%
+          \paramlist{\egroup\noexpand\scanmacro{\temp}}%
     \fi
   \else
     \ifcase\paramno
@@ -4630,18 +4645,24 @@ width0pt\relax} \fi
         \noexpand\scanmacro{\temp}\egroup}%
     \or % 1
       \expandafter\xdef\csname\the\macname\endcsname{%
+         \bgroup\noexpand\macroargctxt
          \noexpand\braceorline\csname\the\macname xxx\endcsname}%
       \expandafter\xdef\csname\the\macname xxx\endcsname##1{%
+        \egroup
         \noexpand\norecurse{\the\macname}%
         \noexpand\scanmacro{\temp}\egroup}%
     \else % many
-      \expandafter\xdef\csname\the\macname\endcsname##1{%
+      \expandafter\xdef\csname\the\macname\endcsname{%
+         \bgroup\noexpand\macroargctxt
+         \noexpand\csname\the\macname xx\endcsname}
+      \expandafter\xdef\csname\the\macname xx\endcsname##1{%
           \csname\the\macname xxx\endcsname ##1,}%
       \expandafter\expandafter
       \expandafter\xdef
       \expandafter\expandafter
       \csname\the\macname xxx\endcsname
       \paramlist{%
+          \egroup
           \noexpand\norecurse{\the\macname}%
           \noexpand\scanmacro{\temp}\egroup}%
     \fi
