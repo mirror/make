@@ -3560,7 +3560,7 @@ command options (@pxref{Overriding, ,Overriding Variables}).
 
 A few variables have names that are a single punctuation character or
 just a few characters.  These are the @dfn{automatic variables}, and
-they have particular specialized uses.  @xref{Automatic Variables}.
+they have particular specialized uses.  @xref{Automatic, ,Automatic Variables}.
 
 @menu
 * Reference::                   How to use the value of a variable.
