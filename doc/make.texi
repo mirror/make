@@ -3747,6 +3747,10 @@ unexport @var{variable} @dots{}
 @end example
 
 @noindent
+In both of these forms, the arguments to @code{export} and
+@code{unexport} are expanded, and so could be variables or functions
+which expand to a (list of) variable names to be (un)exported.
+
 As a convenience, you can define a variable and export it at the same
 time by doing:
 
@@ -5434,7 +5438,9 @@ effective; otherwise, the @var{text-if-false}, if any, is effective.
 If the variable @var{variable-name} has a non-empty value, the
 @var{text-if-true} is effective; otherwise, the @var{text-if-false},
 if any, is effective.  Variables that have never been defined have an
-empty value.
+empty value.  The variable @var{variable-name} is itself expanded, so
+it could be a variable or function that expands to the name of a
+variable.
 
 Note that @code{ifdef} only tests whether a variable has a value.  It
 does not expand the variable to see if that value is nonempty.
