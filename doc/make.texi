@@ -969,10 +969,10 @@ length in later chapters.@refill
 @cindex explicit rule, definition of
 @item
 An @dfn{explicit rule} says when and how to remake one or more files,
-called the rule's targets.  It lists the other files that the targets
-depend on, call the @dfn{prerequisites} of the target, and may also give
-commands to use to create or update the targets.  @xref{Rules, ,Writing
-Rules}.
+called the rule's @dfn{targets}.  It lists the other files that the
+targets depend on, called the @dfn{prerequisites} of the target, and
+may also give commands to use to create or update the targets.
+@xref{Rules, ,Writing Rules}.
 
 @cindex rule, implicit, definition of
 @cindex implicit rule, definition of
