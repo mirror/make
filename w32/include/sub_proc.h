@@ -20,7 +20,7 @@
 
 /* $Id$ */
 
-#ifdef WIN32
+#ifdef WINDOWS32
 
 #define EXTERN_DECL(entry, args) extern entry args
 #define VOID_DECL void
