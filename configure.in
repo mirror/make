@@ -66,6 +66,10 @@ AC_TRY_LINK([#include <sys/types.h>
    union wait type, and they do not work together.  If union wait
    conflicts with WEXITSTATUS et al, we don't want to use it at all.  */
 if (WEXITSTATUS (status) != 0) pid = -1;
+#ifdef WTERMSIG
+/* If we have WEXITSTATUS and WTERMSIG, just use them on ints.  */
+-- blow chunks here --
+#endif
 #endif
 #ifdef HAVE_WAITPID
 /* Make sure union wait works with waitpid.  */
