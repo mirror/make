@@ -4272,7 +4272,7 @@ running @code{ranlib}.  The rules for updating the members are not shown
 here; most likely you can omit them and use the implicit rule which copies
 files into the archive, as described in the preceding section.
 
-@node Features, Missing, Archive, Top
+@node Features, Missing, Archives, Top
 @chapter Features of GNU @code{make}
 
 GNU @code{make} contains many features not in any other @code{make}
