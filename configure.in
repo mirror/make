@@ -54,6 +54,17 @@ AC_FUNC_SETVBUF_REVERSED
 AC_FUNC_GETLOADAVG
 AC_FUNC_STRCOLL
 
+if test $ac_cv_func_getdtablesize = no; then
+  AC_MSG_CHECKING(for sysconf (_SC_OPEN_MAX))
+  AC_CACHE_VAL(make_cv_sysconf_open_max, [dnl
+  AC_TRY_LINK([#include <unistd.h>], [int max = sysconf (_SC_OPEN_MAX);],
+	      [make_cv_sysconf_open_max=yes], [make_cv_sysconf_open_max=no])])
+  if test $make_cv_sysconf_open_max = yes; then
+    AC_DEFINE(HAVE_SYSCONF_OPEN_MAX)
+  fi
+  AC_MSG_RESULT($make_cv_sysconf_open_max)
+fi
+
 # Check out the wait reality.
 AC_CHECK_HEADERS(sys/wait.h) AC_CHECK_FUNCS(waitpid wait3)
 AC_MSG_CHECKING(for union wait)
