@@ -10,8 +10,8 @@
 @set RCSID $Id$
 @set EDITION 0.45
 @set VERSION 3.71 Beta
-@set UPDATED 20 April 1994
-@set UPDATE-MONTH April 1994
+@set UPDATED 5 May 1994
+@set UPDATE-MONTH May 1994
 
 @c finalout
 
