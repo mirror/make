@@ -5110,7 +5110,10 @@ width0pt\relax} \fi
   \setbox0 = \hbox{\ignorespaces #3}\ifdim\wd0 > 0pt \epsfysize=#3\relax \fi
   % If the image is by itself, center it.
   \ifvmode
+    \nobreak\medskip
+    \nobreak
     \centerline{\epsfbox{#1.eps}}%
+    \bigbreak
   \else
     \epsfbox{#1.eps}%
   \fi
