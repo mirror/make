@@ -119,7 +119,7 @@ if test "$ac_cv_func_gettimeofday" = yes; then
 	    [Define if you have a standard gettimeofday function])
 fi
 
-AC_CHECK_FUNCS(	memcpy strchr strdup mkstemp mktemp fdopen \
+AC_CHECK_FUNCS(	memcpy memmove strchr strdup mkstemp mktemp fdopen \
 	        bsd_signal dup2 getcwd sigsetmask sigaction getgroups \
 		seteuid setegid setlinebuf setreuid setregid setvbuf pipe \
 		strerror strsignal)
