@@ -134,9 +134,9 @@ if test "$ac_cv_func_gettimeofday" = yes; then
 fi
 
 AC_CHECK_FUNCS(	memcpy memmove strchr strdup mkstemp mktemp fdopen \
-	        bsd_signal dup2 getcwd sigsetmask sigaction getgroups \
-		seteuid setegid setlinebuf setreuid setregid setvbuf pipe \
-		strerror strsignal)
+	        bsd_signal dup2 getcwd realpath sigsetmask sigaction \
+                getgroups seteuid setegid setlinebuf setreuid setregid \
+                setvbuf pipe strerror strsignal)
 
 AC_FUNC_SETVBUF_REVERSED
 
