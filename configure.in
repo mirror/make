@@ -42,7 +42,7 @@ AC_HEADER_TIME
 
 dnl Handle internationalization
 
-ALL_LINGUAS="de es fr ja ko nl pl pt_BR ru"
+ALL_LINGUAS="de es fr gl ja ko nl pl pt_BR ru"
 pds_WITH_GETTEXT
 
 jm_AC_TYPE_UINTMAX_T
