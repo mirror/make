@@ -1,4 +1,5 @@
-%% TeX macros to handle texinfo files
+%% TeX macros to handle Texinfo files.
+%% $Id$
 
 %  Copyright (C) 1985, 86, 88, 90, 91, 92, 93,
 %                94, 95, 1996 Free Software Foundation, Inc.
@@ -144,8 +145,10 @@
   \ifodd\pageno  \advance\hoffset by \bindingoffset
   \else \advance\hoffset by -\bindingoffset\fi
   {%
-    \escapechar = `\\ % use backslash in output files.
-    \indexdummies
+    \escapechar = `\\     % use backslash in output files.
+    \indexdummies         % don't expand commands in the output.
+    \normalturnoffactive  % \ in index entries must not stay \, e.g., if
+                   % the page break happens to be in the middle of an example.
     \shipout\vbox{%
       {\let\hsize=\pagewidth \makeheadline}%
       \pagebody{#1}%
