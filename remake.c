@@ -43,12 +43,25 @@ Boston, MA 02111-1307, USA.  */
 extern int try_implicit_rule PARAMS ((struct file *file, unsigned int depth));
 
 
+/* this enum encapsulates the return status of the recursive update
+   functions.  Note: these values are important so that the state of
+   precursors can be summed up */
+typedef enum {
+  ts_done = 0,			/* all precursors and target are complete */
+  ts_incomplete = 1,		/* some precursor or target is still running */
+  ts_failed = 3,		/* some precursor or target failed */
+  ts_sentinal			/* make ANSI happy with non trailing  */
+} target_state_t;
+
+
+  
+
 /* Incremented when a command is started (under -n, when one would be).  */
 unsigned int commands_started = 0;
 
-static int update_file PARAMS ((struct file *file, unsigned int depth));
-static int update_file_1 PARAMS ((struct file *file, unsigned int depth));
-static int check_dep PARAMS ((struct file *file, unsigned int depth, FILE_TIMESTAMP this_mtime, int *must_make_ptr));
+static target_state_t update_file PARAMS ((struct file *file, unsigned int depth));
+static target_state_t update_file_1 PARAMS ((struct file *file, unsigned int depth));
+static target_state_t check_dep PARAMS ((struct file *file, unsigned int depth, FILE_TIMESTAMP this_mtime, int *must_make_ptr));
 static int touch_file PARAMS ((struct file *file));
 static void remake_file PARAMS ((struct file *file));
 static FILE_TIMESTAMP name_mtime PARAMS ((char *name));
@@ -152,7 +165,7 @@ update_goal_chain (goals, makefiles)
                  STATUS as it is if no updating was done.  */
 
 	      stop = 0;
-	      if ((x != 0 || (file->command_state == cs_finished)) && status < 1)
+	      if ((x != ts_failed || (file->command_state == cs_finished)) && status < 1)
                 {
                   if (file->update_status != 0)
                     {
@@ -254,9 +267,10 @@ update_goal_chain (goals, makefiles)
   return status;
 }
 
-/* If FILE is not up to date, execute the commands for it.
-   Return 0 if successful, 1 if unsuccessful;
-   but with some flag settings, just call `exit' if unsuccessful.
+/* If FILE is not up to date, execute the commands for it.  Return
+   ts_done if FILE has completed successfully, ts_incomplete if FILE
+   or any of its precursors are incomplete, or ts_failed if FILE or
+   any of its precursors failed.
 
    DEPTH is the depth in recursions of this function.
    We increment it during the consideration of our dependencies,
@@ -266,12 +280,12 @@ update_goal_chain (goals, makefiles)
    If there are multiple double-colon entries for FILE,
    each is considered in turn.  */
 
-static int
+static target_state_t
 update_file (file, depth)
      struct file *file;
      unsigned int depth;
 {
-  register int status = 0;
+  register target_state_t status = 0;
   register struct file *f;
 
   f = file->double_colon ? file->double_colon : file;
@@ -283,7 +297,11 @@ update_file (file, depth)
   if (f->considered == considered)
     {
       DBF (DB_VERBOSE, _("Pruning file `%s'.\n"));
-      return 0;
+      if (f->command_state == cs_finished)
+	{
+	  return f->update_status ? ts_failed : ts_done;
+	}
+      return ts_incomplete;
     }
 
   /* This loop runs until we start commands for a double colon rule, or until
@@ -295,7 +313,7 @@ update_file (file, depth)
       status |= update_file_1 (f, depth);
       check_renamed (f);
 
-      if (status != 0 && !keep_going_flag)
+      if (status == ts_failed && !keep_going_flag)
 	break;
 
       if (f->command_state == cs_running
@@ -303,7 +321,7 @@ update_file (file, depth)
         {
 	  /* Don't run the other :: rules for this
 	     file until this rule is finished.  */
-          status = 0;
+          status = ts_incomplete;
           break;
         }
     }
@@ -323,16 +341,21 @@ update_file (file, depth)
   return status;
 }
 
-/* Consider a single `struct file' and update it as appropriate.  */
+/* Consider a single `struct file' and update it as appropriate.
 
-static int
+   Return ts_done if FILE has completed successfully, ts_incomplete if
+   FILE or any of its precursors are incomplete, or ts_failed if FILE
+   or any of its precursors failed.
+*/
+
+static target_state_t
 update_file_1 (file, depth)
      struct file *file;
      unsigned int depth;
 {
   register FILE_TIMESTAMP this_mtime;
   int noexist, must_make, deps_changed;
-  int dep_status = 0;
+  target_state_t dep_status = ts_done;
   register struct dep *d, *lastd;
   int running = 0;
 
@@ -347,18 +370,18 @@ update_file_1 (file, depth)
 
     case cs_running:
       DBF (DB_VERBOSE, _("Still updating file `%s'.\n"));
-      return 0;
+      return ts_incomplete;
 
     case cs_finished:
       if (file->update_status != 0)
 	{
 	  DBF (DB_VERBOSE,
 	       _("Recently tried and failed to update file `%s'.\n"));
-	  return file->update_status;
+	  return ts_failed;
 	}
 
       DBF (DB_VERBOSE, _("File `%s' was considered already.\n"));
-      return 0;
+      return ts_done;
 
     default:
       abort ();
@@ -446,7 +469,7 @@ update_file_1 (file, depth)
 	while (f != 0);
       }
 
-      if (dep_status != 0 && !keep_going_flag)
+      if (dep_status == ts_failed && !keep_going_flag)
 	break;
 
       if (!running)
@@ -483,7 +506,7 @@ update_file_1 (file, depth)
 	      while (f != 0);
 	    }
 
-	    if (dep_status != 0 && !keep_going_flag)
+	    if (dep_status == ts_failed && !keep_going_flag)
 	      break;
 
 	    if (!running)
@@ -501,14 +524,14 @@ update_file_1 (file, depth)
       set_command_state (file, cs_deps_running);
       --depth;
       DBF (DB_VERBOSE, _("The prerequisites of `%s' are being made.\n"));
-      return 0;
+      return ts_incomplete;
     }
 
   /* If any dependency failed, give up now.  */
 
-  if (dep_status != 0)
+  if (dep_status == ts_failed)
     {
-      file->update_status = dep_status ? 1 : 0;
+      file->update_status = 1;	/* if any precursors failed, so did we */
       notice_finished_file (file);
 
       depth--;
@@ -520,7 +543,7 @@ update_file_1 (file, depth)
 	error (NILF,
                _("Target `%s' not remade because of errors."), file->name);
 
-      return dep_status;
+      return ts_failed;
     }
 
   if (file->command_state == cs_deps_running)
@@ -625,7 +648,7 @@ update_file_1 (file, depth)
           file = file->prev;
         }
 
-      return 0;
+      return ts_done;
     }
 
   DBF (DB_BASIC, _("Must remake target `%s'.\n"));
@@ -644,24 +667,27 @@ update_file_1 (file, depth)
   if (file->command_state != cs_finished)
     {
       DBF (DB_VERBOSE, _("Commands of `%s' are being run.\n"));
-      return 0;
+      return ts_incomplete;
     }
 
   switch (file->update_status)
     {
     case 0:
       DBF (DB_BASIC, _("Successfully remade target file `%s'.\n"));
-      break;
+      return ts_done;
+
     case 1:
       DBF (DB_BASIC, (question_flag ? _("Target file `%s' needs remade under -q.\n")
 		      : _("Failed to remake target file `%s'.\n")));
-      break;
+      return ts_failed;
+
     default:
       assert (file->update_status >= 0 && file->update_status <= 1);
       break;
     }
 
-  return file->update_status;
+  /* note: code can't get here */
+  return ts_failed;
 }
 
 /* Set FILE's `updated' flag and re-check its mtime and the mtime's of all
@@ -764,9 +790,13 @@ notice_finished_file (file)
    If it does, store 1 in *MUST_MAKE_PTR.
    In the process, update any non-intermediate files
    that FILE depends on (including FILE itself).
-   Return nonzero if any updating failed.  */
 
-static int
+   Return ts_done if FILE has completed successfully, ts_incomplete if
+   FILE or any of its precursors are incomplete, or ts_failed if FILE
+   or any of its precursors failed.
+  */
+
+static target_state_t
 check_dep (file, depth, this_mtime, must_make_ptr)
      struct file *file;
      unsigned int depth;
@@ -774,7 +804,7 @@ check_dep (file, depth, this_mtime, must_make_ptr)
      int *must_make_ptr;
 {
   register struct dep *d;
-  int dep_status = 0;
+  target_state_t dep_status = ts_done;
 
   ++depth;
   file->updating = 1;
@@ -851,7 +881,7 @@ check_dep (file, depth, this_mtime, must_make_ptr)
 	      dep_status |= check_dep (d->file, depth, this_mtime,
                                        must_make_ptr);
 	      check_renamed (d->file);
-	      if (dep_status != 0 && !keep_going_flag)
+	      if (dep_status == ts_failed && !keep_going_flag)
 		break;
 
 	      if (d->file->command_state == cs_running

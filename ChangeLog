@@ -1,8 +1,19 @@
 2000-02-20  Tim Magill  <magill@gate.net>
 
+	* remake.c (check_dep):
+	(update_file_1):
+	(update_goal_chain):
+	(check_dep): Changed return value of target updating functions to
+	be enum target_state_t.  This allows each caller to know the state
+	of the target being processed after each call.  Thus,
+	update_goal_chain() can know from the return value of
+	update_file() whether or not a target has completed and can be
+	removed from the goal chain.
+
 	* remake.c (update_goal_chain): removed variable
 	ocommands_started, it was essentially unused.
-
+	
+	
 2000-02-12  Tim Magill  <magill@gate.net>
 
 	* remake.c (update_file_1): 
