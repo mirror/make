@@ -3403,10 +3403,13 @@ width0pt\relax} \fi
   \iflinks \write\tocfile{#1{\folio}}\fi
 }
 
-% Finish up the main text and prepare to read what we've written
-% to \tocfile.
 \newskip\contentsrightmargin \contentsrightmargin=1in
 \newcount\savepageno
+\newcount\lastnegativepageno \lastnegativepageno = -1
+
+% Finish up the main text and prepare to read what we've written
+% to \tocfile.
+% 
 \def\startcontents#1{%
    % If @setchapternewpage on, and @headings double, the contents should
    % start on an odd page, unlike chapters.  Thus, we maintain
@@ -3428,7 +3431,7 @@ width0pt\relax} \fi
       \advance\hsize by -\contentsrightmargin % Don't use the full line length.
       %
       % Roman numerals for page numbers.
-      \ifnum \pageno>0 \pageno = -1 \fi
+      \ifnum \pageno>0 \pageno = \lastnegativepageno \fi
 }
 
 
@@ -3442,6 +3445,7 @@ width0pt\relax} \fi
      \fi
      \vfill \eject
    \endgroup
+   \lastnegativepageno = \pageno
    \pageno = \savepageno
 }
 
@@ -3470,6 +3474,7 @@ width0pt\relax} \fi
       \fi
      \vfill \eject
    \endgroup
+   \lastnegativepageno = \pageno
    \pageno = \savepageno
 }
 \let\shortcontents = \summarycontents
