@@ -1,3 +1,13 @@
+2000-03-11  Tim Magill  <tim@magill@gate.net>
+
+	* remake.c
+	(update_file): If not -k, we can bail when a failure is detected.
+	If we don't, its possible that dependecies of double_colon rules
+	will get built after a failure has been detected.
+	
+	(update_goal_chain): removed unused updating_makefiles
+	(update_file_1): cleaned up post remake_file() handling
+
 2000-02-29  Tim Magill  <magill@gate.net>
 
 	* remake.c (update_goal_chain): eliminated double colon loop.
