@@ -361,7 +361,6 @@ in favor of those for `%s'."),
       MERGE (precious);
       MERGE (tried_implicit);
       MERGE (updating);
-      MERGE (updated);
       MERGE (is_target);
       MERGE (cmd_target);
       MERGE (phony);
@@ -659,7 +658,7 @@ print_file (f)
       file_timestamp_sprintf (buf, f->last_mtime);
       printf (_("#  Last modified %s\n"), buf);
     }
-  puts (f->updated
+  puts ((f->command_state == cs_finished)
         ? _("#  File has been updated.") : _("#  File has not been updated."));
   switch (f->command_state)
     {

@@ -76,7 +76,6 @@ struct file
 				      for implicit rule for making
 				      this file; don't search again.  */
     unsigned int updating:1;	/* Nonzero while updating deps of this file */
-    unsigned int updated:1;	/* Nonzero if this file has been remade.  */
     unsigned int is_target:1;	/* Nonzero if file is described as target.  */
     unsigned int cmd_target:1;	/* Nonzero if file was given on cmd line.  */
     unsigned int phony:1;	/* Nonzero if this is a phony file

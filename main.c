@@ -1254,7 +1254,6 @@ int main (int argc, char ** argv)
 	    /* Make sure the temporary file will not be remade.  */
             stdin_nm = savestring (name, sizeof (name) -1);
 	    f = enter_file (stdin_nm);
-	    f->updated = 1;
 	    f->update_status = 0;
 	    f->command_state = cs_finished;
  	    /* Can't be intermediate, or it'll be removed too early for
@@ -1518,7 +1517,6 @@ int main (int argc, char ** argv)
       {
 	f = enter_command_line_file (*p);
 	f->last_mtime = f->mtime_before_update = (FILE_TIMESTAMP) 1;
-	f->updated = 1;
 	f->update_status = 0;
 	f->command_state = cs_finished;
       }
@@ -1633,7 +1631,7 @@ int main (int argc, char ** argv)
                    again to print an error.  */
                 d->file->considered = 0;
 
-                if (d->file->updated)
+                if (d->file->command_state == cs_finished)
                   {
                     /* This makefile was updated.  */
                     if (d->file->update_status == 0)

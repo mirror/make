@@ -156,7 +156,7 @@ update_goal_chain (goals, makefiles)
                  STATUS as it is if no updating was done.  */
 
 	      stop = 0;
-	      if ((x != 0 || file->updated) && status < 1)
+	      if ((x != 0 || (file->command_state == cs_finished)) && status < 1)
                 {
                   if (file->update_status != 0)
                     {
@@ -174,7 +174,7 @@ update_goal_chain (goals, makefiles)
                       FILE_TIMESTAMP mtime = MTIME (file);
                       check_renamed (file);
 
-                      if (file->updated && g->changed &&
+                      if ((file->command_state == cs_finished) && g->changed &&
                            mtime != file->mtime_before_update)
                         {
                           /* Updating was done.  If this is a makefile and
@@ -195,7 +195,7 @@ update_goal_chain (goals, makefiles)
 
 	      /* Keep track if any double-colon entry is not finished.
                  When they are all finished, the goal is finished.  */
-	      any_not_updated |= !file->updated;
+	      any_not_updated |= !(file->command_state == cs_finished);
 
 	      if (stop)
 		break;
@@ -342,7 +342,7 @@ update_file_1 (file, depth)
 
   DBF (DB_VERBOSE, _("Considering target file `%s'.\n"));
 
-  if (file->updated)
+  if (file->command_state == cs_finished)
     {
       if (file->update_status > 0)
 	{
@@ -670,7 +670,6 @@ update_file_1 (file, depth)
       break;
     }
 
-  file->updated = 1;
   return file->update_status;
 }
 
@@ -688,7 +687,6 @@ notice_finished_file (file)
   int ran = file->command_state == cs_running;
 
   file->command_state = cs_finished;
-  file->updated = 1;
 
   if (touch_flag
       /* The update status will be:
@@ -759,7 +757,6 @@ notice_finished_file (file)
     for (d = file->also_make; d != 0; d = d->next)
       {
 	d->file->command_state = cs_finished;
-	d->file->updated = 1;
 	d->file->update_status = file->update_status;
 
 	if (ran && !d->file->phony)
@@ -1138,7 +1135,7 @@ f_mtime (file, search)
     static FILE_TIMESTAMP now = 0;
     if (!clock_skew_detected
         && mtime != (FILE_TIMESTAMP)-1 && mtime > now
-        && !file->updated)
+        && !(file->command_state == cs_finished))
       {
 	/* This file's time appears to be in the future.
 	   Update our concept of the present, and compare again.  */
