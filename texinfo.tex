@@ -3433,7 +3433,7 @@ width0pt\relax} \fi
 
 
 % Normal (long) toc.
-\outer\def\contents{%
+\def\contents{%
    \startcontents{\putwordTableofContents}%
       \input \jobname.toc
    \endgroup
@@ -3441,7 +3441,7 @@ width0pt\relax} \fi
 }
 
 % And just the chapters.
-\outer\def\summarycontents{%
+\def\summarycontents{%
    \startcontents{\putwordShortContents}%
       %
       \let\chapentry = \shortchapentry
