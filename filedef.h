@@ -60,12 +60,6 @@ struct file
        the same file.  Otherwise this is null.  */
     struct file *double_colon;
 
-    short int update_status;	/* Status of the last attempt to update,
-				   or -1 if none has been made.
-				   0 = commands ran and won
-				   1 = files need to be updated (-q)
-				   2 = commands ran and lost */
-
     enum			/* State of the commands.  */
       {		/* Note: It is important that cs_not_started be zero.  */
 	cs_not_started,		/* Not yet started.  */
@@ -73,6 +67,10 @@ struct file
 	cs_running,		/* Commands running.  */
 	cs_finished		/* Commands finished.  */
       } command_state ENUM_BITFIELD (2);
+
+
+    unsigned int update_status:1;  /* update status signifies only
+                                      whether the file won or lost */
 
     unsigned int precious:1;	/* Non-0 means don't delete file on quit */
     unsigned int tried_implicit:1; /* Nonzero if have searched

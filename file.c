@@ -166,7 +166,7 @@ enter_file (name)
   new = (struct file *) xmalloc (sizeof (struct file));
   bzero ((char *) new, sizeof (struct file));
   new->name = new->hname = name;
-  new->update_status = -1;
+  new->update_status = 0;	/* assume the file won */
 
   if (f == 0)
     {
@@ -395,7 +395,7 @@ remove_intermediates (sig)
 	  && !f->secondary)
 	{
 	  int status;
-	  if (f->update_status == -1)
+	  if (f->command_state == cs_not_started)
 	    /* If nothing would have created this file yet,
 	       don't print an "rm" command for it.  */
             continue;
@@ -668,26 +668,19 @@ print_file (f)
       puts (_("#  Dependencies commands running (THIS IS A BUG)."));
       break;
     case cs_not_started:
+      break;
     case cs_finished:
       switch (f->update_status)
 	{
-	case -1:
-	  break;
 	case 0:
+	  /* file won */
 	  puts (_("#  Successfully updated."));
 	  break;
 	case 1:
-	  assert (question_flag);
-	  puts (_("#  Needs to be updated (-q is set)."));
+	  /* file lost */
+	  puts (question_flag ? _("#  Needs to be updated (-q is set).")
+		:_("#  Failed to be updated."));
 	  break;
-	case 2:
-	  puts (_("#  Failed to be updated."));
-	  break;
-	default:
-	  puts (_("#  Invalid value in `update_status' member!"));
-	  fflush (stdout);
-	  fflush (stderr);
-	  abort ();
 	}
       break;
     default:

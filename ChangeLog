@@ -1,5 +1,28 @@
 2000-02-12  Tim Magill  <magill@gate.net>
 
+	* remake.c (update_file_1): 
+	(notice_finished_file): 
+	(remake_file): 
+
+	* main.c (main): 
+
+	* job.c (reap_children): 
+	(start_job_command): 
+
+	* file.c (enter_file)
+	(remove_intermediates): 
+	(print_file): 
+
+	* filedef.h: converted update_status field from a short int, to an
+	unsigned int :1.  previously, update status indicated whether the
+	file had actually executed any commands, won, lost, or lost under
+	-q conditions.  command_state indicates more clearly whether or
+	not any commands have been executed for this file.  lost or lost
+	under -q conditions can be determined by a combination of
+	question_flag and lost.  Thus, update_status needs only indicate
+	won or lost.
+
+
 	* implicit.c (try_implicit_rule): 
 	* remake.c (check_dep):
 	* remake.c (update_file_1): 

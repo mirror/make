@@ -354,7 +354,7 @@ update_file_1 (file, depth)
       return 0;
 
     case cs_finished:
-      if (file->update_status > 0)
+      if (file->update_status != 0)
 	{
 	  DBF (DB_VERBOSE,
 	       _("Recently tried and failed to update file `%s'.\n"));
@@ -512,7 +512,7 @@ update_file_1 (file, depth)
 
   if (dep_status != 0)
     {
-      file->update_status = dep_status;
+      file->update_status = dep_status ? 1 : 0;
       notice_finished_file (file);
 
       depth--;
@@ -653,17 +653,15 @@ update_file_1 (file, depth)
 
   switch (file->update_status)
     {
-    case 2:
-      DBF (DB_BASIC, _("Failed to remake target file `%s'.\n"));
-      break;
     case 0:
       DBF (DB_BASIC, _("Successfully remade target file `%s'.\n"));
       break;
     case 1:
-      DBF (DB_BASIC, _("Target file `%s' needs remade under -q.\n"));
+      DBF (DB_BASIC, (question_flag ? _("Target file `%s' needs remade under -q.\n")
+		      : _("Failed to remake target file `%s'.\n")));
       break;
     default:
-      assert (file->update_status >= 0 && file->update_status <= 2);
+      assert (file->update_status >= 0 && file->update_status <= 1);
       break;
     }
 
@@ -710,7 +708,7 @@ notice_finished_file (file)
 	    file->update_status = 0;
 	  else
 	    /* Should set file's modification date and do nothing else.  */
-	    file->update_status = touch_file (file);
+	    file->update_status = touch_file (file) ? 1 : 0;
 	}
     }
 
@@ -746,7 +744,7 @@ notice_finished_file (file)
 	f->last_mtime = file->last_mtime;
     }
 
-  if (ran && file->update_status != -1)
+  if (ran)
     /* We actually tried to update FILE, which has
        updated its also_make's as well (if it worked).
        If it didn't work, it wouldn't work again for them.
@@ -763,10 +761,6 @@ notice_finished_file (file)
 	     never be done because the target is already updated.  */
 	  (void) f_mtime (d->file, 0);
       }
-  else if (file->update_status == -1)
-    /* Nothing was done for FILE, but it needed nothing done.
-       So mark it now as "succeeded".  */
-    file->update_status = 0;
 }
 
 /* Check whether another file (whose mtime is THIS_MTIME)
@@ -978,7 +972,7 @@ remake_file (file)
                 error (NILF, msg_parent, "*** ",
                        file->name, file->parent->name, ".");
             }
-          file->update_status = 2;
+          file->update_status = 1;
         }
     }
   else

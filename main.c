@@ -1604,17 +1604,11 @@ int main (int argc, char ** argv)
 
       switch (update_goal_chain (read_makefiles, 1))
 	{
-	case 1:
-	default:
-#define BOGUS_UPDATE_STATUS 0
-	  assert (BOGUS_UPDATE_STATUS);
-	  break;
-
 	case -1:
 	  /* Did nothing.  */
 	  break;
 
-	case 2:
+	case 1:
 	  /* Failed to update.  Figure out if we care.  */
 	  {
 	    /* Nonzero if any makefile was successfully remade.  */
@@ -1834,18 +1828,19 @@ int main (int argc, char ** argv)
     {
       case -1:
         /* Nothing happened.  */
+	/* FALL THRU */
       case 0:
         /* Updated successfully.  */
         status = EXIT_SUCCESS;
         break;
-      case 2:
-        /* Updating failed.  POSIX.2 specifies exit status >1 for this;
-           but in VMS, there is only success and failure.  */
-        status = EXIT_FAILURE ? 2 : EXIT_FAILURE;
-        break;
       case 1:
+	if (question_flag)
         /* We are under -q and would run some commands.  */
-        status = EXIT_FAILURE;
+	  status = EXIT_FAILURE;
+	else
+	  /* Updating failed.  POSIX.2 specifies exit status >1 for this;
+	     but in VMS, there is only success and failure.  */
+	  status = EXIT_FAILURE ? 2 : EXIT_FAILURE;
         break;
       default:
         abort ();
