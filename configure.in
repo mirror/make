@@ -254,15 +254,15 @@ AC_CACHE_CHECK(for SA_RESTART, make_cv_sa_restart, [
     [make_cv_sa_restart=yes],
     [make_cv_sa_restart=no])])
 
-# enable make_cv_sa_restart for OS/2
-case "$host_os" in
-  os2*) make_cv_sa_restart=yes ;;
-esac
-
 if test "$make_cv_sa_restart" != no; then
   AC_DEFINE(HAVE_SA_RESTART, 1,
      [Define if <signal.h> defines the SA_RESTART constant.])
 fi
+
+# enable make_cv_sa_restart for OS/2
+case "$host_os" in
+  os2*) make_cv_sa_restart=yes ;;
+esac
 
 case "$ac_cv_func_pipe/$ac_cv_func_sigaction/$make_cv_sa_restart/$has_wait_nohang/$make_cv_job_server" in
   yes/yes/yes/yes/yes)
