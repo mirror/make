@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT(GNU make,3.80b2,bug-make@gnu.org)
+AC_INIT(GNU make,3.80rc2,bug-make@gnu.org)
 
 AC_PREREQ(2.53)
 
