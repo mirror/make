@@ -209,6 +209,9 @@ case "$make_cv_sys_gnu_glob" in
 esac
 
 
+AC_DEFINE_UNQUOTED(MAKE_HOST,"$host",[Build host information.])
+
+
 MAINT_MAKEFILE=/dev/null
 if test -r "$srcdir/maintMakefile"; then
   MAINT_MAKEFILE="$srcdir/maintMakefile"
