@@ -42,7 +42,6 @@ AC_CHECK_FUNCS(psignal mktemp \
 	       dup2 getcwd sigsetmask getgroups setlinebuf \
 	       seteuid setegid setreuid setregid strerror strsignal)
 AC_CHECK_SYMBOL(sys_siglist)
-AC_CHECK_SYMBOL(_sys_siglist)
 AC_FUNC_ALLOCA
 AC_FUNC_VFORK
 AC_FUNC_SETVBUF_REVERSED
