@@ -294,21 +294,6 @@ make_cv_sys_gnu_glob=no])])
 # Tell automake about this, so it can build the right .c files.
 AM_CONDITIONAL(USE_LOCAL_GLOB, test "$make_cv_sys_gnu_glob" = no)
 
-# PTX systems have a broken implementation of SA_RESTART.  I know of
-# no way to test for this behavior, so I'll just test for PTX
-
-case "$host" in
-  i386-sequent-sysv4)
-    AC_DEFINE(HAVE_BROKEN_RESTART, 1, [This system has SA_RESTART, but it doesn't work properly.])
-    echo ""
-    echo "WARNING: The SA_RESTART sigaction() flag does not work on PTX."
-    echo "         This causes 'make -j' to fail at random times."
-    echo "         I am installing a workaround, which is mostly but not 100%"
-    echo "         effective.  If you see random failures during 'make -j'"
-    echo "         you should either contact the bug list, or not use -j."
-    echo "" ;;
-esac
-
 # Let the makefile know what our build host is
 
 AC_DEFINE_UNQUOTED(MAKE_HOST,"$host",[Build host information.])
