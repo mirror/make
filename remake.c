@@ -50,7 +50,7 @@ typedef enum {
   ts_done = 0,			/* all precursors and target are complete */
   ts_incomplete = 1,		/* some precursor or target is still running */
   ts_failed = 3,		/* some precursor or target failed */
-  ts_sentinal			/* make ANSI happy with non trailing  */
+  ts_sentinal			/* make ANSI happy with non trailing , */
 } target_state_t;
 
 
@@ -130,90 +130,78 @@ update_goal_chain (goals, makefiles)
 	{
 	  /* Iterate over all double-colon entries for this file.  */
 	  struct file *file;
-	  int stop = 0, any_not_updated = 0;
+	  int stop = 0;
+	  target_state_t target_state;
 
-	  for (file = g->file->double_colon ? g->file->double_colon : g->file;
-	       file != NULL;
-	       file = file->prev)
+	  target_state = ts_done;
+
+	  file = g->file;
+	  check_renamed (file);
+	  if (makefiles)
 	    {
-	      int x;
-	      check_renamed (file);
-	      if (makefiles)
+	      if (file->cmd_target)
 		{
-		  if (file->cmd_target)
-		    {
-		      touch_flag = t;
-		      question_flag = q;
-		      just_print_flag = n;
-		    }
-		  else
-		    touch_flag = question_flag = just_print_flag = 0;
+		  touch_flag = t;
+		  question_flag = q;
+		  just_print_flag = n;
 		}
-
-	      commands_started = 0;
-
-	      x = update_file (file, makefiles ? 1 : 0);
-	      check_renamed (file);
-
-	      /* Set the goal's `changed' flag if any commands were started
-		 by calling update_file above.  We check this flag below to
-		 decide when to give an "up to date" diagnostic.  */
-	      g->changed |= commands_started ? 1 : 0;
-
-              /* If we updated a file and STATUS was not already 1, set it to
-                 1 if updating failed, or to 0 if updating succeeded.  Leave
-                 STATUS as it is if no updating was done.  */
-
-	      stop = 0;
-	      if ((x != ts_failed || (file->command_state == cs_finished)) && status < 1)
-                {
-                  if (file->update_status != 0)
-                    {
-                      /* Updating failed, or -q triggered.  The STATUS value
-                         tells our caller which.  */
-                      status = file->update_status;
-                      /* If -q just triggered, stop immediately.  It doesn't
-                         matter how much more we run, since we already know
-                         the answer to return.  */
-                      stop = (!keep_going_flag && !question_flag
-                              && !makefiles);
-                    }
-                  else
-                    {
-                      FILE_TIMESTAMP mtime = MTIME (file);
-                      check_renamed (file);
-
-                      if ((file->command_state == cs_finished) && g->changed &&
-                           mtime != file->mtime_before_update)
-                        {
-                          /* Updating was done.  If this is a makefile and
-                             just_print_flag or question_flag is set (meaning
-                             -n or -q was given and this file was specified
-                             as a command-line target), don't change STATUS.
-                             If STATUS is changed, we will get re-exec'd, and
-                             enter an infinite loop.  */
-                          if (!makefiles
-                              || (!just_print_flag && !question_flag))
-                            status = 0;
-                          if (makefiles && file->dontcare)
-                            /* This is a default makefile; stop remaking.  */
-                            stop = 1;
-                        }
-                    }
-                }
-
-	      /* Keep track if any double-colon entry is not finished.
-                 When they are all finished, the goal is finished.  */
-	      any_not_updated |= !(file->command_state == cs_finished);
-
-	      if (stop)
-		break;
+	      else
+		touch_flag = question_flag = just_print_flag = 0;
 	    }
 
-	  /* Reset FILE since it is null at the end of the loop.  */
-	  file = g->file;
+	  commands_started = 0;
 
-	  if (stop || !any_not_updated)
+	  target_state = update_file (file, makefiles ? 1 : 0);
+	  check_renamed (file);
+
+	  /* Set the goal's `changed' flag if any commands were started
+	     by calling update_file above.  We check this flag below to
+	     decide when to give an "up to date" diagnostic.  */
+	  g->changed |= commands_started ? 1 : 0;
+
+	  /* If we updated a file and STATUS was not already 1, set it to
+	     1 if updating failed, or to 0 if updating succeeded.  Leave
+	     STATUS as it is if no updating was done.  */
+
+	  stop = 0;
+	  if (target_state != ts_incomplete && status < 1)
+	    {
+	      if (file->update_status != 0)
+		{
+		  /* Updating failed, or -q triggered.  The STATUS value
+		     tells our caller which.  */
+		  status = file->update_status;
+		  /* If -q just triggered, stop immediately.  It doesn't
+		     matter how much more we run, since we already know
+		     the answer to return.  */
+		  stop = (!keep_going_flag && !question_flag
+			  && !makefiles);
+		}
+	      else
+		{
+		  FILE_TIMESTAMP mtime = MTIME (file);
+		  check_renamed (file);
+
+		  if (g->changed &&
+		      mtime != file->mtime_before_update)
+		    {
+		      /* Updating was done.  If this is a makefile and
+			 just_print_flag or question_flag is set (meaning
+			 -n or -q was given and this file was specified
+			 as a command-line target), don't change STATUS.
+			 If STATUS is changed, we will get re-exec'd, and
+			 enter an infinite loop.  */
+		      if (!makefiles
+			  || (!just_print_flag && !question_flag))
+			status = 0;
+		      if (makefiles && file->dontcare)
+			/* This is a default makefile; stop remaking.  */
+			stop = 1;
+		    }
+		}
+	    }
+
+	  if (stop || (target_state != ts_incomplete))
 	    {
 	      /* If we have found nothing whatever to do for the goal,
 		 print a message saying nothing needs doing.  */
@@ -285,35 +273,22 @@ update_file (file, depth)
      struct file *file;
      unsigned int depth;
 {
-  register target_state_t status = 0;
+  register target_state_t status = ts_done;
   register struct file *f;
 
   f = file->double_colon ? file->double_colon : file;
-
-  /* Prune the dependency graph: if we've already been here on _this_
-     pass through the dependency graph, we don't have to go any further.
-     We won't reap_children until we start the next pass, so no state
-     change is possible below here until then.  */
-  if (f->considered == considered)
-    {
-      DBF (DB_VERBOSE, _("Pruning file `%s'.\n"));
-      if (f->command_state == cs_finished)
-	{
-	  return f->update_status ? ts_failed : ts_done;
-	}
-      return ts_incomplete;
-    }
 
   /* This loop runs until we start commands for a double colon rule, or until
      the chain is exhausted. */
   for (; f != 0; f = f->prev)
     {
-      f->considered = considered;
-
       status |= update_file_1 (f, depth);
       check_renamed (f);
 
       if (status == ts_failed && !keep_going_flag)
+	break;
+
+      if (status == ts_incomplete)
 	break;
 
       if (f->command_state == cs_running
@@ -358,6 +333,22 @@ update_file_1 (file, depth)
   target_state_t dep_status = ts_done;
   register struct dep *d, *lastd;
   int running = 0;
+
+  /* Prune the dependency graph: if we've already been here on _this_
+     pass through the dependency graph, we don't have to go any further.
+     We won't reap_children until we start the next pass, so no state
+     change is possible below here until then.  */
+  if (file->considered == considered)
+    {
+      DBF (DB_VERBOSE, _("Pruning file `%s'.\n"));
+      if (file->command_state == cs_finished)
+	{
+	  return file->update_status ? ts_failed : ts_done;
+	}
+      return ts_incomplete;
+    }
+  file->considered = considered;
+
 
   DBF (DB_VERBOSE, _("Considering target file `%s'.\n"));
 

@@ -1,3 +1,16 @@
+2000-02-29  Tim Magill  <magill@gate.net>
+
+	* remake.c (update_goal_chain): eliminated double colon loop.
+	update_file() handles the double colon logic, so
+	update_goal_chain() doesn't have to.
+	
+
+	* remake.c (update_file): 
+	(update_file_1): Moved consedered test to update_file_1() so
+	update_file() can more easily return a target_state_t which
+	represents the state of the entire double colon rule.
+
+
 2000-02-20  Tim Magill  <magill@gate.net>
 
 	* remake.c (check_dep):
