@@ -9,13 +9,6 @@
  * $Source$
  *
  * $Revision$
- *
- * Description: 
- *
- * (C) COPYRIGHT TIVOLI Systems, Inc. 1991-1994
- * Unpublished Work
- * All Rights Reserved
- * Licensed Material - Property of TIVOLI Systems, Inc.
  */
 
 /* $Id$ */
