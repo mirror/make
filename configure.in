@@ -108,7 +108,7 @@ if ( /usr/sccs/admin -n s.conftest || admin -n s.conftest ) >/dev/null 2>&1 &&
 fi
 rm -f s.conftest conftoast
 
-AC_OUTPUT(Makefile build.sh glob/Makefile, [
+AC_OUTPUT(Makefile build.sh, [
 # Makefile uses this timestamp file to know when to remake Makefile,
 # build.sh, and glob/Makefile.
 touch stamp-config])
