@@ -9107,7 +9107,6 @@ defined.@*
 Evaluate @var{text} with @var{var} bound to each word in @var{words},
 and concatenate the results.@*
 @xref{Foreach Function, ,The @code{foreach} Function}.
-@end table
 
 @item $(call @var{var},@var{param},@dots{})
 
