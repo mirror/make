@@ -338,8 +338,6 @@ Makefile Conventions
 * Standard Targets::            Standard Targets for Users
 * Install Command Categories::  Three categories of commands in the `install'
 
-Copying This Manual
-
 @end detailmenu
 @end menu
 
