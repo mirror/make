@@ -123,7 +123,6 @@ update_goal_chain (goals, makefiles)
 	       file != NULL;
 	       file = file->prev)
 	    {
-	      unsigned int ocommands_started;
 	      int x;
 	      check_renamed (file);
 	      if (makefiles)
@@ -138,10 +137,7 @@ update_goal_chain (goals, makefiles)
 		    touch_flag = question_flag = just_print_flag = 0;
 		}
 
-	      /* Save the old value of `commands_started' so we can compare
-		 later.  It will be incremented when any commands are
-		 actually run.  */
-	      ocommands_started = commands_started;
+	      commands_started = 0;
 
 	      x = update_file (file, makefiles ? 1 : 0);
 	      check_renamed (file);
@@ -149,7 +145,7 @@ update_goal_chain (goals, makefiles)
 	      /* Set the goal's `changed' flag if any commands were started
 		 by calling update_file above.  We check this flag below to
 		 decide when to give an "up to date" diagnostic.  */
-	      g->changed += commands_started - ocommands_started;
+	      g->changed |= commands_started ? 1 : 0;
 
               /* If we updated a file and STATUS was not already 1, set it to
                  1 if updating failed, or to 0 if updating succeeded.  Leave
