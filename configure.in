@@ -225,8 +225,8 @@ AC_OUTPUT(build.sh Makefile glob/Makefile)
 
 dnl If we don't yet have build.sh.in, build.sh is a bogus 0-length file
 dnl so remove it.
-
-test -f build.sh.in || rm -f build.sh
+dnl Can't do this because then remote builds with build.sh don't work.
+dnl test -f build.sh.in || rm -f build.sh
 
 
 case "$make_badcust" in
