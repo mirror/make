@@ -3792,17 +3792,16 @@ width0pt\relax} \fi
 }
 
 % Fine, but then we have to eventually remove the \empty *and* the
-% braces (if any).  That's what this does, putting the result in \tptemp.
+% braces (if any).  That's what this does.
 % 
-\def\removeemptybraces\empty#1\relax{\def\tptemp{#1}}%
+\def\removeemptybraces\empty#1\relax{#1}
 
 % After \spacesplit has done its work, this is called -- #1 is the final
 % thing to call, #2 the type name (which starts with \empty), and #3
 % (which might be empty) the arguments.
 % 
 \def\parsetpheaderline#1#2#3{%
-  \removeemptybraces#2\relax
-  #1{\tptemp}{#3}%
+  #1{\removeemptybraces#2\relax}{#3}%
 }%
 
 \def\defopvarparsebody #1#2#3#4#5 {\begingroup\inENV %
