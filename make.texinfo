@@ -3575,7 +3575,7 @@ they have particular specialized uses.  @xref{Automatic Variables}.
 * Defining::                    An alternate way to set a variable 
                                   to a verbatim string.
 * Environment::                 Variable values can come from the environment.
-* Automatic Variables::         Some special variables have predefined
+* Automatic::                   Some special variables have predefined
                                   meanings for use with implicit rules.
 @end menu
 
