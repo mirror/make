@@ -27,10 +27,10 @@
 % reports; you can get the latest version from:
 %   ftp://ftp.gnu.org/pub/gnu/texinfo.tex
 %   /home/gd/gnu/doc/texinfo.tex on the GNU machines.
-%   (and all GNU mirrors, see ftp://ftp.gnu.org/pub/gnu/README.mirrors)
+%   (and all GNU mirrors, see ftp://ftp.gnu.org/pub/gnu/GNUinfo/FTP)
 %   ftp://tug.org/tex/texinfo.tex
 %   ftp://ctan.org/macros/texinfo/texinfo.tex
-%   (and all CTAN mirrors, finger ctan@tug.org for a list).
+%   (and all CTAN mirrors, finger ctan@ctan.org for a list).
 % The texinfo.tex in the texinfo distribution itself could well be out
 % of date, so if that's what you're using, please check.
 % 
@@ -40,7 +40,7 @@
 % 
 % To process a Texinfo manual with TeX, it's most reliable to use the
 % texi2dvi shell script that comes with the distribution.  For simple
-% manuals, you can get away with:
+% manuals, however, you can get away with:
 %   tex foo.texi
 %   texindex foo.??
 %   tex foo.texi
@@ -1198,8 +1198,8 @@ where each line of input produces a line of output.}
 \setfont\ninett\ttshape{9}{1000}
 \setfont\ninettsl\ttslshape{10}{900}
 \setfont\indrm\rmshape{9}{1000}
-\setfont\indit\slshape{9}{1000}
-\let\indsl=\indit
+\setfont\indit\itshape{9}{1000}
+\setfont\indsl\slshape{9}{1000}
 \let\indtt=\ninett
 \let\indttsl=\ninettsl
 \let\indsf=\indrm
@@ -1348,13 +1348,14 @@ where each line of input produces a line of output.}
 % \smartitalic{ARG} outputs arg in italics, followed by an italic correction
 % unless the following character is such as not to need one.
 \def\smartitalicx{\ifx\next,\else\ifx\next-\else\ifx\next.\else\/\fi\fi\fi}
-\def\smartitalic#1{{\sl #1}\futurelet\next\smartitalicx}
+\def\smartslanted#1{{\sl #1}\futurelet\next\smartitalicx}
+\def\smartitalic#1{{\it #1}\futurelet\next\smartitalicx}
 
 \let\i=\smartitalic
-\let\var=\smartitalic
-\let\dfn=\smartitalic
+\let\var=\smartslanted
+\let\dfn=\smartslanted
 \let\emph=\smartitalic
-\let\cite=\smartitalic
+\let\cite=\smartslanted
 
 \def\b#1{{\bf #1}}
 \let\strong=\b
