@@ -893,7 +893,7 @@ where each line of input produces a line of output.}
 %
 \def\value{\begingroup
   \catcode`\-=12 \catcode`\_=12 % Allow - and _ in VAR.
-  \parsearg\valuexxx}
+  \valuexxx}
 \def\valuexxx#1{%
   \expandafter\ifx\csname SET#1\endcsname\relax
     {\{No value for ``#1''\}}%
