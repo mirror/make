@@ -4406,10 +4406,13 @@ width0pt\relax} \fi
 }
 
 % This is the macro invoked by entries in the aux file.
-\def\xrdef #1#2{{%
-  \catcode`\'=\other
-  \expandafter\gdef\csname X#1\endcsname{#2}%
-}}
+% 
+\def\xrdef#1{\begingroup
+  % Reenable \ as an escape while reading the second argument.
+  \catcode`\\ = 0
+  \afterassignment\endgroup
+  \expandafter\gdef\csname X#1\endcsname
+}
 
 % Read the last existing aux file, if any.  No error if none exists.
 \def\readauxfile{\begingroup
