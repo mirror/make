@@ -60,7 +60,7 @@ AC_MSG_RESULT($ac_cv_check_symbol_$1)])dnl
 # clock_gettime is in -lposix4 in Solaris 2.6.
 AC_CHECK_LIB(posix4, clock_gettime)
 
-AC_CHECK_FUNCS(memmove strdup psignal mktemp pstat_getdynamic \
+AC_CHECK_FUNCS(memmove strchr memcpy strdup psignal mktemp pstat_getdynamic \
 	       clock_gettime dup2 getcwd sigsetmask sigaction getgroups \
 	       setlinebuf seteuid setegid setreuid setregid pipe \
 	       strerror strsignal)
