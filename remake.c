@@ -56,6 +56,20 @@ typedef enum {
 
   
 
+/* the test for circular dependencies is based just on the 'updating'
+   bit in 'struct file'.  However double colon targets have seperate
+   'struct file's.  Therefore, we will lose if we don't notice that a
+   double colon targets are really the same file.  Use the 'struct
+   file' at the base of the double colon chain. */
+
+#define set_updating(file) (((file)->double_colon ? \
+	(file)->double_colon : (file))->updating = 1)
+#define clr_updating(file) (((file)->double_colon ? \
+	(file)->double_colon : (file))->updating = 0)
+#define tst_updating(file) (((file)->double_colon ? \
+	(file)->double_colon : (file))->updating)
+
+
 /* Incremented when a command is started (under -n, when one would be).  */
 unsigned int commands_started = 0;
 
@@ -373,7 +387,7 @@ update_file_1 (file, depth)
   ++depth;
 
   /* Notice recursive update of the same file.  */
-  file->updating = 1;
+  set_updating(file);
 
   /* Looking at the file's modtime beforehand allows the possibility
      that its name may be changed by a VPATH search, and thus it may
@@ -383,27 +397,30 @@ update_file_1 (file, depth)
 
   this_mtime = file_mtime (file);
   check_renamed (file);
-  noexist = this_mtime == (FILE_TIMESTAMP) -1;
+  must_make = noexist = this_mtime == (FILE_TIMESTAMP) -1;
   if (noexist)
     DBF (DB_BASIC, _("File `%s' does not exist.\n"));
 
-  must_make = noexist;
+
 
   /* If file was specified as a target with no commands,
      come up with some default commands.  */
 
-  if (!file->phony && file->cmds == 0 && !file->tried_implicit)
+  if (file->cmds == 0) 
     {
-      if (try_implicit_rule (file, depth))
-	DBF (DB_IMPLICIT, _("Found an implicit rule for `%s'.\n"));
-      else
-	DBF (DB_IMPLICIT, _("No implicit rule found for `%s'.\n"));
-    }
-  if (file->cmds == 0 && !file->is_target
-      && default_file != 0 && default_file->cmds != 0)
-    {
-      DBF (DB_IMPLICIT, _("Using default commands for `%s'.\n"));
-      file->cmds = default_file->cmds;
+      if (!file->phony && !file->tried_implicit)
+	{
+	  if (try_implicit_rule (file, depth))
+	    DBF (DB_IMPLICIT, _("Found an implicit rule for `%s'.\n"));
+	  else
+	    DBF (DB_IMPLICIT, _("No implicit rule found for `%s'.\n"));
+	}
+      if (!file->is_target
+	  && default_file != 0 && default_file->cmds != 0)
+	{
+	  DBF (DB_IMPLICIT, _("Using default commands for `%s'.\n"));
+	  file->cmds = default_file->cmds;
+	}
     }
 
   /* Update all non-intermediate files we depend on, if necessary,
@@ -420,7 +437,7 @@ update_file_1 (file, depth)
       mtime = file_mtime (d->file);
       check_renamed (d->file);
 
-      if (d->file->updating)
+      if (tst_updating(d->file))
 	{
 	  error (NILF, _("Circular %s <- %s dependency dropped."),
 		 file->name, d->file->name);
@@ -498,7 +515,7 @@ update_file_1 (file, depth)
 	  }
     }
 
-  file->updating = 0;
+  clr_updating(file);
 
   DBF (DB_VERBOSE, _("Finished prerequisites of target file `%s'.\n"));
 
@@ -666,9 +683,8 @@ update_file_1 (file, depth)
     }
 }
 
-/* Set FILE's `updated' flag and re-check its mtime and the mtime's of all
-   files listed in its `also_make' member.  Under -t, this function also
-   touches FILE.
+/* re-check FILE's mtime and the mtime's of all files listed in its
+   `also_make' member.  Under -t, this function also touches FILE.
 
    On return, FILE->update_status will no longer be -1 if it was.  */
 
@@ -783,7 +799,7 @@ check_dep (file, depth, this_mtime, must_make_ptr)
   target_state_t dep_status = ts_done;
 
   ++depth;
-  file->updating = 1;
+  set_updating(file);
 
   if (!file->intermediate)
     /* If this is a non-intermediate file, update it and record
@@ -834,7 +850,7 @@ check_dep (file, depth, this_mtime, must_make_ptr)
 	  d = file->deps;
 	  while (d != 0)
 	    {
-	      if (d->file->updating)
+	      if (tst_updating(d->file))
 		{
 		  error (NILF, _("Circular %s <- %s dependency dropped."),
 			 file->name, d->file->name);
@@ -873,7 +889,7 @@ check_dep (file, depth, this_mtime, must_make_ptr)
 	}
     }
 
-  file->updating = 0;
+  clr_updating(file);
   return dep_status;
 }
 

@@ -1,9 +1,21 @@
+2000-03-13  Tim Magill  <magill@gate.net>
+
+	* remake.c: 
+	(update_file_1): 
+	(check_dep): fixed problem with double colon rules and circular
+	precursor detection.
+
 2000-03-12  Tim Magill  <magill@gate.net>
 
 	* remake.c (update_goal_chain): re-arranged logic so that it makes
 	more sense.  After update_file(), the target status is used to
 	handle the goal and possibly remove it from the goal chain.
 	
+	* remake.c (update_file_1): simplified handling of files with no
+	command into a single block.
+
+	* remake.c (notice_finished_file): fixed obsolete comment.
+
 	* remake.c (update_file): If -q we can bail as soon as we detect
 	that something needs to be remade.
 
