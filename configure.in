@@ -150,7 +150,7 @@ AC_DECL_SYS_SIGLIST
 
 # The presence of the following is not meant to imply
 # that make necessarily works on those systems.
-AC_CHECK_LIB(sun, getpwnam)
+AC_SEARCH_LIBS(getpwnam, sun)
 
 AC_SUBST(REMOTE) REMOTE=stub
 make_try_customs=no
