@@ -5,10 +5,6 @@ AC_INIT(vpath.c)dnl		dnl A distinctive file to look for in srcdir.
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_SUBDIRS(glob)		dnl Run configure in glob subdirectory.
 
-# We want these before the checks, so the checks can modify their values.
-test -z "$CFLAGS" && CFLAGS=-g AC_SUBST(CFLAGS)
-test -z "$LDFLAGS" && LDFLAGS=-g AC_SUBST(LDFLAGS)
-
 AC_PROG_MAKE_SET
 AC_PROG_CC
 AC_PROG_INSTALL
