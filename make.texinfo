@@ -2543,6 +2543,11 @@ main.o : main.c defs.h
 Thus you no longer have to write all those rules yourself.
 The compiler will do it for you.
 
+Note that such a dependency constitutes mentioning @file{main.o} in a
+makefile, so it can never be considered an intermediate file by implicit
+rule search.  This means that @code{make} won't ever remove the file
+after using it; @pxref{Chained Rules, ,Chains of Implicit Rules}.
+
 @cindex @code{make depend}
 With old @code{make} programs, it was traditional practice to use this
 compiler feature to generate dependencies on demand with a command like
