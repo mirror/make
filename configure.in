@@ -210,7 +210,7 @@ dnl build.sh is also an AC_OUTPUT, but we can't specify it here because
 dnl it's built from build.template and autoconf will crap out.  So, we
 dnl build it in the makefiles themselves.
 
-AC_OUTPUT(Makefile glob/Makefile)
+AC_OUTPUT(build.sh Makefile glob/Makefile)
 
 case "$make_badcust" in
   yes) echo
