@@ -8,10 +8,10 @@
 @c FSF publishers: format makebook.texi instead of using this file directly.
 
 @set RCSID $Id$
-@set EDITION 0.53
-@set VERSION 3.78
-@set UPDATED 14 April 1999
-@set UPDATE-MONTH April 1999
+@set EDITION 0.54
+@set VERSION 3.78.1
+@set UPDATED 09 September 1999
+@set UPDATE-MONTH September 1999
 @comment The ISBN number might need to change on next publication.
 @set ISBN 1-882114-80-9 @c CHANGE THIS BEFORE PRINTING AGAIN! --psmith 16jul98
 
