@@ -38,7 +38,7 @@ changequote([,])dnl
 fi
 AC_MSG_RESULT($ac_cv_check_symbol_$1)])dnl
 
-AC_CHECK_FUNCS(getdtablesize psignal mktemp \
+AC_CHECK_FUNCS(psignal mktemp \
 	       dup2 getcwd sigsetmask getgroups setlinebuf \
 	       seteuid setegid setreuid setregid strerror strsignal)
 AC_CHECK_SYMBOL(sys_siglist)
