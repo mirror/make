@@ -45,7 +45,7 @@ extern int try_implicit_rule PARAMS ((struct file *file, unsigned int depth));
 
 /* this enum encapsulates the return status of the recursive update
    functions.  Note: these values are important so that the state of
-   precursors can be summed up */
+   precursors can be or'ed together */
 typedef enum {
   ts_done = 0,			/* all precursors and target are complete */
   ts_incomplete = 1,		/* some precursor or target is still running */
@@ -86,9 +86,6 @@ update_goal_chain (goals, makefiles)
   int status = -1;
 
 
-#define	MTIME(file) (makefiles ? file_mtime_no_search (file) \
-		     : file_mtime (file))
-
   /* Duplicate the chain so we can remove things from it.  */
 
   goals = copy_dep_chain (goals);
@@ -127,7 +124,6 @@ update_goal_chain (goals, makefiles)
 	{
 	  /* Iterate over all double-colon entries for this file.  */
 	  struct file *file;
-	  int stop = 0;
 	  target_state_t target_state;
 
 	  target_state = ts_done;
@@ -156,58 +152,45 @@ update_goal_chain (goals, makefiles)
 	     decide when to give an "up to date" diagnostic.  */
 	  g->changed |= commands_started ? 1 : 0;
 
-	  /* If we updated a file and STATUS was not already 1, set it to
-	     1 if updating failed, or to 0 if updating succeeded.  Leave
-	     STATUS as it is if no updating was done.  */
 
-	  stop = 0;
-	  if (target_state != ts_incomplete && status < 1)
+	  /* process the file according to its return */
+	  switch (target_state) 
 	    {
-	      if (file->update_status != 0)
-		{
-		  /* Updating failed, or -q triggered.  The STATUS value
-		     tells our caller which.  */
-		  status = file->update_status;
-		  /* If -q just triggered, stop immediately.  It doesn't
-		     matter how much more we run, since we already know
-		     the answer to return.  */
-		  stop = (!keep_going_flag && !question_flag
-			  && !makefiles);
-		}
-	      else
-		{
-		  FILE_TIMESTAMP mtime = MTIME (file);
-		  check_renamed (file);
+	    case ts_failed:
+	      /* Bail early? */
+	      if (!keep_going_flag && !question_flag && !makefiles)
+		return 1;
 
-		  if (g->changed &&
-		      mtime != file->mtime_before_update)
-		    {
-		      /* Updating was done.  If this is a makefile and
-			 just_print_flag or question_flag is set (meaning
-			 -n or -q was given and this file was specified
-			 as a command-line target), don't change STATUS.
-			 If STATUS is changed, we will get re-exec'd, and
-			 enter an infinite loop.  */
-		      if (!makefiles
-			  || (!just_print_flag && !question_flag))
-			status = 0;
-		      if (makefiles && file->dontcare)
-			/* This is a default makefile; stop remaking.  */
-			stop = 1;
-		    }
-		}
-	    }
+	      status = 1;	/* mark status failed, keep going */
+	      /* -k, Fall Though !!! */
 
-	  if (stop || (target_state != ts_incomplete))
-	    {
-	      /* If we have found nothing whatever to do for the goal,
-		 print a message saying nothing needs doing.  */
+	    case ts_done:
+	      {
+		FILE_TIMESTAMP mtime =
+		  (makefiles ? file_mtime_no_search (file) : file_mtime (file));
 
+		check_renamed (file);
+
+		if (g->changed && mtime != file->mtime_before_update)
+		  {
+		    /* Updating was done.  If this is a makefile and
+		       just_print_flag or question_flag is set (meaning
+		       -n or -q was given and this file was specified
+		       as a command-line target), don't change STATUS.
+		       If STATUS is changed, we will get re-exec'd, and
+		       enter an infinite loop.  */
+		    if (status < 0) 
+		      {
+			if (!makefiles || (!just_print_flag && !question_flag))
+			  status = 0;
+		      }
+		  }
+	      }
 	      if (!makefiles
 		  /* If the update_status is zero, we updated successfully
 		     or not at all.  G->changed will have been set above if
 		     any commands were actually started for this goal.  */
-		  && file->update_status == 0 && !g->changed
+		  && !file->update_status && !g->changed
 		  /* Never give a message under -s or -q.  */
 		  && !silent_flag && !question_flag)
 		message (1, ((file->phony || file->cmds == 0)
@@ -215,24 +198,27 @@ update_goal_chain (goals, makefiles)
 			     : _("`%s' is up to date.")),
 			 file->name);
 
-	      /* This goal is finished.  Remove it from the chain.  */
+	    case ts_incomplete:
+	      break;		/* do nothing */
+	    }
+
+
+	  /* advance to next target in goal chain */
+	  if (target_state == ts_incomplete)
+	    {
+	      lastgoal = g;
+	      g = g->next;
+	    }
+	  else
+	    {
 	      if (lastgoal == 0)
 		goals = g->next;
 	      else
 		lastgoal->next = g->next;
 
-	      /* Free the storage.  */
-	      free ((char *) g);
+	      free (g);
 
 	      g = lastgoal == 0 ? goals : lastgoal->next;
-
-	      if (stop)
-		break;
-	    }
-	  else
-	    {
-	      lastgoal = g;
-	      g = g->next;
 	    }
 	}
 
@@ -284,10 +270,10 @@ update_file (file, depth)
 
       if (status == ts_failed)
 	{
-	  if (keep_going_flag)
-	    break;
-	  else
+	  if (!keep_going_flag || question_flag)
 	    return ts_failed;
+	  else
+	    break;
 	}
 
       if (status == ts_incomplete)
@@ -314,7 +300,7 @@ update_file (file, depth)
       for (d = f->deps; d != 0; d = d->next)
 	if ((status |= update_file (d->file, depth + 1)) == ts_failed)
 	  {
-	    if (!keep_going_flag)
+	    if (!keep_going_flag || question_flag)
 	      return ts_failed;
 	  }
     }
