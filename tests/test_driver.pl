@@ -385,6 +385,7 @@ sub run_each_test
     $num_of_tmpfiles = 0;
     $description = "";
     $details = "";
+    $old_makefile = undef;
     $testname =~ s/^$scriptpath$pathsep//;
     $perl_testname = "$scriptpath$pathsep$testname";
     $testname =~ s/(\.pl|\.perl)$//;
