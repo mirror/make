@@ -1551,7 +1551,7 @@ necessary.
 
 But what if you delete all the @samp{.o} files?  When a wildcard matches
 no files, it is left as it is, so then @file{foo} will depend on the
-oddly-named file @file{*.o}.  Since so such file is likely to exist,
+oddly-named file @file{*.o}.  Since no such file is likely to exist,
 @code{make} will give you an error saying it cannot figure out how to
 make @file{*.o}.  This is not what you want!
 
