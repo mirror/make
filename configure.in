@@ -19,6 +19,9 @@ AC_AIX
 AC_ISC_POSIX
 AC_MINIX
 
+AC_CHECK_PROG(PERL, perl, perl, perl)	dnl Needed for the test suite (only)
+
+
 dnl This test must come as early as possible after the compiler configuration
 dnl tests, because the choice of the file model can (in principle) affect
 dnl whether functions and headers are available, whether they work, etc.
