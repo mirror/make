@@ -37,6 +37,7 @@ try_implicit_rule (file, depth)
      struct file *file;
      unsigned int depth;
 {
+  int ret = 0;
   DBF (DB_IMPLICIT, _("Looking for an implicit rule for `%s'.\n"));
 
   /* The order of these searches was previously reversed.  My logic now is
@@ -45,21 +46,24 @@ try_implicit_rule (file, depth)
      should come first.  */
 
   if (pattern_search (file, 0, depth, 0))
-    return 1;
+      ret = 1;
 
 #ifndef	NO_ARCHIVES
   /* If this is an archive member reference, use just the
      archive member name to search for implicit rules.  */
-  if (ar_name (file->name))
+  else if (ar_name (file->name))
     {
       DBF (DB_IMPLICIT,
            _("Looking for archive-member implicit rule for `%s'.\n"));
       if (pattern_search (file, 1, depth, 0))
-	return 1;
+	{
+	  ret = 1;
+	}
     }
 #endif
 
-  return 0;
+  file->tried_implicit = 1;
+  return ret;
 }
 
 

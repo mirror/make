@@ -199,8 +199,7 @@ rehash_file (file, name)
   register unsigned int oldhash;
   register char *n;
 
-  while (file->renamed != 0)
-    file = file->renamed;
+  check_renamed(file);
 
   /* Find the hash values of the old and new names.  */
 

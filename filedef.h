@@ -61,7 +61,10 @@ struct file
     struct file *double_colon;
 
     short int update_status;	/* Status of the last attempt to update,
-				   or -1 if none has been made.  */
+				   or -1 if none has been made.
+				   0 = commands ran and won
+				   1 = files need to be updated (-q)
+				   2 = commands ran and lost */
 
     enum			/* State of the commands.  */
       {		/* Note: It is important that cs_not_started be zero.  */

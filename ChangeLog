@@ -1,3 +1,23 @@
+2000-02-12  Tim Magill  <magill@gate.net>
+
+	* implicit.c (try_implicit_rule): 
+	* remake.c (check_dep):
+	* remake.c (update_file_1): 
+	move setting of tried_implicit into try_implicit_rule().  It is
+	only called in two places and the flag is set immediately after.
+
+
+	* remake.c (update_file_1): collapsed if statement based on
+	file->command_state into switch statment which immediately
+	follows.  Removed code that could not be reached.
+
+	* remake.c (update_file): advance f pointer so as not to consider
+	same file twice after breaking loop.
+
+	* file.c (rehash_file): replaced hard coded check_renamed loop
+	with standard macro.  seemed like the right thing to do.
+	
+
 2000-02-09  Tim Magill <magill@gate.net>
 	Started branch for cleaning up internal make structure regarding
 	recursion paths.  Branch name is filedef-cleanup and was started

@@ -314,7 +314,7 @@ update_file (file, depth)
 
   /* Process the remaining rules in the double colon chain so they're marked
      considered.  Start their prerequisites, too.  */
-  for (; f != 0 ; f = f->prev)
+  for (f = (f ? f->prev : 0); f != 0 ; f = f->prev)
     {
       struct dep *d;
 
@@ -342,30 +342,28 @@ update_file_1 (file, depth)
 
   DBF (DB_VERBOSE, _("Considering target file `%s'.\n"));
 
-  if (file->command_state == cs_finished)
-    {
-      if (file->update_status > 0)
-	{
-	  DBF (DB_VERBOSE,
-               _("Recently tried and failed to update file `%s'.\n"));
-	  return file->update_status;
-	}
-
-      DBF (DB_VERBOSE, _("File `%s' was considered already.\n"));
-      return 0;
-    }
 
   switch (file->command_state)
     {
     case cs_not_started:
     case cs_deps_running:
       break;
+
     case cs_running:
       DBF (DB_VERBOSE, _("Still updating file `%s'.\n"));
       return 0;
+
     case cs_finished:
-      DBF (DB_VERBOSE, _("Finished updating file `%s'.\n"));
-      return file->update_status;
+      if (file->update_status > 0)
+	{
+	  DBF (DB_VERBOSE,
+	       _("Recently tried and failed to update file `%s'.\n"));
+	  return file->update_status;
+	}
+
+      DBF (DB_VERBOSE, _("File `%s' was considered already.\n"));
+      return 0;
+
     default:
       abort ();
     }
@@ -398,7 +396,6 @@ update_file_1 (file, depth)
 	DBF (DB_IMPLICIT, _("Found an implicit rule for `%s'.\n"));
       else
 	DBF (DB_IMPLICIT, _("No implicit rule found for `%s'.\n"));
-      file->tried_implicit = 1;
     }
   if (file->cmds == 0 && !file->is_target
       && default_file != 0 && default_file->cmds != 0)
@@ -815,7 +812,6 @@ check_dep (file, depth, this_mtime, must_make_ptr)
 	    DBF (DB_IMPLICIT, _("Found an implicit rule for `%s'.\n"));
 	  else
 	    DBF (DB_IMPLICIT, _("No implicit rule found for `%s'.\n"));
-	  file->tried_implicit = 1;
 	}
       if (file->cmds == 0 && !file->is_target
 	  && default_file != 0 && default_file->cmds != 0)
