@@ -1599,7 +1599,7 @@ $(wildcard *.c)
 @end example
 
 We can change the list of C source files into a list of object files by
-replacing the @samp{.o} suffix with @samp{.c} in the result, like this:
+replacing the @samp{.c} suffix with @samp{.o} in the result, like this:
 
 @example
 $(patsubst %.c,%.o,$(wildcard *.c))
