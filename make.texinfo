@@ -2223,7 +2223,7 @@ SUBDIRS = foo bar baz
 subdirs: $(SUBDIRS)
 
 $(SUBDIRS):
-        $(MAKE) -C $@
+        $(MAKE) -C $@@
 
 foo: baz
 @end group
