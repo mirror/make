@@ -259,7 +259,8 @@ if test "$make_cv_sa_restart" != no; then
      [Define if <signal.h> defines the SA_RESTART constant.])
 fi
 
-# enable make_cv_sa_restart for OS/2
+# enable make_cv_sa_restart for OS/2 so that the jobserver will be enabled,
+# but do it after HAVE_SA_RESTART has been defined.
 case "$host_os" in
   os2*) make_cv_sa_restart=yes ;;
 esac
