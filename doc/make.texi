@@ -9385,7 +9385,7 @@ foolib(hack.o) : hack.o
 @end example
 
 In fact, nearly all archive member targets are updated in just this way
-and there is an implicit rule to do it for you.  @strong{Note:} The
+and there is an implicit rule to do it for you.  @strong{Please note:} The
 @samp{c} flag to @code{ar} is required if the archive file does not
 already exist.
 
