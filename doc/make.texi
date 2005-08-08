@@ -5251,7 +5251,7 @@ definition of the variable.  If you defined it first with @samp{:=},
 making it a simply-expanded variable, @samp{+=} adds to that
 simply-expanded definition, and expands the new text before appending it
 to the old value just as @samp{:=} does
-(@pxref{Setting, ,Setting Variables}, for a full explanation of @samp{:=}).
+(@pxref{Setting, ,Setting Variables} for a full explanation of @samp{:=}).
 In fact,
 
 @example
