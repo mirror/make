@@ -1390,6 +1390,11 @@ Supports the @code{-L} (@code{--check-symlink-times}) flag.
 
 @end table
 
+@vindex .INCLUDE_DIRS @r{(list of include directories)}
+@item .INCLUDE_DIRS
+Expands to a list of directories that @code{make} searches for
+included makefiles (@pxref{Include, , Including Other Makefiles}).
+
 @end table
 
 @node Remaking Makefiles, Overriding Makefiles, Special Variables, Makefiles
