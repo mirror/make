@@ -29,6 +29,7 @@ EXTERN_DECL(HANDLE process_wait_for_any, (VOID_DECL));
 EXTERN_DECL(void process_register, (HANDLE proc));
 EXTERN_DECL(HANDLE process_easy, (char** argv, char** env));
 EXTERN_DECL(BOOL process_kill, (HANDLE proc, int signal));
+EXTERN_DECL(int process_used_slots, (VOID_DECL));
 
 /* support routines */
 EXTERN_DECL(long process_errno, (HANDLE proc));
