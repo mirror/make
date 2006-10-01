@@ -191,7 +191,7 @@ AC_CHECK_DECLS([sys_siglist, _sys_siglist, __sys_siglist], , ,
 
 
 # Check out the wait reality.
-AC_CHECK_HEADERS(sys/wait.h)
+AC_CHECK_HEADERS(sys/wait.h,,,[[#include <sys/types.h>]])
 AC_CHECK_FUNCS(waitpid wait3)
 AC_MSG_CHECKING(for union wait)
 AC_CACHE_VAL(make_cv_union_wait, [dnl
@@ -380,6 +380,8 @@ case "$host" in
     AC_DEFINE([HAVE_DOS_PATHS], [1], [Use platform specific coding])
     ;;
 esac
+
+AC_DEFINE_UNQUOTED(PATH_SEPARATOR_CHAR,'$PATH_SEPARATOR',[Define to the character that separates directories in PATH.])
 
 # Include the Maintainer's Makefile section, if it's here.
 

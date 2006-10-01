@@ -78,9 +78,9 @@ sub resetENV
 sub toplevel
 {
   # Pull in benign variables from the user's environment
-  #
+
   foreach (# UNIX-specific things
-           'TZ', 'LANG', 'TMPDIR', 'HOME', 'USER', 'LOGNAME', 'PATH',
+           'TZ', 'TMPDIR', 'HOME', 'USER', 'LOGNAME', 'PATH',
            # Purify things
            'PURIFYOPTIONS',
            # Windows NT-specific stuff
@@ -91,6 +91,10 @@ sub toplevel
           ) {
     $makeENV{$_} = $ENV{$_} if $ENV{$_};
   }
+
+  # Make sure our compares are not foiled by locale differences
+
+  $makeENV{LC_ALL} = 'C';
 
   # Replace the environment with the new one
   #
