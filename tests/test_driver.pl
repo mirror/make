@@ -547,12 +547,10 @@ sub print_standard_usage
   local($plname,@moreusage) = @_;
   local($line);
 
-  print "Usage:  perl $plname [testname] [-verbose] [-detail] [-keep]\n";
-  print "                               [-profile] [-usage] [-help] "
-      . "[-debug]\n";
-  foreach $line (@moreusage)
-  {
-    print "                               $line\n";
+  print "usage:\t$plname [testname] [-verbose] [-detail] [-keep]\n";
+  print "\t\t\t[-profile] [-usage] [-help] [-debug]\n";
+  foreach (@moreusage) {
+    print "\t\t\t$_\n";
   }
 }
 
