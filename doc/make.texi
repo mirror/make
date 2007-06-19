@@ -1541,7 +1541,7 @@ constructs within the makefile.  We say that expansion is
 @code{make} will expand any variables or functions in that section of a
 construct as the makefile is parsed.  We say that expansion is
 @dfn{deferred} if expansion is not performed immediately.  Expansion of
-deferred construct is not performed until either the construct appears
+a deferred construct is not performed until either the construct appears
 later in an immediate context, or until the second phase.
 
 You may not be familiar with some of these constructs yet.  You can
