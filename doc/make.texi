@@ -11117,9 +11117,10 @@ tar.zoo: $(SRCS) $(AUX)
 @end group
 @end example
 
-@raisesections
+@node GNU Free Documentation License, Concept Index, Complex Makefile, Top
+@appendixsec GNU Free Documentation License
+@cindex FDL, GNU Free Documentation License
 @include fdl.texi
-@lowersections
 
 @node Concept Index, Name Index, GNU Free Documentation License, Top
 @unnumbered Index of Concepts
