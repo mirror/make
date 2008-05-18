@@ -2654,7 +2654,7 @@ contents do not matter, and usually are empty.
 
 The purpose of the empty target file is to record, with its
 last-modification time, when the rule's recipe was last executed.  It
-does so because one of the commands in the recipeis a @code{touch}
+does so because one of the commands in the recipe is a @code{touch}
 command to update the target file.
 
 The empty target file should have some prerequisites (otherwise it
