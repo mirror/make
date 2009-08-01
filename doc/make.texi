@@ -7793,6 +7793,11 @@ is run regardless of these options.  Other lines in the same rule are
 not run unless they too begin with @samp{+} or contain @samp{$(MAKE)} or
 @samp{$@{MAKE@}} (@xref{MAKE Variable, ,How the @code{MAKE} Variable Works}.)
 
+@cindex phony targets and recipe execution
+The @samp{-t} flag prevents phony targets (@pxref{Phony Targets}) from
+being updated, unless there are recipe lines beginning with @samp{+}
+or containing @samp{$(MAKE)} or @samp{$@{MAKE@}}.
+
 The @samp{-W} flag provides two features:
 
 @itemize @bullet
