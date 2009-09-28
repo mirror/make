@@ -461,6 +461,7 @@ sub run_each_test
     # Run the actual test!
     $tests_run = 0;
     $tests_passed = 0;
+
     $code = do $perl_testname;
 
     $total_tests_run += $tests_run;
