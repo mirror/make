@@ -8127,6 +8127,15 @@ Give variables taken from the environment precedence
 over variables from makefiles.
 @xref{Environment, ,Variables from the Environment}.
 
+@item --eval=@var{string}
+@cindex @code{--eval}
+@c Extra blank line here makes the table look better.
+
+Evaluate @var{string} as makefile syntax.  This is a command-line
+version of the @code{eval} function (@pxref{Eval Function}).  The
+evaluation is performed after the default rules and variables have
+been defined, but before any makefiles are read.
+
 @item -f @var{file}
 @cindex @code{-f}
 @itemx --file=@var{file}
