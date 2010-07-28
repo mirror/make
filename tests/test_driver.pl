@@ -802,7 +802,7 @@ sub _run_command
   eval {
       local $SIG{ALRM} = sub { die "timeout\n"; };
       alarm $test_timeout;
-      $code = system @_;
+      $code = system(@_);
       alarm 0;
   };
   if ($@) {
