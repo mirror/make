@@ -1305,7 +1305,7 @@ specified by the existing contents of @file{mfile}.
 Sometimes it is useful to have a makefile that is mostly just like
 another makefile.  You can often use the @samp{include} directive to
 include one in the other, and add more targets or variable definitions.
-However, it is illegal for two makefiles to give different recipes for
+However, it is invalid for two makefiles to give different recipes for
 the same target.  But there is another way.
 
 @cindex match-anything rule, used to override
@@ -1379,6 +1379,7 @@ chapters.
 @cindex =, expansion
 @cindex ?=, expansion
 @cindex +=, expansion
+@cindex !=, expansion
 @cindex define, expansion
 
 Variable definitions are parsed as follows:
@@ -1388,6 +1389,7 @@ Variable definitions are parsed as follows:
 @var{immediate} ?= @var{deferred}
 @var{immediate} := @var{immediate}
 @var{immediate} += @var{deferred} or @var{immediate}
+@var{immediate} != @var{immediate}
 
 define @var{immediate}
   @var{deferred}
@@ -1408,11 +1410,20 @@ endef
 define @var{immediate} +=
   @var{deferred} or @var{immediate}
 endef
+
+define @var{immediate} !=
+  @var{immediate}
+endef
 @end example
 
 For the append operator, @samp{+=}, the right-hand side is considered
 immediate if the variable was previously set as a simple variable
 (@samp{:=}), and deferred otherwise.
+
+For the shell assignment operator, @samp{!=}, the right-hand side is
+evaluated immediately and handed to the shell.  The result is stored in the
+variable named on the left, and that variable becomes a simple variable
+(and will thus be re-evaluated on each reference).
 
 @subheading Conditional Directives
 @cindex ifdef, expansion
@@ -5402,6 +5413,7 @@ Several variables have constant initial values.
 @cindex =
 @cindex :=
 @cindex ?=
+@cindex !=
 
 To set a variable from the makefile, write a line starting with the
 variable name followed by @samp{=} or @samp{:=}.  Whatever follows the
@@ -5456,6 +5468,33 @@ ifeq ($(origin FOO), undefined)
 FOO = bar
 endif
 @end example
+
+The shell assignment operator @samp{!=} can be used to execute a
+program and set a variable to its output.  This operator first
+evaluates the right-hand side, then passes that result to the shell
+for execution.  If the result of the execution ends in a newline, that
+one newline is removed; all other newlines are replaced by spaces.
+The resulting string is then placed into the named
+recursively-expanded variable.  For example:
+
+@example
+hash != printf '\043'
+file_list != find . -name '*.c'
+@end example
+
+If the result of the execution could produce a @code{$}, and you don't
+intend what follows that to be interpreted as a make variable or
+function reference, then you must replace every @code{$} with
+@code{$$} as part of the execution.  Alternatively, you can set a
+simply expanded variable to the result of running a program using the
+@code{shell} function call.  @xref{Shell Function, , The @code{shell}
+Function}.  For example:
+
+@example
+hash := $(shell printf '\043')
+var := $(shell find . -name "*.c")
+@end example
+
 
 @node Appending, Override Directive, Setting, Using Variables
 @section Appending More Text to Variables
@@ -5977,7 +6016,7 @@ prog: a.o b.o
 
 Due to the @code{private} modifier, @code{a.o} and @code{b.o} will not
 inherit the @code{EXTRA_CFLAGS} variable assignment from the
-@code{progs} target.
+@code{prog} target.
 
 @node Special Variables,  , Suppressing Inheritance, Using Variables
 @comment  node-name,  next,  previous,  up
@@ -6073,7 +6112,7 @@ foo
 @end example
 
 Note that assigning more than one target name to @code{.DEFAULT_GOAL} is
-illegal and will result in an error.
+invalid and will result in an error.
 
 @vindex MAKE_RESTARTS @r{(number of times @code{make} has restarted)}
 @item MAKE_RESTARTS
@@ -10444,6 +10483,11 @@ nonexistent file comes from SunOS 4 @code{make}.  (But note that SunOS 4
 @code{make} does not allow multiple makefiles to be specified in one
 @code{-include} directive.)  The same feature appears with the name
 @code{sinclude} in SGI @code{make} and perhaps others.
+
+@item
+The @code{!=} shell assignment operator exists in many BSD of
+@code{make} and is purposefully implemented here to behave identically
+to those implementations.
 @end itemize
 
 The remaining features are inventions new in GNU @code{make}:

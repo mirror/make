@@ -1,6 +1,6 @@
 GNU make NEWS                                               -*-indented-text-*-
   History of user-visible changes.
-  29 August 2010
+  17 April 2011
 
 See the end of this file for copyrights and conditions.
 
@@ -21,6 +21,13 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
     * Each backslash/newline in a variable value is replaced with a space;
       multiple consecutive backslash/newlines do not condense into one space.
     * In recipes, a recipe prefix following a backslash-newlines is removed.
+
+* New feature: "!=" shell assignment operator as an alternative to the
+  $(shell ...) function.  Implemented for portability of BSD makefiles.
+  WARNING: Backward-incompatibility!
+  Variables ending in "!" previously defined as "variable!= value" will now be
+  interpreted as shell assignment.  Change your assignment to add whitespace
+  between the "!" and "=": "variable! = value"
 
 * New command line option: --trace enables tracing of targets.  When enabled
   the recipe to be invoked is printed even if it would otherwise be suppressed

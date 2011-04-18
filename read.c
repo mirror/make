@@ -2463,7 +2463,7 @@ readline (struct ebuffer *ebuf)
      w_colon        A colon
      w_dcolon       A double-colon
      w_semicolon    A semicolon
-     w_varassign    A variable assignment operator (=, :=, +=, or ?=)
+     w_varassign    A variable assignment operator (=, :=, +=, ?=, or !=)
 
    Note that this function is only used when reading certain parts of the
    makefile.  Don't use it where special rules hold sway (RHS of a variable,
@@ -2514,6 +2514,7 @@ get_next_mword (char *buffer, char *delim, char **startp, unsigned int *length)
 
     case '+':
     case '?':
+    case '!':
       if (*p == '=')
         {
           ++p;
@@ -2533,7 +2534,7 @@ get_next_mword (char *buffer, char *delim, char **startp, unsigned int *length)
 
   /* This is some non-operator word.  A word consists of the longest
      string of characters that doesn't contain whitespace, one of [:=#],
-     or [?+]=, or one of the chars in the DELIM string.  */
+     or [?+!]=, or one of the chars in the DELIM string.  */
 
   /* We start out assuming a static word; if we see a variable we'll
      adjust our assumptions then.  */

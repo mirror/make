@@ -1,3 +1,20 @@
+2011-04-17  David A. Wheeler  <dwheeler@dwheeler.com>
+
+	* doc/make.texi (Reading Makefiles): Document "!=".
+	(Setting): Ditto.
+	(Features): Ditto.
+	* variable.h (enum variable_flavor): New type "f_shell".
+	* variable.c (shell_result): Send a string to the shell and store
+	the output.
+	(do_variable_definition): Handle f_shell variables: expand the
+	value, then send it to the shell and store the result.
+	(parse_variable_definition): Parse "!=" shell assignments.
+	* read.c (get_next_mword): Treat "!=" as a varassign word.
+	* function.c (fold_newlines): If trim_newlines is set remove all
+	trailing newlines; otherwise remove only the last newline.
+	(func_shell_base): Move the guts of the shell function here.
+	(func_shell): Call func_shell_base().
+
 2011-02-21  Paul Smith  <psmith@gnu.org>
 
 	* strcache.c (various): Increase performance based on comments

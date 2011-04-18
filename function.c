@@ -1393,14 +1393,14 @@ func_value (char *o, char **argv, const char *funcname UNUSED)
 }
 
 /*
-  \r  is replaced on UNIX as well. Is this desirable?
+  \r is replaced on UNIX as well. Is this desirable?
  */
 static void
-fold_newlines (char *buffer, unsigned int *length)
+fold_newlines (char *buffer, unsigned int *length, int trim_newlines)
 {
   char *dst = buffer;
   char *src = buffer;
-  char *last_nonnl = buffer -1;
+  char *last_nonnl = buffer - 1;
   src[*length] = 0;
   for (; *src != '\0'; ++src)
     {
@@ -1416,6 +1416,10 @@ fold_newlines (char *buffer, unsigned int *length)
 	  *dst++ = *src;
 	}
     }
+
+  if (!trim_newlines && (last_nonnl < (dst - 2)))
+    last_nonnl = dst - 2;
+
   *(++last_nonnl) = '\0';
   *length = last_nonnl - buffer;
 }
@@ -1578,12 +1582,20 @@ msdos_openpipe (int* pipedes, int *pidp, char *text)
 #ifdef VMS
 
 /* VMS can't do $(shell ...)  */
+
+char *
+func_shell_base (char *o, char **argv, int trim_newlines)
+{
+  fprintf (stderr, "This platform does not support shell\n");
+  die (EXIT_FAILURE);
+}
+
 #define func_shell 0
 
 #else
 #ifndef _AMIGA
-static char *
-func_shell (char *o, char **argv, const char *funcname UNUSED)
+char *
+func_shell_base (char *o, char **argv, int trim_newlines)
 {
   char *batch_filename = NULL;
 
@@ -1762,7 +1774,7 @@ func_shell (char *o, char **argv, const char *funcname UNUSED)
 	{
 	  /* The child finished normally.  Replace all newlines in its output
 	     with spaces, and put that in the variable output buffer.  */
-	  fold_newlines (buffer, &i);
+	  fold_newlines (buffer, &i, trim_newlines);
 	  o = variable_buffer_output (o, buffer, i);
 	}
 
@@ -1776,8 +1788,8 @@ func_shell (char *o, char **argv, const char *funcname UNUSED)
 
 /* Do the Amiga version of func_shell.  */
 
-static char *
-func_shell (char *o, char **argv, const char *funcname)
+char *
+func_shell_base (char *o, char **argv, int trim_newlines)
 {
   /* Amiga can't fork nor spawn, but I can start a program with
      redirection of my choice.  However, this means that we
@@ -1854,12 +1866,18 @@ func_shell (char *o, char **argv, const char *funcname)
 
   Close (child_stdout);
 
-  fold_newlines (buffer, &i);
+  fold_newlines (buffer, &i, trim_newlines);
   o = variable_buffer_output (o, buffer, i);
   free (buffer);
   return o;
 }
 #endif  /* _AMIGA */
+
+char *
+func_shell (char *o, char **argv, const char *funcname UNUSED)
+{
+  return func_shell_base (o, argv, 1);
+}
 #endif  /* !VMS */
 
 #ifdef EXPERIMENTAL

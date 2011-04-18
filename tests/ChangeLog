@@ -1,3 +1,7 @@
+2011-04-17  David A. Wheeler  <dwheeler@dwheeler.com>
+
+	* scripts/features/shell_assignment: Regression for "!=" feature
+
 2010-11-06  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/targetvars: Fix known-good output for BS/NL changes.
