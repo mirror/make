@@ -324,8 +324,7 @@ eval_makefile (const char *filename, int flags)
   char *expanded = 0;
   int makefile_errno;
 
-  filename = strcache_add (filename);
-  ebuf.floc.filenm = filename;
+  ebuf.floc.filenm = filename; /* Use the original file name.  */
   ebuf.floc.lineno = 1;
 
   if (ISDB (DB_VERBOSE))
@@ -369,12 +368,16 @@ eval_makefile (const char *filename, int flags)
                                          "/", filename);
 	  ebuf.fp = fopen (included, "r");
 	  if (ebuf.fp)
-	    {
-	      filename = strcache_add (included);
-	      break;
-	    }
+            {
+              filename = included;
+              break;
+            }
 	}
     }
+
+  /* Now we have the final name for this makefile. Enter it into
+     the cache.  */
+  filename = strcache_add (filename);
 
   /* Add FILENAME to the chain of read makefiles.  */
   deps = alloc_dep ();

@@ -1,3 +1,8 @@
+2011-04-29 Boris Kolpackov  <boris@codesynthesis.com>
+
+	* read.c (eval_makefile): Delay caching of the file name until after
+	all the expansions and searches.
+
 2011-04-17  David A. Wheeler  <dwheeler@dwheeler.com>
 
 	* doc/make.texi (Reading Makefiles): Document "!=".
