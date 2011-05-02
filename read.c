@@ -2901,6 +2901,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopchar,
       const char *name;
       const char **nlist = 0;
       char *tildep = 0;
+      int globme = 1;
 #ifndef NO_ARCHIVES
       char *arname = 0;
       char *memname = 0;
@@ -3109,32 +3110,40 @@ parse_file_seq (char **stringp, unsigned int size, int stopchar,
 	}
 #endif /* !NO_ARCHIVES */
 
-      switch (glob (name, GLOB_NOSORT|GLOB_ALTDIRFUNC, NULL, &gl))
-	{
-	case GLOB_NOSPACE:
-	  fatal (NILF, _("virtual memory exhausted"));
-
-	case 0:
-          /* Success.  */
-          i = gl.gl_pathc;
-          nlist = (const char **)gl.gl_pathv;
-          break;
-
-        case GLOB_NOMATCH:
-          /* If we want only existing items, skip this one.  */
-          if (flags & PARSEFS_EXISTS)
-            {
-              i = 0;
-              break;
-            }
-          /* FALLTHROUGH */
-
-	default:
-          /* By default keep this name.  */
+      /* glob() is expensive: don't call it unless we need to.  */
+      if (!(flags & PARSEFS_EXISTS) || strpbrk (name, "?*[") == NULL)
+        {
+          globme = 0;
           i = 1;
           nlist = &name;
-          break;
-	}
+        }
+      else
+        switch (glob (name, GLOB_NOSORT|GLOB_ALTDIRFUNC, NULL, &gl))
+          {
+          case GLOB_NOSPACE:
+            fatal (NILF, _("virtual memory exhausted"));
+
+          case 0:
+            /* Success.  */
+            i = gl.gl_pathc;
+            nlist = (const char **)gl.gl_pathv;
+            break;
+
+          case GLOB_NOMATCH:
+            /* If we want only existing items, skip this one.  */
+            if (flags & PARSEFS_EXISTS)
+              {
+                i = 0;
+                break;
+              }
+            /* FALLTHROUGH */
+
+          default:
+            /* By default keep this name.  */
+            i = 1;
+            nlist = &name;
+            break;
+          }
 
       /* For each matched element, add it to the list.  */
       while (i-- > 0)
@@ -3174,7 +3183,8 @@ parse_file_seq (char **stringp, unsigned int size, int stopchar,
 #endif /* !NO_ARCHIVES */
           NEWELT (concat (2, prefix, nlist[i]));
 
-      globfree (&gl);
+      if (globme)
+        globfree (&gl);
 
 #ifndef NO_ARCHIVES
       if (arname)

@@ -1,3 +1,9 @@
+2011-05-01  Paul Smith  <psmith@gnu.org>
+
+	* read.c (parse_file_seq): Don't try to invoke glob() unless there
+	are potential wildcard characters in the filename.  Performance
+	enhancement suggested by Michael Meeks <michael.meeks@novell.com>
+
 2011-04-29 Boris Kolpackov  <boris@codesynthesis.com>
 
 	* read.c (eval_makefile): Delay caching of the file name until after
