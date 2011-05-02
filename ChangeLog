@@ -1,5 +1,10 @@
 2011-05-02  Paul Smith  <psmith@gnu.org>
 
+	* doc/make.texi (Special Variables): Add documentation for the new
+	words in .FEATURES.  Fixes Savannah bug #32058.
+	(Flavor Function): Rewrite the section on the flavor function.
+	Fixes Savannah bug #31582.
+
 	* function.c (func_sort): Use the same algorithm to count the
 	number of words we will get after the split, as we use to split.
 	Based on a patch from Matthias Hopf.  Fixes Savannah bug #33125.

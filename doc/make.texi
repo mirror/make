@@ -6183,16 +6183,28 @@ Syntax, ,Syntax of Conditionals}.
 Supports ``job server'' enhanced parallel builds.  @xref{Parallel,
 ,Parallel Execution}.
 
-@item second-expansion
-Supports secondary expansion of prerequisite lists.
+@item oneshell
+Supports the @code{.ONESHELL} special target.  @xref{One Shell, ,Using
+One Shell}.
 
 @item order-only
 Supports order-only prerequisites.  @xref{Prerequisite Types, ,Types
 of Prerequisites}.
 
+@item second-expansion
+Supports secondary expansion of prerequisite lists.
+
+@item shortest-stem
+Uses the ``shortest stem'' method of choosing which pattern, of
+multiple applicable options, will be used.  @xref{Pattern Match, ,How
+Patterns Match}.
+
 @item target-specific
 Supports target-specific and pattern-specific variable assignments.
 @xref{Target-specific, ,Target-specific Variable Values}.
+
+@item undefine
+Supports the @code{undefine} directive.  @xref{Undefine Directive}.
 
 @end table
 
@@ -7595,11 +7607,10 @@ Here the redefinition takes place if @samp{$(origin bletch)} returns either
 @cindex variables, flavor of
 @cindex flavor of variable
 
-The @code{flavor} function is unlike most other functions (and like
-@code{origin} function) in that it does not operate on the values of
-variables; it tells you something @emph{about} a variable.
-Specifically, it tells you the flavor of a variable (@pxref{Flavors,
-,The Two Flavors of Variables}).
+The @code{flavor} function, like the @code{origin} function, does not
+operate on the values of variables but rather it tells you something
+@emph{about} a variable.  Specifically, it tells you the flavor of a
+variable (@pxref{Flavors, ,The Two Flavors of Variables}).
 
 The syntax of the @code{flavor} function is:
 
