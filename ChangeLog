@@ -1,3 +1,8 @@
+2011-05-02  Paul Smith  <psmith@gnu.org>
+
+	* make.h: Make global variable stack_limit extern.
+	Fixes Savannah bug #32753.
+
 2011-05-01  Paul Smith  <psmith@gnu.org>
 
 	* read.c (parse_file_seq): Don't try to invoke glob() unless there
