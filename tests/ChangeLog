@@ -1,3 +1,7 @@
+2011-05-02  Paul Smith  <psmith@gnu.org>
+
+	* scripts/functions/sort: Add a test for Savannah bug #33125.
+
 2011-04-17  David A. Wheeler  <dwheeler@dwheeler.com>
 
 	* scripts/features/shell_assignment: Regression for "!=" feature

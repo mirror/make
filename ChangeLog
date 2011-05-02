@@ -1,5 +1,9 @@
 2011-05-02  Paul Smith  <psmith@gnu.org>
 
+	* function.c (func_sort): Use the same algorithm to count the
+	number of words we will get after the split, as we use to split.
+	Based on a patch from Matthias Hopf.  Fixes Savannah bug #33125.
+
 	* make.h: Make global variable stack_limit extern.
 	Fixes Savannah bug #32753.
 
