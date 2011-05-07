@@ -1,3 +1,7 @@
+2011-05-07  Paul Smith  <psmith@gnu.org>
+
+	* read.c (parse_file_seq): Ensure existence checks use glob().
+
 2011-05-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* job.c (construct_command_argv_internal): Don't assume shellflags

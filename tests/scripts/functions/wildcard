@@ -88,4 +88,16 @@ all: ; @echo $(wildcard xz--y*.7)
 !,
               '', "\n");
 
+# TEST #5: wildcard used to verify file existence
+
+touch('xxx.yyy');
+
+run_make_test(q!exists: ; @echo file=$(wildcard xxx.yyy)!,
+              '', "file=xxx.yyy\n");
+
+unlink('xxx.yyy');
+
+run_make_test(q!exists: ; @echo file=$(wildcard xxx.yyy)!,
+              '', "file=\n");
+
 1;

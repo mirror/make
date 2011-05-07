@@ -1,3 +1,8 @@
+2011-05-07  Paul Smith  <psmith@gnu.org>
+
+	* scripts/functions/wildcard: Verify wildcard used to test for
+	file existence/non-existence.
+
 2011-05-02  Paul Smith  <psmith@gnu.org>
 
 	* scripts/functions/sort: Add a test for Savannah bug #33125.

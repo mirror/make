@@ -3111,7 +3111,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopchar,
 #endif /* !NO_ARCHIVES */
 
       /* glob() is expensive: don't call it unless we need to.  */
-      if (!(flags & PARSEFS_EXISTS) || strpbrk (name, "?*[") == NULL)
+      if (!(flags & PARSEFS_EXISTS) && strpbrk (name, "?*[") == NULL)
         {
           globme = 0;
           i = 1;
