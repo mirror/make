@@ -75,4 +75,16 @@ a b: ; @echo $@=$(private)
 ',
                '', "b=a\na=a\n");
 
+# 9: make sure private suppresses inheritence
+run_make_test(q!
+DEFS = FOO
+all: bar1
+bar1: private DEFS += 1
+bar3: private DEFS += 3
+bar1: bar2
+bar2: bar3
+bar1 bar2 bar3: ; @echo '$@: $(DEFS)'
+!,
+              '', "bar3: FOO 3\nbar2: FOO\nbar1: FOO 1\n");
+
 1;

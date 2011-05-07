@@ -1,5 +1,10 @@
 2011-05-07  Paul Smith  <psmith@gnu.org>
 
+	* expand.c (variable_append): Add a LOCAL argument to track
+	whether this is the first invocation or not.  If it's not and
+	private_var is set, then skip this variable and try the next one.
+	Fixes Savannah bug #32872.
+
 	* read.c (parse_file_seq): Ensure existence checks use glob().
 
 2011-05-07  Eli Zaretskii  <eliz@gnu.org>

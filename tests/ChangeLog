@@ -1,5 +1,8 @@
 2011-05-07  Paul Smith  <psmith@gnu.org>
 
+	* scripts/variables/private: Ensure we skip private variables when
+	appending.  Test for Savannah bug #32872.
+
 	* scripts/functions/wildcard: Verify wildcard used to test for
 	file existence/non-existence.
 
