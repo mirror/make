@@ -1,3 +1,10 @@
+2011-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* job.c (construct_command_argv_internal): Don't assume shellflags
+	is always non-NULL.  Escape-protect characters special to the
+	shell when copying the value of SHELL into new_line.  Fixes
+	Savannah bug #23922.
+
 2011-05-02  Paul Smith  <psmith@gnu.org>
 
 	* doc/make.texi (Special Variables): Add documentation for the new
