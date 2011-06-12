@@ -110,6 +110,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the strcoll function and it is properly defined.  */
 /* #undef HAVE_STRCOLL */
 
+/* Define to 1 if you have the strncasecmp' function. */
+#if __CRTL_VER >= 70000000
+#define HAVE_STRNCASECMP 1
+#endif
+
 /* Define to 1 if your struct stat has st_rdev.  */
 /* #undef HAVE_ST_RDEV */
 

@@ -36,6 +36,11 @@ utouch(-50, 'a2.o');
 run_make_test('all: libxx.a(a3.o *.o)', '',
               "ar rv libxx.a a3.o\na - a3.o\nar rv libxx.a a2.o\nr - a2.o\n");
 
+# Check whitespace handling
+utouch(-40, 'a2.o');
+run_make_test('all: libxx.a(  a3.o    *.o     )', '',
+              "ar rv libxx.a a2.o\nr - a2.o\n");
+
 rmfiles(qw(a1.o a2.o a3.o libxx.a));
 
 # This tells the test driver that the perl test script executed properly.

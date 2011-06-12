@@ -3044,16 +3044,16 @@ parse_file_seq (char **stringp, unsigned int size, int stopchar,
                       nlen -= (n + 1) - tp;
                       tp = n + 1;
 
-                      /* If we have just "lib(", part of something like
-                         "lib( a b)", go to the next item.  */
-                      if (! nlen)
-                        continue;
-
                       /* We can stop looking now.  */
                       break;
                     }
                 }
               while (*e != '\0');
+
+              /* If we have just "lib(", part of something like "lib( a b)",
+                 go to the next item.  */
+              if (! nlen)
+                continue;
             }
         }
 

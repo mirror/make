@@ -1,3 +1,9 @@
+2011-06-12  Paul Smith  <psmith@gnu.org>
+
+	* scripts/features/archives: Check archives with whitespace at the
+	beginning, end, and extra in the middle.
+	Another test for Savannah bug #30612.
+
 2011-05-07  Paul Smith  <psmith@gnu.org>
 
 	* scripts/variables/private: Ensure we skip private variables when

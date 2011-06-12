@@ -1,3 +1,12 @@
+2011-06-12  Paul Smith  <psmith@gnu.org>
+
+	* read.c (parse_file_seq): Move the check for empty members out of
+	the loop so we can go to the next member properly.
+	Another fix for Savannah bug #30612.
+
+	* config.h-vms.template: Newer versions of VMS have strncasecmp()
+	Patch provided by: Hartmut Becker <becker.ismaning@freenet.de>
+
 2011-05-07  Paul Smith  <psmith@gnu.org>
 
 	* expand.c (variable_append): Add a LOCAL argument to track
