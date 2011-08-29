@@ -1,3 +1,8 @@
+2011-08-29  Paul Smith  <psmith@gnu.org>
+
+	* scripts/features/varnesting: Test resetting of variables while
+	expanding them.  See Savannah patch #7534
+
 2011-06-12  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/archives: Check archives with whitespace at the

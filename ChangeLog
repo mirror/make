@@ -1,3 +1,11 @@
+2011-08-29  Paul Smith  <psmith@gnu.org>
+
+	* expand.c (variable_expand_string): Always allocate a new buffer
+	for a string we're expanding.  The string we're working on can get
+	freed while we work on it (for example if it's the value of a
+	variable which modifies itself using an eval operation).
+	See Savannah patch #7534 for the original report by Lubomir Rintel.
+
 2011-06-12  Paul Smith  <psmith@gnu.org>
 
 	* read.c (parse_file_seq): Move the check for empty members out of

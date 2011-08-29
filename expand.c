@@ -197,7 +197,7 @@ variable_expand_string (char *line, const char *string, long length)
 {
   struct variable *v;
   const char *p, *p1;
-  char *abuf = NULL;
+  char *save;
   char *o;
   unsigned int line_offset;
 
@@ -212,16 +212,11 @@ variable_expand_string (char *line, const char *string, long length)
       return (variable_buffer);
     }
 
-  /* If we want a subset of the string, allocate a temporary buffer for it.
-     Most of the functions we use here don't work with length limits.  */
-  if (length > 0 && string[length] != '\0')
-    {
-      abuf = xmalloc(length+1);
-      memcpy(abuf, string, length);
-      abuf[length] = '\0';
-      string = abuf;
-    }
-  p = string;
+  /* We need a copy of STRING: due to eval, it's possible that it will get
+     freed as we process it (it might be the value of a variable that's reset
+     for example).  Also having a nil-terminated string is handy.  */
+  save = length < 0 ? xstrdup (string) : xstrndup (string, length);
+  p = save;
 
   while (1)
     {
@@ -411,8 +406,7 @@ variable_expand_string (char *line, const char *string, long length)
       ++p;
     }
 
-  if (abuf)
-    free (abuf);
+  free (save);
 
   variable_buffer_output (o, "", 1);
   return (variable_buffer + line_offset);
