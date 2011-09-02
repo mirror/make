@@ -1,3 +1,8 @@
+2011-09-02  Paul Smith  <psmith@gnu.org>
+
+	* scripts/options/dash-n: Verify that in "-n -t", the -n takes
+	priority.  Patch from Michael Witten <mfwitten@gmail.com>.
+
 2011-08-29  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/varnesting: Test resetting of variables while
