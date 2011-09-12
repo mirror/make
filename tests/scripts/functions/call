@@ -96,4 +96,15 @@ close(MAKEFILE);
 $answer = "1 2 3 4 5 6 7 8 9\n1 2 3 4 5\n1 2 3\n1 2 3\n";
 &compare_output($answer,&get_logfile(1));
 
+# Ensure that variables are defined in global scope even in a $(call ...)
+
+delete $ENV{X123};
+
+run_make_test('
+tst = $(eval export X123)
+$(call tst)
+all: ; @echo "$${X123-not set}"
+',
+              '', "\n");
+
 1;

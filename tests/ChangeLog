@@ -1,3 +1,8 @@
+2011-09-12  Paul Smith  <psmith@gnu.org>
+
+	* scripts/functions/call: Verify that using export in a $(call ...)
+	context creates a global variable.  See Savannah bug #32498.
+
 2011-09-02  Paul Smith  <psmith@gnu.org>
 
 	* scripts/options/dash-n: Verify that in "-n -t", the -n takes

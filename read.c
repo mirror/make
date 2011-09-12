@@ -782,7 +782,7 @@ eval (struct ebuffer *ebuf, int set_default)
                 {
                   struct variable *v = lookup_variable (p, l);
                   if (v == 0)
-                    v = define_variable_loc (p, l, "", o_file, 0, fstart);
+                    v = define_variable_global (p, l, "", o_file, 0, fstart);
                   v->export = exporting ? v_export : v_noexport;
                 }
 

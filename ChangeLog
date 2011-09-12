@@ -1,3 +1,16 @@
+2011-09-12  Paul Smith  <psmith@gnu.org>
+
+	* read.c (eval): Ensure exported variables are defined in the
+	global scope.  Fixes Savannah bug #32498.
+
+2011-09-11  Paul Smith  <psmith@gnu.org>
+
+	* Makefile.am (dist-hook): Remove w32/Makefile and .deps/ from the
+	dist file.  Fixes Savannah bug #31489.
+
+	* doc/make.texi (Complex Makefile): Add a hint about using
+	#!/usr/bin/make (for Savannah support request #106459)
+
 2011-09-02  Paul Smith  <psmith@gnu.org>
 
 	* remake.c (touch_file): If we have both -n and -t, -n takes

@@ -11246,7 +11246,8 @@ sequential manner.
 @appendix Complex Makefile Example
 
 Here is the makefile for the GNU @code{tar} program.  This is a
-moderately complex makefile.
+moderately complex makefile.  The first line uses a @code{#!} setting
+to allow the makefile to be executed directly.
 
 Because it is the first target, the default goal is @samp{all}.  An
 interesting feature of this makefile is that @file{testpad.h} is a
@@ -11282,6 +11283,7 @@ distribution kits.
 
 @example
 @group
+#!/usr/bin/make -f
 # Generated automatically from Makefile.in by configure.
 # Un*x Makefile for GNU tar program.
 # Copyright (C) 1991 Free Software Foundation, Inc.
