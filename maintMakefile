@@ -138,6 +138,8 @@ move_if_change =  if test -r $(target) && cmp -s $(target).t $(target); then \
 #   http://translation.sf.net/maint/
 #   ftp://tiger.informatik.hu-berlin.de/pub/po/maint/
 
+po_wget_flags =	--recursive --level=1 --no-directories --no-parent \
+		--no-check-certificate
 po_repo = http://translationproject.org/latest/$(PACKAGE)
 .PHONY: do-po-update po-update
 do-po-update:
@@ -145,7 +147,7 @@ do-po-update:
 	  && rm -rf "$$tmppo" \
 	  && mkdir "$$tmppo" \
 	  && (cd "$$tmppo" \
-		&& $(WGET) -r -l1 -nd --no-parent -A '*.po' $(po_repo)) \
+		&& $(WGET) $(po_wget_flags) -A '*.po' $(po_repo)) \
 	  && cp "$$tmppo"/*.po $(top_srcdir)/po && rm -rf "$$tmppo"
 	cd po && $(MAKE) update-po
 	$(MAKE) po-check
