@@ -1,3 +1,9 @@
+2011-09-18  Paul Smith  <psmith@gnu.org>
+
+	* remake.c (library_search): STD_DIRS is computed when other
+	static vars like buflen etc. are computed, so it must be static
+	as well.  See Savannah bug #32511.
+
 2011-09-16  Paul Smith  <psmith@gnu.org>
 
 	* maintMakefile (do-po-update): Apparently we have to avoid

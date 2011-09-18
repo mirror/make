@@ -1538,8 +1538,7 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
   unsigned int liblen;
 
   /* Information about the earliest (in the vpath sequence) match.  */
-  unsigned int best_vpath, best_path;
-  unsigned int std_dirs = 0;
+  unsigned int best_vpath = 0, best_path = 0;
 
   char **dp;
 
@@ -1558,6 +1557,7 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
       static char *buf = NULL;
       static unsigned int buflen = 0;
       static int libdir_maxlen = -1;
+      static unsigned int std_dirs = 0;
       char *libbuf = variable_expand ("");
 
       /* Expand the pattern using LIB as a replacement.  */
