@@ -1,5 +1,9 @@
 2011-09-18  Paul Smith  <psmith@gnu.org>
 
+	* main.c (main): If we're re-exec'ing and we're the master make,
+	then restore the job_slots value so it goes back into MAKEFLAGS
+	properly.  See Savannah bug #33873.
+
 	* remake.c (library_search): STD_DIRS is computed when other
 	static vars like buflen etc. are computed, so it must be static
 	as well.  See Savannah bug #32511.

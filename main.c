@@ -2089,6 +2089,11 @@ main (int argc, char **argv, char **envp)
 
           ++restarts;
 
+          /* If we're re-exec'ing the first make, put back the number of
+             job slots so define_makefiles() will get it right.  */
+          if (master_job_slots)
+            job_slots = master_job_slots;
+
           /* Reset makeflags in case they were changed.  */
           {
             const char *pv = define_makeflags (1, 1);
@@ -2825,9 +2830,6 @@ define_makeflags (int all, int makefile)
 		       && (*(unsigned int *) cs->value_ptr ==
 			   *(unsigned int *) cs->noarg_value))
 		ADD_FLAG ("", 0); /* Optional value omitted; see below.  */
-	      else if (cs->c == 'j')
-		/* Special case for `-j'.  */
-		ADD_FLAG ("1", 1);
 	      else
 		{
 		  char *buf = alloca (30);

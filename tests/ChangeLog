@@ -1,5 +1,8 @@
 2011-09-18  Paul Smith  <psmith@gnu.org>
 
+	* scripts/features/parallelism: On re-exec make sure we preserve
+	the value of MAKEFLAGS when necessary.  See Savannah bug #33873.
+
 	* scripts/features/vpath3: Verify handling of -lfoo libraries
 	found via vpath vs. the standard directory search.
 	See Savannah bug #32511.

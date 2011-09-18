@@ -167,6 +167,23 @@ inc.mk:
 
 rmfiles('inc.mk');
 
+# TEST #11: Make sure -jN from MAKEFLAGS is processed even when we re-exec
+# See Savannah bug #33873
+
+$extraENV{MAKEFLAGS} = '-j4';
+
+run_make_test(q!
+things = thing1 thing2
+all: $(things)
+$(things):; @echo '$@ start'; sleep 1; echo '$@ end'
+-include inc.mk
+inc.mk: ; @touch $@
+!,
+              '', "thing1 start\nthing2 start\nthing1 end\nthing2 end\n");
+
+delete $extraENV{MAKEFLAGS};
+rmfiles('inc.mk');
+
 if ($all_tests) {
     # Implicit files aren't properly recreated during parallel builds
     # Savannah bug #26864
