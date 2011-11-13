@@ -1,3 +1,9 @@
+2011-11-13  Paul Smith  <psmith@gnu.org>
+
+	* acinclude.m4 (AC_STRUCT_ST_MTIM_NSEC): Add support for Darwin.
+	Patch provided by Troy Runkel <Troy.Runkel@mathworks.com>
+	* filedef.h (FILE_TIMESTAMP_STAT_MODTIME): Ditto.
+
 2011-09-18  Paul Smith  <psmith@gnu.org>
 
 	* main.c (main): If we're re-exec'ing and we're the master make,

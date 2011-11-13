@@ -118,7 +118,7 @@ void print_file_data_base (void);
 
 #if FILE_TIMESTAMP_HI_RES
 # define FILE_TIMESTAMP_STAT_MODTIME(fname, st) \
-    file_timestamp_cons (fname, (st).st_mtime, (st).st_mtim.ST_MTIM_NSEC)
+    file_timestamp_cons (fname, (st).st_mtime, (st).ST_MTIM_NSEC)
 #else
 # define FILE_TIMESTAMP_STAT_MODTIME(fname, st) \
     file_timestamp_cons (fname, (st).st_mtime, 0)
