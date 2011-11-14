@@ -157,8 +157,9 @@ unsigned int get_path_max (void);
 # define USHRT_MAX 65535
 #endif
 
-/* Nonzero if the integer type T is signed.  */
-#define INTEGER_TYPE_SIGNED(t) ((t) -1 < 0)
+/* Nonzero if the integer type T is signed.
+   Use <= to avoid GCC warnings about always-false expressions.  */
+#define INTEGER_TYPE_SIGNED(t) ((t) -1 <= 0)
 
 /* The minimum and maximum values for the integer type T.
    Use ~ (t) 0, not -1, for portability to 1's complement hosts.  */

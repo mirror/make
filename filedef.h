@@ -155,7 +155,7 @@ void print_file_data_base (void);
     * 302 / 1000) \
    + 1 + 1 + 4 + 25)
 
-FILE_TIMESTAMP file_timestamp_cons (char const *, time_t, int);
+FILE_TIMESTAMP file_timestamp_cons (char const *, time_t, long int);
 FILE_TIMESTAMP file_timestamp_now (int *);
 void file_timestamp_sprintf (char *p, FILE_TIMESTAMP ts);
 

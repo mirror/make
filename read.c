@@ -562,7 +562,7 @@ eval (struct ebuffer *ebuf, int set_default)
   char *depstr = 0;
   long nlines = 0;
   int two_colon = 0;
-  char prefix;
+  char prefix = cmd_prefix;
   const char *pattern = 0;
   const char *pattern_percent;
   struct floc *fstart;

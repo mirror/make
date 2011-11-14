@@ -1,5 +1,14 @@
 2011-11-13  Paul Smith  <psmith@gnu.org>
 
+	* file.c (file_timestamp_cons): Match up data types to avoid warnings.
+	* filedef.h: Ditto.
+	* misc.c (concat): Ditto.
+	* read.c (eval): Assign value to avoid warnings.
+	* function.c (func_shell_base): Use fork() instead of vfork() to
+	avoid warnings.
+	* make.h (INTEGER_TYPE_SIGNED): Use <=0 to avoid warnings.
+	Fixes Savannah bug #34608.
+
 	* job.c (construct_command_argv): Remove _p.
 	(construct_command_argv_internal): Remove _ptr.
 	Fixes Savannah bug #32567.

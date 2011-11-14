@@ -1681,7 +1681,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
   if (pid < 0)
     perror_with_name (error_prefix, "spawn");
 # else /* ! __EMX__ */
-  pid = vfork ();
+  pid = fork ();
   if (pid < 0)
     perror_with_name (error_prefix, "fork");
   else if (pid == 0)

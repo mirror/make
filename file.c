@@ -788,9 +788,10 @@ set_command_state (struct file *file, enum cmd_state state)
 /* Convert an external file timestamp to internal form.  */
 
 FILE_TIMESTAMP
-file_timestamp_cons (const char *fname, time_t s, int ns)
+file_timestamp_cons (const char *fname, time_t stamp, long int ns)
 {
   int offset = ORDINARY_MTIME_MIN + (FILE_TIMESTAMP_HI_RES ? ns : 0);
+  FILE_TIMESTAMP s = stamp;
   FILE_TIMESTAMP product = (FILE_TIMESTAMP) s << FILE_TIMESTAMP_LO_BITS;
   FILE_TIMESTAMP ts = product + offset;
 

@@ -171,7 +171,7 @@ concat (num, va_alist)
 {
   static unsigned int rlen = 0;
   static char *result = NULL;
-  int ri = 0;
+  unsigned int ri = 0;
 
 #if USE_VARIADIC
   va_list args;
