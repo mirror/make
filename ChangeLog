@@ -7,6 +7,34 @@
 	* filedef.h (FILE_TIMESTAMP_STAT_MODTIME): Ditto.
 	Patch provided by Troy Runkel <Troy.Runkel@mathworks.com>
 
+2011-10-11  Troy Runkel  <Troy.Runkel@mathworks.com>
+
+	* config.h.W32: Enable job server support for Windows.
+	* main.c [WINDOWS32]: Include sub_proc.h
+	(main): Create a named semaphore to implement the job server.
+	(clean_jobserver): Free the job server semaphore when make is finished.
+	* job.c [WINDOWS32]: Define WAIT_NOHANG
+	(reap_children): Support non-blocking wait for child processes.
+	(free_child): Release job server semaphore when child process finished.
+	(job_noop): Don't define function on Windows.
+	(set_child_handler_action_flags): Don't define function on Windows.
+	(new_job): Wait for job server semaphore or child process termination.
+	(exec_command): Pass new parameters to process_wait_for_any.
+	* w32/include/sub_proc.h [WINDOWS32]: New/updated EXTERN_DECL entries.
+	* w32/subproc/sub_proc.c [WINDOWS32]: Added job server implementation.
+	(open_jobserver_semaphore): Open existing job server semaphore by name.
+	(create_jobserver_semaphore): Create new job server named semaphore.
+	(free_jobserver_semaphore): Close existing job server semaphore.
+	(acquire_jobserver_semaphore): Decrement job server semaphore count.
+	(release_jobserver_semaphore): Increment job server semaphore count.
+	(has_jobserver_semaphore): Returns whether job server semaphore exists.
+	(get_jobserver_semaphore_name): Returns name of job server semaphore.
+	(wait_for_semaphore_or_child_process): Wait for either the job server
+	semaphore to become signalled or a child process to terminate.
+	(process_wait_for_any_private): Support for non-blocking wait for child.
+	(process_wait_for_any): Added support for non-blocking wait for child.
+	(process_file_io): Pass new parameters to process_wait_for_any_private.
+
 2011-09-18  Paul Smith  <psmith@gnu.org>
 
 	* main.c (main): If we're re-exec'ing and we're the master make,

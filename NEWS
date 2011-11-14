@@ -22,8 +22,11 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
       multiple consecutive backslash/newlines do not condense into one space.
     * In recipes, a recipe prefix following a backslash-newlines is removed.
 
+* New feature: The "job server" capability is now supported on Windows.
+  Implementation contributed by Troy Runkel <Troy.Runkel@mathworks.com>
+
 * New feature: "!=" shell assignment operator as an alternative to the
-  $(shell ...) function.  Implemented for portability of BSD makefiles.
+  $(shell ...) function.  Implemented for compatibility with BSD makefiles.
   WARNING: Backward-incompatibility!
   Variables ending in "!" previously defined as "variable!= value" will now be
   interpreted as shell assignment.  Change your assignment to add whitespace
