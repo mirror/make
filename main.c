@@ -3116,7 +3116,8 @@ clean_jobserver (int status)
                "INTERNAL: Exiting with %u jobserver tokens (should be 0)!",
                jobserver_tokens);
       else
-        while (jobserver_tokens--)
+        /* Don't write back the "free" token */
+        while (--jobserver_tokens)
           {
             int r;
 

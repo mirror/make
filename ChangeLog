@@ -1,8 +1,11 @@
 2011-11-13  Paul Smith  <psmith@gnu.org>
 
+	* main.c (clean_jobserver): Don't write the free token to the pipe.
+	Change suggested by Tim Newsome <tnewsome@aristanetworks.com>
+
 	* acinclude.m4 (AC_STRUCT_ST_MTIM_NSEC): Add support for Darwin.
-	Patch provided by Troy Runkel <Troy.Runkel@mathworks.com>
 	* filedef.h (FILE_TIMESTAMP_STAT_MODTIME): Ditto.
+	Patch provided by Troy Runkel <Troy.Runkel@mathworks.com>
 
 2011-09-18  Paul Smith  <psmith@gnu.org>
 
