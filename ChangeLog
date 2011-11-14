@@ -1,5 +1,9 @@
 2011-11-13  Paul Smith  <psmith@gnu.org>
 
+	* job.c (construct_command_argv): Remove _p.
+	(construct_command_argv_internal): Remove _ptr.
+	Fixes Savannah bug #32567.
+
 	* main.c (clean_jobserver): Don't write the free token to the pipe.
 	Change suggested by Tim Newsome <tnewsome@aristanetworks.com>
 

@@ -2385,7 +2385,7 @@ void clean_tmp (void)
 static char **
 construct_command_argv_internal (char *line, char **restp, char *shell,
                                  char *shellflags, char *ifs, int flags,
-                                 char **batch_filename_p)
+                                 char **batch_filename UNUSED)
 {
 #ifdef __MSDOS__
   /* MSDOS supports both the stock DOS shell and ports of Unixy shells.
@@ -3048,7 +3048,7 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
       new_argv = xmalloc(2 * sizeof (char *));
       new_argv[0] = xstrdup ("");
       new_argv[1] = NULL;
-    } else if ((no_default_sh_exe || batch_mode_shell) && batch_filename_ptr) {
+    } else if ((no_default_sh_exe || batch_mode_shell) && batch_filename) {
       int temp_fd;
       FILE* batch = NULL;
       int id = GetCurrentProcessId();
@@ -3056,10 +3056,10 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
 
       /* create a file name */
       sprintf(fbuf, "make%d", id);
-      *batch_filename_ptr = create_batch_file (fbuf, unixy_shell, &temp_fd);
+      *batch_filename = create_batch_file (fbuf, unixy_shell, &temp_fd);
 
       DB (DB_JOBS, (_("Creating temporary batch file %s\n"),
-                    *batch_filename_ptr));
+                    *batch_filename));
 
       /* Create a FILE object for the batch file, and write to it the
 	 commands to be executed.  Put the batch file in TEXT mode.  */
@@ -3077,9 +3077,9 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
       new_argv = xmalloc(3 * sizeof (char *));
       if (unixy_shell) {
         new_argv[0] = xstrdup (shell);
-        new_argv[1] = *batch_filename_ptr; /* only argv[0] gets freed later */
+        new_argv[1] = *batch_filename; /* only argv[0] gets freed later */
       } else {
-        new_argv[0] = xstrdup (*batch_filename_ptr);
+        new_argv[0] = xstrdup (*batch_filename);
         new_argv[1] = NULL;
       }
       new_argv[2] = NULL;
@@ -3198,7 +3198,7 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
 
 char **
 construct_command_argv (char *line, char **restp, struct file *file,
-                        int cmd_flags, char **batch_filename_p)
+                        int cmd_flags, char **batch_filename)
 {
   char *shell, *ifs, *shellflags;
   char **argv;
@@ -3312,7 +3312,7 @@ construct_command_argv (char *line, char **restp, struct file *file,
   }
 
   argv = construct_command_argv_internal (line, restp, shell, shellflags, ifs,
-                                          cmd_flags, batch_filename_p);
+                                          cmd_flags, batch_filename);
 
   free (shell);
   free (shellflags);
