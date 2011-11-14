@@ -1016,16 +1016,17 @@ eval (struct ebuffer *ebuf, int set_default)
               /* There's no need to be ivory-tower about this: check for
                  one of the most common bugs found in makefiles...  */
               fatal (fstart, _("missing separator%s"),
-                     (cmd_prefix == '\t' && !strneq(line, "        ", 8))
+                     (cmd_prefix == '\t' && !strneq (line, "        ", 8))
                      ? "" : _(" (did you mean TAB instead of 8 spaces?)"));
             continue;
           }
 
         /* Make the colon the end-of-string so we know where to stop
-           looking for targets.  */
+           looking for targets.  Start there again once we're done.  */
         *colonp = '\0';
         filenames = PARSE_FILE_SEQ (&p2, struct nameseq, '\0', NULL, 0);
-        *p2 = ':';
+        *colonp = ':';
+        p2 = colonp;
 
         if (!filenames)
           {

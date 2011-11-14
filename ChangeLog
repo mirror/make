@@ -1,3 +1,9 @@
+2011-11-14  Paul Smith  <psmith@gnu.org>
+
+	* read.c (eval): parse_file_seq() might shorten the string due to
+	backslash removal.  Start parsing again at the colon.
+	Fixes Savannah bug #33399.
+
 2011-11-13  Paul Smith  <psmith@gnu.org>
 
 	* file.c (file_timestamp_cons): Match up data types to avoid warnings.
