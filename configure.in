@@ -306,15 +306,17 @@ case "/$ac_cv_func_pipe/$ac_cv_func_sigaction/$make_cv_sa_restart/$has_wait_noha
   */no/*) make_cv_job_server=no ;;
 esac
 
-# Also supported on OS2 and W32
+# Also supported on OS2 and MinGW
 case "$host_os" in
-  os2*|mingw32) make_cv_sa_restart=yes ;;
+  os2*|mingw*) make_cv_job_server=yes ;;
 esac
 
-if test "$make_cv_job_server" != no; then
-  AC_DEFINE(MAKE_JOBSERVER, 1,
-            [Define to 1 to enable job server support in GNU make.])
-fi
+# If we support it and the user didn't disable it, build with jobserver
+case "/$make_cv_job_server/$user_job_server/" in
+  */no/*) : no jobserver ;;
+  *) AC_DEFINE(MAKE_JOBSERVER, 1,
+               [Define to 1 to enable job server support in GNU make.]) ;;
+esac
 
 # if we have both lstat() and readlink() then we can support symlink
 # timechecks.
