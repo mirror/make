@@ -1,3 +1,14 @@
+2011-11-15  Paul Smith  <psmith@gnu.org>
+
+	* main.c (main): Use %ld when printing DWORD values.
+	* job.c (new_job): Ditto.
+	* w32/include/sub_proc.h: Use const.
+	* w32/subproc/sub_proc.c (open_jobserver_semaphore): Use const.
+	Fixes Savannah bug #34830.  Patches suggested by Ozkan Sezer.
+
+	* configure.in (MAKE_JOBSERVER): Enable jobserver on W32 systems.
+	* config.h.W32.template (MAKE_JOBSERVER): Ditto.
+
 2011-11-14  Paul Smith  <psmith@gnu.org>
 
 	* read.c (eval): parse_file_seq() might shorten the string due to

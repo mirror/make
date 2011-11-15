@@ -58,7 +58,7 @@ EXTERN_DECL(int process_errcnt, (HANDLE proc));
 EXTERN_DECL(void process_pipes, (HANDLE proc, int pipes[3]));
 
 /* jobserver routines */
-EXTERN_DECL(int open_jobserver_semaphore, (char* name));
+EXTERN_DECL(int open_jobserver_semaphore, (const char* name));
 EXTERN_DECL(int create_jobserver_semaphore, (int tokens));
 EXTERN_DECL(void free_jobserver_semaphore, (VOID_DECL));
 EXTERN_DECL(int acquire_jobserver_semaphore, (VOID_DECL));

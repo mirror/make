@@ -36,6 +36,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # include <io.h>
 # include "pathstuff.h"
 # include "sub_proc.h"
+# include "w32err.h"
 #endif
 #ifdef __EMX__
 # include <sys/types.h>
@@ -988,7 +989,7 @@ main (int argc, char **argv, char **envp)
   fatal_signal_mask = 0;
 #define	ADD_SIG(sig)	fatal_signal_mask |= sigmask (sig)
 #else
-#define	ADD_SIG(sig)    (void)sig      /* Needed to avoid warnings in MSVC.  */
+#define	ADD_SIG(sig)    (void)sig
 #endif
 #endif
 
@@ -1728,7 +1729,7 @@ main (int argc, char **argv, char **envp)
       if (! open_jobserver_semaphore(cp))
         {
           DWORD err = GetLastError();
-          fatal (NILF,_("internal error: unable to open jobserver semaphore `%s': (Error %d: %s)"), 
+          fatal (NILF, _("internal error: unable to open jobserver semaphore `%s': (Error %ld: %s)"), 
                  cp, err, map_windows32_error_to_string(err));
         }
       DB (DB_JOBS, (_("Jobserver client (semaphore %s)\n"), cp));
@@ -1804,7 +1805,7 @@ main (int argc, char **argv, char **envp)
       if (! create_jobserver_semaphore(job_slots - 1))
         {
           DWORD err = GetLastError();
-          fatal (NILF,_("creating jobserver semaphore: (Error %d: %s)"),
+          fatal (NILF, _("creating jobserver semaphore: (Error %ld: %s)"),
                  err, map_windows32_error_to_string(err));
         }
 #else

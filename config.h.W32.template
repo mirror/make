@@ -332,7 +332,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define MAKE_HOST "Windows32"
 
 /* Define this to enable job server support in GNU make. */
-/* #undef MAKE_JOBSERVER */
+#define MAKE_JOBSERVER 1
 
 /* Define to 1 if your `struct nlist' has an `n_un' member. Obsolete, depend
    on `HAVE_STRUCT_NLIST_N_UN_N_NAME */

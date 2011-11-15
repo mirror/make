@@ -946,7 +946,7 @@ free_child (struct child *child)
       if (! release_jobserver_semaphore())
         {
           DWORD err = GetLastError();
-          fatal (NILF,_("release jobserver semaphore: (Error %d: %s)"),
+          fatal (NILF, _("release jobserver semaphore: (Error %ld: %s)"),
                  err, map_windows32_error_to_string(err));
         }
 
@@ -1775,9 +1775,11 @@ new_job (struct file *file)
 #endif
     while (1)
       {
-        char token;
 	int got_token;
+#ifndef WINDOWS32
+        char token;
 	int saved_errno;
+#endif
 
         DB (DB_JOBS, ("Need a job token; we %shave children\n",
                       children ? "" : "don't "));
@@ -1842,7 +1844,7 @@ new_job (struct file *file)
         if (got_token < 0)
           {
             DWORD err = GetLastError();
-            fatal (NILF,_("semaphore or child process wait: (Error %d: %s)"),
+            fatal (NILF, _("semaphore or child process wait: (Error %ld: %s)"),
                    err, map_windows32_error_to_string(err));
           }
 #else

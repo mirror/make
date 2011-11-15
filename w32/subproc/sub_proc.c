@@ -63,7 +63,7 @@ static char jobserver_semaphore_name[MAX_PATH + 1];
 static HANDLE jobserver_semaphore = NULL;
 
 /* Open existing jobserver semaphore */
-int open_jobserver_semaphore(char* name)
+int open_jobserver_semaphore(const char* name)
 {
     jobserver_semaphore = OpenSemaphore(
         SEMAPHORE_ALL_ACCESS,	// Semaphore access setting
