@@ -1,3 +1,8 @@
+2011-12-10  Paul Smith  <psmith@gnu.org>
+
+	* scripts/targets/SECONDARY: Add prereq statements to ensure rules
+	are printed in the right order for test #9
+
 2011-11-14  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/double_colon: Check double-colon with escaped

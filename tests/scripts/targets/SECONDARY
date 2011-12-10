@@ -129,10 +129,11 @@ touch(qw(1.a 2.a));
 run_make_test('
 %.c : %.b ; cp $< $@
 %.b : %.a ; cp $< $@
-all : 1.c 2.c', '-rR -j',
+all : 1.c 2.c
+2.a: 1.c', '-rR -j',
 'cp 1.a 1.b
-cp 2.a 2.b
 cp 1.b 1.c
+cp 2.a 2.b
 cp 2.b 2.c
 rm 1.b 2.b');
 
