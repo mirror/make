@@ -47,7 +47,9 @@ Other contributors:
 
   Janet Carson <janet_carson@tivoli.com>
   Howard Chu <hyc@highlandsun.com>
+  Ludovic Courtès <ludo@gnu.org>
   Paul Eggert <eggert@twinsun.com>
+  Ramon Garcia Fernandez <ramon.garcia.f@gmail.com>
   Klaus Heinz <kamar@ease.rhein-main.de>
   Michael Joosten
   Jim Kelton <jim_kelton@tivoli.com>
@@ -55,12 +57,12 @@ Other contributors:
   Tim Magill <tim.magill@telops.gte.com>
   Markus Mauhart <qwe123@chello.at>
   Greg McGary <greg@mcgary.org>
+  Thien-Thi Nguyen <ttn@gnuvola.org>
   Thomas Riedl <thomas.riedl@siemens.com>
   Han-Wen Nienhuys <hanwen@cs.uu.nl>
   Andreas Schwab <schwab@issan.informatik.uni-dortmund.de>
   Carl Staelin (Princeton University)
   Ian Stewartson (Data Logic Limited)
-  Ramon Garcia Fernandez <ramon.garcia.f@gmail.com>
   David A. Wheeler <dwheeler@dwheeler.com>
 
 With suggestions/comments/bug reports from a cast of ... well ...

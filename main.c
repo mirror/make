@@ -910,7 +910,6 @@ open_tmpfile(char **name, const char *template)
 #endif
 }
 
-
 #ifdef _AMIGA
 int
 main (int argc, char **argv)
@@ -958,7 +957,7 @@ main (int argc, char **argv, char **envp)
 #endif
 
   /* Needed for OS/2 */
-  initialize_main(&argc, &argv);
+  initialize_main (&argc, &argv);
 
   reading_file = 0;
 
@@ -1125,6 +1124,7 @@ main (int argc, char **argv, char **envp)
     }
   else
     directory_before_chdir = xstrdup (current_directory);
+
 #ifdef  __MSDOS__
   /* Make sure we will return to the initial directory, come what may.  */
   atexit (msdos_return_to_initial_directory);
@@ -1155,6 +1155,11 @@ main (int argc, char **argv, char **envp)
 
     define_variable_cname (".FEATURES", features, o_default, 0);
   }
+
+#ifdef HAVE_GUILE
+  /* Configure GNU Guile support */
+  setup_guile ();
+#endif
 
   /* Read in variables from the environment.  It is important that this be
      done before $(MAKE) is figured out so its definitions will not be
@@ -2362,7 +2367,7 @@ main (int argc, char **argv, char **envp)
   }
 
   /* NOTREACHED */
-  return 0;
+  exit(0);
 }
 
 /* Parsing of arguments, decoding of switches.  */

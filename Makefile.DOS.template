@@ -89,7 +89,7 @@ INCLUDES =	-I$(srcdir)/glob -DLIBDIR=\"$(prefix)$(libdir)\" -DINCLUDEDIR=\"$(pre
 
 BUILT_SOURCES =	README build.sh-in
 
-EXTRA_DIST = 	$(BUILT_SOURCES) $(man_MANS) README.customs remote-cstms.c  make-stds.texi texinfo.tex SCOPTIONS SMakefile  Makefile.ami README.Amiga config.ami amiga.c amiga.h  NMakefile README.DOS configh.dos configure.bat makefile.com  README.W32 build_w32.bat config.h-W32 subproc.bat make.lnk  config.h-vms makefile.vms readme.vms vmsdir.h vmsfunctions.c  vmsify.c
+EXTRA_DIST = 	$(BUILT_SOURCES) $(man_MANS) README.customs remote-cstms.c  make-stds.texi texinfo.tex SCOPTIONS SMakefile  Makefile.ami README.Amiga config.ami amiga.c amiga.h  NMakefile README.DOS configh.dos configure.bat makefile.com  README.W32 build_w32.bat config.h-W32 subproc.bat make.lnk  config.h-vms makefile.vms readme.vms vmsdir.h vmsfunctions.c  vmsify.c gmk-default.scm gmk-default.h
 
 SUBDIRS =	glob doc
 mkinstalldirs = ${exec_prefix}/bin/gmkdir -p

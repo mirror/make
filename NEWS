@@ -32,6 +32,11 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
   interpreted as shell assignment.  Change your assignment to add whitespace
   between the "!" and "=": "variable! = value"
 
+* New Feature: GNU Guile integration
+  This version of GNU make can be compiled with GNU Guile integration.
+  GNU Guile serves as an embedded extension language for make.
+  See the "Guile Function" section in the GNU Make manual for details.
+
 * New command line option: --trace enables tracing of targets.  When enabled
   the recipe to be invoked is printed even if it would otherwise be suppressed
   by .SILENT or a "@" prefix character.  Also before each recipe is run the

@@ -39,18 +39,23 @@ else
   remote =	remote-stub.c
 endif
 
-
 make_SOURCES =	ar.c arscan.c commands.c default.c dir.c expand.c file.c \
 		function.c getopt.c getopt1.c implicit.c job.c main.c \
-		misc.c read.c remake.c $(remote) rule.c signame.c \
-		strcache.c variable.c version.c vpath.c hash.c
+		misc.c read.c remake.c rule.c signame.c \
+		strcache.c variable.c version.c vpath.c hash.c \
+		$(remote)
+
+if HAVE_GUILE
+  make_SOURCES += guile.c
+endif
 
 EXTRA_make_SOURCES = vmsjobs.c remote-stub.c remote-cstms.c
 
 noinst_HEADERS = commands.h dep.h filedef.h job.h make.h rule.h variable.h \
 		debug.h getopt.h gettext.h hash.h
 
-make_LDADD =	@LIBOBJS@ @ALLOCA@ $(GLOBLIB) @GETLOADAVG_LIBS@ @LIBINTL@
+make_LDADD =	@LIBOBJS@ @ALLOCA@ $(GLOBLIB) @GETLOADAVG_LIBS@ @LIBINTL@ \
+		$(GUILE_LIBS)
 # Only process if target is MS-Windows
 if WINDOWSENV
     make_LDADD += $(W32LIB)
@@ -61,6 +66,7 @@ man_MANS =	make.1
 DEFS =		-DLOCALEDIR=\"$(localedir)\" -DLIBDIR=\"$(libdir)\" -DINCLUDEDIR=\"$(includedir)\" @DEFS@
 
 AM_CPPFLAGS =	$(GLOBINC)
+AM_CFLAGS =	$(GUILE_CFLAGS)
 # Only process if target is MS-Windows
 if WINDOWSENV
     AM_CPPFLAGS +=	$(W32INC)
@@ -77,7 +83,8 @@ EXTRA_DIST =	README build.sh.in $(man_MANS) \
 		README.W32 NMakefile config.h.W32 build_w32.bat subproc.bat \
 		make_msvc_net2003.sln make_msvc_net2003.vcproj \
 		readme.vms makefile.vms makefile.com config.h-vms \
-		vmsdir.h vmsfunctions.c vmsify.c
+		vmsdir.h vmsfunctions.c vmsify.c \
+		gmk-default.scm gmk-default.h
 
 # This is built during configure, but behind configure's back
 
@@ -122,6 +129,15 @@ install-exec-local:
 	     echo "of $$app."; \
 	   fi; \
 	 else true; fi
+
+# --------------- Generate the Guile default module content
+
+guile.$(OBJEXT): gmk-default.h
+gmk-default.h: $(srcdir)/gmk-default.scm
+	(echo 'static const char *const GUILE_module_defn = " '\\ \
+	  && sed -e 's/;.*//' -e '/^[ \t]*$$/d' -e 's/"/\\"/g' -e 's/$$/ \\/' \
+	         $(srcdir)/gmk-default.scm \
+          && echo '";') > $@
 
 # --------------- Local DIST Section
 

@@ -24,6 +24,7 @@ expand.c
 file.c
 function.c
 getopt.c
+guile.c
 hash.c
 implicit.c
 job.c

@@ -465,6 +465,11 @@ const char *strcache_add (const char *str);
 const char *strcache_add_len (const char *str, unsigned int len);
 int strcache_setbufsize (unsigned int size);
 
+/* Guile support  */
+char *guile_eval_string (char *str);
+void setup_guile (void);
+
+
 #ifdef  HAVE_VFORK_H
 # include <vfork.h>
 #endif

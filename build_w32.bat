@@ -92,6 +92,8 @@ cl.exe /nologo /MT /W4 /GX /Zi /YX /Od /I . /I glob /I w32/include /D _DEBUG /D 
 echo WinDebug\fnmatch.obj >>link.dbg
 cl.exe /nologo /MT /W4 /GX /Zi /YX /Od /I . /I glob /I w32/include /D _DEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinDebug/ /Fp.\WinDebug/%make%.pch /Fo.\WinDebug/ /Fd.\WinDebug/%make%.pdb /c  .\w32\pathstuff.c
 echo WinDebug\pathstuff.obj >>link.dbg
+rem cl.exe /nologo /MT /W4 /GX /Zi /YX /Od /I . /I glob /I w32/include /D _DEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinDebug/ /Fp.\WinDebug/%make%.pch /Fo.\WinDebug/ /Fd.\WinDebug/%make%.pdb /c guile.c
+rem echo WinDebug\guile.obj >>link.dbg
 echo off
 echo "Linking WinDebug/%make%.exe"
 rem link.exe kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib w32\subproc\windebug\subproc.lib /NOLOGO /SUBSYSTEM:console /INCREMENTAL:yes /PDB:.\WinDebug/%make%.pdb /DEBUG /OUT:.\WinDebug/%make%.exe .\WinDebug/variable.obj  .\WinDebug/rule.obj  .\WinDebug/remote-stub.obj  .\WinDebug/commands.obj  .\WinDebug/file.obj  .\WinDebug/getloadavg.obj  .\WinDebug/default.obj  .\WinDebug/signame.obj  .\WinDebug/expand.obj  .\WinDebug/dir.obj  .\WinDebug/main.obj  .\WinDebug/getopt1.obj  .\WinDebug/job.obj  .\WinDebug/read.obj  .\WinDebug/version.obj  .\WinDebug/getopt.obj  .\WinDebug/arscan.obj  .\WinDebug/remake.obj  .\WinDebug/hash.obj  .\WinDebug/strcache.obj  .\WinDebug/misc.obj  .\WinDebug/ar.obj  .\WinDebug/function.obj  .\WinDebug/vpath.obj  .\WinDebug/implicit.obj  .\WinDebug/dirent.obj  .\WinDebug/glob.obj  .\WinDebug/fnmatch.obj  .\WinDebug/pathstuff.obj
@@ -159,6 +161,8 @@ cl.exe /nologo /MT /W4 /GX /YX /O2 /I . /I glob /I w32/include /D NDEBUG /D WIND
 echo WinRel\fnmatch.obj >>link.rel
 cl.exe /nologo /MT /W4 /GX /YX /O2 /I . /I glob /I w32/include /D NDEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinRel/ /Fp.\WinRel/%make%.pch /Fo.\WinRel/ /c  .\w32\pathstuff.c
 echo WinRel\pathstuff.obj >>link.rel
+rem cl.exe /nologo /MT /W4 /GX /YX /O2 /I . /I glob /I w32/include /D NDEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinRel/ /Fp.\WinRel/%make%.pch /Fo.\WinRel/ /c guile.c
+rem echo WinRel\guile.obj >>link.rel
 echo off
 echo "Linking WinRel/%make%.exe"
 rem link.exe kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib w32\subproc\winrel\subproc.lib /NOLOGO /SUBSYSTEM:console /INCREMENTAL:no /PDB:.\WinRel/%make%.pdb /OUT:.\WinRel/%make%.exe .\WinRel/variable.obj  .\WinRel/rule.obj  .\WinRel/remote-stub.obj  .\WinRel/commands.obj  .\WinRel/file.obj  .\WinRel/getloadavg.obj  .\WinRel/default.obj  .\WinRel/signame.obj  .\WinRel/expand.obj  .\WinRel/dir.obj  .\WinRel/main.obj  .\WinRel/getopt1.obj  .\WinRel/job.obj  .\WinRel/read.obj  .\WinRel/version.obj  .\WinRel/getopt.obj  .\WinRel/arscan.obj  .\WinRel/remake.obj  .\WinRel/misc.obj  .\WinRel/hash.obj  .\WinRel/strcache.obj  .\WinRel/ar.obj  .\WinRel/function.obj  .\WinRel/vpath.obj  .\WinRel/implicit.obj  .\WinRel/dirent.obj  .\WinRel/glob.obj  .\WinRel/fnmatch.obj  .\WinRel/pathstuff.obj
@@ -198,6 +202,9 @@ gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -
 gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c ./glob/glob.c -o glob.o
 gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c ./glob/fnmatch.c -o fnmatch.o
 gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c ./w32/pathstuff.c -o pathstuff.o
-gcc -mthreads -gdwarf-2 -g3 -o gnumake.exe variable.o rule.o remote-stub.o commands.o file.o getloadavg.o default.o signame.o expand.o dir.o main.o getopt1.o job.o read.o version.o getopt.o arscan.o remake.o misc.o hash.o strcache.o ar.o function.o vpath.o implicit.o glob.o fnmatch.o pathstuff.o w32_misc.o sub_proc.o w32err.o -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32
+rem gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c guile.c
+rem set guile=guile.o
+set guile=
+gcc -mthreads -gdwarf-2 -g3 -o gnumake.exe variable.o rule.o remote-stub.o commands.o file.o getloadavg.o default.o signame.o expand.o dir.o main.o getopt1.o %guile% job.o read.o version.o getopt.o arscan.o remake.o misc.o hash.o strcache.o ar.o function.o vpath.o implicit.o glob.o fnmatch.o pathstuff.o w32_misc.o sub_proc.o w32err.o -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32
 :BuildEnd
 echo on

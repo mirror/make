@@ -66,6 +66,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if you have the getmntent function.  */
 /* #undef HAVE_GETMNTENT */
 
+/* Embed GNU Guile support */
+/* #undef HAVE_GUILE */
+
 /* Define if the `long double' type works.  */
 /* #undef HAVE_LONG_DOUBLE */
 

@@ -55,6 +55,8 @@ echo commands.o > respf.$$$
 for %%f in (job dir file misc main read remake rule implicit default variable) do echo %%f.o >> respf.$$$
 for %%f in (expand function vpath hash strcache version ar arscan signame remote-stub getopt getopt1) do echo %%f.o >> respf.$$$
 echo glob/libglob.a >> respf.$$$
+rem gcc  -c -I. -I./glob -DHAVE_CONFIG_H -O2 -g guile.c -o guile.o
+rem echo guile.o >> respf.$$$
 @echo Linking...
 @echo on
 gcc -o make.new @respf.$$$

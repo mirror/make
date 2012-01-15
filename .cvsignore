@@ -22,6 +22,8 @@ config.ami configh.dos config.h.W32 config.h-vms
 
 loadavg loadavg.c make
 
+gmk-default.h
+
 .deps .dep_segment ID TAGS
 
 _*

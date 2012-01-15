@@ -1,3 +1,7 @@
+2012-01-12  Paul Smith  <psmith@gnu.org>
+
+	* POTFILES.in: Add new guile.c file.
+
 2011-09-26  Paul Smith  <psmith@gnu.org>
 
 	* LINGUAS: Added new translation file for Czech (cs).

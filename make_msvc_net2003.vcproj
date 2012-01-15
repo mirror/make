@@ -154,6 +154,11 @@
 			<File
 				RelativePath=".\getopt1.c">
 			</File>
+<!--
+			<File
+				RelativePath=".\guile.c">
+			</File>
+-->
 			<File
 				RelativePath=".\hash.c">
 			</File>
@@ -262,6 +267,9 @@
 			</File>
 			<File
 				RelativePath=".\gettext.h">
+			</File>
+			<File
+				RelativePath=".\gmk-default.h">
 			</File>
 			<File
 				RelativePath=".\hash.h">

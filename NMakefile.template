@@ -73,6 +73,8 @@ $(OUTDIR):
 
 LIBS = kernel32.lib user32.lib advapi32.lib
 
+#guile = $(OUTDIR)/guile.obj
+
 OBJS = \
 	$(OUTDIR)/ar.obj \
 	$(OUTDIR)/arscan.obj \
@@ -102,7 +104,8 @@ OBJS = \
 	$(OUTDIR)/glob.obj \
 	$(OUTDIR)/fnmatch.obj \
 	$(OUTDIR)/dirent.obj \
-	$(OUTDIR)/pathstuff.obj
+	$(OUTDIR)/pathstuff.obj \
+	$(guile)
 
 $(OUTDIR)/make.exe: $(OUTDIR) $(OBJS)
 	$(LINK) @<<

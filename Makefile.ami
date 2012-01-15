@@ -118,20 +118,23 @@ TEXI2DVI = texi2dvi
 ETAGS = etags -w
 CTAGS = ctags -w
 
-objs = commands.o job.o dir.o file.o misc.o main.o read.o remake.o	\
-       rule.o implicit.o default.o variable.o expand.o function.o	\
-       vpath.o version.o ar.o arscan.o signame.o strcache.o hash.o      \
-       remote-$(REMOTE).o $(GETOPT) $(ALLOCA) $(extras)
+#guile = guile.o
+
+objs = commands.o job.o dir.o file.o misc.o main.o read.o remake.o   \
+       rule.o implicit.o default.o variable.o expand.o function.o    \
+       vpath.o version.o ar.o arscan.o signame.o strcache.o hash.o   \
+       remote-$(REMOTE).o $(GETOPT) $(ALLOCA) $(extras) $(guile)
+
 srcs = $(srcdir)commands.c $(srcdir)job.c $(srcdir)dir.c             \
        $(srcdir)file.c $(srcdir)getloadavg.c $(srcdir)misc.c         \
        $(srcdir)main.c $(srcdir)read.c $(srcdir)remake.c             \
        $(srcdir)rule.c $(srcdir)implicit.c $(srcdir)default.c        \
        $(srcdir)variable.c $(srcdir)expand.c $(srcdir)function.c     \
        $(srcdir)vpath.c $(srcdir)version.c $(srcdir)hash.c           \
-       $(srcdir)remote-$(REMOTE).c                                     \
-       $(srcdir)ar.c $(srcdir)arscan.c $(srcdir)strcache.c              \
-       $(srcdir)signame.c $(srcdir)signame.h $(GETOPT_SRC)            \
-       $(srcdir)commands.h $(srcdir)dep.h $(srcdir)filedep.h            \
+       $(srcdir)guile.c $(srcdir)remote-$(REMOTE).c                  \
+       $(srcdir)ar.c $(srcdir)arscan.c $(srcdir)strcache.c           \
+       $(srcdir)signame.c $(srcdir)signame.h $(GETOPT_SRC)           \
+       $(srcdir)commands.h $(srcdir)dep.h $(srcdir)filedep.h         \
        $(srcdir)job.h $(srcdir)make.h $(srcdir)rule.h                \
        $(srcdir)variable.h $(ALLOCA_SRC) $(srcdir)config.h.in
 
@@ -178,8 +181,6 @@ SHELL = /bin/sh
 glob/libglob.a: FORCE config.h
 	cd glob; $(MAKE) libglob.a
 FORCE:
-
-tagsrcs = $(srcs) $(srcdir)remote-*.c
 
 .PHONY: install installdirs
 install: installdirs \
@@ -281,6 +282,7 @@ file.o: file.c make.h dep.h filedef.h job.h commands.h variable.h
 misc.o: misc.c make.h dep.h
 main.o: main.c make.h dep.h filedef.h variable.h job.h commands.h \
  getopt.h
+guile.o: guile.c make.h dep.h debug.h variable.h gmk-default.h
 read.o: read.c make.h dep.h filedef.h job.h commands.h variable.h \
  glob/glob.h
 remake.o: remake.c make.h filedef.h job.h commands.h dep.h

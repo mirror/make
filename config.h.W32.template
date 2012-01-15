@@ -75,6 +75,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if you have the clock_gettime function. */
 /* #undef HAVE_CLOCK_GETTIME */
 
+/* Embed GNU Guile support */
+/* #undef HAVE_GUILE */
+
 /* Define if the GNU dcgettext() function is already present or preinstalled.
    */
 /* #undef HAVE_DCGETTEXT */
