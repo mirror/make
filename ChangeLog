@@ -1,5 +1,13 @@
 2012-01-15  Paul Smith  <psmith@gnu.org>
 
+	* variable.h: Prototype an interface for defining new make functions.
+	* function.c (define_new_function): Define it.
+	(func_guile): Remove the "guile" function.
+	(function_table_init): Ditto.
+	* guile.c (func_guile): Add the "guile" function here.
+	(setup_guile): Call define_new_function() to define it.
+	(guile_eval_string): Obsolete.
+
 	* all: Update copyright notices.
 
 2012-01-12  Paul Smith  <psmith@gnu.org>

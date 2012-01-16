@@ -2103,21 +2103,6 @@ func_abspath (char *o, char **argv, const char *funcname UNUSED)
   return o;
 }
 
-#ifdef HAVE_GUILE
-static char *
-func_guile (char *o, char **argv, const char *funcname UNUSED)
-{
-  if (argv[0] && argv[0][0] != '\0')
-    {
-      char *str = guile_eval_string (argv[0]);
-      o = variable_buffer_output (o, str, strlen (str));
-      free (str);
-    }
-
-  return o;
-}
-#endif
-
 /* Lookup table for builtin functions.
 
    This doesn't have to be sorted; we use a straight lookup.  We might gain
@@ -2171,9 +2156,6 @@ static struct function_table_entry function_table_init[] =
   { STRING_SIZE_TUPLE("and"),           1,  0,  0,  func_and},
   { STRING_SIZE_TUPLE("value"),         0,  1,  1,  func_value},
   { STRING_SIZE_TUPLE("eval"),          0,  1,  1,  func_eval},
-#ifdef HAVE_GUILE
-  { STRING_SIZE_TUPLE("guile"),         0,  1,  1,  func_guile},
-#endif
 #ifdef EXPERIMENTAL
   { STRING_SIZE_TUPLE("eq"),            2,  2,  1,  func_eq},
   { STRING_SIZE_TUPLE("not"),           0,  1,  1,  func_not},
@@ -2429,6 +2411,33 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
   pop_variable_scope ();
 
   return o + strlen (o);
+}
+
+void
+define_new_function(const struct floc *flocp,
+                    const char *name, int min, int max, int expand,
+                    char *(*func)(char *, char **, const char *))
+{
+  size_t len = strlen (name);
+  struct function_table_entry *ent = xmalloc (sizeof (struct function_table_entry));
+
+  if (len > 255)
+    fatal (flocp, _("Function name too long: %s\n"), name);
+  if (min < 0 || min > 255)
+    fatal (flocp, _("Invalid minimum argument count (%d) for function %s%s\n"),
+           min, name);
+  if (max < 0 || max > 255 || max < min)
+    fatal (flocp, _("Invalid maximum argument count (%d) for function %s%s\n"),
+           max, name);
+
+  ent->name = name;
+  ent->len = len;
+  ent->minimum_args = min;
+  ent->maximum_args = max;
+  ent->expand_args = expand ? 1 : 0;
+  ent->func_ptr = func;
+
+  hash_insert (&function_table, ent);
 }
 
 void
