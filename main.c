@@ -1,7 +1,7 @@
 /* Argument parsing and main program of GNU Make.
-Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997,
-1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-2010 Free Software Foundation, Inc.
+Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
+1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
+2012 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the
@@ -3115,7 +3115,7 @@ print_version (void)
      year, and none of the rest of it should be translated (including the
      word "Copyright", so it hardly seems worth it.  */
 
-  printf ("%sCopyright (C) 2010  Free Software Foundation, Inc.\n", precede);
+  printf ("%sCopyright (C) 2012 Free Software Foundation, Inc.\n", precede);
 
   printf (_("%sLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\
 %sThis is free software: you are free to change and redistribute it.\n\
