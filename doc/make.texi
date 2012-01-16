@@ -4834,13 +4834,15 @@ Variables can represent lists of file names, options to pass to compilers,
 programs to run, directories to look in for source files, directories to
 write output in, or anything else you can imagine.
 
-A variable name may be any sequence of characters not containing @samp{:},
-@samp{#}, @samp{=}, or leading or trailing whitespace.  However,
-variable names containing characters other than letters, numbers, and
-underscores should be avoided, as they may be given special meanings in the
-future, and with some shells they cannot be passed through the environment to a
-sub-@code{make}
-(@pxref{Variables/Recursion, ,Communicating Variables to a Sub-@code{make}}).
+A variable name may be any sequence of characters not containing
+@samp{:}, @samp{#}, @samp{=}, or whitespace.  However, variable names
+containing characters other than letters, numbers, and underscores
+should be considered carefully, as in some shells they cannot be
+passed through the environment to a sub-@code{make}
+(@pxref{Variables/Recursion, ,Communicating Variables to a
+Sub-@code{make}}).  Variable names beginning with @samp{.} and an
+uppercase letter may be given special meaning in future versions of
+@code{make}.
 
 Variable names are case-sensitive.  The names @samp{foo}, @samp{FOO},
 and @samp{Foo} all refer to different variables.
@@ -7292,12 +7294,12 @@ variable names because many strange things are valid variable names, but
 are probably not what you intended.  For example,
 
 @smallexample
-files := $(foreach Esta escrito en espanol!,b c ch,$(find_files))
+files := $(foreach Esta-escrito-en-espanol!,b c ch,$(find_files))
 @end smallexample
 
 @noindent
 might be useful if the value of @code{find_files} references the variable
-whose name is @samp{Esta escrito en espanol!} (es un nombre bastante largo,
+whose name is @samp{Esta-escrito-en-espanol!} (es un nombre bastante largo,
 no?), but it is more likely to be a mistake.
 
 @node Call Function, Value Function, Foreach Function, Functions
