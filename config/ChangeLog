@@ -1,3 +1,8 @@
+2012-01-15  Paul Smith  <psmith@gnu.org>
+
+	* dospaths.m4: Use AC_LANG_PROGRAM to encapsulate the test code.
+	Fixes Savannah bug #35256.  Patch from Sebastian Pipping.
+
 2006-03-09  Paul Smith  <psmith@gnu.org>
 
 	* dospaths.m4: Add MSYS to the list of targets allowing DOS-style

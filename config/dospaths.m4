@@ -19,21 +19,17 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_DEFUN([pds_AC_DOS_PATHS],
-  [
-    AC_CACHE_CHECK([whether system uses MSDOS-style paths], [ac_cv_dos_paths],
-      [
-        AC_COMPILE_IFELSE([
+AC_DEFUN([pds_AC_DOS_PATHS], [
+  AC_CACHE_CHECK([whether system uses MSDOS-style paths], [ac_cv_dos_paths], [
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #if !defined _WIN32 && !defined __WIN32__ && !defined __MSDOS__ && !defined __EMX__ && !defined __MSYS__ && !defined __CYGWIN__
 neither MSDOS nor Windows nor OS2
 #endif
-],
+]])],
         [ac_cv_dos_paths=yes],
-        [ac_cv_dos_paths=no])
-      ])
+        [ac_cv_dos_paths=no])])
 
-    if test x"$ac_cv_dos_paths" = xyes; then
-      AC_DEFINE_UNQUOTED([HAVE_DOS_PATHS], 1,
-                         [Define if the system uses DOS-style pathnames.])
-    fi
-  ])
+  AS_IF([test x"$ac_cv_dos_paths" = xyes],
+  [ AC_DEFINE_UNQUOTED([HAVE_DOS_PATHS], 1,
+                       [Define if the system uses DOS-style pathnames.])])
+])
