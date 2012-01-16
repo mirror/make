@@ -1,3 +1,9 @@
+2012-01-16  Paul Smith  <psmith@gnu.org>
+
+	* make.h (PATH_SEPARATOR_CHAR): Allow resetting for crosscompiling
+	for Windows.  Patch by Chris Sutcliffe <ir0nh34d@gmail.com>
+	Fixes Savannah bug #34818.
+
 2012-01-15  Paul Smith  <psmith@gnu.org>
 
 	* variable.h: Prototype an interface for defining new make functions.

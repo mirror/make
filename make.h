@@ -315,11 +315,15 @@ char *strsignal (int signum);
 #define N_(msgid)           gettext_noop (msgid)
 #define S_(msg1,msg2,num)   ngettext (msg1,msg2,num)
 
-/* Handle other OSs.  */
-#ifndef PATH_SEPARATOR_CHAR
-# if defined(HAVE_DOS_PATHS)
-#  define PATH_SEPARATOR_CHAR ';'
-# elif defined(VMS)
+/* Handle other OSs.
+   To overcome an issue parsing paths in a DOS/Windows environment when
+   built in a unix based environment, override the PATH_SEPARATOR_CHAR
+   definition unless being built for Cygwin. */
+#if defined(HAVE_DOS_PATHS) && !defined(__CYGWIN__)
+# undef PATH_SEPARATOR_CHAR
+# define PATH_SEPARATOR_CHAR ';'
+#elif !defined(PATH_SEPARATOR_CHAR)
+# if defined (VMS)
 #  define PATH_SEPARATOR_CHAR ','
 # else
 #  define PATH_SEPARATOR_CHAR ':'
