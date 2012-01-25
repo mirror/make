@@ -1,3 +1,8 @@
+2012-01-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* function.c (define_new_function): Fix format strings in calls to
+	`fatal'.
+
 2012-01-17  Paul Smith  <psmith@gnu.org>
 
 	* guile.c (func_guile): Handle NULL returns from Guile.
