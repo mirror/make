@@ -40,7 +40,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* #undef C_ALLOCA */
 
 /* Define to 1 if using `getloadavg.c'. */
-/*#define C_GETLOADAVG 1*/
+#define C_GETLOADAVG 1
 
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
 /* #undef DGUX */
@@ -63,24 +63,41 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
    */
 /* #undef HAVE_ALLOCA_H */
 
-/* Define if your compiler conforms to the ANSI C standard. */
+/* Define to 1 if your compiler conforms to the ANSI C standard. */
 #define HAVE_ANSI_COMPILER 1
 
-/* Define to 1 if you have the `bsd_signal' function. */
-/* #undef HAVE_BSD_SIGNAL */
+/* Define to 1 if you have the `atexit' function. */
+#define HAVE_ATEXIT 1
 
 /* Use case insensitive file names */
 /* #undef HAVE_CASE_INSENSITIVE_FS */
 
-/* Define if you have the clock_gettime function. */
+/* Define to 1 if you have the clock_gettime function. */
 /* #undef HAVE_CLOCK_GETTIME */
 
-/* Embed GNU Guile support */
+/* Embed GNU Guile support.  Windows build sets this on the
+   compilation command line.  */
 /* #undef HAVE_GUILE */
 
 /* Define if the GNU dcgettext() function is already present or preinstalled.
    */
 /* #undef HAVE_DCGETTEXT */
+
+/* Define to 1 if you have the declaration of `bsd_signal', and to 0 if you
+   don't. */
+#define HAVE_DECL_BSD_SIGNAL 0
+
+/* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
+   don't. */
+#define HAVE_DECL_SYS_SIGLIST 0
+
+/* Define to 1 if you have the declaration of `_sys_siglist', and to 0 if you
+   don't. */
+#define HAVE_DECL__SYS_SIGLIST 0
+
+/* Define to 1 if you have the declaration of `__sys_siglist', and to 0 if you
+   don't. */
+#define HAVE_DECL___SYS_SIGLIST 0
 
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
@@ -106,7 +123,12 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_FCNTL_H 1
 
 /* Define to 1 if you have the `fdopen' function. */
-/*#define HAVE_FDOPEN 1*/
+#ifdef __MINGW32__
+#define HAVE_FDOPEN 1
+#endif
+
+/* Define to 1 if you have the `fileno' function. */
+#define HAVE_FILENO 1
 
 /* Define to 1 if you have the `fork' function. */
 /* #undef HAVE_FORK */
@@ -132,14 +154,18 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if the GNU gettext() function is already present or preinstalled. */
 /* #undef HAVE_GETTEXT */
 
-/* Define if you have a standard gettimeofday function */
-/* #undef HAVE_GETTIMEOFDAY */
+/* Define to 1 if you have a standard gettimeofday function */
+#ifdef __MINGW32__
+#define HAVE_GETTIMEOFDAY 1
+#endif
 
 /* Define if you have the iconv() function. */
 /* #undef HAVE_ICONV */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
-/*#define HAVE_INTTYPES_H 1*/
+#ifdef __MINGW32__
+#define HAVE_INTTYPES_H 1
+#endif
 
 /* Define to 1 if you have the `dgc' library (-ldgc). */
 /* #undef HAVE_LIBDGC */
@@ -153,11 +179,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <locale.h> header file. */
 /*#define HAVE_LOCALE_H 1*/
 
+/* Define to 1 if you have the `lstat' function. */
+/* #undef HAVE_LSTAT */
+
 /* Define to 1 if you have the <mach/mach.h> header file. */
 /* #undef HAVE_MACH_MACH_H */
-
-/* Define to 1 if you have the `memmove' function. */
-#define HAVE_MEMMOVE 1
 
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
@@ -180,10 +206,13 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `pstat_getdynamic' function. */
 /* #undef HAVE_PSTAT_GETDYNAMIC */
 
+/* Define to 1 if you have the `readlink' function. */
+/* #undef HAVE_READLINK */
+
 /* Define to 1 if you have the `realpath' function. */
 /* #undef HAVE_REALPATH */
 
-/* Define if <signal.h> defines the SA_RESTART constant. */
+/* Define to 1 if <signal.h> defines the SA_RESTART constant. */
 /* #undef HAVE_SA_RESTART */
 
 /* Define to 1 if you have the `setegid' function. */
@@ -208,7 +237,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* #undef HAVE_SETRLIMIT */
 
 /* Define to 1 if you have the `setvbuf' function. */
-/*#define HAVE_SETVBUF 1 */
+#define HAVE_SETVBUF 1
 
 /* Define to 1 if you have the `sigaction' function. */
 /* #undef HAVE_SIGACTION */
@@ -223,41 +252,33 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_STDARG_H 1
 
 /* Define to 1 if you have the <stdint.h> header file. */
-/*#define HAVE_STDINT_H 1*/
+#ifdef __MINGW32__
+#define HAVE_STDINT_H 1
+#endif
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #define HAVE_STDLIB_H 1
 
 /* Define to 1 if you have the `strcasecmp' function. */
-/* #undef HAVE_STRCASECMP */
+#ifdef __MINGW32__
+#define HAVE_STRCASECMP 1
+#endif
 
 /* Define to 1 if you have the `strcmpi' function. */
-/* #undef HAVE_STRCMPI */
-
-/* Define to 1 if you have the `stricmp' function. */
-#define HAVE_STRICMP 1
-
-/* Define to 1 if you have the `strncasecmp' function. */
-/* #undef HAVE_STRNCASECMP */
-
-/* Define to 1 if you have the `strncmpi' function. */
-/* #undef HAVE_STRNCMPI */
-
-/* Define to 1 if you have the `strnicmp' function. */
-#define HAVE_STRNICMP 1
-
-/* Define to 1 if you have the `strchr' function. */
-#define HAVE_STRCHR 1
+#define HAVE_STRCMPI 1
 
 /* Define to 1 if you have the `strcoll' function and it is properly defined.
    */
 #define HAVE_STRCOLL 1
 
 /* Define to 1 if you have the `strdup' function. */
-/* #define HAVE_STRDUP 1*/
+#define HAVE_STRDUP 1
 
 /* Define to 1 if you have the `strerror' function. */
 #define HAVE_STRERROR 1
+
+/* Define to 1 if you have the `stricmp' function. */
+#define HAVE_STRICMP 1
 
 /* Define to 1 if you have the <strings.h> header file. */
 /* #define HAVE_STRINGS_H 1 */
@@ -265,10 +286,26 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <string.h> header file. */
 #define HAVE_STRING_H 1
 
+/* Define to 1 if you have the `strncasecmp' function. */
+#ifdef __MINGW32__
+#define HAVE_STRNCASECMP 1
+#endif
+
+/* Define to 1 if you have the `strncmpi' function. */
+/* #undef HAVE_STRNCMPI */
+
+/* Define to 1 if you have the `strndup' function. */
+/* #undef HAVE_STRNDUP */
+
+/* Define to 1 if you have the `strnicmp' function. */
+#ifdef __MINGW32__
+#define HAVE_STRNICMP 1
+#endif
+
 /* Define to 1 if you have the `strsignal' function. */
 /* #undef HAVE_STRSIGNAL */
 
-/* Define to 1 if `n_un.n_name' is member of `struct nlist'. */
+/* Define to 1 if `n_un.n_name' is a member of `struct nlist'. */
 /* #undef HAVE_STRUCT_NLIST_N_UN_N_NAME */
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
@@ -280,31 +317,37 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* #undef HAVE_SYS_NDIR_H */
 
 /* Define to 1 if you have the <sys/param.h> header file. */
-/* #define HAVE_SYS_PARAM_H 1 */
+#ifdef __MINGW32__
+#define HAVE_SYS_PARAM_H 1
+#endif
 
 /* Define to 1 if you have the <sys/resource.h> header file. */
 /* #undef HAVE_SYS_RESOURCE_H */
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
-/* #define HAVE_SYS_STAT_H 1 */
+#define HAVE_SYS_STAT_H 1
 
 /* Define to 1 if you have the <sys/timeb.h> header file. */
-/*#define HAVE_SYS_TIMEB_H 1*/
+#define HAVE_SYS_TIMEB_H 1
 
 /* Define to 1 if you have the <sys/time.h> header file. */
-/*#define HAVE_SYS_TIME_H 1*/
+#ifdef __MINGW32__
+#define HAVE_SYS_TIME_H 1
+#endif
 
 /* Define to 1 if you have the <sys/types.h> header file. */
-/*#define HAVE_SYS_TYPES_H 1*/
+#define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <sys/wait.h> header file. */
 /* #undef HAVE_SYS_WAIT_H */
 
-/* Define this if you have the \`union wait' type in <sys/wait.h>. */
+/* Define to 1 if you have the \`union wait' type in <sys/wait.h>. */
 /* #undef HAVE_UNION_WAIT */
 
 /* Define to 1 if you have the <unistd.h> header file. */
-/* #define HAVE_UNISTD_H 1*/
+#ifdef __MINGW32__
+#define HAVE_UNISTD_H 1
+#endif
 
 /* Define to 1 if you have the <varargs.h> header file. */
 /* #undef HAVE_VARARGS_H */
@@ -334,14 +377,17 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Build host information. */
 #define MAKE_HOST "Windows32"
 
-/* Define this to enable job server support in GNU make. */
+/* Define to 1 to enable job server support in GNU make. */
 #define MAKE_JOBSERVER 1
+
+/* Define to 1 to enable symbolic link timestamp checking. */
+/* #undef MAKE_SYMLINKS */
 
 /* Define to 1 if your `struct nlist' has an `n_un' member. Obsolete, depend
    on `HAVE_STRUCT_NLIST_N_UN_N_NAME */
 /* #undef NLIST_NAME_UNION */
 
-/* Define if struct nlist.n_name is a pointer rather than an array. */
+/* Define to 1 if struct nlist.n_name is a pointer rather than an array. */
 /* #undef NLIST_STRUCT */
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
@@ -350,8 +396,20 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Name of this package (needed by automake) */
 #define PACKAGE "%PACKAGE%"
 
-/* Define to 1 if the C compiler supports function prototypes. */
-#define PROTOTYPES 1
+/* Define to the address where bug reports for this package should be sent. */
+#define PACKAGE_BUGREPORT "bug-make@gnu.org"
+
+/* Define to the full name of this package. */
+#define PACKAGE_NAME "GNU make"
+
+/* Define to the home page for this package. */
+#define PACKAGE_URL "http://www.gnu.org/software/make/"
+
+/* Define to the version of this package. */
+#define PACKAGE_VERSION "%VERSION%"
+
+/* Define to the character that separates directories in PATH. */
+#define PATH_SEPARATOR_CHAR ';'
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
@@ -369,7 +427,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
-   automatically deduced at run-time.
+   automatically deduced at run time.
 	STACK_DIRECTION > 0 => grows toward higher addresses
 	STACK_DIRECTION < 0 => grows toward lower addresses
 	STACK_DIRECTION = 0 => direction of growth unknown */
@@ -388,7 +446,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* #undef SVR4 */
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
-/* #define TIME_WITH_SYS_TIME 1 */
+#ifdef __MINGW32__
+#define TIME_WITH_SYS_TIME 1
+#endif
 
 /* Define to 1 for Encore UMAX. */
 /* #undef UMAX */
@@ -424,10 +484,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* #undef _POSIX_1_SOURCE */
 
 /* Define to 1 if you need to in order for `stat' and other things to work. */
-#define _POSIX_SOURCE 1
-
-/* Define like PROTOTYPES; this can be used by system headers. */
-/*#define __PROTOTYPES 1*/
+/* #undef _POSIX_SOURCE */
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */
@@ -451,40 +508,15 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define uid_t int
 
 /* Define uintmax_t if not defined in <stdint.h> or <inttypes.h>. */
+#if !HAVE_STDINT_H && !HAVE_INTTYPES_H
 #define uintmax_t unsigned long
+#endif
 
 /* Define as `fork' if `vfork' does not work. */
 /*#define vfork fork*/
 
-/* Define to `unsigned long' or `unsigned long long'
-   if <inttypes.h> doesn't define.  */
-#define uintmax_t unsigned long
-
-/* Define if you support file names longer than 14 characters.  */
-#define HAVE_LONG_FILE_NAMES 1
-
-/* Define if your struct stat has st_rdev.  */
-#undef HAVE_ST_RDEV
-#define HAVE_ST_RDEV 1
-
-/* Define if you have the strftime function.  */
-#undef HAVE_STRFTIME
-#define HAVE_STRFTIME 1
-
 /* Define if you have <sys/wait.h> that is POSIX.1 compatible.  */
 /* #undef HAVE_SYS_WAIT_H */
-
-/* Define if your struct tm has tm_zone.  */
-/* #undef HAVE_TM_ZONE */
-
-/* Define if you don't have tm_zone but do have the external array
-   tzname.  */
-#undef HAVE_TZNAME
-#define HAVE_TZNAME 1
-
-/* Define if utime(file, NULL) sets file's timestamp to the present.  */
-#undef HAVE_UTIME_NULL
-#define HAVE_UTIME_NULL 1
 
 /* Define to the installation directory for locales.  */
 #define LOCALEDIR ""

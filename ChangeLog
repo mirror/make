@@ -1,5 +1,7 @@
 2012-01-28  Eli Zaretskii  <eliz@gnu.org>
 
+	* config.h.W32.template: Update from config.h.in.
+
 	Support a Windows build with Guile.
 
 	* README.W32.template: Update with instructions for building with
