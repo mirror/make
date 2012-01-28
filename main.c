@@ -1794,7 +1794,6 @@ main (int argc, char **argv, char **envp)
   if (job_slots > 1)
     {
       char *cp;
-      char c = '+';
 
 #ifdef WINDOWS32
       /* sub_proc.c cannot wait for more than MAXIMUM_WAIT_OBJECTS objects
@@ -1814,6 +1813,8 @@ main (int argc, char **argv, char **envp)
                  err, map_windows32_error_to_string(err));
         }
 #else
+      char c = '+';
+
       if (pipe (job_fds) < 0 || (job_rfd = dup (job_fds[0])) < 0)
 	pfatal_with_name (_("creating jobs pipe"));
 #endif
@@ -3153,8 +3154,6 @@ print_data_base ()
 static void
 clean_jobserver (int status)
 {
-  char token = '+';
-
   /* Sanity: have we written all our jobserver tokens back?  If our
      exit status is 2 that means some kind of syntax error; we might not
      have written all our tokens so do that now.  If tokens are left
@@ -3163,6 +3162,8 @@ clean_jobserver (int status)
 #ifdef WINDOWS32
   if (has_jobserver_semaphore() && jobserver_tokens)
 #else
+  char token = '+';
+
   if (job_fds[0] != -1 && jobserver_tokens)
 #endif
     {
