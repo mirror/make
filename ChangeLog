@@ -1,5 +1,14 @@
 2012-01-28  Eli Zaretskii  <eliz@gnu.org>
 
+	Support a Windows build with Guile.
+
+	* README.W32.template: Update with instructions for building with
+	Guile.
+
+	* build_w32.bat: Support building with Guile.
+
+	* make.h [HAVE_STDINT_H]: Include stdint.h.
+
 	* main.c (main, clean_jobserver): Move declarations of variables
 	not used in the WINDOWS32 build to the #else branch, to avoid
 	compiler warnings.

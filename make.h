@@ -259,6 +259,9 @@ char *strerror (int errnum);
 #if HAVE_INTTYPES_H
 # include <inttypes.h>
 #endif
+#if HAVE_STDINT_H
+# include <stdint.h>
+#endif
 #define FILE_TIMESTAMP uintmax_t
 
 #if !defined(HAVE_STRSIGNAL)

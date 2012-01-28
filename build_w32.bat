@@ -22,6 +22,47 @@ echo s,%%PACKAGE%%,make,g >> config.h.W32.sed
 sed -f config.h.W32.sed config.h.W32.template > config.h.W32
 :NotCVS
 if not exist config.h copy config.h.W32 config.h
+
+rem Guile configuration
+set GUILECFLAGS=
+set GUILELIBS=
+set GUILESRC=
+set PKGMSC=
+if "%1" == "--without-guile" GoTo NoGuile
+if "%2" == "--without-guile" GoTo NoGuile
+rem Build with Guile is supported only on NT and later versions
+if not "%OS%" == "Windows_NT" GoTo NoGuile
+pkg-config --help > guile.tmp 2> NUL
+if ERRORLEVEL 1 GoTo NoPkgCfg
+echo "Checking for Guile 2.0"
+if not "%1" == "gcc" set PKGMSC=--msvc-syntax
+pkg-config --cflags --short-errors "guile-2.0" > guile.tmp
+if not ERRORLEVEL 1 set /P GUILECFLAGS= < guile.tmp
+pkg-config --libs --static --short-errors %PKGMSC% "guile-2.0" > guile.tmp
+if not ERRORLEVEL 1 set /P GUILELIBS= < guile.tmp
+if not "%GUILECFLAGS%" == "" GoTo GuileDone
+echo "Checking for Guile 1.8"
+pkg-config --cflags --short-errors "guile-1.8" > guile.tmp
+if not ERRORLEVEL 1 set /P GUILECFLAGS= < guile.tmp
+pkg-config --libs --static --short-errors %PKGMSC% "guile-1.8" > guile.tmp
+if not ERRORLEVEL 1 set /P GUILELIBS= < guile.tmp
+if not "%GUILECFLAGS%" == "" GoTo GuileDone
+echo "Checking for Guile 1.6"
+pkg-config --cflags --short-errors "guile-1.6" > guile.tmp
+if not ERRORLEVEL 1 set /P GUILECFLAGS= < guile.tmp
+pkg-config --libs --static --short-errors %PKGMSC% "guile-2.0" > guile.tmp
+if not ERRORLEVEL 1 set /P GUILELIBS= < guile.tmp
+if not "%GUILECFLAGS%" == "" GoTo GuileDone
+echo "No Guile found, building without Guile"
+GoTo NoGuile
+:NoPkgCfg
+echo "pkg-config not found, building without Guile"
+:NoGuile
+:GuileDone
+if not "%GUILECFLAGS%" == "" echo "Guile found, building with Guile"
+if not "%GUILECFLAGS%" == "" set GUILESRC=guile.c
+if not "%GUILECFLAGS%" == "" set GUILECFLAGS=%GUILECFLAGS% -DHAVE_GUILE
+if "%1" == "--without-guile" shift
 cd w32\subproc
 echo "Creating the subproc library"
 %ComSpec% /c build.bat %1
@@ -54,7 +95,7 @@ cl.exe /nologo /MT /W4 /GX /Zi /YX /Od /I . /I glob /I w32/include /D _DEBUG /D 
 echo WinDebug\expand.obj >>link.dbg
 cl.exe /nologo /MT /W4 /GX /Zi /YX /Od /I . /I glob /I w32/include /D _DEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinDebug/ /Fp.\WinDebug/%make%.pch /Fo.\WinDebug/ /Fd.\WinDebug/%make%.pdb /c dir.c
 echo WinDebug\dir.obj >>link.dbg
-cl.exe /nologo /MT /W4 /GX /Zi /YX /Od /I . /I glob /I w32/include /D _DEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinDebug/ /Fp.\WinDebug/%make%.pch /Fo.\WinDebug/ /Fd.\WinDebug/%make%.pdb /c main.c
+cl.exe /nologo /MT /W4 /GX /Zi /YX /Od %GUILECFLAGS% /I . /I glob /I w32/include /D _DEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinDebug/ /Fp.\WinDebug/%make%.pch /Fo.\WinDebug/ /Fd.\WinDebug/%make%.pdb /c main.c
 echo WinDebug\main.obj >>link.dbg
 cl.exe /nologo /MT /W4 /GX /Zi /YX /Od /I . /I glob /I w32/include /D _DEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinDebug/ /Fp.\WinDebug/%make%.pch /Fo.\WinDebug/ /Fd.\WinDebug/%make%.pdb /c getopt1.c
 echo WinDebug\getopt1.obj >>link.dbg
@@ -92,12 +133,14 @@ cl.exe /nologo /MT /W4 /GX /Zi /YX /Od /I . /I glob /I w32/include /D _DEBUG /D 
 echo WinDebug\fnmatch.obj >>link.dbg
 cl.exe /nologo /MT /W4 /GX /Zi /YX /Od /I . /I glob /I w32/include /D _DEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinDebug/ /Fp.\WinDebug/%make%.pch /Fo.\WinDebug/ /Fd.\WinDebug/%make%.pdb /c  .\w32\pathstuff.c
 echo WinDebug\pathstuff.obj >>link.dbg
-rem cl.exe /nologo /MT /W4 /GX /Zi /YX /Od /I . /I glob /I w32/include /D _DEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinDebug/ /Fp.\WinDebug/%make%.pch /Fo.\WinDebug/ /Fd.\WinDebug/%make%.pdb /c guile.c
-rem echo WinDebug\guile.obj >>link.dbg
+if "%GUILESRC%" == "" GoTo LinkDbg
+cl.exe /nologo /MT /W4 /GX /Zi /YX /Od %GUILECFLAGS%% /I . /I glob /I w32/include /D _DEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinDebug/ /Fp.\WinDebug/%make%.pch /Fo.\WinDebug/ /Fd.\WinDebug/%make%.pdb /c guile.c
+echo WinDebug\guile.obj >>link.dbg
+:LinkDbg
 echo off
 echo "Linking WinDebug/%make%.exe"
-rem link.exe kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib w32\subproc\windebug\subproc.lib /NOLOGO /SUBSYSTEM:console /INCREMENTAL:yes /PDB:.\WinDebug/%make%.pdb /DEBUG /OUT:.\WinDebug/%make%.exe .\WinDebug/variable.obj  .\WinDebug/rule.obj  .\WinDebug/remote-stub.obj  .\WinDebug/commands.obj  .\WinDebug/file.obj  .\WinDebug/getloadavg.obj  .\WinDebug/default.obj  .\WinDebug/signame.obj  .\WinDebug/expand.obj  .\WinDebug/dir.obj  .\WinDebug/main.obj  .\WinDebug/getopt1.obj  .\WinDebug/job.obj  .\WinDebug/read.obj  .\WinDebug/version.obj  .\WinDebug/getopt.obj  .\WinDebug/arscan.obj  .\WinDebug/remake.obj  .\WinDebug/hash.obj  .\WinDebug/strcache.obj  .\WinDebug/misc.obj  .\WinDebug/ar.obj  .\WinDebug/function.obj  .\WinDebug/vpath.obj  .\WinDebug/implicit.obj  .\WinDebug/dirent.obj  .\WinDebug/glob.obj  .\WinDebug/fnmatch.obj  .\WinDebug/pathstuff.obj
-echo kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib w32\subproc\windebug\subproc.lib >>link.dbg
+rem link.exe %GUILELIBS% kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib w32\subproc\windebug\subproc.lib /NOLOGO /SUBSYSTEM:console /INCREMENTAL:yes /PDB:.\WinDebug/%make%.pdb /DEBUG /OUT:.\WinDebug/%make%.exe .\WinDebug/variable.obj  .\WinDebug/rule.obj  .\WinDebug/remote-stub.obj  .\WinDebug/commands.obj  .\WinDebug/file.obj  .\WinDebug/getloadavg.obj  .\WinDebug/default.obj  .\WinDebug/signame.obj  .\WinDebug/expand.obj  .\WinDebug/dir.obj  .\WinDebug/main.obj  .\WinDebug/getopt1.obj  .\WinDebug/job.obj  .\WinDebug/read.obj  .\WinDebug/version.obj  .\WinDebug/getopt.obj  .\WinDebug/arscan.obj  .\WinDebug/remake.obj  .\WinDebug/hash.obj  .\WinDebug/strcache.obj  .\WinDebug/misc.obj  .\WinDebug/ar.obj  .\WinDebug/function.obj  .\WinDebug/vpath.obj  .\WinDebug/implicit.obj  .\WinDebug/dirent.obj  .\WinDebug/glob.obj  .\WinDebug/fnmatch.obj  .\WinDebug/pathstuff.obj
+echo %GUILELIBS% kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib w32\subproc\windebug\subproc.lib >>link.dbg
 link.exe /NOLOGO /SUBSYSTEM:console /INCREMENTAL:yes /PDB:.\WinDebug/%make%.pdb /DEBUG /OUT:.\WinDebug/%make%.exe @link.dbg
 if not exist .\WinDebug/%make%.exe echo "WinDebug build failed"
 if exist .\WinDebug/%make%.exe echo "WinDebug build succeeded!"
@@ -123,7 +166,7 @@ cl.exe /nologo /MT /W4 /GX /YX /O2 /I . /I glob /I w32/include /D NDEBUG /D WIND
 echo WinRel\expand.obj >>link.rel
 cl.exe /nologo /MT /W4 /GX /YX /O2 /I . /I glob /I w32/include /D NDEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinRel/ /Fp.\WinRel/%make%.pch /Fo.\WinRel/ /c dir.c
 echo WinRel\dir.obj >>link.rel
-cl.exe /nologo /MT /W4 /GX /YX /O2 /I . /I glob /I w32/include /D NDEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinRel/ /Fp.\WinRel/%make%.pch /Fo.\WinRel/ /c main.c
+cl.exe /nologo /MT /W4 /GX /YX /O2 %GUILECFLAGS% /I . /I glob /I w32/include /D NDEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinRel/ /Fp.\WinRel/%make%.pch /Fo.\WinRel/ /c main.c
 echo WinRel\main.obj >>link.rel
 cl.exe /nologo /MT /W4 /GX /YX /O2 /I . /I glob /I w32/include /D NDEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinRel/ /Fp.\WinRel/%make%.pch /Fo.\WinRel/ /c getopt1.c
 echo WinRel\getopt1.obj >>link.rel
@@ -161,12 +204,14 @@ cl.exe /nologo /MT /W4 /GX /YX /O2 /I . /I glob /I w32/include /D NDEBUG /D WIND
 echo WinRel\fnmatch.obj >>link.rel
 cl.exe /nologo /MT /W4 /GX /YX /O2 /I . /I glob /I w32/include /D NDEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinRel/ /Fp.\WinRel/%make%.pch /Fo.\WinRel/ /c  .\w32\pathstuff.c
 echo WinRel\pathstuff.obj >>link.rel
-rem cl.exe /nologo /MT /W4 /GX /YX /O2 /I . /I glob /I w32/include /D NDEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinRel/ /Fp.\WinRel/%make%.pch /Fo.\WinRel/ /c guile.c
-rem echo WinRel\guile.obj >>link.rel
+if "%GUILESRC%" == "" GoTo LinkRel
+cl.exe /nologo /MT /W4 /GX /YX /O2 /I . /I glob /I w32/include /D NDEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinRel/ /Fp.\WinRel/%make%.pch /Fo.\WinRel/ /c guile.c
+echo WinRel\guile.obj >>link.rel
+:LinkRel
 echo off
 echo "Linking WinRel/%make%.exe"
-rem link.exe kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib w32\subproc\winrel\subproc.lib /NOLOGO /SUBSYSTEM:console /INCREMENTAL:no /PDB:.\WinRel/%make%.pdb /OUT:.\WinRel/%make%.exe .\WinRel/variable.obj  .\WinRel/rule.obj  .\WinRel/remote-stub.obj  .\WinRel/commands.obj  .\WinRel/file.obj  .\WinRel/getloadavg.obj  .\WinRel/default.obj  .\WinRel/signame.obj  .\WinRel/expand.obj  .\WinRel/dir.obj  .\WinRel/main.obj  .\WinRel/getopt1.obj  .\WinRel/job.obj  .\WinRel/read.obj  .\WinRel/version.obj  .\WinRel/getopt.obj  .\WinRel/arscan.obj  .\WinRel/remake.obj  .\WinRel/misc.obj  .\WinRel/hash.obj  .\WinRel/strcache.obj  .\WinRel/ar.obj  .\WinRel/function.obj  .\WinRel/vpath.obj  .\WinRel/implicit.obj  .\WinRel/dirent.obj  .\WinRel/glob.obj  .\WinRel/fnmatch.obj  .\WinRel/pathstuff.obj
-echo kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib w32\subproc\winrel\subproc.lib >>link.rel
+rem link.exe %GUILELIBS% kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib w32\subproc\winrel\subproc.lib /NOLOGO /SUBSYSTEM:console /INCREMENTAL:no /PDB:.\WinRel/%make%.pdb /OUT:.\WinRel/%make%.exe .\WinRel/variable.obj  .\WinRel/rule.obj  .\WinRel/remote-stub.obj  .\WinRel/commands.obj  .\WinRel/file.obj  .\WinRel/getloadavg.obj  .\WinRel/default.obj  .\WinRel/signame.obj  .\WinRel/expand.obj  .\WinRel/dir.obj  .\WinRel/main.obj  .\WinRel/getopt1.obj  .\WinRel/job.obj  .\WinRel/read.obj  .\WinRel/version.obj  .\WinRel/getopt.obj  .\WinRel/arscan.obj  .\WinRel/remake.obj  .\WinRel/misc.obj  .\WinRel/hash.obj  .\WinRel/strcache.obj  .\WinRel/ar.obj  .\WinRel/function.obj  .\WinRel/vpath.obj  .\WinRel/implicit.obj  .\WinRel/dirent.obj  .\WinRel/glob.obj  .\WinRel/fnmatch.obj  .\WinRel/pathstuff.obj
+echo %GUILELIBS% kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib w32\subproc\winrel\subproc.lib >>link.rel
 link.exe /NOLOGO /SUBSYSTEM:console /INCREMENTAL:no /PDB:.\WinRel/%make%.pdb /OUT:.\WinRel/%make%.exe @link.rel
 if not exist .\WinRel/%make%.exe echo "WinRel build failed"
 if exist .\WinRel/%make%.exe echo "WinRel build succeeded!"
@@ -184,7 +229,7 @@ gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -
 gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c signame.c
 gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c expand.c
 gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c dir.c
-gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c main.c
+gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H %GUILECFLAGS% -c main.c
 gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c getopt1.c
 gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c job.c
 gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c read.c
@@ -202,9 +247,20 @@ gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -
 gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c ./glob/glob.c -o glob.o
 gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c ./glob/fnmatch.c -o fnmatch.o
 gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c ./w32/pathstuff.c -o pathstuff.o
-rem gcc -mthreads -Wall -gdwarf-2 -g3 -O2 -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c guile.c
-rem set guile=guile.o
-set guile=
-gcc -mthreads -gdwarf-2 -g3 -o gnumake.exe variable.o rule.o remote-stub.o commands.o file.o getloadavg.o default.o signame.o expand.o dir.o main.o getopt1.o %guile% job.o read.o version.o getopt.o arscan.o remake.o misc.o hash.o strcache.o ar.o function.o vpath.o implicit.o glob.o fnmatch.o pathstuff.o w32_misc.o sub_proc.o w32err.o -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32
+@echo off
+set GUILEOBJ=
+if "%GUILESRC%" == "" GoTo LinkGCC
+set GUILEOBJ=guile.o
+echo on
+gcc -mthreads -Wall -gdwarf-2 -g3 -O2 %GUILECFLAGS% -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c guile.c
+:LinkGCC
+@echo on
+gcc -mthreads -gdwarf-2 -g3 -o gnumake.exe variable.o rule.o remote-stub.o commands.o file.o getloadavg.o default.o signame.o expand.o dir.o main.o getopt1.o %GUILEOBJ% job.o read.o version.o getopt.o arscan.o remake.o misc.o hash.o strcache.o ar.o function.o vpath.o implicit.o glob.o fnmatch.o pathstuff.o w32_misc.o sub_proc.o w32err.o %GUILELIBS% -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32
 :BuildEnd
+@echo off
+set GUILEOBJ=
+set GUILESRC=
+set GUILELIBS=
+set GUILECFLAGS=
+set PKGMSC=
 echo on
