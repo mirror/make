@@ -462,17 +462,19 @@ process_init_fd(HANDLE stdinh, HANDLE stdouth, HANDLE stderrh)
 	sub_process *pproc;
 
 	pproc = malloc(sizeof(*pproc));
-	memset(pproc, 0, sizeof(*pproc));
+	if (pproc) {
+		memset(pproc, 0, sizeof(*pproc));
 
-	/*
-	 * Just pass the provided file handles to the 'child side' of the
-	 * pipe, bypassing pipes altogether.
-	 */
-	pproc->sv_stdin[1]  = (intptr_t) stdinh;
-	pproc->sv_stdout[1] = (intptr_t) stdouth;
-	pproc->sv_stderr[1] = (intptr_t) stderrh;
+		/*
+		 * Just pass the provided file handles to the 'child
+		 * side' of the pipe, bypassing pipes altogether.
+		 */
+		pproc->sv_stdin[1]  = (intptr_t) stdinh;
+		pproc->sv_stdout[1] = (intptr_t) stdouth;
+		pproc->sv_stderr[1] = (intptr_t) stderrh;
 
-	pproc->last_err = pproc->lerrno = 0;
+		pproc->last_err = pproc->lerrno = 0;
+	}
 
 	return((HANDLE)pproc);
 }
@@ -711,9 +713,12 @@ process_begin(
 	CloseHandle(procInfo.hThread);
 
 	/* Close the halves of the pipes we don't need */
-        CloseHandle((HANDLE)pproc->sv_stdin[1]);
-        CloseHandle((HANDLE)pproc->sv_stdout[1]);
-        CloseHandle((HANDLE)pproc->sv_stderr[1]);
+	if ((HANDLE)pproc->sv_stdin[1] != INVALID_HANDLE_VALUE)
+	  CloseHandle((HANDLE)pproc->sv_stdin[1]);
+	if ((HANDLE)pproc->sv_stdout[1] != INVALID_HANDLE_VALUE)
+	  CloseHandle((HANDLE)pproc->sv_stdout[1]);
+	if ((HANDLE)pproc->sv_stderr[1] != INVALID_HANDLE_VALUE)
+	  CloseHandle((HANDLE)pproc->sv_stderr[1]);
         pproc->sv_stdin[1] = 0;
         pproc->sv_stdout[1] = 0;
         pproc->sv_stderr[1] = 0;
@@ -1064,11 +1069,14 @@ process_cleanup(
 
 	if (pproc->using_pipes) {
 		for (i= 0; i <= 1; i++) {
-			if ((HANDLE)pproc->sv_stdin[i])
+			if ((HANDLE)pproc->sv_stdin[i]
+			    && (HANDLE)pproc->sv_stdin[i] != INVALID_HANDLE_VALUE)
 				CloseHandle((HANDLE)pproc->sv_stdin[i]);
-			if ((HANDLE)pproc->sv_stdout[i])
+			if ((HANDLE)pproc->sv_stdout[i]
+			    && (HANDLE)pproc->sv_stdout[i] != INVALID_HANDLE_VALUE)
 				CloseHandle((HANDLE)pproc->sv_stdout[i]);
-			if ((HANDLE)pproc->sv_stderr[i])
+			if ((HANDLE)pproc->sv_stderr[i]
+			    && (HANDLE)pproc->sv_stderr[i] != INVALID_HANDLE_VALUE)
 				CloseHandle((HANDLE)pproc->sv_stderr[i]);
 		}
 	}
@@ -1333,50 +1341,100 @@ process_easy(
 	char **argv,
 	char **envp)
 {
-  HANDLE hIn;
-  HANDLE hOut;
-  HANDLE hErr;
-  HANDLE hProcess;
+  HANDLE hIn = INVALID_HANDLE_VALUE;
+  HANDLE hOut = INVALID_HANDLE_VALUE;
+  HANDLE hErr = INVALID_HANDLE_VALUE;
+  HANDLE hProcess, tmpIn, tmpOut, tmpErr;
+  DWORD e;
 
   if (proc_index >= MAXIMUM_WAIT_OBJECTS) {
 	DB (DB_JOBS, ("process_easy: All process slots used up\n"));
 	return INVALID_HANDLE_VALUE;
   }
+  /* Standard handles returned by GetStdHandle can be NULL or
+     INVALID_HANDLE_VALUE if the parent process closed them.  If that
+     happens, we open the null device and pass its handle to
+     CreateProcess as the corresponding handle to inherit.  */
+  tmpIn = GetStdHandle(STD_INPUT_HANDLE);
   if (DuplicateHandle(GetCurrentProcess(),
-                      GetStdHandle(STD_INPUT_HANDLE),
-                      GetCurrentProcess(),
-                      &hIn,
-                      0,
-                      TRUE,
-                      DUPLICATE_SAME_ACCESS) == FALSE) {
-    fprintf(stderr,
-            "process_easy: DuplicateHandle(In) failed (e=%ld)\n",
-            GetLastError());
-    return INVALID_HANDLE_VALUE;
+		      tmpIn,
+		      GetCurrentProcess(),
+		      &hIn,
+		      0,
+		      TRUE,
+		      DUPLICATE_SAME_ACCESS) == FALSE) {
+    if ((e = GetLastError()) == ERROR_INVALID_HANDLE) {
+      tmpIn = CreateFile("NUL", GENERIC_READ,
+			 FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
+			 OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+      if (tmpIn != INVALID_HANDLE_VALUE
+	  && DuplicateHandle(GetCurrentProcess(),
+			     tmpIn,
+			     GetCurrentProcess(),
+			     &hIn,
+			     0,
+			     TRUE,
+			     DUPLICATE_SAME_ACCESS) == FALSE)
+	CloseHandle(tmpIn);
+    }
+    if (hIn == INVALID_HANDLE_VALUE) {
+      fprintf(stderr, "process_easy: DuplicateHandle(In) failed (e=%ld)\n", e);
+      return INVALID_HANDLE_VALUE;
+    }
   }
+  tmpOut = GetStdHandle (STD_OUTPUT_HANDLE);
   if (DuplicateHandle(GetCurrentProcess(),
-                      GetStdHandle(STD_OUTPUT_HANDLE),
-                      GetCurrentProcess(),
-                      &hOut,
-                      0,
-                      TRUE,
-                      DUPLICATE_SAME_ACCESS) == FALSE) {
-    fprintf(stderr,
-           "process_easy: DuplicateHandle(Out) failed (e=%ld)\n",
-           GetLastError());
-    return INVALID_HANDLE_VALUE;
+		      tmpOut,
+		      GetCurrentProcess(),
+		      &hOut,
+		      0,
+		      TRUE,
+		      DUPLICATE_SAME_ACCESS) == FALSE) {
+    if ((e = GetLastError()) == ERROR_INVALID_HANDLE) {
+      tmpOut = CreateFile("NUL", GENERIC_WRITE,
+			  FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
+			  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+      if (tmpOut != INVALID_HANDLE_VALUE
+	  && DuplicateHandle(GetCurrentProcess(),
+			     tmpOut,
+			     GetCurrentProcess(),
+			     &hOut,
+			     0,
+			     TRUE,
+			     DUPLICATE_SAME_ACCESS) == FALSE)
+	CloseHandle(tmpOut);
+    }
+    if (hOut == INVALID_HANDLE_VALUE) {
+      fprintf(stderr, "process_easy: DuplicateHandle(Out) failed (e=%ld)\n", e);
+      return INVALID_HANDLE_VALUE;
+    }
   }
+  tmpErr = GetStdHandle(STD_ERROR_HANDLE);
   if (DuplicateHandle(GetCurrentProcess(),
-                      GetStdHandle(STD_ERROR_HANDLE),
-                      GetCurrentProcess(),
-                      &hErr,
-                      0,
-                      TRUE,
-                      DUPLICATE_SAME_ACCESS) == FALSE) {
-    fprintf(stderr,
-            "process_easy: DuplicateHandle(Err) failed (e=%ld)\n",
-            GetLastError());
-    return INVALID_HANDLE_VALUE;
+		      tmpErr,
+		      GetCurrentProcess(),
+		      &hErr,
+		      0,
+		      TRUE,
+		      DUPLICATE_SAME_ACCESS) == FALSE) {
+    if ((e = GetLastError()) == ERROR_INVALID_HANDLE) {
+      tmpErr = CreateFile("NUL", GENERIC_WRITE,
+			  FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
+			  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+      if (tmpErr != INVALID_HANDLE_VALUE
+	  && DuplicateHandle(GetCurrentProcess(),
+			     tmpErr,
+			     GetCurrentProcess(),
+			     &hErr,
+			     0,
+			     TRUE,
+			     DUPLICATE_SAME_ACCESS) == FALSE)
+	CloseHandle(tmpErr);
+    }
+    if (hErr == INVALID_HANDLE_VALUE) {
+      fprintf(stderr, "process_easy: DuplicateHandle(Err) failed (e=%ld)\n", e);
+      return INVALID_HANDLE_VALUE;
+    }
   }
 
   hProcess = process_init_fd(hIn, hOut, hErr);
@@ -1389,9 +1447,12 @@ process_easy(
     ((sub_process*) hProcess)->exit_code = process_last_err(hProcess);
 
     /* close up unused handles */
-    CloseHandle(hIn);
-    CloseHandle(hOut);
-    CloseHandle(hErr);
+    if (hIn != INVALID_HANDLE_VALUE)
+      CloseHandle(hIn);
+    if (hOut != INVALID_HANDLE_VALUE)
+      CloseHandle(hOut);
+    if (hErr != INVALID_HANDLE_VALUE)
+      CloseHandle(hErr);
   }
 
   process_register(hProcess);

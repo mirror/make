@@ -1,3 +1,25 @@
+2012-01-28  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix failures on MS-Windows when Make's standard handles are invalid.
+	This can happen when Make is invoked from a GUI application.
+
+	* w32/subproc/sub_proc.c (process_init_fd): Don't dereference
+	pproc if it is a NULL pointer.
+	(process_begin, process_cleanup): Don't try to close pipe handles
+	whose value is INVALID_HANDLE_VALUE.
+	(process_easy): Initialize hIn, hOut, and hErr to
+	INVALID_HANDLE_VALUE.  If DuplicateHandle fails with
+	ERROR_INVALID_HANDLE, duplicate a handle for the null device
+	instead of STD_INPUT_HANDLE, STD_OUTPUT_HANDLE or
+	STD_ERROR_HANDLE.  Don't try to close pipe handles whose value is
+	INVALID_HANDLE_VALUE.
+
+	* function.c (windows32_openpipe): Initialize hIn and hErr to
+	INVALID_HANDLE_VALUE.  If DuplicateHandle fails with
+	ERROR_INVALID_HANDLE, duplicate a handle for the null device
+	instead of STD_INPUT_HANDLE or STD_ERROR_HANDLE.  Fix indentation.
+	Don't try to close handles whose value is INVALID_HANDLE_VALUE.
+
 2012-01-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* function.c (define_new_function): Fix format strings in calls to
