@@ -1,5 +1,9 @@
 2012-01-28  Eli Zaretskii  <eliz@gnu.org>
 
+	* main.c (main, clean_jobserver): Move declarations of variables
+	not used in the WINDOWS32 build to the #else branch, to avoid
+	compiler warnings.
+
 	Fix failures on MS-Windows when Make's standard handles are invalid.
 	This can happen when Make is invoked from a GUI application.
 
