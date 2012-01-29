@@ -31,8 +31,7 @@
    ((char? x)
     (string x))
    ;; Printable string (no special characters)
-   ((and (string? x)
-         (eq? (string-length (string-delete x char-set:printing)) 0))
+   ((and (string? x) (string-every char-set:printing x))
     x)
    ;; No idea: fail
    (else (error "Unknown object:" x))))

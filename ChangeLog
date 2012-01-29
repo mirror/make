@@ -1,3 +1,9 @@
+2012-01-29  Paul Smith  <psmith@gnu.org>
+
+	* gmk-default.scm (to-string-maybe): Use a more portable way to
+	test for unprintable characters.
+	* configure.in [GUILE]: Guile 1.6 doesn't have pkg-config
+
 2012-01-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.h.W32.template: Update from config.h.in.
