@@ -89,6 +89,7 @@ sub toplevel
 
   foreach (# UNIX-specific things
            'TZ', 'TMPDIR', 'HOME', 'USER', 'LOGNAME', 'PATH',
+           'LD_LIBRARY_PATH',
            # Purify things
            'PURIFYOPTIONS',
            # Windows NT-specific stuff

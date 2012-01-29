@@ -265,6 +265,7 @@ Functions for Transforming Text
 * File Name Functions::         Functions for manipulating file names.
 * Conditional Functions::       Functions that implement conditions.
 * Foreach Function::            Repeat some text with controlled variation.
+* File Function::               Write text to a file.
 * Call Function::               Expand a user-defined function.
 * Value Function::              Return the un-expanded value of a variable.
 * Eval Function::               Evaluate the arguments as makefile syntax.
@@ -6563,6 +6564,7 @@ be substituted.
 * File Name Functions::         Functions for manipulating file names.
 * Conditional Functions::       Functions that implement conditions.
 * Foreach Function::            Repeat some text with controlled variation.
+* File Function::               Write text to a file.
 * Call Function::               Expand a user-defined function.
 * Value Function::              Return the un-expanded value of a variable.
 * Eval Function::               Evaluate the arguments as makefile syntax.
@@ -7214,7 +7216,7 @@ the result of the expansion is the expansion of the last argument.
 
 @end table
 
-@node Foreach Function, Call Function, Conditional Functions, Functions
+@node Foreach Function, File Function, Conditional Functions, Functions
 @section The @code{foreach} Function
 @findex foreach
 @cindex words, iterating over
@@ -7302,7 +7304,69 @@ might be useful if the value of @code{find_files} references the variable
 whose name is @samp{Esta-escrito-en-espanol!} (es un nombre bastante largo,
 no?), but it is more likely to be a mistake.
 
-@node Call Function, Value Function, Foreach Function, Functions
+@node File Function, Call Function, Foreach Function, Functions
+@section The @code{file} Function
+@findex file
+@cindex writing to a file
+@cindex file, writing to
+
+The @code{file} function allows the makefile to write to a file.  Two
+modes of writing are supported: overwrite, where the text is written
+to the beginning of the file and any existing content is lost, and
+append, where the text is written to the end of the file, preserving
+the existing content.  In all cases the file is created if it does not
+exist.
+
+The syntax of the @code{file} function is:
+
+@example
+$(file @var{op} @var{filename},@var{text})
+@end example
+
+The operator @var{op} can be either @code{>} which indicates overwrite
+mode, or @code{>>} which indicates append mode.  The @var{filename}
+indicates the file to be written to.  There may optionally be
+whitespace between the operator and the file name.
+
+When the @code{file} function is expanded all its arguments are
+expanded first, then the file indicated by @var{filename} will be
+opened in the mode described by @var{op}.  Finally @var{text} will be
+written to the file.  If @var{text} does not already end in a newline,
+a final newline will be written.  The result of evaluating the
+@code{file} function is always the empty string.
+
+It is a fatal error if the file cannot be opened for writing, or if
+the write operation fails.
+
+For example, the @code{file} function can be useful if your build
+system has a limited command line size and your recipe runs a command
+that can accept arguments from a file as well.  Many commands use the
+convention that an argument prefixed with an @code{@@} specifies a
+file containing more arguments.  Then you might write your recipe in
+this way:
+
+@example
+@group
+program: $(OBJECTS)
+        $(file >$@@.in,$^)
+        $(CMD) $(CMDFLAGS) @@$@@.in
+        @@rm $@@.in
+@end group
+@end example
+
+If the command required each argument to be on a separate line of the
+input file, you might write your recipe like this:
+
+@example
+@group
+program: $(OBJECTS)
+        $(file >$@@.in,) $(foreach O,$^,$(file >>$@@.in,$O))
+        $(CMD) $(CMDFLAGS) @@$@@.in
+        @@rm $@@.in
+@end group
+@end example
+
+@node Call Function, Value Function, File Function, Functions
 @section The @code{call} Function
 @findex call
 @cindex functions, user defined

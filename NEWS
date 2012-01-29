@@ -22,6 +22,12 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
       multiple consecutive backslash/newlines do not condense into one space.
     * In recipes, a recipe prefix following a backslash-newlines is removed.
 
+* New command line option: --trace enables tracing of targets.  When enabled
+  the recipe to be invoked is printed even if it would otherwise be suppressed
+  by .SILENT or a "@" prefix character.  Also before each recipe is run the
+  makefile name and linenumber where it was defined are shown as well as the
+  prerequisites that caused the target to be considered out of date.
+
 * New feature: The "job server" capability is now supported on Windows.
   Implementation contributed by Troy Runkel <Troy.Runkel@mathworks.com>
 
@@ -32,16 +38,12 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
   interpreted as shell assignment.  Change your assignment to add whitespace
   between the "!" and "=": "variable! = value"
 
-* New Feature: GNU Guile integration
+* New feature: GNU Guile integration
   This version of GNU make can be compiled with GNU Guile integration.
   GNU Guile serves as an embedded extension language for make.
   See the "Guile Function" section in the GNU Make manual for details.
 
-* New command line option: --trace enables tracing of targets.  When enabled
-  the recipe to be invoked is printed even if it would otherwise be suppressed
-  by .SILENT or a "@" prefix character.  Also before each recipe is run the
-  makefile name and linenumber where it was defined are shown as well as the
-  prerequisites that caused the target to be considered out of date.
+* New function: $(file ...) writes to a file.
 
 * On failure, the makefile name and linenumber of the recipe that failed are
   shown.

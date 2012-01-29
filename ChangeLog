@@ -1,8 +1,13 @@
 2012-01-29  Paul Smith  <psmith@gnu.org>
 
+	* function.c (func_file): Create a new function, $(file ...)
+	* doc/make.texi (File Function): Document the $(file ..) function.
+	* NEWS: Announce it.
+
 	* gmk-default.scm (to-string-maybe): Use a more portable way to
 	test for unprintable characters.
 	* configure.in [GUILE]: Guile 1.6 doesn't have pkg-config
+	* build_w32.bat: Ditto.
 
 2012-01-28  Eli Zaretskii  <eliz@gnu.org>
 

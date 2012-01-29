@@ -180,8 +180,7 @@ AC_ARG_WITH([guile], [AS_HELP_STRING([--with-guile],
 AS_IF([test "x$with_guile" != xno],
 [ PKG_CHECK_MODULES([GUILE], [guile-2.0], [have_guile=yes],
   [PKG_CHECK_MODULES([GUILE], [guile-1.8], [have_guile=yes],
-   [PKG_CHECK_MODULES([GUILE], [guile-1.6], [have_guile=yes],
-    [have_guile=no])])])
+    [have_guile=no])])
 ])
 
 AS_IF([test "$have_guile" = yes],

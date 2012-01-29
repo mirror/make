@@ -1,3 +1,7 @@
+2012-01-29  Paul Smith  <psmith@gnu.org>
+
+	* scripts/functions/file: Test the new $(file ...) function.
+
 2012-01-12  Paul Smith  <psmith@gnu.org>
 
 	* scripts/functions/guile: New regression tests for Guile support.

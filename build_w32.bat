@@ -47,12 +47,6 @@ if not ERRORLEVEL 1 set /P GUILECFLAGS= < guile.tmp
 pkg-config --libs --static --short-errors %PKGMSC% "guile-1.8" > guile.tmp
 if not ERRORLEVEL 1 set /P GUILELIBS= < guile.tmp
 if not "%GUILECFLAGS%" == "" GoTo GuileDone
-echo "Checking for Guile 1.6"
-pkg-config --cflags --short-errors "guile-1.6" > guile.tmp
-if not ERRORLEVEL 1 set /P GUILECFLAGS= < guile.tmp
-pkg-config --libs --static --short-errors %PKGMSC% "guile-2.0" > guile.tmp
-if not ERRORLEVEL 1 set /P GUILELIBS= < guile.tmp
-if not "%GUILECFLAGS%" == "" GoTo GuileDone
 echo "No Guile found, building without Guile"
 GoTo NoGuile
 :NoPkgCfg
