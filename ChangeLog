@@ -1,5 +1,9 @@
 2012-01-29  Paul Smith  <psmith@gnu.org>
 
+	* gmk-default.scm (to-string-maybe): Variables map to empty strings.
+	In Guile 2.0, (define ...) results in a variable object so make
+	sure that maps to an empty string in make.
+
 	* variable.c (parse_variable_definition): New POSIX assignment ::=
 	Take a struct variable to return more information after parsing.
 	(assign_variable_definition): New parse_variable_definition() call.

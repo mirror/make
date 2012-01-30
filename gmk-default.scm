@@ -20,6 +20,7 @@
    ;; In GNU make, "false" is the empty string
    ((or (not x)
         (unspecified? x)
+        (variable? x)
         (null? x)
         (and (string? x) (string-null? x)))
     #f)
