@@ -495,9 +495,9 @@ parse_var_assignment (const char *line, struct vmodifiers *vmod)
     {
       int wlen;
       const char *p2;
-      enum variable_flavor flavor;
+      struct variable v;
 
-      p2 = parse_variable_definition (p, &flavor);
+      p2 = parse_variable_definition (p, &v);
 
       /* If this is a variable assignment, we're done.  */
       if (p2)
@@ -1342,33 +1342,33 @@ static struct variable *
 do_define (char *name, enum variable_origin origin, struct ebuffer *ebuf)
 {
   struct variable *v;
-  enum variable_flavor flavor;
+  struct variable var;
   struct floc defstart;
   int nlevels = 1;
   unsigned int length = 100;
   char *definition = xmalloc (length);
   unsigned int idx = 0;
-  char *p, *var;
+  char *p, *n;
 
   defstart = ebuf->floc;
 
-  p = parse_variable_definition (name, &flavor);
+  p = parse_variable_definition (name, &var);
   if (p == NULL)
     /* No assignment token, so assume recursive.  */
-    flavor = f_recursive;
+    var.flavor = f_recursive;
   else
     {
-      if (*(next_token (p)) != '\0')
+      if (var.value[0] != '\0')
         error (&defstart, _("extraneous text after `define' directive"));
 
       /* Chop the string before the assignment token to get the name.  */
-      p[flavor == f_recursive ? -1 : -2] = '\0';
+      var.name[var.length] = '\0';
     }
 
   /* Expand the variable name and find the beginning (NAME) and end.  */
-  var = allocated_variable_expand (name);
-  name = next_token (var);
-  if (*name == '\0')
+  n = allocated_variable_expand (name);
+  name = next_token (n);
+  if (name[0] == '\0')
     fatal (&defstart, _("empty variable name"));
   p = name + strlen (name) - 1;
   while (p > name && isblank ((unsigned char)*p))
@@ -1439,9 +1439,10 @@ do_define (char *name, enum variable_origin origin, struct ebuffer *ebuf)
   else
     definition[idx - 1] = '\0';
 
-  v = do_variable_definition (&defstart, name, definition, origin, flavor, 0);
+  v = do_variable_definition (&defstart, name,
+                              definition, origin, var.flavor, 0);
   free (definition);
-  free (var);
+  free (n);
   return (v);
 }
 
@@ -2467,7 +2468,7 @@ readline (struct ebuffer *ebuf)
      w_colon        A colon
      w_dcolon       A double-colon
      w_semicolon    A semicolon
-     w_varassign    A variable assignment operator (=, :=, +=, ?=, or !=)
+     w_varassign    A variable assignment operator (=, :=, ::=, +=, ?=, or !=)
 
    Note that this function is only used when reading certain parts of the
    makefile.  Don't use it where special rules hold sway (RHS of a variable,
@@ -2506,7 +2507,13 @@ get_next_mword (char *buffer, char *delim, char **startp, unsigned int *length)
         {
         case ':':
           ++p;
-          wtype = w_dcolon;
+          if (p[1] != '=')
+            wtype = w_dcolon;
+          else
+            {
+              wtype = w_varassign;
+              ++p;
+            }
           break;
 
         case '=':

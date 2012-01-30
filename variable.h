@@ -35,7 +35,7 @@ enum variable_origin
 enum variable_flavor
   {
     f_bogus,            /* Bogus (error) */
-    f_simple,           /* Simple definition (:=) */
+    f_simple,           /* Simple definition (:= or ::=) */
     f_recursive,        /* Recursive definition (=) */
     f_append,           /* Appending definition (+=) */
     f_conditional,      /* Conditional definition (?=) */
@@ -52,9 +52,9 @@ enum variable_flavor
 struct variable
   {
     char *name;			/* Variable name.  */
-    int length;			/* strlen (name) */
     char *value;		/* Variable value.  */
     struct floc fileinfo;       /* Where the variable was defined.  */
+    int length;			/* strlen (name) */
     unsigned int recursive:1;	/* Gets recursively re-evaluated.  */
     unsigned int append:1;	/* Nonzero if an appending target-specific
                                    variable.  */
@@ -160,7 +160,7 @@ struct variable *do_variable_definition (const struct floc *flocp,
                                          enum variable_flavor flavor,
                                          int target_var);
 char *parse_variable_definition (const char *line,
-                                 enum variable_flavor *flavor);
+                                 struct variable *v);
 struct variable *assign_variable_definition (struct variable *v, char *line);
 struct variable *try_variable_definition (const struct floc *flocp, char *line,
                                           enum variable_origin origin,

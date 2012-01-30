@@ -30,6 +30,10 @@ define simple :=
 @echo $(FOO)
 endef
 
+define posix ::=
+@echo $(FOO)
+endef
+
 append = @echo a
 
 define append +=
@@ -49,10 +53,54 @@ FOO = there
 
 all: ; $(multi)
 	$(simple)
+	$(posix)
 	$(append)
 	$(cond)
 ',
-              '', "echo hi\nhi\nthere\nfoo\na\nb\nfirst\n");
+              '', "echo hi\nhi\nthere\nfoo\nfoo\na\nb\nfirst\n");
+
+# TEST 1a: Various new-style define/endef, with no spaces
+
+run_make_test('
+FOO = foo
+
+define multi=
+echo hi
+@echo $(FOO)
+endef # this is the end
+
+define simple:=
+@echo $(FOO)
+endef
+
+define posix::=
+@echo $(FOO)
+endef
+
+append = @echo a
+
+define append+=
+
+@echo b
+endef
+
+define cond?= # this is a conditional
+@echo first
+endef
+
+define cond?=
+@echo second
+endef
+
+FOO = there
+
+all: ; $(multi)
+	$(simple)
+	$(posix)
+	$(append)
+	$(cond)
+',
+              '', "echo hi\nhi\nthere\nfoo\nfoo\na\nb\nfirst\n");
 
 # TEST 2: define in true section of conditional (containing conditional)
 

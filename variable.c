@@ -1396,17 +1396,27 @@ do_variable_definition (const struct floc *flocp, const char *varname,
 
 /* Parse P (a null-terminated string) as a variable definition.
 
-   If it is not a variable definition, return NULL.
+   If it is not a variable definition, return NULL and the contents of *VAR
+   are undefined, except NAME is set to the first non-space character or NIL.
 
    If it is a variable definition, return a pointer to the char after the
-   assignment token and set *FLAVOR to the type of variable assignment.  */
+   assignment token and set the following fields (only) of *VAR:
+    name   : name of the variable (ALWAYS SET) (NOT NUL-TERMINATED!)
+    length : length of the variable name
+    value  : value of the variable (nul-terminated)
+    flavor : flavor of the variable
+   Other values in *VAR are unchanged.
+  */
 
 char *
-parse_variable_definition (const char *p, enum variable_flavor *flavor)
+parse_variable_definition (const char *p, struct variable *var)
 {
   int wspace = 0;
+  const char *e = NULL;
 
   p = next_token (p);
+  var->name = (char *)p;
+  var->length = 0;
 
   while (1)
     {
@@ -1451,6 +1461,7 @@ parse_variable_definition (const char *p, enum variable_flavor *flavor)
       if (isblank ((unsigned char)c))
         {
           wspace = 1;
+          e = p - 1;
           p = next_token (p);
           c = *p;
           if (c == '\0')
@@ -1461,8 +1472,10 @@ parse_variable_definition (const char *p, enum variable_flavor *flavor)
 
       if (c == '=')
 	{
-	  *flavor = f_recursive;
-	  return (char *)p;
+	  var->flavor = f_recursive;
+          if (! e)
+            e = p - 1;
+	  break;
 	}
 
       /* Match assignment variants (:=, +=, ?=, !=)  */
@@ -1471,16 +1484,16 @@ parse_variable_definition (const char *p, enum variable_flavor *flavor)
           switch (c)
             {
               case ':':
-                *flavor = f_simple;
+                var->flavor = f_simple;
                 break;
               case '+':
-                *flavor = f_append;
+                var->flavor = f_append;
                 break;
               case '?':
-                *flavor = f_conditional;
+                var->flavor = f_conditional;
                 break;
               case '!':
-                *flavor = f_shell;
+                var->flavor = f_shell;
                 break;
               default:
                 /* If we skipped whitespace, non-assignments means no var.  */
@@ -1490,17 +1503,34 @@ parse_variable_definition (const char *p, enum variable_flavor *flavor)
                 /* Might be assignment, or might be $= or #=.  Check.  */
                 continue;
             }
-          return (char *)++p;
+          if (! e)
+            e = p - 1;
+          ++p;
+          break;
         }
-      else if (c == ':')
-        /* A colon other than := is a rule line, not a variable defn.  */
-        return NULL;
+
+      /* Check for POSIX ::= syntax  */
+      if (c == ':')
+        {
+          /* A colon other than :=/::= is not a variable defn.  */
+          if (*p != ':' || p[1] != '=')
+            return NULL;
+
+          /* POSIX allows ::= to be the same as GNU make's := */
+          var->flavor = f_simple;
+          if (! e)
+            e = p - 1;
+          p += 2;
+          break;
+        }
 
       /* If we skipped whitespace, non-assignments means no var.  */
       if (wspace)
         return NULL;
     }
 
+  var->length = e - var->name;
+  var->value = next_token (p);
   return (char *)p;
 }
 
@@ -1513,27 +1543,15 @@ parse_variable_definition (const char *p, enum variable_flavor *flavor)
 struct variable *
 assign_variable_definition (struct variable *v, char *line)
 {
-  char *beg;
-  char *end;
-  enum variable_flavor flavor;
   char *name;
 
-  beg = next_token (line);
-  line = parse_variable_definition (beg, &flavor);
-  if (!line)
+  if (!parse_variable_definition (line, v))
     return NULL;
 
-  end = line - (flavor == f_recursive ? 1 : 2);
-  while (end > beg && isblank ((unsigned char)end[-1]))
-    --end;
-  line = next_token (line);
-  v->value = line;
-  v->flavor = flavor;
-
   /* Expand the name, so "$(foo)bar = baz" works.  */
-  name = alloca (end - beg + 1);
-  memcpy (name, beg, end - beg);
-  name[end - beg] = '\0';
+  name = alloca (v->length + 1);
+  memcpy (name, v->name, v->length);
+  name[v->length] = '\0';
   v->name = allocated_variable_expand (name);
 
   if (v->name[0] == '\0')

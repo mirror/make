@@ -1,5 +1,17 @@
 2012-01-29  Paul Smith  <psmith@gnu.org>
 
+	* variable.c (parse_variable_definition): New POSIX assignment ::=
+	Take a struct variable to return more information after parsing.
+	(assign_variable_definition): New parse_variable_definition() call.
+	* variable.h: New declaration of parse_variable_definition().
+	* read.c (do_define): New parse_variable_definition() call.
+	(parse_var_assignment): Ditto.
+	(get_next_mword): Parse ::= as a variable assignment.
+	* doc/make.texi (Flavors): Describe the new ::= syntax.
+	* NEWS: Mention the ::= operator.
+
+	* variable.h (struct variable): Rearrange elts to reduce struct size.
+
 	* function.c (func_file): Create a new function, $(file ...)
 	* doc/make.texi (File Function): Document the $(file ..) function.
 	* NEWS: Announce it.
