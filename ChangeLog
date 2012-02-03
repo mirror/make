@@ -1,3 +1,10 @@
+2012-02-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32/subproc/w32err.c (map_windows32_error_to_string) [_MSC_VER]:
+	Don't use TLS storage for szMessageBuffer.  Ifdef away special
+	code for handling Winsock error codes.  Make the function return a
+	`const char *'.  Suggested by Ozkan Sezer.  Fixes Savannah bug #34832.
+
 2012-01-29  Paul Smith  <psmith@gnu.org>
 
 	* gmk-default.scm (to-string-maybe): Variables map to empty strings.

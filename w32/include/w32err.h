@@ -22,6 +22,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EXTERN_DECL(entry, args) entry args
 #endif
 
-EXTERN_DECL(char * map_windows32_error_to_string, (DWORD error));
+EXTERN_DECL(const char * map_windows32_error_to_string, (DWORD error));
 
 #endif /* !_W32ERR_H */
