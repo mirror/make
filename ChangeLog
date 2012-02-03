@@ -1,5 +1,9 @@
 2012-02-03  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32/subproc/sub_proc.c (proc_stdin_thread, proc_stdout_thread)
+	(proc_stderr_thread, process_pipe_io): Ifdef away unused
+	functions.
+
 	* w32/subproc/w32err.c (map_windows32_error_to_string) [_MSC_VER]:
 	Don't use TLS storage for szMessageBuffer.  Ifdef away special
 	code for handling Winsock error codes.  Make the function return a

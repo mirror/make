@@ -731,6 +731,7 @@ process_begin(
 
 
 
+#if 0	/* unused */
 static DWORD
 proc_stdin_thread(sub_process *pproc)
 {
@@ -975,6 +976,7 @@ process_pipe_io(
 		return(0);
 
 }
+#endif	/* unused */
 
 /*
  * Purpose: collects output from child process and returns results
