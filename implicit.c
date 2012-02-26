@@ -488,6 +488,13 @@ pattern_search (struct file *file, int archive,
               dir = pathdir;
             }
 
+          if (stemlen > GET_PATH_MAX)
+            {
+              DBS (DB_IMPLICIT, (_("Stem too long: `%.*s'.\n"),
+                                 (int) stemlen, stem));
+              continue;
+            }
+
           DBS (DB_IMPLICIT, (_("Trying pattern rule with stem `%.*s'.\n"),
                              (int) stemlen, stem));
 
