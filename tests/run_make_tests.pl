@@ -33,7 +33,7 @@
 
 $valgrind = 0;              # invoke make with valgrind
 $valgrind_args = '';
-$memcheck_args = '--num-callers=15 --tool=memcheck --leak-check=full';
+$memcheck_args = '--num-callers=15 --tool=memcheck --leak-check=full --suppressions=guile.supp';
 $massif_args = '--num-callers=15 --tool=massif --alloc-fn=xmalloc --alloc-fn=xcalloc --alloc-fn=xrealloc --alloc-fn=xstrdup --alloc-fn=xstrndup';
 $pure_log = undef;
 

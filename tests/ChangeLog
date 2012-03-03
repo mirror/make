@@ -1,5 +1,11 @@
 2012-03-03  Paul Smith  <psmith@gnu.org>
 
+	* scripts/functions/filter-out: Add filter tests and test escape
+	operations.  See Savannah bug #35410.
+
+	* guile.supp: Suppress valgrind errors from Guile
+	* run_make_tests.pl: Use the Guile suppression file.
+
 	* scripts/misc/bs-nl: Check for POSIX and non-POSIX
 	backslash/newline handling.  Addresses Savannah bug #16670.
 

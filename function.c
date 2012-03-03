@@ -905,7 +905,6 @@ struct a_pattern
   char *str;
   char *percent;
   int length;
-  int save_c;
 };
 
 static char *
@@ -928,7 +927,9 @@ func_filter_filterout (char *o, char **argv, const char *funcname)
   char *p;
   unsigned int len;
 
-  /* Chop ARGV[0] up into patterns to match against the words.  */
+  /* Chop ARGV[0] up into patterns to match against the words.
+     We don't need to preserve it because our caller frees all the
+     argument memory anyway.  */
 
   pattail = &pathead;
   while ((p = find_next_token (&pat_iterator, &len)) != 0)
@@ -942,12 +943,13 @@ func_filter_filterout (char *o, char **argv, const char *funcname)
 	++pat_iterator;
 
       pat->str = p;
-      pat->length = len;
-      pat->save_c = p[len];
       p[len] = '\0';
       pat->percent = find_percent (p);
       if (pat->percent == 0)
 	literals++;
+
+      /* find_percent() might shorten the string so LEN is wrong.  */
+      pat->length = strlen (pat->str);
     }
   *pattail = 0;
 
@@ -1028,9 +1030,6 @@ func_filter_filterout (char *o, char **argv, const char *funcname)
 	/* Kill the last space.  */
 	--o;
     }
-
-  for (pp = pathead; pp != 0; pp = pp->next)
-    pp->str[pp->length] = pp->save_c;
 
   if (hashing)
     hash_free (&a_word_table, 0);
@@ -2377,7 +2376,7 @@ handle_function (char **op, const char **stringp)
   if (entry_p->expand_args)
     for (argvp=argv; *argvp != 0; ++argvp)
       free (*argvp);
-  if (abeg)
+  else if (abeg)
     free (abeg);
 
   return 1;

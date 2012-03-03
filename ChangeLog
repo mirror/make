@@ -1,5 +1,9 @@
 2012-03-03  Paul Smith  <psmith@gnu.org>
 
+	* function.c (func_filter_filterout): Recompute the length of each
+	filter word in case it was compressed due to escape chars.  Don't
+	reset the string as it's freed.  See Savannah bug #35410.
+
 	* misc.c (collapse_continuations): Only use POSIX-style
 	backslash/newline handling if the .POSIX target is set.
 	Addresses Savannah bug #16670 without backward-incompatibility.
