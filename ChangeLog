@@ -1,8 +1,11 @@
 2012-03-03  Paul Smith  <psmith@gnu.org>
 
+	* job.c (construct_command_argv_internal): In oneshell we need to
+	break the SHELLFLAGS up for argv.  Fixes Savannah bug #35397.
+
 	* function.c (func_filter_filterout): Recompute the length of each
 	filter word in case it was compressed due to escape chars.  Don't
-	reset the string as it's freed.  See Savannah bug #35410.
+	reset the string as it's freed.  Fixes Savannah bug #35410.
 
 	* misc.c (collapse_continuations): Only use POSIX-style
 	backslash/newline handling if the .POSIX target is set.

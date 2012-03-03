@@ -17,6 +17,19 @@ all:
 [ 0"$a" -eq "$$" ] || echo fail
 ');
 
+# Simple but use multi-word SHELLFLAGS
+
+run_make_test(q!
+.ONESHELL:
+.SHELLFLAGS = -e -c
+all:
+	a=$$$$
+	[ 0"$$a" -eq "$$$$" ] || echo fail
+!,
+              '', 'a=$$
+[ 0"$a" -eq "$$" ] || echo fail
+');
+
 # Again, but this time with inner prefix chars
 
 run_make_test(q!

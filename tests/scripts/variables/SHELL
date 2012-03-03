@@ -70,6 +70,14 @@ all: ; \@$script
 !,
               '', $out);
 
+# Do it again but add spaces to SHELLFLAGS
+$flags = '-x -c';
+run_make_test(qq!
+.SHELLFLAGS = $flags
+all: ; \@$script
+!,
+              '', $out);
+
 # We can't just use "false" because on different systems it provides a
 # different exit code--once again Solaris: false exits with 255 not 1
 $script = 'true; false; true';

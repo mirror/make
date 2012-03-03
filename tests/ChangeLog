@@ -1,5 +1,11 @@
 2012-03-03  Paul Smith  <psmith@gnu.org>
 
+	* scripts/variables/SHELL: Ensure .SHELLFLAGS works with options
+	separated by whitespace.
+
+	* scripts/targets/ONESHELL: Try .ONESHELL in combination with
+	whitespace-separated options in .SHELLFLAGS.  See Savannah bug #35397.
+
 	* scripts/functions/filter-out: Add filter tests and test escape
 	operations.  See Savannah bug #35410.
 
