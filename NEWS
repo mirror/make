@@ -16,11 +16,12 @@ A complete list of bugs fixed in this version is available here:
 http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set=custom
 
 * WARNING: Backward-incompatibility!
-  This version of make adheres to the POSIX backslash/newline handling,
-  introducing the following differences:
-    * Each backslash/newline in a variable value is replaced with a space;
-      multiple consecutive backslash/newlines do not condense into one space.
-    * In recipes, a recipe prefix following a backslash-newlines is removed.
+  If .POSIX is specified, then make adheres to the POSIX backslash/newline
+  handling requirements, which introduces the following changes to the
+  standard backslash/newline handling in non-recipe lines:
+  * Any trailing space before the backslash is preserved
+  * Each backslash/newline (plus subsequent whitespace) is converted to a
+    single space
 
 * New command line option: --trace enables tracing of targets.  When enabled
   the recipe to be invoked is printed even if it would otherwise be suppressed

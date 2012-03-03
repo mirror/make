@@ -50,27 +50,53 @@ run_make_test("squote:;\@echo 'squ\\\n\t\t   ote'\n",
 # Backslash-newlines in variable values
 
 # Simple
-run_make_test("
-var = he\\\nllo
-var:;\@echo '|\$(var)|'",
+run_make_test(q!
+var = he\
+llo
+var:;@echo '|$(var)|'!,
               '', "|he llo|");
 
-# Preserve preceding space
-run_make_test("
-var = he  \\\nllo
-var:;\@echo '|\$(var)|'",
-              '', "|he   llo|");
+# Condense trailing space
+run_make_test(q!
+var = he  \
+llo
+var:;@echo '|$(var)|'!,
+              '', "|he llo|");
 
 # Remove leading space
-run_make_test("
-var = he\\\n    llo
-var:;\@echo '|\$(var)|'",
+run_make_test(q!
+var = he\
+    llo
+var:;@echo '|$(var)|'!,
               '', "|he llo|");
 
-# One space per bs-nl
-run_make_test("
-var = he\\\n\\\n\\\n    llo
-var:;\@echo '|\$(var)|'",
+# Multiple bs/nl condensed
+run_make_test(q!
+var = he\
+\
+\
+    llo
+var:;@echo '|$(var)|'!,
+              '', "|he llo|");
+
+# POSIX: Preserve trailing space
+run_make_test(q!
+.POSIX:
+x = y
+var = he  \
+llo
+var:;@echo '|$(var)|'!,
+              '', "|he   llo|");
+
+# POSIX: One space per bs-nl
+run_make_test(q!
+.POSIX:
+x = y
+var = he\
+\
+\
+    llo
+var:;@echo '|$(var)|'!,
               '', "|he   llo|");
 
 1;

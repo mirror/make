@@ -1,3 +1,12 @@
+2012-03-03  Paul Smith  <psmith@gnu.org>
+
+	* misc.c (collapse_continuations): Only use POSIX-style
+	backslash/newline handling if the .POSIX target is set.
+	Addresses Savannah bug #16670 without backward-incompatibility.
+	* NEWS: Document behavior change.
+	* doc/make.texi (Splitting Lines): New section describing how to
+	use backslash/newline to split long lines.
+
 2012-02-26  Paul Smith  <psmith@gnu.org>
 
 	* implicit.c (pattern_search): Check the stem length to avoid

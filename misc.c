@@ -112,12 +112,17 @@ collapse_continuations (char *line)
       /* Skip the newline.  */
       ++in;
 
-      /* If the newline is escaped, discard following whitespace leaving just
-	 one space.  POSIX requires that each backslash/newline/following
-	 whitespace sequence be reduced to a single space.  */
       if (backslash)
 	{
+          /* Backslash/newline handling:
+             In traditional GNU make all trailing whitespace, consecutive
+             backslash/newlines, and any leading whitespace on the next line
+             is reduced to a single space.
+             In POSIX, each backslash/newline and is replaced by a space.  */
 	  in = next_token (in);
+          if (! posix_pedantic)
+            while (out > line && isblank ((unsigned char)out[-1]))
+              --out;
 	  *out++ = ' ';
 	}
       else

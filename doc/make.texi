@@ -144,6 +144,10 @@ Writing Makefiles
 * Reading Makefiles::           How makefiles are parsed.
 * Secondary Expansion::         How and when secondary expansion is performed.
 
+What Makefiles Contain
+
+* Splitting Lines::             Splitting long lines in makefiles
+
 Writing Rules
 
 * Rule Example::                An example explained.
@@ -206,7 +210,7 @@ Writing Recipes in Rules
 
 Recipe Syntax
 
-* Splitting Lines::             Breaking long recipe lines for readability.
+* Splitting Recipe Lines::      Breaking long recipe lines for readability.
 * Variables in Recipes::        Using @code{make} variables in recipes.
 
 Recipe Execution
@@ -602,8 +606,9 @@ clean :
 @end example
 
 @noindent
-We split each long line into two lines using backslash-newline; this is
-like using one long line, but is easier to read.
+We split each long line into two lines using backslash/newline; this is
+like using one long line, but is easier to read.  @xref{Splitting Lines,
+, Splitting Long Lines}.
 @cindex continuation lines
 @cindex @code{\} (backslash), for continuation lines
 @cindex backslash (@code{\}), for continuation lines
@@ -1036,6 +1041,48 @@ variable.  When the variable is expanded they will either be treated
 as @code{make} comments or as recipe text, depending on the context in
 which the variable is evaluated.
 @end itemize
+
+@menu
+* Splitting Lines::             Splitting long lines in makefiles
+@end menu
+
+@node Splitting Lines,  , Makefile Contents, Makefile Contents
+@subsection Splitting Long Lines
+@cindex splitting long lines
+@cindex long lines, splitting
+@cindex backslash (@code{\}), to quote newlines
+
+Makefiles use a ``line-based'' syntax in which the newline character
+is special and marks the end of a statement.  GNU @code{make} has no
+limit on the length of a statement line, up to the amount of memory in
+your computer.
+
+However, it is difficult to read lines which are too long to display
+without wrapping or scrolling.  So, you can format your makefiles for
+readability by adding newlines into the middle of a statement: you do
+this by escaping the internal newlines with a backslash (@code{\})
+character.  Where we need to make a distinction we will refer to
+``physical lines'' as a single line ending with a newline (regardless
+of whether it is escaped) and a ``logical line'' being a complete
+statement including all escaped newlines up to the first non-escaped
+newline.
+
+The way in which backslash/newline combinations are handled depends on
+whether the statement is a recipe line or a non-recipe line.  Handling
+of backslash/newline in a recipe line is discussed later
+(@pxref{Splitting Recipe Lines}).
+
+Outside of recipe lines, backslash/newlines are converted into a
+single space character.  Once that is done, all whitespace around the
+backslash/newline is condensed into a single space: this includes all
+whitespace preceding the backslash, all whitespace at the beginning of
+the line after the backslash/newline, and any consecutive
+backslash/newline combinations.
+
+If the @code{.POSIX} special target is defined then backslash/newline
+handling is modified slightly to conform to POSIX.2: first, whitespace
+preceding a backslash is not removed and second, consecutive
+backslash/newlines are not condensed.
 
 @node Makefile Names, Include, Makefile Contents, Makefiles
 @section What Name to Give Your Makefile
@@ -3364,7 +3411,7 @@ nonzero status).
 With the GNU C compiler, you may wish to use the @samp{-MM} flag instead
 of @samp{-M}.  This omits prerequisites on system header files.
 @xref{Preprocessor Options, , Options Controlling the Preprocessor,
-gcc.info, Using GNU CC}, for details.
+gcc, Using GNU CC}, for details.
 
 @cindex @code{sed} (shell command)
 The purpose of the @code{sed} command is to translate (for example):
@@ -3493,11 +3540,11 @@ line, will be considered part of a recipe and be passed to the shell.
 @end itemize
 
 @menu
-* Splitting Lines::             Breaking long recipe lines for readability.
+* Splitting Recipe Lines::      Breaking long recipe lines for readability.
 * Variables in Recipes::        Using @code{make} variables in recipes.
 @end menu
 
-@node Splitting Lines, Variables in Recipes, Recipe Syntax, Recipe Syntax
+@node Splitting Recipe Lines, Variables in Recipes, Recipe Syntax, Recipe Syntax
 @subsection Splitting Recipe Lines
 @cindex recipes, splitting
 @cindex splitting recipes
@@ -3516,13 +3563,14 @@ each newline.  A sequence of lines like this is considered a single
 recipe line, and one instance of the shell will be invoked to run it.
 
 However, in contrast to how they are treated in other places in a
-makefile, backslash-newline pairs are @emph{not} removed from the
-recipe.  Both the backslash and the newline characters are preserved
-and passed to the shell.  How the backslash-newline is interpreted
-depends on your shell.  If the first character of the next line after
-the backslash-newline is the recipe prefix character (a tab by
-default; @pxref{Special Variables}), then that character (and only
-that character) is removed.  Whitespace is never added to the recipe.
+makefile (@pxref{Splitting Lines, , Splitting Long Lines}),
+backslash/newline pairs are @emph{not} removed from the recipe.  Both
+the backslash and the newline characters are preserved and passed to
+the shell.  How the backslash/newline is interpreted depends on your
+shell.  If the first character of the next line after the
+backslash/newline is the recipe prefix character (a tab by default;
+@pxref{Special Variables}), then that character (and only that
+character) is removed.  Whitespace is never added to the recipe.
 
 For example, the recipe for the all target in this makefile:
 
@@ -3593,14 +3641,14 @@ you specify a different shell in your makefiles it may treat them
 differently.
 
 Sometimes you want to split a long line inside of single quotes, but
-you don't want the backslash-newline to appear in the quoted content.
+you don't want the backslash/newline to appear in the quoted content.
 This is often the case when passing scripts to languages such as Perl,
 where extraneous backslashes inside the script can change its meaning
 or even be a syntax error.  One simple way of handling this is to
 place the quoted string, or even the entire command, into a
 @code{make} variable then use the variable in the recipe.  In this
 situation the newline quoting rules for makefiles will be used, and
-the backslash-newline will be removed.  If we rewrite our example
+the backslash/newline will be removed.  If we rewrite our example
 above using this method:
 
 @example
@@ -3626,7 +3674,7 @@ If you like, you can also use target-specific variables
 a tighter correspondence between the variable and the recipe that
 uses it.
 
-@node Variables in Recipes,  , Splitting Lines, Recipe Syntax
+@node Variables in Recipes,  , Splitting Recipe Lines, Recipe Syntax
 @subsection Using Variables in Recipes
 @cindex variable references in recipes
 @cindex recipes, using variables in
@@ -4585,7 +4633,7 @@ fixed limit on the size of the environment, and putting so much
 information into the value of @code{MAKEFLAGS} can exceed it.  If you
 see the error message @samp{Arg list too long}, this may be the problem.
 @findex .POSIX
-@cindex POSIX.2
+@cindex POSIX
 (For strict compliance with POSIX.2, changing @code{MAKEOVERRIDES} does
 not affect @code{MAKEFLAGS} if the special target @samp{.POSIX} appears
 in the makefile.  You probably do not care about this.)
@@ -5463,12 +5511,9 @@ The variable name may contain function and variable references, which
 are expanded when the line is read to find the actual variable name to use.
 
 There is no limit on the length of the value of a variable except the
-amount of memory on the computer.  When a variable definition is long,
-it is a good idea to break it into several lines by inserting
-backslash-newline at convenient places in the definition.  This will
-make the makefile easier to read.  Every backslash-newline, along with
-any leading whitespace on the following line, will be replaced by a
-single space in the value of the variable.
+amount of memory on the computer.  You can split the value of a
+variable into multiple physical lines for readability
+(@pxref{Splitting Lines, ,Splitting Long Lines}).
 
 Most variable names are considered to have the empty string as a value if
 you have never set them.  Several variables have built-in initial values
@@ -10725,7 +10770,7 @@ Implicit Rules}) allows one pattern rule for installing members in an
 archive (@pxref{Archive Update}) to be sufficient.
 
 @item
-The arrangement of lines and backslash-newline combinations in
+The arrangement of lines and backslash/newline combinations in
 recipes is retained when the recipes are printed, so they appear as
 they do in the makefile, except for the stripping of initial
 whitespace.

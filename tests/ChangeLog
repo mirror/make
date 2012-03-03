@@ -1,3 +1,8 @@
+2012-03-03  Paul Smith  <psmith@gnu.org>
+
+	* scripts/misc/bs-nl: Check for POSIX and non-POSIX
+	backslash/newline handling.  Addresses Savannah bug #16670.
+
 2012-01-29  Paul Smith  <psmith@gnu.org>
 
 	* scripts/variables/flavors: Add tests for ::=
