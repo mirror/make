@@ -37,7 +37,7 @@ static int pattern_search (struct file *file, int archive,
 int
 try_implicit_rule (struct file *file, unsigned int depth)
 {
-  DBF (DB_IMPLICIT, _("Looking for an implicit rule for `%s'.\n"));
+  DBF (DB_IMPLICIT, _("Looking for an implicit rule for '%s'.\n"));
 
   /* The order of these searches was previously reversed.  My logic now is
      that since the non-archive search uses more information in the target
@@ -53,7 +53,7 @@ try_implicit_rule (struct file *file, unsigned int depth)
   if (ar_name (file->name))
     {
       DBF (DB_IMPLICIT,
-           _("Looking for archive-member implicit rule for `%s'.\n"));
+           _("Looking for archive-member implicit rule for '%s'.\n"));
       if (pattern_search (file, 1, depth, 0))
         return 1;
     }
@@ -251,7 +251,7 @@ pattern_search (struct file *file, int archive,
   int file_vars_initialized = 0;
 
   /* Nonzero if we have matched a pattern-rule target
-     that is not just `%'.  */
+     that is not just '%'.  */
   int specific_rule_matched = 0;
 
   struct dep dep_simple;
@@ -490,12 +490,12 @@ pattern_search (struct file *file, int archive,
 
           if (stemlen > GET_PATH_MAX)
             {
-              DBS (DB_IMPLICIT, (_("Stem too long: `%.*s'.\n"),
+              DBS (DB_IMPLICIT, (_("Stem too long: '%.*s'.\n"),
                                  (int) stemlen, stem));
               continue;
             }
 
-          DBS (DB_IMPLICIT, (_("Trying pattern rule with stem `%.*s'.\n"),
+          DBS (DB_IMPLICIT, (_("Trying pattern rule with stem '%.*s'.\n"),
                              (int) stemlen, stem));
 
           strncpy (stem_str, stem, stemlen);
@@ -678,8 +678,8 @@ pattern_search (struct file *file, int archive,
                          second pass either since we know that will fail.  */
                       DBS (DB_IMPLICIT,
                            (is_rule
-                            ? _("Rejecting impossible rule prerequisite `%s'.\n")
-                            : _("Rejecting impossible implicit prerequisite `%s'.\n"),
+                            ? _("Rejecting impossible rule prerequisite '%s'.\n")
+                            : _("Rejecting impossible implicit prerequisite '%s'.\n"),
                             d->name));
                       tryrules[ri].rule = 0;
 
@@ -692,8 +692,8 @@ pattern_search (struct file *file, int archive,
 
                   DBS (DB_IMPLICIT,
                        (is_rule
-                        ? _("Trying rule prerequisite `%s'.\n")
-                        : _("Trying implicit prerequisite `%s'.\n"), d->name));
+                        ? _("Trying rule prerequisite '%s'.\n")
+                        : _("Trying implicit prerequisite '%s'.\n"), d->name));
 
                   /* If this prereq is also explicitly mentioned for FILE,
                      skip all tests below since it must be built no matter
@@ -732,7 +732,7 @@ pattern_search (struct file *file, int archive,
                     if (vname)
                       {
                         DBS (DB_IMPLICIT,
-                             (_("Found prerequisite `%s' as VPATH `%s'\n"),
+                             (_("Found prerequisite '%s' as VPATH '%s'\n"),
                               d->name, vname));
                         (pat++)->name = d->name;
                         continue;
@@ -746,7 +746,7 @@ pattern_search (struct file *file, int archive,
                   if (intermed_ok)
                     {
                       DBS (DB_IMPLICIT,
-                           (_("Looking for a rule with intermediate file `%s'.\n"),
+                           (_("Looking for a rule with intermediate file '%s'.\n"),
                             d->name));
 
                       if (int_file == 0)
@@ -795,7 +795,7 @@ pattern_search (struct file *file, int archive,
 
           file->stem = 0;
 
-          /* This rule is no longer `in use' for recursive searches.  */
+          /* This rule is no longer 'in use' for recursive searches.  */
           rule->in_use = 0;
 
           if (! failed)
@@ -897,8 +897,8 @@ pattern_search (struct file *file, int archive,
           /* If the file actually existed (was not an intermediate file), and
              the rule that found it was a terminal one, then we want to mark
              the found file so that it will not have implicit rule search done
-             for it.  If we are not entering a `struct file' for it now, we
-             indicate this with the `changed' flag.  */
+             for it.  If we are not entering a 'struct file' for it now, we
+             indicate this with the 'changed' flag.  */
           if (dep->file == 0)
             dep->changed = 1;
           else
@@ -942,7 +942,7 @@ pattern_search (struct file *file, int archive,
   }
 
   /* If this rule builds other targets, too, put the others into FILE's
-     `also_make' member.  */
+     'also_make' member.  */
 
   if (rule->num > 1)
     for (ri = 0; ri < rule->num; ++ri)

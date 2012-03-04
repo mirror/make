@@ -28,18 +28,18 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define _CRT_NONSTDC_NO_WARNINGS /* functions w/o a leading underscore */
 #endif
 
-/* Define to 1 if the `closedir' function returns void instead of `int'. */
+/* Define to 1 if the 'closedir' function returns void instead of 'int'. */
 /* #undef CLOSEDIR_VOID */
 
-/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
-   systems. This function is required for `alloca.c' support on those systems.
+/* Define to one of '_getb67', 'GETB67', 'getb67' for Cray-2 and Cray-YMP
+   systems. This function is required for 'alloca.c' support on those systems.
    */
 /* #undef CRAY_STACKSEG_END */
 
-/* Define to 1 if using `alloca.c'. */
+/* Define to 1 if using 'alloca.c'. */
 /* #undef C_ALLOCA */
 
-/* Define to 1 if using `getloadavg.c'. */
+/* Define to 1 if using 'getloadavg.c'. */
 #define C_GETLOADAVG 1
 
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
@@ -52,11 +52,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Use high resolution file timestamps if nonzero. */
 #define FILE_TIMESTAMP_HI_RES 0
 
-/* Define to 1 if the `getloadavg' function needs to be run setuid or setgid.
+/* Define to 1 if the 'getloadavg' function needs to be run setuid or setgid.
    */
 /* #undef GETLOADAVG_PRIVILEGED */
 
-/* Define to 1 if you have `alloca', as a function or macro. */
+/* Define to 1 if you have 'alloca', as a function or macro. */
 #define HAVE_ALLOCA 1
 
 /* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
@@ -66,7 +66,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if your compiler conforms to the ANSI C standard. */
 #define HAVE_ANSI_COMPILER 1
 
-/* Define to 1 if you have the `atexit' function. */
+/* Define to 1 if you have the 'atexit' function. */
 #define HAVE_ATEXIT 1
 
 /* Use case insensitive file names */
@@ -83,23 +83,23 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
    */
 /* #undef HAVE_DCGETTEXT */
 
-/* Define to 1 if you have the declaration of `bsd_signal', and to 0 if you
+/* Define to 1 if you have the declaration of 'bsd_signal', and to 0 if you
    don't. */
 #define HAVE_DECL_BSD_SIGNAL 0
 
-/* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
+/* Define to 1 if you have the declaration of 'sys_siglist', and to 0 if you
    don't. */
 #define HAVE_DECL_SYS_SIGLIST 0
 
-/* Define to 1 if you have the declaration of `_sys_siglist', and to 0 if you
+/* Define to 1 if you have the declaration of '_sys_siglist', and to 0 if you
    don't. */
 #define HAVE_DECL__SYS_SIGLIST 0
 
-/* Define to 1 if you have the declaration of `__sys_siglist', and to 0 if you
+/* Define to 1 if you have the declaration of '__sys_siglist', and to 0 if you
    don't. */
 #define HAVE_DECL___SYS_SIGLIST 0
 
-/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
+/* Define to 1 if you have the <dirent.h> header file, and it defines 'DIR'.
    */
 #define HAVE_DIRENT_H 1
 
@@ -110,45 +110,45 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define HAVE_DIRECT_H 1
 #endif
 
-/* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
+/* Define to 1 if you don't have 'vprintf' but do have '_doprnt.' */
 /* #undef HAVE_DOPRNT */
 
 /* Use platform specific coding */
 #define HAVE_DOS_PATHS 1
 
-/* Define to 1 if you have the `dup2' function. */
+/* Define to 1 if you have the 'dup2' function. */
 #define HAVE_DUP2 1
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #define HAVE_FCNTL_H 1
 
-/* Define to 1 if you have the `fdopen' function. */
+/* Define to 1 if you have the 'fdopen' function. */
 #ifdef __MINGW32__
 #define HAVE_FDOPEN 1
 #endif
 
-/* Define to 1 if you have the `fileno' function. */
+/* Define to 1 if you have the 'fileno' function. */
 #define HAVE_FILENO 1
 
-/* Define to 1 if you have the `fork' function. */
+/* Define to 1 if you have the 'fork' function. */
 /* #undef HAVE_FORK */
 
-/* Define to 1 if you have the `getcwd' function.  */
+/* Define to 1 if you have the 'getcwd' function.  */
 #define HAVE_GETCWD 1
 
-/* Define to 1 if you have the `getgroups' function. */
+/* Define to 1 if you have the 'getgroups' function. */
 /* #undef HAVE_GETGROUPS */
 
-/* Define to 1 if you have the `gethostbyname' function. */
+/* Define to 1 if you have the 'gethostbyname' function. */
 /* #undef HAVE_GETHOSTBYNAME */
 
-/* Define to 1 if you have the `gethostname' function. */
+/* Define to 1 if you have the 'gethostname' function. */
 /* #undef HAVE_GETHOSTNAME */
 
-/* Define to 1 if you have the `getloadavg' function. */
+/* Define to 1 if you have the 'getloadavg' function. */
 /* #undef HAVE_GETLOADAVG */
 
-/* Define to 1 if you have the `getrlimit' function. */
+/* Define to 1 if you have the 'getrlimit' function. */
 /* #undef HAVE_GETRLIMIT */
 
 /* Define if the GNU gettext() function is already present or preinstalled. */
@@ -167,10 +167,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_INTTYPES_H 1
 #endif
 
-/* Define to 1 if you have the `dgc' library (-ldgc). */
+/* Define to 1 if you have the 'dgc' library (-ldgc). */
 /* #undef HAVE_LIBDGC */
 
-/* Define to 1 if you have the `kstat' library (-lkstat). */
+/* Define to 1 if you have the 'kstat' library (-lkstat). */
 /* #undef HAVE_LIBKSTAT */
 
 /* Define to 1 if you have the <limits.h> header file. */
@@ -179,7 +179,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <locale.h> header file. */
 /*#define HAVE_LOCALE_H 1*/
 
-/* Define to 1 if you have the `lstat' function. */
+/* Define to 1 if you have the 'lstat' function. */
 /* #undef HAVE_LSTAT */
 
 /* Define to 1 if you have the <mach/mach.h> header file. */
@@ -188,64 +188,64 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
 
-/* Define to 1 if you have the `mkstemp' function. */
+/* Define to 1 if you have the 'mkstemp' function. */
 /* #undef HAVE_MKSTEMP */
 
-/* Define to 1 if you have the `mktemp' function. */
+/* Define to 1 if you have the 'mktemp' function. */
 #define HAVE_MKTEMP 1
 
-/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
+/* Define to 1 if you have the <ndir.h> header file, and it defines 'DIR'. */
 /* #undef HAVE_NDIR_H */
 
 /* Define to 1 if you have the <nlist.h> header file. */
 /* #undef HAVE_NLIST_H */
 
-/* Define to 1 if you have the `pipe' function. */
+/* Define to 1 if you have the 'pipe' function. */
 /* #undef HAVE_PIPE */
 
-/* Define to 1 if you have the `pstat_getdynamic' function. */
+/* Define to 1 if you have the 'pstat_getdynamic' function. */
 /* #undef HAVE_PSTAT_GETDYNAMIC */
 
-/* Define to 1 if you have the `readlink' function. */
+/* Define to 1 if you have the 'readlink' function. */
 /* #undef HAVE_READLINK */
 
-/* Define to 1 if you have the `realpath' function. */
+/* Define to 1 if you have the 'realpath' function. */
 /* #undef HAVE_REALPATH */
 
 /* Define to 1 if <signal.h> defines the SA_RESTART constant. */
 /* #undef HAVE_SA_RESTART */
 
-/* Define to 1 if you have the `setegid' function. */
+/* Define to 1 if you have the 'setegid' function. */
 /* #undef HAVE_SETEGID */
 
-/* Define to 1 if you have the `seteuid' function. */
+/* Define to 1 if you have the 'seteuid' function. */
 /* #undef HAVE_SETEUID */
 
-/* Define to 1 if you have the `setlinebuf' function. */
+/* Define to 1 if you have the 'setlinebuf' function. */
 /* #undef HAVE_SETLINEBUF */
 
-/* Define to 1 if you have the `setlocale' function. */
+/* Define to 1 if you have the 'setlocale' function. */
 /*#define HAVE_SETLOCALE 1*/
 
-/* Define to 1 if you have the `setregid' function. */
+/* Define to 1 if you have the 'setregid' function. */
 /* #undef HAVE_SETREGID */
 
-/* Define to 1 if you have the `setreuid' function. */
+/* Define to 1 if you have the 'setreuid' function. */
 /* #undef HAVE_SETREUID */
 
-/* Define to 1 if you have the `setrlimit' function. */
+/* Define to 1 if you have the 'setrlimit' function. */
 /* #undef HAVE_SETRLIMIT */
 
-/* Define to 1 if you have the `setvbuf' function. */
+/* Define to 1 if you have the 'setvbuf' function. */
 #define HAVE_SETVBUF 1
 
-/* Define to 1 if you have the `sigaction' function. */
+/* Define to 1 if you have the 'sigaction' function. */
 /* #undef HAVE_SIGACTION */
 
-/* Define to 1 if you have the `sigsetmask' function. */
+/* Define to 1 if you have the 'sigsetmask' function. */
 /* #undef HAVE_SIGSETMASK */
 
-/* Define to 1 if you have the `socket' function. */
+/* Define to 1 if you have the 'socket' function. */
 /* #undef HAVE_SOCKET */
 
 /* Define to 1 if you have the <stdarg.h> header file. */
@@ -259,25 +259,25 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <stdlib.h> header file. */
 #define HAVE_STDLIB_H 1
 
-/* Define to 1 if you have the `strcasecmp' function. */
+/* Define to 1 if you have the 'strcasecmp' function. */
 #ifdef __MINGW32__
 #define HAVE_STRCASECMP 1
 #endif
 
-/* Define to 1 if you have the `strcmpi' function. */
+/* Define to 1 if you have the 'strcmpi' function. */
 #define HAVE_STRCMPI 1
 
-/* Define to 1 if you have the `strcoll' function and it is properly defined.
+/* Define to 1 if you have the 'strcoll' function and it is properly defined.
    */
 #define HAVE_STRCOLL 1
 
-/* Define to 1 if you have the `strdup' function. */
+/* Define to 1 if you have the 'strdup' function. */
 #define HAVE_STRDUP 1
 
-/* Define to 1 if you have the `strerror' function. */
+/* Define to 1 if you have the 'strerror' function. */
 #define HAVE_STRERROR 1
 
-/* Define to 1 if you have the `stricmp' function. */
+/* Define to 1 if you have the 'stricmp' function. */
 #define HAVE_STRICMP 1
 
 /* Define to 1 if you have the <strings.h> header file. */
@@ -286,33 +286,33 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <string.h> header file. */
 #define HAVE_STRING_H 1
 
-/* Define to 1 if you have the `strncasecmp' function. */
+/* Define to 1 if you have the 'strncasecmp' function. */
 #ifdef __MINGW32__
 #define HAVE_STRNCASECMP 1
 #endif
 
-/* Define to 1 if you have the `strncmpi' function. */
+/* Define to 1 if you have the 'strncmpi' function. */
 /* #undef HAVE_STRNCMPI */
 
-/* Define to 1 if you have the `strndup' function. */
+/* Define to 1 if you have the 'strndup' function. */
 /* #undef HAVE_STRNDUP */
 
-/* Define to 1 if you have the `strnicmp' function. */
+/* Define to 1 if you have the 'strnicmp' function. */
 #ifdef __MINGW32__
 #define HAVE_STRNICMP 1
 #endif
 
-/* Define to 1 if you have the `strsignal' function. */
+/* Define to 1 if you have the 'strsignal' function. */
 /* #undef HAVE_STRSIGNAL */
 
-/* Define to 1 if `n_un.n_name' is a member of `struct nlist'. */
+/* Define to 1 if 'n_un.n_name' is a member of 'struct nlist'. */
 /* #undef HAVE_STRUCT_NLIST_N_UN_N_NAME */
 
-/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
+/* Define to 1 if you have the <sys/dir.h> header file, and it defines 'DIR'.
    */
 /* #undef HAVE_SYS_DIR_H */
 
-/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
+/* Define to 1 if you have the <sys/ndir.h> header file, and it defines 'DIR'.
    */
 /* #undef HAVE_SYS_NDIR_H */
 
@@ -341,7 +341,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <sys/wait.h> header file. */
 /* #undef HAVE_SYS_WAIT_H */
 
-/* Define to 1 if you have the \`union wait' type in <sys/wait.h>. */
+/* Define to 1 if you have the \'union wait' type in <sys/wait.h>. */
 /* #undef HAVE_UNION_WAIT */
 
 /* Define to 1 if you have the <unistd.h> header file. */
@@ -352,26 +352,26 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <varargs.h> header file. */
 /* #undef HAVE_VARARGS_H */
 
-/* Define to 1 if you have the `vfork' function. */
+/* Define to 1 if you have the 'vfork' function. */
 /* #undef HAVE_VFORK */
 
 /* Define to 1 if you have the <vfork.h> header file. */
 /* #undef HAVE_VFORK_H */
 
-/* Define to 1 if you have the `vprintf' function. */
+/* Define to 1 if you have the 'vprintf' function. */
 #define HAVE_VPRINTF 1
 
 
-/* Define to 1 if you have the `wait3' function. */
+/* Define to 1 if you have the 'wait3' function. */
 /* #undef HAVE_WAIT3 */
 
-/* Define to 1 if you have the `waitpid' function. */
+/* Define to 1 if you have the 'waitpid' function. */
 /* #undef HAVE_WAITPID */
 
-/* Define to 1 if `fork' works. */
+/* Define to 1 if 'fork' works. */
 /* #undef HAVE_WORKING_FORK */
 
-/* Define to 1 if `vfork' works. */
+/* Define to 1 if 'vfork' works. */
 /* #undef HAVE_WORKING_VFORK */
 
 /* Build host information. */
@@ -383,8 +383,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 to enable symbolic link timestamp checking. */
 /* #undef MAKE_SYMLINKS */
 
-/* Define to 1 if your `struct nlist' has an `n_un' member. Obsolete, depend
-   on `HAVE_STRUCT_NLIST_N_UN_N_NAME */
+/* Define to 1 if your 'struct nlist' has an 'n_un' member. Obsolete, depend
+   on 'HAVE_STRUCT_NLIST_N_UN_N_NAME */
 /* #undef NLIST_NAME_UNION */
 
 /* Define to 1 if struct nlist.n_name is a pointer rather than an array. */
@@ -411,7 +411,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the character that separates directories in PATH. */
 #define PATH_SEPARATOR_CHAR ';'
 
-/* Define as the return type of signal handlers (`int' or `void'). */
+/* Define as the return type of signal handlers ('int' or 'void'). */
 #define RETSIGTYPE void
 
 /* Define to the name of the SCCS 'get' command. */
@@ -420,7 +420,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define this if the SCCS 'get' command understands the '-G<file>' option. */
 /* #undef SCCS_GET_MINUS_G */
 
-/* Define to 1 if the `setvbuf' function takes the buffering type as its
+/* Define to 1 if the 'setvbuf' function takes the buffering type as its
    second argument and the buffer pointer as the third, as on System V before
    release 3. */
 /* #undef SETVBUF_REVERSED */
@@ -433,7 +433,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 	STACK_DIRECTION = 0 => direction of growth unknown */
 /* #undef STACK_DIRECTION */
 
-/* Define to 1 if the `S_IS*' macros in <sys/stat.h> do not work properly. */
+/* Define to 1 if the 'S_IS*' macros in <sys/stat.h> do not work properly. */
 /* #undef STAT_MACROS_BROKEN */
 
 /* Define to 1 if you have the ANSI C header files. */
@@ -483,18 +483,18 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
    this defined. */
 /* #undef _POSIX_1_SOURCE */
 
-/* Define to 1 if you need to in order for `stat' and other things to work. */
+/* Define to 1 if you need to in order for 'stat' and other things to work. */
 /* #undef _POSIX_SOURCE */
 
-/* Define to empty if `const' does not conform to ANSI C. */
+/* Define to empty if 'const' does not conform to ANSI C. */
 /* #undef const */
 
 #include <sys/types.h>
 
-/* Define to `int' if <sys/types.h> doesn't define. */
+/* Define to 'int' if <sys/types.h> doesn't define. */
 #define gid_t int
 
-/* Define to `int' if <sys/types.h> does not define. */
+/* Define to 'int' if <sys/types.h> does not define. */
 /* GCC 4.x reportedly defines pid_t.  */
 #ifndef _PID_T_
 #ifdef _WIN64
@@ -504,7 +504,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
-/* Define to `int' if <sys/types.h> doesn't define. */
+/* Define to 'int' if <sys/types.h> doesn't define. */
 #define uid_t int
 
 /* Define uintmax_t if not defined in <stdint.h> or <inttypes.h>. */
@@ -512,7 +512,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define uintmax_t unsigned long
 #endif
 
-/* Define as `fork' if `vfork' does not work. */
+/* Define as 'fork' if 'vfork' does not work. */
 /*#define vfork fork*/
 
 /* Define if you have <sys/wait.h> that is POSIX.1 compatible.  */

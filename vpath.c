@@ -30,7 +30,7 @@ struct vpath
   {
     struct vpath *next;	/* Pointer to next struct in the linked list.  */
     const char *pattern;/* The pattern to match.  */
-    const char *percent;/* Pointer into `pattern' where the `%' is.  */
+    const char *percent;/* Pointer into 'pattern' where the '%' is.  */
     unsigned int patlen;/* Length of the pattern.  */
     const char **searchpath; /* Null-terminated list of directories.  */
     unsigned int maxlen;/* Maximum length of any entry in the list.  */
@@ -90,7 +90,7 @@ build_vpath_lists ()
       struct vpath *save_vpaths = vpaths;
       char gp[] = "%";
 
-      /* Empty `vpaths' so the new one will have no next, and `vpaths'
+      /* Empty 'vpaths' so the new one will have no next, and 'vpaths'
 	 will still be nil if P contains no existing directories.  */
       vpaths = 0;
 
@@ -123,7 +123,7 @@ build_vpath_lists ()
       struct vpath *save_vpaths = vpaths;
       char gp[] = "%";
 
-      /* Empty `vpaths' so the new one will have no next, and `vpaths'
+      /* Empty 'vpaths' so the new one will have no next, and 'vpaths'
 	 will still be nil if P contains no existing directories.  */
       vpaths = 0;
 
@@ -600,18 +600,18 @@ print_vpath_data_base (void)
     }
 
   if (vpaths == 0)
-    puts (_("# No `vpath' search paths."));
+    puts (_("# No 'vpath' search paths."));
   else
-    printf (_("\n# %u `vpath' search paths.\n"), nvpaths);
+    printf (_("\n# %u 'vpath' search paths.\n"), nvpaths);
 
   if (general_vpath == 0)
-    puts (_("\n# No general (`VPATH' variable) search path."));
+    puts (_("\n# No general ('VPATH' variable) search path."));
   else
     {
       const char **path = general_vpath->searchpath;
       unsigned int i;
 
-      fputs (_("\n# General (`VPATH' variable) search path:\n# "), stdout);
+      fputs (_("\n# General ('VPATH' variable) search path:\n# "), stdout);
 
       for (i = 0; path[i] != 0; ++i)
 	printf ("%s%c", path[i],

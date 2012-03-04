@@ -184,7 +184,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
 
   if (! (status & 1))
     {
-      error (NILF, _("unable to open library `%s' to lookup member `%s'"),
+      error (NILF, _("unable to open library '%s' to lookup member '%s'"),
 	     archive, (char *)arg);
       return -1;
     }
@@ -847,7 +847,7 @@ describe_member (int desc, const char *name, int truncated,
 {
   extern char *ctime ();
 
-  printf (_("Member `%s'%s: %ld bytes at %ld (%ld).\n"),
+  printf (_("Member '%s'%s: %ld bytes at %ld (%ld).\n"),
 	  name, truncated ? _(" (name might be truncated)") : "",
 	  size, hdrpos, datapos);
   printf (_("  Date %s"), ctime (&date));

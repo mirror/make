@@ -59,7 +59,7 @@ struct child
     char *sh_batch_file;        /* Script file for shell commands */
     unsigned int remote:1;	/* Nonzero if executing remotely.  */
 
-    unsigned int noerror:1;	/* Nonzero if commands contained a `-'.  */
+    unsigned int noerror:1;	/* Nonzero if commands contained a '-'.  */
 
     unsigned int good_stdin:1;	/* Nonzero if this child has a good stdin.  */
     unsigned int deleted:1;	/* Nonzero if targets have been deleted.  */

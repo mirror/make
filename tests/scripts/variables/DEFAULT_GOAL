@@ -42,7 +42,7 @@ run_make_test('
 .DEFAULT_GOAL = foo
 ',
 '',
-'#MAKE#: *** No rule to make target `foo\'.  Stop.',
+"#MAKE#: *** No rule to make target 'foo'.  Stop.",
 512);
 
 

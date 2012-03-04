@@ -25,7 +25,7 @@ run_make_test(undef, '', "ar rv libxx.a a1.o\nr - a1.o\n");
 
 # Use wildcards
 run_make_test('all: libxx.a(*.o)',
-              '', "#MAKE#: Nothing to be done for `all'.\n");
+              '', "#MAKE#: Nothing to be done for 'all'.\n");
 
 # Touch one of the .o's so it's rebuilt
 utouch(-30, 'a1.o');

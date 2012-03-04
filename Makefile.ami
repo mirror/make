@@ -1,7 +1,7 @@
 # -*-Makefile-*- for GNU make on Amiga
 #
-# NOTE: If you have no `make' program at all to process this makefile, run
-# `build.sh' instead.
+# NOTE: If you have no 'make' program at all to process this makefile, run
+# 'build.sh' instead.
 #
 # Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 # 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
@@ -32,18 +32,18 @@ CPPFLAGS =
 LDFLAGS =
 
 # Define these for your system as follows:
-#	-DNO_ARCHIVES		To disable `ar' archive support.
+#	-DNO_ARCHIVES		To disable 'ar' archive support.
 #	-DNO_FLOAT		To avoid using floating-point numbers.
 #	-DENUM_BITFIELDS	If the compiler isn't GCC but groks enum foo:2.
 #				Some compilers apparently accept this
 #				without complaint but produce losing code,
 #				so beware.
 # NeXT 1.0a uses an old version of GCC, which required -D__inline=inline.
-# See also `config.h'.
+# See also 'config.h'.
 defines =
 
 # Which flavor of remote job execution support to use.
-# The code is found in `remote-$(REMOTE).c'.
+# The code is found in 'remote-$(REMOTE).c'.
 REMOTE = stub
 
 # If you are using the GNU C library, or have the GNU getopt functions in
@@ -77,9 +77,9 @@ prefix =
 # Common prefix for machine-dependent installed files.
 exec_prefix =
 
-# Directory to install `make' in.
+# Directory to install 'make' in.
 bindir = sc:c
-# Directory to find libraries in for `-lXXX'.
+# Directory to find libraries in for '-lXXX'.
 libdir = lib:
 # Directory to search by default for included makefiles.
 includedir = include:
@@ -89,20 +89,20 @@ infodir = doc:
 mandir = t:
 # Number to put on the man page filename.
 manext = 1
-# Prefix to put on installed `make' binary file name.
+# Prefix to put on installed 'make' binary file name.
 binprefix =
-# Prefix to put on installed `make' man page file name.
+# Prefix to put on installed 'make' man page file name.
 manprefix = $(binprefix)
 
 # Whether or not make needs to be installed setgid.
-# The value should be either `true' or `false'.
-# On many systems, the getloadavg function (used to implement the `-l'
+# The value should be either 'true' or 'false'.
+# On many systems, the getloadavg function (used to implement the '-l'
 # switch) will not work unless make is installed setgid kmem.
 install_setgid = false
 # Install make setgid to this group so it can read /dev/kmem.
 group = sys
 
-# Program to install `make'.
+# Program to install 'make'.
 INSTALL_PROGRAM = copy
 # Program to install the man page.
 INSTALL_DATA = copy
@@ -145,7 +145,7 @@ srcs = $(srcdir)commands.c $(srcdir)job.c $(srcdir)dir.c             \
 all: make
 info: make.info
 dvi: make.dvi
-# Some makes apparently use .PHONY as the default goal if it is before `all'.
+# Some makes apparently use .PHONY as the default goal if it is before 'all'.
 .PHONY: all check info dvi
 
 make.info: make.texinfo
@@ -197,7 +197,7 @@ $(bindir)$(binprefix)make: make
 	     echo "chgrp $(group) $@.new && chmod g+s $@.new"; \
 	   else \
 	     echo "$@ needs to be owned by group $(group) and setgid;"; \
-	     echo "otherwise the \`-l' option will probably not work."; \
+	     echo "otherwise the '-l' option will probably not work."; \
 	     echo "You may need special privileges to install $@."; \
 	   fi; \
 	 else true; fi
@@ -214,9 +214,9 @@ $(infodir)make.info: make.info
 	    `echo $@ | sed "s,make.info\$$,$$name,"`; \
 	done
 # Run install-info only if it exists.
-# Use `if' instead of just prepending `-' to the
+# Use 'if' instead of just prepending '-' to the
 # line so we notice real errors from install-info.
-# We use `$(SHELL) -c' because some shells do not
+# We use '$(SHELL) -c' because some shells do not
 # fail gracefully when there is an unknown command.
 	if $(SHELL) -c 'install-info --version' >/dev/null 2>&1; then \
 	  if [ -r ./make.info ]; then dir=.; else dir=$(srcdir); fi; \
@@ -267,8 +267,8 @@ glob-clean glob-realclean:
 .NOEXPORT:
 
 # The automatically generated dependencies below may omit config.h
-# because it is included with ``#include <config.h>'' rather than
-# ``#include "config.h"''.  So we add the explicit dependency to make sure.
+# because it is included with '#include <config.h>' rather than
+# '#include "config.h"'.  So we add the explicit dependency to make sure.
 $(objs): config.h
 
 # Automatically generated dependencies will be put at the end of the file.

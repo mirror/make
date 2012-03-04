@@ -86,9 +86,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* Exclude all the code except the test program at the end
-   if the system has its own `getloadavg' function.
+   if the system has its own 'getloadavg' function.
 
-   The declaration of `errno' is needed by the test program
+   The declaration of 'errno' is needed by the test program
    as well as the function itself, so it comes first.  */
 
 #include <errno.h>
@@ -745,7 +745,7 @@ getloadavg (double loadavg[], int nelem)
 #  define LDAV_DONE
   /* This call can return -1 for an error, but with good args
      it's not supposed to fail.  The first argument is for no
-     apparent reason of type `long int *'.  */
+     apparent reason of type 'long int *'.  */
   dg_sys_info ((long int *) &load_info,
 	       DG_SYS_INFO_LOAD_INFO_TYPE,
 	       DG_SYS_INFO_LOAD_VERSION_0);

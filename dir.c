@@ -337,7 +337,7 @@ struct directory
 
     /* The directory's contents.  This data may be shared by several
        entries in the hash table, which refer to the same directory
-       (identified uniquely by `dev' and `ino') under different names.  */
+       (identified uniquely by 'dev' and 'ino') under different names.  */
     struct directory_contents *contents;
   };
 
@@ -410,7 +410,7 @@ static int dir_contents_file_exists_p (struct directory_contents *dir,
                                        const char *filename);
 static struct directory *find_directory (const char *name);
 
-/* Find the directory named NAME and return its `struct directory'.  */
+/* Find the directory named NAME and return its 'struct directory'.  */
 
 static struct directory *
 find_directory (const char *name)
@@ -482,7 +482,7 @@ find_directory (const char *name)
       if (r < 0)
         {
 	/* Couldn't stat the directory.  Mark this by
-	   setting the `contents' member to a nil pointer.  */
+	   setting the 'contents' member to a nil pointer.  */
 	  dir->contents = 0;
 	}
       else
@@ -553,7 +553,7 @@ find_directory (const char *name)
 	      ENULLLOOP (dc->dirstream, opendir (name));
 	      if (dc->dirstream == 0)
                 /* Couldn't open the directory.  Mark this by setting the
-                   `files' member to a nil pointer.  */
+                   'files' member to a nil pointer.  */
                 dc->dirfiles.ht_vec = 0;
 	      else
 		{
@@ -805,7 +805,7 @@ file_exists_p (const char *name)
   return dir_file_exists_p (dirname, slash + 1);
 }
 
-/* Mark FILENAME as `impossible' for `file_impossible_p'.
+/* Mark FILENAME as 'impossible' for 'file_impossible_p'.
    This means an attempt has been made to search for FILENAME
    as an intermediate file, and it has failed.  */
 
@@ -1146,7 +1146,7 @@ read_dirstream (__ptr_t stream)
       struct dirfile *df = *ds->dirfile_slot++;
       if (! HASH_VACANT (df) && !df->impossible)
 	{
-	  /* The glob interface wants a `struct dirent', so mock one up.  */
+	  /* The glob interface wants a 'struct dirent', so mock one up.  */
 	  struct dirent *d;
 	  unsigned int len = df->length + 1;
           unsigned int sz = sizeof (*d) - sizeof (d->d_name) + len;

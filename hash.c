@@ -26,7 +26,7 @@ static void hash_rehash __P((struct hash_table* ht));
 static unsigned long round_up_2 __P((unsigned long rough));
 
 /* Implement double hashing with open addressing.  The table size is
-   always a power of two.  The secondary (`increment') hash function
+   always a power of two.  The secondary ('increment') hash function
    is forced to return an odd-value, in order to be relatively prime
    to the table size.  This guarantees that the increment can
    potentially hit every slot in the table during collision
@@ -61,7 +61,7 @@ hash_init (struct hash_table *ht, unsigned long size,
   ht->ht_compare = hash_cmp;
 }
 
-/* Load an array of items into `ht'.  */
+/* Load an array of items into 'ht'.  */
 
 void
 hash_load (struct hash_table *ht, void *item_table,
@@ -75,9 +75,9 @@ hash_load (struct hash_table *ht, void *item_table,
     }
 }
 
-/* Returns the address of the table slot matching `key'.  If `key' is
+/* Returns the address of the table slot matching 'key'.  If 'key' is
    not found, return the address of an empty slot suitable for
-   inserting `key'.  The caller is responsible for incrementing
+   inserting 'key'.  The caller is responsible for incrementing
    ht_fill on insertion.  */
 
 void **

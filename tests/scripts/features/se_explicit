@@ -115,7 +115,7 @@ run_make_test(q!
 .SECONDEXPANSION:
 all : $$(eval $$(info test))
 !,
-            '', "test\n#MAKE#: Nothing to be done for `all'.\n");
+            '', "test\n#MAKE#: Nothing to be done for 'all'.\n");
 
 # TEST #5: (NEGATIVE) catch eval in a prereq list trying to create new
 # target/prereq relationships.

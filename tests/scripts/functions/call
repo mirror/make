@@ -13,7 +13,7 @@ print MAKEFILE <<'EOMAKE';
 #
 reverse = $2 $1
 
-# A complex `map' function, using recursive `call'.
+# A complex 'map' function, using recursive 'call'.
 #
 map = $(foreach a,$2,$(call $1,$a))
 

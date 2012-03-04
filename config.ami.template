@@ -38,14 +38,14 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define for DGUX with <sys/dg_sys_info.h>.  */
 /* #undef DGUX */
 
-/* Define if the `getloadavg' function needs to be run setuid or setgid.  */
+/* Define if the 'getloadavg' function needs to be run setuid or setgid.  */
 /* #undef GETLOADAVG_PRIVILEGED */
 
-/* Define to `unsigned long' or `unsigned long long'
+/* Define to 'unsigned long' or 'unsigned long long'
    if <inttypes.h> doesn't define.  */
 #define uintmax_t unsigned long
 
-/* Define to `int' if <sys/types.h> doesn't define.  */
+/* Define to 'int' if <sys/types.h> doesn't define.  */
 #define gid_t int
 
 /* Define if you have alloca, as a function or macro.  */
@@ -60,7 +60,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if your system has a working fnmatch function.  */
 /* #undef HAVE_FNMATCH */
 
-/* Define if your system has its own `getloadavg' function.  */
+/* Define if your system has its own 'getloadavg' function.  */
 /* #undef HAVE_GETLOADAVG */
 
 /* Define if you have the getmntent function.  */
@@ -69,13 +69,13 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Embed GNU Guile support */
 /* #undef HAVE_GUILE */
 
-/* Define if the `long double' type works.  */
+/* Define if the 'long double' type works.  */
 /* #undef HAVE_LONG_DOUBLE */
 
 /* Define if you support file names longer than 14 characters.	*/
 #define HAVE_LONG_FILE_NAMES 1
 
-/* Define if you have a working `mmap' system call.  */
+/* Define if you have a working 'mmap' system call.  */
 /* #undef HAVE_MMAP */
 
 /* Define if system calls automatically restart after interruption
@@ -134,7 +134,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if your C compiler doesn't accept -c and -o together.  */
 /* #undef NO_MINUS_C_MINUS_O */
 
-/* Define to `int' if <sys/types.h> doesn't define.  */
+/* Define to 'int' if <sys/types.h> doesn't define.  */
 #define pid_t int
 
 /* Define if the system does not provide POSIX.1 features except
@@ -161,7 +161,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
  */
 #define STACK_DIRECTION -1
 
-/* Define if the `S_IS*' macros in <sys/stat.h> do not work properly.  */
+/* Define if the 'S_IS*' macros in <sys/stat.h> do not work properly.  */
 /* #undef STAT_MACROS_BROKEN */
 
 /* Define if your compiler conforms to the ANSI C standard. */
@@ -173,10 +173,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define on System V Release 4.  */
 /* #undef SVR4 */
 
-/* Define if `sys_siglist' is declared by <signal.h>.  */
+/* Define if 'sys_siglist' is declared by <signal.h>.  */
 /* #undef SYS_SIGLIST_DECLARED */
 
-/* Define to `int' if <sys/types.h> doesn't define.  */
+/* Define to 'int' if <sys/types.h> doesn't define.  */
 #define uid_t int
 
 /* Define for Encore UMAX.  */
@@ -195,10 +195,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Version of this package (needed by automake) */
 #define VERSION "%VERSION%"
 
-/* Define to the name of the SCCS `get' command.  */
+/* Define to the name of the SCCS 'get' command.  */
 #define SCCS_GET "get"
 
-/* Define this if the SCCS `get' command understands the `-G<file>' option.  */
+/* Define this if the SCCS 'get' command understands the '-G<file>' option.  */
 /* #undef SCCS_GET_MINUS_G */
 
 /* Define this to enable job server support in GNU make.  */
@@ -208,13 +208,13 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
    if it exists.  */
 /* #undef ST_MTIM_NSEC */
 
-/* Define this if the C library defines the variable `sys_siglist'.  */
+/* Define this if the C library defines the variable 'sys_siglist'.  */
 /* #undef HAVE_SYS_SIGLIST */
 
-/* Define this if the C library defines the variable `_sys_siglist'.  */
+/* Define this if the C library defines the variable '_sys_siglist'.  */
 /* #undef HAVE__SYS_SIGLIST */
 
-/* Define this if you have the `union wait' type in <sys/wait.h>.  */
+/* Define this if you have the 'union wait' type in <sys/wait.h>.  */
 /* #undef HAVE_UNION_WAIT */
 
 /* Define if you have the dup2 function.  */

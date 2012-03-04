@@ -243,7 +243,7 @@ AC_CACHE_CHECK([for union wait], [make_cv_union_wait],
 ])
 AS_IF([test "$make_cv_union_wait" = yes],
 [ AC_DEFINE([HAVE_UNION_WAIT], [1],
-            [Define to 1 if you have the \`union wait' type in <sys/wait.h>.])
+            [Define to 1 if you have the 'union wait' type in <sys/wait.h>.])
 ])
 
 

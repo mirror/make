@@ -140,7 +140,7 @@ to do this but the testsuite ignores the environment. -DNO_CHDIR2 causes
 make not to use drive letters for directory names (i.e. _chdir2() and
 _getcwd2() are NOT used).  The testsuite interpretes the whole output of
 make, especially statements like make[1]: Entering directory
-`C:/somewhere/make-3.79.1/tests' where the testsuite does not expect the
+'C:/somewhere/make-3.79.1/tests' where the testsuite does not expect the
 drive letter. This would be interpreted as an error even if there is
 none.
 

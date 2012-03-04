@@ -16,9 +16,9 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Flag bits for the second argument to `read_makefile'.
-   These flags are saved in the `changed' field of each
-   `struct dep' in the chain returned by `read_all_makefiles'.  */
+/* Flag bits for the second argument to 'read_makefile'.
+   These flags are saved in the 'changed' field of each
+   'struct dep' in the chain returned by 'read_all_makefiles'.  */
 
 #define RM_NO_DEFAULT_GOAL	(1 << 0) /* Do not set default goal.  */
 #define RM_INCLUDED		(1 << 1) /* Search makefile search path.  */
@@ -27,8 +27,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define RM_NOFLAG		0
 
 /* Structure representing one dependency of a file.
-   Each struct file's `deps' points to a chain of these,
-   chained through the `next'. `stem' is the stem for this
+   Each struct file's 'deps' points to a chain of these,
+   chained through the 'next'. 'stem' is the stem for this
    dep line of static pattern rule or NULL.
 
    Note that the first two words of this match a struct nameseq.  */

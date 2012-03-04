@@ -50,7 +50,7 @@ $delete_error_code = $? >> 8;
 
 $answer = "$rm_command cleanit
 $cleanit_error
-$makefile:2: recipe for target `clean' failed
+$makefile:2: recipe for target 'clean' failed
 $make_name: [clean] Error $delete_error_code (ignored)
 $rm_command foo\n";
 
@@ -78,7 +78,7 @@ if (!$vos)
 
 $answer = "$rm_command cleanit
 $cleanit_error
-$makefile:5: recipe for target `clean2' failed
+$makefile:5: recipe for target 'clean2' failed
 $make_name: [clean2] Error $delete_error_code (ignored)
 $rm_command foo\n";
 

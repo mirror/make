@@ -535,7 +535,7 @@ find_next_token (const char **ptr, unsigned int *lengthptr)
 }
 
 
-/* Copy a chain of `struct dep'.  For 2nd expansion deps, dup the name.  */
+/* Copy a chain of 'struct dep'.  For 2nd expansion deps, dup the name.  */
 
 struct dep *
 copy_dep_chain (const struct dep *d)
@@ -941,7 +941,7 @@ get_path_max (void)
    the failure.  That's what the ferror test is checking below.
 
    It's important to detect such failures and exit nonzero because many
-   tools (most notably `make' and other build-management systems) depend
+   tools (most notably 'make' and other build-management systems) depend
    on being able to detect failure in other tools via their exit status.  */
 
 void

@@ -44,7 +44,7 @@ $answer = "cp foo.f foo.e\ncp foo.e foo.d\n";
 unlink('foo.e');
 
 &run_make_with_options($makefile,'foo.d',&get_logfile);
-$answer = "$make_name: `foo.d' is up to date.\n";
+$answer = "$make_name: 'foo.d' is up to date.\n";
 &compare_output($answer, &get_logfile(1));
 
 # TEST #3
@@ -67,7 +67,7 @@ $answer = "cp foo.e foo.c\n";
 unlink('foo.e');
 
 &run_make_with_options($makefile,'foo.c',&get_logfile);
-$answer = "$make_name: `foo.c' is up to date.\n";
+$answer = "$make_name: 'foo.c' is up to date.\n";
 &compare_output($answer, &get_logfile(1));
 
 # TEST #6
@@ -103,7 +103,7 @@ close(MAKEFILE);
 touch('final');
 
 &run_make_with_options($makefile2, '', &get_logfile);
-$answer = "$make_name: `final' is up to date.\n";
+$answer = "$make_name: 'final' is up to date.\n";
 &compare_output($answer, &get_logfile(1));
 
 unlink('source', 'final', 'intermediate');

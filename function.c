@@ -356,7 +356,7 @@ string_glob (char *line)
   unsigned int idx;
 
   chain = PARSE_FILE_SEQ (&line, struct nameseq, '\0', NULL,
-                          /* We do not want parse_file_seq to strip `./'s.
+                          /* We do not want parse_file_seq to strip './'s.
                              That would break examples like:
                              $(patsubst ./%.c,obj/%.o,$(wildcard ./?*.c)).  */
                           PARSEFS_NOSTRIP|PARSEFS_NOCACHE|PARSEFS_EXISTS);
@@ -755,12 +755,12 @@ func_word (char *o, char **argv, const char *funcname UNUSED)
   int i;
 
   /* Check the first argument.  */
-  check_numeric (argv[0], _("non-numeric first argument to `word' function"));
+  check_numeric (argv[0], _("non-numeric first argument to 'word' function"));
   i = atoi (argv[0]);
 
   if (i == 0)
     fatal (*expanding_var,
-           _("first argument to `word' function must be greater than 0"));
+           _("first argument to 'word' function must be greater than 0"));
 
   end_p = argv[1];
   while ((p = find_next_token (&end_p, 0)) != 0)
@@ -780,14 +780,14 @@ func_wordlist (char *o, char **argv, const char *funcname UNUSED)
 
   /* Check the arguments.  */
   check_numeric (argv[0],
-		 _("non-numeric first argument to `wordlist' function"));
+		 _("non-numeric first argument to 'wordlist' function"));
   check_numeric (argv[1],
-		 _("non-numeric second argument to `wordlist' function"));
+		 _("non-numeric second argument to 'wordlist' function"));
 
   start = atoi (argv[0]);
   if (start < 1)
     fatal (*expanding_var,
-           "invalid first argument to `wordlist' function: `%d'", start);
+           "invalid first argument to 'wordlist' function: '%d'", start);
 
   count = atoi (argv[1]) - start + 1;
 
@@ -1509,7 +1509,7 @@ windows32_openpipe (int *pipedes, pid_t *pid_p, char **command_argv, char **envp
 
   /* make sure that CreateProcess() has Path it needs */
   sync_Path_environment();
-  /* `sync_Path_environment' may realloc `environ', so take note of
+  /* 'sync_Path_environment' may realloc 'environ', so take note of
      the new value.  */
   envp = environ;
 
@@ -1552,7 +1552,7 @@ FILE *
 msdos_openpipe (int* pipedes, int *pidp, char *text)
 {
   FILE *fpipe=0;
-  /* MSDOS can't fork, but it has `popen'.  */
+  /* MSDOS can't fork, but it has 'popen'.  */
   struct variable *sh = lookup_variable ("SHELL", 5);
   int e;
   extern int dos_command_running, dos_status;
@@ -1656,7 +1656,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
     }
 #endif
 
-  /* Using a target environment for `shell' loses in cases like:
+  /* Using a target environment for 'shell' loses in cases like:
      export var = $(shell echo foobie)
      because target_environment hits a loop trying to expand $(var)
      to put it in the environment.  This is even more confusing when
@@ -1740,7 +1740,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
 
       /* Close the write side of the pipe.  We test for -1, since
 	 pipedes[1] is -1 on MS-Windows, and some versions of MS
-	 libraries barf when `close' is called with -1.  */
+	 libraries barf when 'close' is called with -1.  */
       if (pipedes[1] >= 0)
 	close (pipedes[1]);
 #endif
@@ -1946,8 +1946,8 @@ func_not (char *o, char **argv, char *funcname)
 #define ROOT_LEN 1
 #endif
 
-/* Return the absolute name of file NAME which does not contain any `.',
-   `..' components nor any repeated path separators ('/').   */
+/* Return the absolute name of file NAME which does not contain any '.',
+   '..' components nor any repeated path separators ('/').   */
 
 static char *
 abspath (const char *name, char *apath)
@@ -2247,7 +2247,7 @@ expand_builtin_function (char *o, int argc, char **argv,
 {
   if (argc < (int)entry_p->minimum_args)
     fatal (*expanding_var,
-           _("insufficient number of arguments (%d) to function `%s'"),
+           _("insufficient number of arguments (%d) to function '%s'"),
            argc, entry_p->name);
 
   /* I suppose technically some function could do something with no
@@ -2259,7 +2259,7 @@ expand_builtin_function (char *o, int argc, char **argv,
 
   if (!entry_p->func_ptr)
     fatal (*expanding_var,
-           _("unimplemented on this platform: function `%s'"), entry_p->name);
+           _("unimplemented on this platform: function '%s'"), entry_p->name);
 
   return entry_p->func_ptr (o, argv, entry_p->name);
 }
@@ -2309,7 +2309,7 @@ handle_function (char **op, const char **stringp)
 
   if (count >= 0)
     fatal (*expanding_var,
-	   _("unterminated call to function `%s': missing `%c'"),
+	   _("unterminated call to function '%s': missing '%c'"),
 	   entry_p->name, closeparen);
 
   *stringp = end;

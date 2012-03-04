@@ -71,8 +71,8 @@ set_file_variables (struct file *file)
   const char *at, *percent, *star, *less;
 
 #ifndef	NO_ARCHIVES
-  /* If the target is an archive member `lib(member)',
-     then $@ is `lib' and $% is `member'.  */
+  /* If the target is an archive member 'lib(member)',
+     then $@ is 'lib' and $% is 'member'.  */
 
   if (ar_name (file->name))
     {
@@ -103,7 +103,7 @@ set_file_variables (struct file *file)
     {
       /* In Unix make, $* is set to the target name with
 	 any suffix in the .SUFFIXES list stripped off for
-	 explicit rules.  We store this in the `stem' member.  */
+	 explicit rules.  We store this in the 'stem' member.  */
       const char *name;
       unsigned int len;
 
@@ -325,7 +325,7 @@ set_file_variables (struct file *file)
 }
 
 /* Chop CMDS up into individual command lines if necessary.
-   Also set the `lines_flags' and `any_recurse' members.  */
+   Also set the 'lines_flags' and 'any_recurse' members.  */
 
 void
 chop_commands (struct commands *cmds)
@@ -622,10 +622,10 @@ delete_target (struct file *file, const char *on_behalf_of)
       if (ar_member_date (file->name) != file_date)
 	{
 	  if (on_behalf_of)
-	    error (NILF, _("*** [%s] Archive member `%s' may be bogus; not deleted"),
+	    error (NILF, _("*** [%s] Archive member '%s' may be bogus; not deleted"),
 		   on_behalf_of, file->name);
 	  else
-	    error (NILF, _("*** Archive member `%s' may be bogus; not deleted"),
+	    error (NILF, _("*** Archive member '%s' may be bogus; not deleted"),
 		   file->name);
 	}
       return;
@@ -638,9 +638,9 @@ delete_target (struct file *file, const char *on_behalf_of)
       && FILE_TIMESTAMP_STAT_MODTIME (file->name, st) != file->last_mtime)
     {
       if (on_behalf_of)
-	error (NILF, _("*** [%s] Deleting file `%s'"), on_behalf_of, file->name);
+	error (NILF, _("*** [%s] Deleting file '%s'"), on_behalf_of, file->name);
       else
-	error (NILF, _("*** Deleting file `%s'"), file->name);
+	error (NILF, _("*** Deleting file '%s'"), file->name);
       if (unlink (file->name) < 0
 	  && errno != ENOENT)	/* It disappeared; so what.  */
 	perror_with_name ("unlink: ", file->name);
@@ -662,7 +662,7 @@ delete_child_targets (struct child *child)
   /* Delete the target file if it changed.  */
   delete_target (child->file, NULL);
 
-  /* Also remove any non-precious targets listed in the `also_make' member.  */
+  /* Also remove any non-precious targets listed in the 'also_make' member.  */
   for (d = child->file->also_make; d != 0; d = d->next)
     delete_target (d->file, child->file->name);
 
@@ -681,7 +681,7 @@ print_commands (const struct commands *cmds)
   if (cmds->fileinfo.filenm == 0)
     puts (_(" (built-in):"));
   else
-    printf (_(" (from `%s', line %lu):\n"),
+    printf (_(" (from '%s', line %lu):\n"),
             cmds->fileinfo.filenm, cmds->fileinfo.lineno);
 
   s = cmds->commands;

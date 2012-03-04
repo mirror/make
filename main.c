@@ -489,7 +489,7 @@ struct variable * default_goal_var;
 
 struct file *default_file;
 
-/* Nonzero if we have seen the magic `.POSIX' target.
+/* Nonzero if we have seen the magic '.POSIX' target.
    This turns on pedantic compliance with POSIX.2.  */
 
 int posix_pedantic;
@@ -505,7 +505,7 @@ int second_expansion;
 
 int one_shell;
 
-/* Nonzero if we have seen the `.NOTPARALLEL' target.
+/* Nonzero if we have seen the '.NOTPARALLEL' target.
    This turns off parallel builds for this invocation of make.  */
 
 int not_parallel;
@@ -650,7 +650,7 @@ decode_debug_flags (void)
               db_level |= DB_BASIC | DB_VERBOSE;
               break;
             default:
-              fatal (NILF, _("unknown debug level specification `%s'"), p);
+              fatal (NILF, _("unknown debug level specification '%s'"), p);
             }
 
           while (*(++p) != '\0')
@@ -962,7 +962,7 @@ main (int argc, char **argv, char **envp)
   reading_file = 0;
 
 #if defined (__MSDOS__) && !defined (_POSIX_SOURCE)
-  /* Request the most powerful version of `system', to
+  /* Request the most powerful version of 'system', to
      make up for the dumb default shell.  */
   __system_flags = (__system_redirect
 		    | __system_use_shell
@@ -1198,7 +1198,7 @@ main (int argc, char **argv, char **envp)
                environment.  We used to rely on target_environment's
                v_default code to do this.  But that does not work for the
                case where an environment variable is redefined in a makefile
-               with `override'; it should then still be exported, because it
+               with 'override'; it should then still be exported, because it
                was originally in the environment.  */
             v->export = v_export;
 
@@ -1294,7 +1294,7 @@ main (int argc, char **argv, char **envp)
     {
       print_version ();
 
-      /* `make --version' is supposed to just print the version and exit.  */
+      /* 'make --version' is supposed to just print the version and exit.  */
       if (print_version_flag)
         die (0);
     }
@@ -1575,7 +1575,7 @@ main (int argc, char **argv, char **envp)
 #ifndef __EMX__ /* Don't use a SIGCHLD handler for OS/2 */
 #if defined(MAKE_JOBSERVER) || !defined(HAVE_WAIT_NOHANG)
   /* Set up to handle children dying.  This must be done before
-     reading in the makefiles so that `shell' function calls will work.
+     reading in the makefiles so that 'shell' function calls will work.
 
      If we don't have a hanging wait we have to fall back to old, broken
      functionality here and rely on the signal handler and counting
@@ -1734,14 +1734,14 @@ main (int argc, char **argv, char **envp)
       if (! open_jobserver_semaphore(cp))
         {
           DWORD err = GetLastError();
-          fatal (NILF, _("internal error: unable to open jobserver semaphore `%s': (Error %ld: %s)"), 
+          fatal (NILF, _("internal error: unable to open jobserver semaphore '%s': (Error %ld: %s)"), 
                  cp, err, map_windows32_error_to_string(err));
         }
       DB (DB_JOBS, (_("Jobserver client (semaphore %s)\n"), cp));
 #else
       if (sscanf (cp, "%d,%d", &job_fds[0], &job_fds[1]) != 2)
         fatal (NILF,
-               _("internal error: invalid --jobserver-fds string `%s'"), cp);
+               _("internal error: invalid --jobserver-fds string '%s'"), cp);
 
       DB (DB_JOBS,
           (_("Jobserver client (fds %d,%d)\n"), job_fds[0], job_fds[1]));
@@ -1768,7 +1768,7 @@ main (int argc, char **argv, char **envp)
             pfatal_with_name (_("dup jobserver"));
 
           error (NILF,
-                 _("warning: jobserver unavailable: using -j1.  Add `+' to parent make rule."));
+                 _("warning: jobserver unavailable: using -j1.  Add '+' to parent make rule."));
           job_slots = 1;
         }
 #endif
@@ -1871,7 +1871,7 @@ main (int argc, char **argv, char **envp)
 
   define_makeflags (1, 0);
 
-  /* Make each `struct dep' point at the `struct file' for the file
+  /* Make each 'struct dep' point at the 'struct file' for the file
      depended on.  Also do magic for special targets.  */
 
   snap_deps ();
@@ -1967,7 +1967,7 @@ main (int argc, char **argv, char **envp)
 			 you write your makefiles.)  */
 
 		      DB (DB_VERBOSE,
-                          (_("Makefile `%s' might loop; not remaking it.\n"),
+                          (_("Makefile '%s' might loop; not remaking it.\n"),
                            f->name));
 
 		      if (last == 0)
@@ -1995,7 +1995,7 @@ main (int argc, char **argv, char **envp)
 	  }
       }
 
-      /* Set up `MAKEFLAGS' specially while remaking makefiles.  */
+      /* Set up 'MAKEFLAGS' specially while remaking makefiles.  */
       define_makeflags (1, 1);
 
       rebuilding_makefiles = 1;
@@ -2046,7 +2046,7 @@ main (int argc, char **argv, char **envp)
                         FILE_TIMESTAMP mtime;
                         /* The update failed and this makefile was not
                            from the MAKEFILES variable, so we care.  */
-                        error (NILF, _("Failed to remake makefile `%s'."),
+                        error (NILF, _("Failed to remake makefile '%s'."),
                                d->file->name);
                         mtime = file_mtime_no_search (d->file);
                         any_remade |= (mtime != NONEXISTENT_MTIME
@@ -2063,12 +2063,12 @@ main (int argc, char **argv, char **envp)
                         /* An included makefile.  We don't need
                            to die, but we do want to complain.  */
                         error (NILF,
-                               _("Included makefile `%s' was not found."),
+                               _("Included makefile '%s' was not found."),
                                dep_name (d));
                       else
                         {
                           /* A normal makefile.  We must die later.  */
-                          error (NILF, _("Makefile `%s' was not found"),
+                          error (NILF, _("Makefile '%s' was not found"),
                                  dep_name (d));
                           any_failed = 1;
                         }
@@ -2250,7 +2250,7 @@ main (int argc, char **argv, char **envp)
         free (makefile_mtimes);
     }
 
-  /* Set up `MAKEFLAGS' again for the normal targets.  */
+  /* Set up 'MAKEFLAGS' again for the normal targets.  */
   define_makeflags (1, 0);
 
   /* Set always_make_flag if -B was given.  */
@@ -2443,7 +2443,7 @@ handle_non_switch_argument (char *arg, int env)
   /* Non-option argument.  It might be a variable definition.  */
   struct variable *v;
   if (arg[0] == '-' && arg[1] == '\0')
-    /* Ignore plain `-' for compatibility.  */
+    /* Ignore plain '-' for compatibility.  */
     return;
   v = try_variable_definition (0, arg, o_command, 0);
   if (v != 0)
@@ -2617,7 +2617,7 @@ decode_switches (int argc, char **argv, int env)
                       else
                         op = cs->long_name;
 
-                      error (NILF, _("the `%s%s' option requires a non-empty string argument"),
+                      error (NILF, _("the '%s%s' option requires a non-empty string argument"),
                              short_option (cs->c) ? "-" : "--", op);
                       bad = 1;
                     }
@@ -2672,7 +2672,7 @@ decode_switches (int argc, char **argv, int env)
 
 		      if (i < 1 || cp[0] != '\0')
 			{
-                          error (NILF, _("the `-%c' option requires a positive integral argument"),
+                          error (NILF, _("the '-%c' option requires a positive integral argument"),
                                  cs->c);
 			  bad = 1;
 			}
@@ -2812,7 +2812,7 @@ quote_for_env (char *out, const char *in)
 
 /* Define the MAKEFLAGS and MFLAGS variables to reflect the settings of the
    command switches.  Include options with args if ALL is nonzero.
-   Don't include options with the `no_makefile' flag set if MAKEFILE.  */
+   Don't include options with the 'no_makefile' flag set if MAKEFILE.  */
 
 static const char *
 define_makeflags (int all, int makefile)
@@ -2826,7 +2826,7 @@ define_makeflags (int all, int makefile)
   unsigned int words;
   struct variable *v;
 
-  /* We will construct a linked list of `struct flag's describing
+  /* We will construct a linked list of 'struct flag's describing
      all the flags which need to go in MAKEFLAGS.  Then, once we
      know how many there are and their lengths, we can put them all
      together in a string.  */
@@ -3084,7 +3084,7 @@ define_makeflags (int all, int makefile)
   if (! all)
     /* The first time we are called, set MAKEFLAGS to always be exported.
        We should not do this again on the second call, because that is
-       after reading makefiles which might have done `unexport MAKEFLAGS'. */
+       after reading makefiles which might have done 'unexport MAKEFLAGS'. */
     v->export = v_export;
 
   return v->value;
@@ -3313,10 +3313,10 @@ log_working_directory (int entering)
         printf (_("%s: Leaving an unknown directory\n"), program);
     else
       if (entering)
-        printf (_("%s: Entering directory `%s'\n"),
+        printf (_("%s: Entering directory '%s'\n"),
                 program, starting_directory);
       else
-        printf (_("%s: Leaving directory `%s'\n"),
+        printf (_("%s: Leaving directory '%s'\n"),
                 program, starting_directory);
   else
     if (starting_directory == 0)
@@ -3328,10 +3328,10 @@ log_working_directory (int entering)
                 program, makelevel);
     else
       if (entering)
-        printf (_("%s[%u]: Entering directory `%s'\n"),
+        printf (_("%s[%u]: Entering directory '%s'\n"),
                 program, makelevel, starting_directory);
       else
-        printf (_("%s[%u]: Leaving directory `%s'\n"),
+        printf (_("%s[%u]: Leaving directory '%s'\n"),
                 program, makelevel, starting_directory);
 
   /* Flush stdout to be sure this comes before any stderr output.  */

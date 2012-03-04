@@ -82,7 +82,7 @@ extras = ,signame.obj,remote-stub.obj,vmsfunctions.obj,vmsify.obj
 # as an alternative:
 glob = ,[.glob]glob.obj,[.glob]fnmatch.obj
 getopt = ,getopt.obj,getopt1.obj
-# Directory to install `make' in.
+# Directory to install 'make' in.
 bindir = []
 # Directory to install the man page in.
 mandir = []

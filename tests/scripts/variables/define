@@ -160,7 +160,7 @@ ouch
 endef
 all: ; @echo ok
 ',
-              '', "#MAKEFILE#:3: extraneous text after `define' directive\nok\n");
+              '', "#MAKEFILE#:3: extraneous text after 'define' directive\nok\n");
 
 # TEST 7: NEGATIVE: extra text after endef
 
@@ -171,7 +171,7 @@ ouch
 endef $(NAME)
 all: ; @echo ok
 ',
-              '', "#MAKEFILE#:5: extraneous text after `endef' directive\nok\n");
+              '', "#MAKEFILE#:5: extraneous text after 'endef' directive\nok\n");
 
 # TEST 8: NEGATIVE: missing endef
 
@@ -182,7 +182,7 @@ define NAME =
 ouch
 endef$(NAME)
 ',
-              '', "#MAKEFILE#:4: *** missing `endef', unterminated `define'.  Stop.\n", 512);
+              '', "#MAKEFILE#:4: *** missing 'endef', unterminated 'define'.  Stop.\n", 512);
 
 # -------------------------
 # Make sure that prefix characters apply properly to define/endef values.

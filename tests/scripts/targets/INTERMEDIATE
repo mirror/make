@@ -42,7 +42,7 @@ $answer = "cp foo.f foo.e\ncp foo.e foo.d\nrm foo.e\n";
 # TEST #1
 
 &run_make_with_options($makefile,'foo.d',&get_logfile);
-$answer = "$make_name: `foo.d' is up to date.\n";
+$answer = "$make_name: 'foo.d' is up to date.\n";
 &compare_output($answer, &get_logfile(1));
 
 # TEST #2
@@ -63,7 +63,7 @@ $answer = "cp foo.f foo.e\ncp bar.f bar.e\ncat foo.e bar.e > foo.c\nrm bar.e foo
 # TEST #4
 
 &run_make_with_options($makefile,'foo.c',&get_logfile);
-$answer = "$make_name: `foo.c' is up to date.\n";
+$answer = "$make_name: 'foo.c' is up to date.\n";
 &compare_output($answer, &get_logfile(1));
 
 # TEST #5

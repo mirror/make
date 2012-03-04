@@ -25,10 +25,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #if __DJGPP__ > 2 || __DJGPP_MINOR__ > 1
 
-/* Define to 1 if `sys_siglist' is declared by <signal.h> or <unistd.h>. */
+/* Define to 1 if 'sys_siglist' is declared by <signal.h> or <unistd.h>. */
 # define SYS_SIGLIST_DECLARED 1
 
-/* Define to 1 if the C library defines the variable `_sys_siglist'.  */
+/* Define to 1 if the C library defines the variable '_sys_siglist'.  */
 # define HAVE_DECL_SYS_SIGLIST 1
 
 #else
@@ -41,13 +41,13 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Use high resolution file timestamps if nonzero. */
 #define FILE_TIMESTAMP_HI_RES 0
 
-/* Define to 1 if you have `alloca', as a function or macro. */
+/* Define to 1 if you have 'alloca', as a function or macro. */
 #define HAVE_ALLOCA 1
 
 /* Define to 1 if you have the fdopen function.  */
 #define HAVE_FDOPEN 1
 
-/* Define to 1 if you have the `getgroups' function. */
+/* Define to 1 if you have the 'getgroups' function. */
 #define HAVE_GETGROUPS 1
 
 /* Define to 1 if you have the <memory.h> header file.  */
@@ -56,18 +56,18 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the mkstemp function.  */
 #define HAVE_MKSTEMP 1
 
-/* Define to 1 if you have the `mktemp' function. */
+/* Define to 1 if you have the 'mktemp' function. */
 #define HAVE_MKTEMP 1
 
-/* Define to 1 if you have the `setlinebuf' function. */
+/* Define to 1 if you have the 'setlinebuf' function. */
 #define HAVE_SETLINEBUF 1
 
-/* Define to 1 if you have the `setvbuf' function. */
+/* Define to 1 if you have the 'setvbuf' function. */
 #define HAVE_SETVBUF 1
 
 #define SCCS_GET "get"
 
-/* Define to `unsigned long' or `unsigned long long'
+/* Define to 'unsigned long' or 'unsigned long long'
    if <inttypes.h> doesn't define.  */
 #define uintmax_t unsigned long long
 
@@ -90,7 +90,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the stricmp function.  */
 #define HAVE_STRICMP 1
 
-/* Define to 1 if you have the `strncasecmp' function. */
+/* Define to 1 if you have the 'strncasecmp' function. */
 #define HAVE_STRNCASECMP 1
 
 /* Name of the package */

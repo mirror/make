@@ -28,7 +28,7 @@ esac
 dest="$1"
 
 if [ ! -d "$dest" ]; then
-  echo "Destination directory \`$dest' must exist!"
+  echo "Destination directory '$dest' must exist!"
   exit 1
 fi
 
@@ -55,5 +55,5 @@ done
 
 rm -rf work
 
-echo "Shadow test suite created in \`$dest/$name'."
+echo "Shadow test suite created in '$dest/$name'."
 exit 0

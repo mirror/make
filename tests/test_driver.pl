@@ -132,7 +132,7 @@ sub toplevel
 
   &parse_command_line (@ARGV);
 
-  print "OS name = `$osname'\n" if $debug;
+  print "OS name = '$osname'\n" if $debug;
 
   $workpath = "$cwdslash$workdir";
   $scriptpath = "$cwdslash$scriptdir";

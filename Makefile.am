@@ -107,8 +107,8 @@ localedir =	$(datadir)/locale
 #
 
 # Whether or not make needs to be installed setgid.
-# The value should be either `true' or `false'.
-# On many systems, the getloadavg function (used to implement the `-l'
+# The value should be either 'true' or 'false'.
+# On many systems, the getloadavg function (used to implement the '-l'
 # switch) will not work unless make is installed setgid kmem.
 #
 inst_setgid = @NEED_SETGID@
@@ -124,7 +124,7 @@ install-exec-local:
 	     echo "chgrp $(inst_group) $$app && chmod g+s $$app"; \
 	   else \
 	     echo "$$app needs to be owned by group $(inst_group) and setgid;"; \
-	     echo "otherwise the \`-l' option will probably not work."; \
+	     echo "otherwise the '-l' option will probably not work."; \
 	     echo "You may need special privileges to complete the installation"; \
 	     echo "of $$app."; \
 	   fi; \

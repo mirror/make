@@ -28,9 +28,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #else /* Not C++ or ANSI C.  */
 # undef	__P
 # define __P(protos)	()
-/* We can get away without defining `const' here only because in this file
-   it is used only inside the prototype for `fnmatch', which is elided in
-   non-ANSI C where `const' is problematical.  */
+/* We can get away without defining 'const' here only because in this file
+   it is used only inside the prototype for 'fnmatch', which is elided in
+   non-ANSI C where 'const' is problematical.  */
 #endif /* C++ or ANSI C.  */
 
 typedef unsigned long (*hash_func_t) __P((void const *key));

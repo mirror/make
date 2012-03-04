@@ -1,5 +1,5 @@
 #!/bin/sh
-# Shell script to build GNU Make in the absence of any `make' program.
+# Shell script to build GNU Make in the absence of any 'make' program.
 # @configure_input@
 
 # Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
@@ -40,7 +40,7 @@ EXEEXT='@EXEEXT@'
 prefix='@prefix@'
 # Common prefix for machine-dependent installed files.
 exec_prefix=`eval echo @exec_prefix@`
-# Directory to find libraries in for `-lXXX'.
+# Directory to find libraries in for '-lXXX'.
 libdir=${exec_prefix}/lib
 # Directory to search by default for included makefiles.
 includedir=${prefix}/include

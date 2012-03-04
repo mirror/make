@@ -8,12 +8,12 @@ New (since 3.74) DOS-specific features:
    1. Supports long filenames when run from DOS box on Windows 9x.
 
    2. Supports both stock DOS COMMAND.COM and Unix-style shells
-      (details in ``Notes'' below).
+      (details in 'Notes' below).
 
    3. Supports DOS drive letters in dependencies and pattern rules.
 
    4. Better support for DOS-style backslashes in pathnames (but see
-      ``Notes'' below).
+      'Notes' below).
 
    5. The $(shell) built-in can run arbitrary complex commands,
       including pipes and redirection, even when COMMAND.COM is your
@@ -55,7 +55,7 @@ To build from sources:
       either DJTAR (which is part of the DJGPP development
       environment), or the DJGPP port of GNU Tar.
 
-   2. Invoke the `configure.bat' batch file.
+   2. Invoke the 'configure.bat' batch file.
 
       If you are building Make in-place, i.e. in the same directory
       where its sources are kept, just type "configure.bat" and press
@@ -68,7 +68,7 @@ To build from sources:
       use them here.
 
    3. If configure.bat doesn't find a working Make, it will suggest to
-      use the `dosbuild.bat' batch file to build Make.  Either do as it
+      use the 'dosbuild.bat' batch file to build Make.  Either do as it
       suggests or install another Make program (a pre-compiled binary
       should be available from the usual DJGPP sites) and rerun
       configure.bat.
@@ -91,7 +91,7 @@ To build from sources:
       else Make might fail.
 
    6. After Make finishes, if you have a Unix-style shell installed,
-      you can use the `install' target to install the package.  You
+      you can use the 'install' target to install the package.  You
       will also need GNU Fileutils and GNU Sed for this (they should
       be available from the DJGPP sites).
 
@@ -107,12 +107,12 @@ To build from sources:
       Without a Unix-style shell, you will have to install programs
       and the docs manually.  Copy make.exe to a directory on your
       PATH, make.i* info files to your Info directory, and update the
-      file `dir' in your Info directory by adding the following item
+      file 'dir' in your Info directory by adding the following item
       to the main menu:
 
 	* Make: (make.info).           The GNU make utility.
 
-      If you have the `install-info' program (from the GNU Texinfo
+      If you have the 'install-info' program (from the GNU Texinfo
       package), it will do that for you if you invoke it like this:
 
 	install-info --info-dir=c:/djgpp/info c:/djgpp/info/make.info
@@ -120,8 +120,8 @@ To build from sources:
       (If your Info directory is other than C:\DJGPP\INFO, change this
       command accordingly.)
 
-   7. The `clean' targets also require Unix-style shell, and GNU Sed
-      and `rm' programs (the latter from Fileutils).
+   7. The 'clean' targets also require Unix-style shell, and GNU Sed
+      and 'rm' programs (the latter from Fileutils).
 
    8. To run the test suite, type "make check".  This requires a Unix
       shell (I used the DJGPP port of Bash 2.03), Perl, Sed, Fileutils
@@ -144,7 +144,7 @@ Notes:
 
       This port supports both DOS shells (the stock COMMAND.COM and its
       4DOS/NDOS replacements), and Unix-style shells (tested with the
-      venerable Stewartson's `ms_sh' 2.3 and the DJGPP port of `bash' by
+      venerable Stewartson's 'ms_sh' 2.3 and the DJGPP port of 'bash' by
       Daisuke Aoyama <jack@st.rim.or.jp>).
 
       When the $SHELL variable points to a Unix-style shell, Make
@@ -166,17 +166,17 @@ Notes:
       redirection and pipes, and shall only call the shell when a
       batch file or a command internal to the shell is invoked.  (Even
       when a command is an internal shell command, Make will first
-      search the $PATH for it, so that if a Makefile calls `mkdir',
-      you can install, say, a port of GNU `mkdir' and have it called
+      search the $PATH for it, so that if a Makefile calls 'mkdir',
+      you can install, say, a port of GNU 'mkdir' and have it called
       in that case.)
 
-      The key to all this is the extended functionality of `spawn' and
-      `system' functions from the DJGPP library; this port just calls
-      `system' where it would invoke the shell on Unix.  The most
+      The key to all this is the extended functionality of 'spawn' and
+      'system' functions from the DJGPP library; this port just calls
+      'system' where it would invoke the shell on Unix.  The most
       important aspect of these functions is that they use a special
       mechanism to pass long (up to 16KB) command lines to DJGPP
-      programs.  In addition, `system' emulates some internal
-      commands, like `cd' (so that you can now use forward slashes
+      programs.  In addition, 'system' emulates some internal
+      commands, like 'cd' (so that you can now use forward slashes
       with it, and can also change the drive if the directory is on
       another drive).  Another aspect worth mentioning is that you can
       call Unix shell scripts directly, provided that the shell whose
@@ -186,7 +186,7 @@ Notes:
       reference for more details.
 
       The $(shell) built-in is implemented in this port by calling
-      `popen'.  Since `popen' calls `system', the above considerations
+      'popen'.  Since 'popen' calls 'system', the above considerations
       are valid for $(shell) as well.  In particular, you can put
       arbitrary complex commands, including pipes and redirection,
       inside $(shell), which is in many cases a valid substitute for
@@ -197,12 +197,12 @@ Notes:
 
       Many Unix Makefiles include a line which sets the SHELL, for
       those versions of Make which don't have this as the default.
-      Since many DOS systems don't have `sh' installed (in fact, most
-      of them don't even have a `/bin' directory), this port takes
+      Since many DOS systems don't have 'sh' installed (in fact, most
+      of them don't even have a '/bin' directory), this port takes
       such directives with a grain of salt.  It will only honor such a
-      directive if the basename of the shell name (like `sh' in the
+      directive if the basename of the shell name (like 'sh' in the
       above example) can indeed be found in the directory that is
-      mentioned in the SHELL= line (`/bin' in the above example), or
+      mentioned in the SHELL= line ('/bin' in the above example), or
       in the current working directory, or anywhere on the $PATH (in
       that order).  If the basename doesn't include a filename
       extension, Make will look for any known extension that indicates
@@ -237,8 +237,8 @@ Notes:
       require such a shell).  More important, you can convert Unix
       Makefiles to MSDOS and leave the line which sets the shell
       intact, so that people who do have Unixy shell could use it for
-      targets which aren't converted to DOS (like `install' and
-      `uninstall', for example).
+      targets which aren't converted to DOS (like 'install' and
+      'uninstall', for example).
 
 
    3. Default directories.
@@ -258,14 +258,14 @@ Notes:
       If you run Make on Windows 9x, you should be aware of the
       letter-case issue.  Make is internally case-sensitive, but all
       file operations are case-insensitive on Windows 9x, so
-      e.g. files `FAQ', `faq' and `Faq' all refer to the same file, as
+      e.g. files 'FAQ', 'faq' and 'Faq' all refer to the same file, as
       far as Windows is concerned.  The underlying DJGPP C library
       functions honor the letter-case of the filenames they get from
       the OS, except that by default, they down-case 8+3 DOS filenames
       which are stored in upper case in the directory and would break
       many Makefiles otherwise.  (The details of which filenames are
       converted to lower case are explained in the DJGPP libc docs,
-      under the `_preserve_fncase' and `_lfn_gen_short_fname'
+      under the '_preserve_fncase' and '_lfn_gen_short_fname'
       functions, but as a thumb rule, any filename that is stored in
       upper case in the directory, is a valid DOS 8+3 filename and
       doesn't include characters invalid on MSDOS FAT filesystems,
@@ -282,8 +282,8 @@ Notes:
 
       There are a lot of places throughout the program sources which
       make implicit assumptions about the pathname syntax.  In
-      particular, the directories are assumed to be separated by `/',
-      and any pathname which doesn't begin with a `/' is assumed to be
+      particular, the directories are assumed to be separated by '/',
+      and any pathname which doesn't begin with a '/' is assumed to be
       relative to the current directory.  This port attempts to
       support DOS-style pathnames which might include the drive letter
       and use backslashes instead of forward slashes.  However, this
@@ -296,7 +296,7 @@ Notes:
       is the standard programs which come with MSDOS.  Otherwise, you
       are advised to stay away from backslashes whenever possible.  In
       particular, filename globbing won't work on pathnames with
-      backslashes, because the GNU `glob' library doesn't support them
+      backslashes, because the GNU 'glob' library doesn't support them
       (backslash is special in filename wildcards, and I didn't want
       to break that).
 
@@ -315,7 +315,7 @@ Bug reports:
    <djgpp@delorie.com>, which is an email gateway into the above news
    group).  For other bugs, please follow the procedure explained in
    the "Bugs" chapter of the Info docs.  If you don't have an Info
-   reader, look up that chapter in the `make.i1' file with any text
+   reader, look up that chapter in the 'make.i1' file with any text
    browser/editor.
 
 

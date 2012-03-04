@@ -1,5 +1,8 @@
 2012-03-03  Paul Smith  <psmith@gnu.org>
 
+	Convert uses of `foo' for quoting to 'foo' to reflect changes in
+	the GNU Coding Standards.  Fixes Savannah bug #34530.
+
 	* job.c (construct_command_argv_internal): In oneshell we need to
 	break the SHELLFLAGS up for argv.  Fixes Savannah bug #35397.
 

@@ -318,7 +318,7 @@ sub set_more_defaults
    $mk or die "FATAL ERROR: Cannot determine the value of \$(MAKE):\n
 'echo \"all:;\@echo \\\$(MAKE)\" | $make_path -f-' failed!\n";
    $make_path = $mk;
-   print "Make\t= `$make_path'\n" if $debug;
+   print "Make\t= '$make_path'\n" if $debug;
 
    $string = `$make_path -v -f /dev/null 2> /dev/null`;
 

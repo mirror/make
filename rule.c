@@ -126,7 +126,7 @@ count_implicit_rule_limits (void)
 	      memcpy (name, dname, p - dname);
 	      name[p - dname] = '\0';
 
-	      /* In the deps of an implicit rule the `changed' flag
+	      /* In the deps of an implicit rule the 'changed' flag
 		 actually indicates that the dependency is in a
 		 nonexistent subdirectory.  */
 
@@ -151,7 +151,7 @@ count_implicit_rule_limits (void)
 /* Create a pattern rule from a suffix rule.
    TARGET is the target suffix; SOURCE is the source suffix.
    CMDS are the commands.
-   If TARGET is nil, it means the target pattern should be `(%.o)'.
+   If TARGET is nil, it means the target pattern should be '(%.o)'.
    If SOURCE is nil, it means there should be no deps.  */
 
 static void
@@ -166,8 +166,8 @@ convert_suffix_rule (const char *target, const char *source,
 
   if (target == 0)
     {
-      /* Special case: TARGET being nil means we are defining a `.X.a' suffix
-         rule; the target pattern is always `(%.o)'.  */
+      /* Special case: TARGET being nil means we are defining a '.X.a' suffix
+         rule; the target pattern is always '(%.o)'.  */
 #ifdef VMS
       *names = strcache_add_len ("(%.obj)", 7);
 #else
@@ -261,14 +261,14 @@ convert_to_pattern (void)
 	    continue;
 
 	  if (s2len == 2 && rulename[slen] == '.' && rulename[slen + 1] == 'a')
-	    /* A suffix rule `.X.a:' generates the pattern rule `(%.o): %.X'.
-	       It also generates a normal `%.a: %.X' rule below.  */
-	    convert_suffix_rule (NULL, /* Indicates `(%.o)'.  */
+	    /* A suffix rule '.X.a:' generates the pattern rule '(%.o): %.X'.
+	       It also generates a normal '%.a: %.X' rule below.  */
+	    convert_suffix_rule (NULL, /* Indicates '(%.o)'.  */
 				 dep_name (d),
 				 f->cmds);
 
-	  /* The suffix rule `.X.Y:' is converted
-	     to the pattern rule `%.Y: %.X'.  */
+	  /* The suffix rule '.X.Y:' is converted
+	     to the pattern rule '%.Y: %.X'.  */
 	  convert_suffix_rule (dep_name (d2), dep_name (d), f->cmds);
 	}
     }
@@ -355,7 +355,7 @@ new_pattern_rule (struct rule *rule, int override)
 /* Install an implicit pattern rule based on the three text strings
    in the structure P points to.  These strings come from one of
    the arrays of default implicit pattern rules.
-   TERMINAL specifies what the `terminal' field of the rule should be.  */
+   TERMINAL specifies what the 'terminal' field of the rule should be.  */
 
 void
 install_pattern_rule (struct pspec *p, int terminal)
@@ -413,13 +413,13 @@ freerule (struct rule *rule, struct rule *lastrule)
   /* We can't free the storage for the commands because there
      are ways that they could be in more than one place:
        * If the commands came from a suffix rule, they could also be in
-       the `struct file's for other suffix rules or plain targets given
+       the 'struct file's for other suffix rules or plain targets given
        on the same makefile line.
        * If two suffixes that together make a two-suffix rule were each
        given twice in the .SUFFIXES list, and in the proper order, two
        identical pattern rules would be created and the second one would
-       be discarded here, but both would contain the same `struct commands'
-       pointer from the `struct file' for the suffix rule.  */
+       be discarded here, but both would contain the same 'struct commands'
+       pointer from the 'struct file' for the suffix rule.  */
 
   free (rule);
 

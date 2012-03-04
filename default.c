@@ -32,8 +32,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* This is the default list of suffixes for suffix rules.
-   `.s' must come last, so that a `.o' file will be made from
-   a `.c' or `.p' or ... file rather than from a .s file.  */
+   '.s' must come last, so that a '.o' file will be made from
+   a '.c' or '.p' or ... file rather than from a .s file.  */
 
 static char default_suffixes[]
 #ifdef VMS
@@ -56,8 +56,8 @@ static struct pspec default_pattern_rules[] =
         "$(AR) $(ARFLAGS) $@ $<" },
 
     /* The X.out rules are only in BSD's default set because
-       BSD Make has no null-suffix rules, so `foo.out' and
-       `foo' are the same thing.  */
+       BSD Make has no null-suffix rules, so 'foo.out' and
+       'foo' are the same thing.  */
 #ifdef VMS
     { "%.exe", "%",
         "copy $< $@" },
@@ -293,13 +293,13 @@ static char *default_suffix_rules[] =
     "$(TEXI2DVI) $(TEXI2DVI_FLAGS) $<",
 
     ".w.c",
-    "$(CTANGLE) $< - $@",       /* The `-' says there is no `.ch' file.  */
+    "$(CTANGLE) $< - $@",       /* The '-' says there is no '.ch' file.  */
 
     ".web.p",
     "$(TANGLE) $<",
 
     ".w.tex",
-    "$(CWEAVE) $< - $@",        /* The `-' says there is no `.ch' file.  */
+    "$(CWEAVE) $< - $@",        /* The '-' says there is no '.ch' file.  */
 
     ".web.tex",
     "$(WEAVE) $<",

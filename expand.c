@@ -124,7 +124,7 @@ recursively_expand_for_file (struct variable *v, struct file *file)
       if (!v->exp_count)
         /* Expanding V causes infinite recursion.  Lose.  */
         fatal (*expanding_var,
-               _("Recursive variable `%s' references itself (eventually)"),
+               _("Recursive variable '%s' references itself (eventually)"),
                v->name);
       --v->exp_count;
     }
@@ -187,7 +187,7 @@ reference_variable (char *o, const char *name, unsigned int length)
    LENGTH bytes of STRING are actually scanned.  If LENGTH is -1, scan until
    a null byte is found.
 
-   Write the results to LINE, which must point into `variable_buffer'.  If
+   Write the results to LINE, which must point into 'variable_buffer'.  If
    LINE is NULL, start at the beginning of the buffer.
    Return a pointer to LINE, or to the beginning of the buffer if LINE is
    NULL.
@@ -284,7 +284,7 @@ variable_expand_string (char *line, const char *string, long length)
 		  }
 		/* If COUNT is >= 0, there were unmatched opening parens
 		   or braces, so we go to the simple case of a variable name
-		   such as `$($(a)'.  */
+		   such as '$($(a)'.  */
 		if (count < 0)
 		  {
 		    abeg = expand_argument (beg, p); /* Expand the name.  */
@@ -413,7 +413,7 @@ variable_expand_string (char *line, const char *string, long length)
 }
 
 /* Scan LINE for variable references and expansion-function calls.
-   Build in `variable_buffer' the result of expanding the references and calls.
+   Build in 'variable_buffer' the result of expanding the references and calls.
    Return the address of the resulting string, which is null-terminated
    and is valid only until the next time this function is called.  */
 
@@ -426,7 +426,7 @@ variable_expand (const char *line)
 /* Expand an argument for an expansion function.
    The text starting at STR and ending at END is variable-expanded
    into a null-terminated string that is returned as the value.
-   This is done without clobbering `variable_buffer' or the current
+   This is done without clobbering 'variable_buffer' or the current
    variable-expansion that is in progress.  */
 
 char *

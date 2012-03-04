@@ -19,7 +19,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Structure that represents the info on one file
    that the makefile says how to make.
-   All of these are chained together through `next'.  */
+   All of these are chained together through 'next'.  */
 
 #include "hash.h"
 
@@ -43,7 +43,7 @@ struct file
     struct file *last;          /* Last entry for the same file name.  */
 
     /* File that this file was renamed to.  After any time that a
-       file could be renamed, call `check_renamed' (below).  */
+       file could be renamed, call 'check_renamed' (below).  */
     struct file *renamed;
 
     /* List of variable sets used for this file.  */
@@ -189,10 +189,10 @@ FILE_TIMESTAMP f_mtime (struct file *file, int search);
 			     << FILE_TIMESTAMP_LO_BITS) \
 			    + ORDINARY_MTIME_MIN + FILE_TIMESTAMPS_PER_S - 1)
 
-/* Modtime value to use for `infinitely new'.  We used to get the current time
-   from the system and use that whenever we wanted `new'.  But that causes
+/* Modtime value to use for 'infinitely new'.  We used to get the current time
+   from the system and use that whenever we wanted 'new'.  But that causes
    trouble when the machine running make and the machine holding a file have
-   different ideas about what time it is; and can also lose for `force'
+   different ideas about what time it is; and can also lose for 'force'
    targets, which need to be considered newer than anything that depends on
    them, even if said dependents' modtimes are in the future.  */
 #define NEW_MTIME INTEGER_TYPE_MAXIMUM (FILE_TIMESTAMP)

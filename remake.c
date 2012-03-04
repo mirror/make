@@ -43,7 +43,7 @@ extern int try_implicit_rule (struct file *file, unsigned int depth);
 
 
 /* The test for circular dependencies is based on the 'updating' bit in
-   `struct file'.  However, double colon targets have seperate `struct
+   'struct file'.  However, double colon targets have seperate 'struct
    file's; make sure we always use the base of the double colon chain. */
 
 #define start_updating(_f)  (((_f)->double_colon ? (_f)->double_colon : (_f))\
@@ -70,13 +70,13 @@ static FILE_TIMESTAMP name_mtime (const char *name);
 static const char *library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr);
 
 
-/* Remake all the goals in the `struct dep' chain GOALS.  Return -1 if nothing
+/* Remake all the goals in the 'struct dep' chain GOALS.  Return -1 if nothing
    was done, 0 if all goals were updated successfully, or 1 if a goal failed.
 
    If rebuilding_makefiles is nonzero, these goals are makefiles, so -t, -q,
    and -n should be disabled for them unless they were also command-line
    targets, and we should only make one goal at a time and return as soon as
-   one goal whose `changed' member is nonzero is successfully made.  */
+   one goal whose 'changed' member is nonzero is successfully made.  */
 
 int
 update_goal_chain (struct dep *goals)
@@ -92,7 +92,7 @@ update_goal_chain (struct dep *goals)
   goals = copy_dep_chain (goals);
 
   {
-    /* Clear the `changed' flag of each goal in the chain.
+    /* Clear the 'changed' flag of each goal in the chain.
        We will use the flag below to notice when any commands
        have actually been run for a target.  When no commands
        have been run, we give an "up to date" diagnostic.  */
@@ -149,7 +149,7 @@ update_goal_chain (struct dep *goals)
 		    touch_flag = question_flag = just_print_flag = 0;
 		}
 
-	      /* Save the old value of `commands_started' so we can compare
+	      /* Save the old value of 'commands_started' so we can compare
 		 later.  It will be incremented when any commands are
 		 actually run.  */
 	      ocommands_started = commands_started;
@@ -157,7 +157,7 @@ update_goal_chain (struct dep *goals)
 	      x = update_file (file, rebuilding_makefiles ? 1 : 0);
 	      check_renamed (file);
 
-	      /* Set the goal's `changed' flag if any commands were started
+	      /* Set the goal's 'changed' flag if any commands were started
 		 by calling update_file above.  We check this flag below to
 		 decide when to give an "up to date" diagnostic.  */
               if (commands_started > ocommands_started)
@@ -231,8 +231,8 @@ update_goal_chain (struct dep *goals)
 		  /* Never give a message under -s or -q.  */
 		  && !silent_flag && !question_flag)
 		message (1, ((file->phony || file->cmds == 0)
-			     ? _("Nothing to be done for `%s'.")
-			     : _("`%s' is up to date.")),
+			     ? _("Nothing to be done for '%s'.")
+			     : _("'%s' is up to date.")),
 			 file->name);
 
 	      /* This goal is finished.  Remove it from the chain.  */
@@ -274,7 +274,7 @@ update_goal_chain (struct dep *goals)
 
 /* If FILE is not up to date, execute the commands for it.
    Return 0 if successful, 1 if unsuccessful;
-   but with some flag settings, just call `exit' if unsuccessful.
+   but with some flag settings, just call 'exit' if unsuccessful.
 
    DEPTH is the depth in recursions of this function.
    We increment it during the consideration of our dependencies,
@@ -303,7 +303,7 @@ update_file (struct file *file, unsigned int depth)
          then we will have to continue. */
       if (!(f->updated && f->update_status > 0 && !f->dontcare && f->no_diag))
         {
-          DBF (DB_VERBOSE, _("Pruning file `%s'.\n"));
+          DBF (DB_VERBOSE, _("Pruning file '%s'.\n"));
           return f->command_state == cs_finished ? f->update_status : 0;
         }
     }
@@ -375,9 +375,9 @@ complain (struct file *file)
   if (d == 0)
     {
       const char *msg_noparent
-        = _("%sNo rule to make target `%s'%s");
+        = _("%sNo rule to make target '%s'%s");
       const char *msg_parent
-        = _("%sNo rule to make target `%s', needed by `%s'%s");
+        = _("%sNo rule to make target '%s', needed by '%s'%s");
 
       /* Didn't find any dependencies to complain about. */
       if (!keep_going_flag)
@@ -397,7 +397,7 @@ complain (struct file *file)
     }
 }
 
-/* Consider a single `struct file' and update it as appropriate.  */
+/* Consider a single 'struct file' and update it as appropriate.  */
 
 static int
 update_file_1 (struct file *file, unsigned int depth)
@@ -410,14 +410,14 @@ update_file_1 (struct file *file, unsigned int depth)
   struct dep amake;
   int running = 0;
 
-  DBF (DB_VERBOSE, _("Considering target file `%s'.\n"));
+  DBF (DB_VERBOSE, _("Considering target file '%s'.\n"));
 
   if (file->updated)
     {
       if (file->update_status > 0)
 	{
 	  DBF (DB_VERBOSE,
-               _("Recently tried and failed to update file `%s'.\n"));
+               _("Recently tried and failed to update file '%s'.\n"));
 
           /* If the file we tried to make is marked no_diag then no message
              was printed about it when it failed during the makefile rebuild.
@@ -429,7 +429,7 @@ update_file_1 (struct file *file, unsigned int depth)
 	  return file->update_status;
 	}
 
-      DBF (DB_VERBOSE, _("File `%s' was considered already.\n"));
+      DBF (DB_VERBOSE, _("File '%s' was considered already.\n"));
       return 0;
     }
 
@@ -439,10 +439,10 @@ update_file_1 (struct file *file, unsigned int depth)
     case cs_deps_running:
       break;
     case cs_running:
-      DBF (DB_VERBOSE, _("Still updating file `%s'.\n"));
+      DBF (DB_VERBOSE, _("Still updating file '%s'.\n"));
       return 0;
     case cs_finished:
-      DBF (DB_VERBOSE, _("Finished updating file `%s'.\n"));
+      DBF (DB_VERBOSE, _("Finished updating file '%s'.\n"));
       return file->update_status;
     default:
       abort ();
@@ -471,14 +471,14 @@ update_file_1 (struct file *file, unsigned int depth)
   check_renamed (file);
   noexist = this_mtime == NONEXISTENT_MTIME;
   if (noexist)
-    DBF (DB_BASIC, _("File `%s' does not exist.\n"));
+    DBF (DB_BASIC, _("File '%s' does not exist.\n"));
   else if (ORDINARY_MTIME_MIN <= this_mtime && this_mtime <= ORDINARY_MTIME_MAX
 	   && file->low_resolution_time)
     {
       /* Avoid spurious rebuilds due to low resolution time stamps.  */
       int ns = FILE_TIMESTAMP_NS (this_mtime);
       if (ns != 0)
-	error (NILF, _("*** Warning: .LOW_RESOLUTION_TIME file `%s' has a high resolution time stamp"),
+	error (NILF, _("*** Warning: .LOW_RESOLUTION_TIME file '%s' has a high resolution time stamp"),
 	       file->name);
       this_mtime += FILE_TIMESTAMPS_PER_S - 1 - ns;
     }
@@ -491,15 +491,15 @@ update_file_1 (struct file *file, unsigned int depth)
   if (!file->phony && file->cmds == 0 && !file->tried_implicit)
     {
       if (try_implicit_rule (file, depth))
-	DBF (DB_IMPLICIT, _("Found an implicit rule for `%s'.\n"));
+	DBF (DB_IMPLICIT, _("Found an implicit rule for '%s'.\n"));
       else
-	DBF (DB_IMPLICIT, _("No implicit rule found for `%s'.\n"));
+	DBF (DB_IMPLICIT, _("No implicit rule found for '%s'.\n"));
       file->tried_implicit = 1;
     }
   if (file->cmds == 0 && !file->is_target
       && default_file != 0 && default_file->cmds != 0)
     {
-      DBF (DB_IMPLICIT, _("Using default recipe for `%s'.\n"));
+      DBF (DB_IMPLICIT, _("Using default recipe for '%s'.\n"));
       file->cmds = default_file->cmds;
     }
 
@@ -648,13 +648,13 @@ update_file_1 (struct file *file, unsigned int depth)
   finish_updating (file);
   finish_updating (ofile);
 
-  DBF (DB_VERBOSE, _("Finished prerequisites of target file `%s'.\n"));
+  DBF (DB_VERBOSE, _("Finished prerequisites of target file '%s'.\n"));
 
   if (running)
     {
       set_command_state (file, cs_deps_running);
       --depth;
-      DBF (DB_VERBOSE, _("The prerequisites of `%s' are being made.\n"));
+      DBF (DB_VERBOSE, _("The prerequisites of '%s' are being made.\n"));
       return 0;
     }
 
@@ -667,12 +667,12 @@ update_file_1 (struct file *file, unsigned int depth)
 
       --depth;
 
-      DBF (DB_VERBOSE, _("Giving up on target file `%s'.\n"));
+      DBF (DB_VERBOSE, _("Giving up on target file '%s'.\n"));
 
       if (depth == 0 && keep_going_flag
 	  && !just_print_flag && !question_flag)
 	error (NILF,
-               _("Target `%s' not remade because of errors."), file->name);
+               _("Target '%s' not remade because of errors."), file->name);
 
       return dep_status;
     }
@@ -724,20 +724,20 @@ update_file_1 (struct file *file, unsigned int depth)
           if (d->ignore_mtime)
             {
               if (ISDB (DB_VERBOSE))
-                fmt = _("Prerequisite `%s' is order-only for target `%s'.\n");
+                fmt = _("Prerequisite '%s' is order-only for target '%s'.\n");
             }
           else if (d_mtime == NONEXISTENT_MTIME)
             {
               if (ISDB (DB_BASIC))
-                fmt = _("Prerequisite `%s' of target `%s' does not exist.\n");
+                fmt = _("Prerequisite '%s' of target '%s' does not exist.\n");
             }
 	  else if (d->changed)
             {
               if (ISDB (DB_BASIC))
-                fmt = _("Prerequisite `%s' is newer than target `%s'.\n");
+                fmt = _("Prerequisite '%s' is newer than target '%s'.\n");
             }
           else if (ISDB (DB_VERBOSE))
-            fmt = _("Prerequisite `%s' is older than target `%s'.\n");
+            fmt = _("Prerequisite '%s' is older than target '%s'.\n");
 
           if (fmt)
             {
@@ -755,19 +755,19 @@ update_file_1 (struct file *file, unsigned int depth)
     {
       must_make = 1;
       DBF (DB_BASIC,
-           _("Target `%s' is double-colon and has no prerequisites.\n"));
+           _("Target '%s' is double-colon and has no prerequisites.\n"));
     }
   else if (!noexist && file->is_target && !deps_changed && file->cmds == 0
            && !always_make_flag)
     {
       must_make = 0;
       DBF (DB_VERBOSE,
-           _("No recipe for `%s' and no prerequisites actually changed.\n"));
+           _("No recipe for '%s' and no prerequisites actually changed.\n"));
     }
   else if (!must_make && file->cmds != 0 && always_make_flag)
     {
       must_make = 1;
-      DBF (DB_VERBOSE, _("Making `%s' due to always-make flag.\n"));
+      DBF (DB_VERBOSE, _("Making '%s' due to always-make flag.\n"));
     }
 
   if (!must_make)
@@ -775,9 +775,9 @@ update_file_1 (struct file *file, unsigned int depth)
       if (ISDB (DB_VERBOSE))
         {
           print_spaces (depth);
-          printf (_("No need to remake target `%s'"), file->name);
+          printf (_("No need to remake target '%s'"), file->name);
           if (!streq (file->name, file->hname))
-              printf (_("; using VPATH name `%s'"), file->hname);
+              printf (_("; using VPATH name '%s'"), file->hname);
           puts (".");
           fflush (stdout);
         }
@@ -797,13 +797,13 @@ update_file_1 (struct file *file, unsigned int depth)
       return 0;
     }
 
-  DBF (DB_BASIC, _("Must remake target `%s'.\n"));
+  DBF (DB_BASIC, _("Must remake target '%s'.\n"));
 
   /* It needs to be remade.  If it's VPATH and not reset via GPATH, toss the
      VPATH.  */
   if (!streq(file->name, file->hname))
     {
-      DB (DB_BASIC, (_("  Ignoring VPATH name `%s'.\n"), file->hname));
+      DB (DB_BASIC, (_("  Ignoring VPATH name '%s'.\n"), file->hname));
       file->ignore_vpath = 1;
     }
 
@@ -812,20 +812,20 @@ update_file_1 (struct file *file, unsigned int depth)
 
   if (file->command_state != cs_finished)
     {
-      DBF (DB_VERBOSE, _("Recipe of `%s' is being run.\n"));
+      DBF (DB_VERBOSE, _("Recipe of '%s' is being run.\n"));
       return 0;
     }
 
   switch (file->update_status)
     {
     case 2:
-      DBF (DB_BASIC, _("Failed to remake target file `%s'.\n"));
+      DBF (DB_BASIC, _("Failed to remake target file '%s'.\n"));
       break;
     case 0:
-      DBF (DB_BASIC, _("Successfully remade target file `%s'.\n"));
+      DBF (DB_BASIC, _("Successfully remade target file '%s'.\n"));
       break;
     case 1:
-      DBF (DB_BASIC, _("Target file `%s' needs remade under -q.\n"));
+      DBF (DB_BASIC, _("Target file '%s' needs remade under -q.\n"));
       break;
     default:
       assert (file->update_status >= 0 && file->update_status <= 2);
@@ -836,8 +836,8 @@ update_file_1 (struct file *file, unsigned int depth)
   return file->update_status;
 }
 
-/* Set FILE's `updated' flag and re-check its mtime and the mtime's of all
-   files listed in its `also_make' member.  Under -t, this function also
+/* Set FILE's 'updated' flag and re-check its mtime and the mtime's of all
+   files listed in its 'also_make' member.  Under -t, this function also
    touches FILE.
 
    On return, FILE->update_status will no longer be -1 if it was.  */
@@ -882,7 +882,7 @@ notice_finished_file (struct file *file)
               file->update_status = touch_file (file);
 
               /* Pretend we ran a real touch command, to suppress the
-                 "`foo' is up to date" message.  */
+                 "'foo' is up to date" message.  */
               commands_started++;
 
               /* Request for the timestamp to be updated (and distributed
@@ -1013,15 +1013,15 @@ check_dep (struct file *file, unsigned int depth,
       if (!file->phony && file->cmds == 0 && !file->tried_implicit)
 	{
 	  if (try_implicit_rule (file, depth))
-	    DBF (DB_IMPLICIT, _("Found an implicit rule for `%s'.\n"));
+	    DBF (DB_IMPLICIT, _("Found an implicit rule for '%s'.\n"));
 	  else
-	    DBF (DB_IMPLICIT, _("No implicit rule found for `%s'.\n"));
+	    DBF (DB_IMPLICIT, _("No implicit rule found for '%s'.\n"));
 	  file->tried_implicit = 1;
 	}
       if (file->cmds == 0 && !file->is_target
 	  && default_file != 0 && default_file->cmds != 0)
 	{
-	  DBF (DB_IMPLICIT, _("Using default commands for `%s'.\n"));
+	  DBF (DB_IMPLICIT, _("Using default commands for '%s'.\n"));
 	  file->cmds = default_file->cmds;
 	}
 
@@ -1202,7 +1202,7 @@ remake_file (struct file *file)
   notice_finished_file (file);
 }
 
-/* Return the mtime of a file, given a `struct file'.
+/* Return the mtime of a file, given a 'struct file'.
    Caches the time in the struct file to avoid excess stat calls.
 
    If the file is not found, and SEARCH is nonzero, VPATH searching and
@@ -1358,7 +1358,7 @@ f_mtime (struct file *file, int search)
           if (adjusted_now < adjusted_mtime)
             {
 #ifdef NO_FLOAT
-              error (NILF, _("Warning: File `%s' has modification time in the future"),
+              error (NILF, _("Warning: File '%s' has modification time in the future"),
                      file->name);
 #else
               double from_now =
@@ -1371,7 +1371,7 @@ f_mtime (struct file *file, int search)
                 sprintf (from_now_string, "%lu", (unsigned long) from_now);
               else
                 sprintf (from_now_string, "%.2g", from_now);
-              error (NILF, _("Warning: File `%s' has modification time %s s in the future"),
+              error (NILF, _("Warning: File '%s' has modification time %s s in the future"),
                      file->name, from_now_string);
 #endif
               clock_skew_detected = 1;
@@ -1570,7 +1570,7 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
 	if (!p3)
 	  {
 	    /* Give a warning if there is no pattern.  */
-	    error (NILF, _(".LIBPATTERNS element `%s' is not a pattern"), p);
+	    error (NILF, _(".LIBPATTERNS element '%s' is not a pattern"), p);
             p[len] = c;
 	    continue;
 	  }
@@ -1580,7 +1580,7 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
 	p[len] = c;
       }
 
-      /* Look first for `libNAME.a' in the current directory.  */
+      /* Look first for 'libNAME.a' in the current directory.  */
       mtime = name_mtime (libbuf);
       if (mtime != NONEXISTENT_MTIME)
 	{

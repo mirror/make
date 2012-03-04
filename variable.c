@@ -412,7 +412,7 @@ lookup_special_var (struct variable *var)
 
 /* Lookup a variable whose name is a string starting at NAME
    and with LENGTH chars.  NAME need not be null-terminated.
-   Returns address of the `struct variable' containing all info
+   Returns address of the 'struct variable' containing all info
    on the variable, or nil if no such variable is defined.  */
 
 struct variable *
@@ -499,7 +499,7 @@ lookup_variable (const char *name, unsigned int length)
 
 /* Lookup a variable whose name is a string starting at NAME
    and with LENGTH chars in set SET.  NAME need not be null-terminated.
-   Returns address of the `struct variable' containing all info
+   Returns address of the 'struct variable' containing all info
    on the variable, or nil if no such variable is defined.  */
 
 struct variable *
@@ -954,7 +954,7 @@ define_automatic_variables (void)
 int export_all_variables;
 
 /* Create a new environment for FILE's commands.
-   If FILE is nil, this is for the `shell' function.
+   If FILE is nil, this is for the 'shell' function.
    The child's MAKELEVEL variable is incremented.  */
 
 char **
@@ -1250,7 +1250,7 @@ do_variable_definition (const struct floc *flocp, const char *varname,
 #ifdef __MSDOS__
   /* Many Unix Makefiles include a line saying "SHELL=/bin/sh", but
      non-Unix systems don't conform to this default configuration (in
-     fact, most of them don't even have `/bin').  On the other hand,
+     fact, most of them don't even have '/bin').  On the other hand,
      $SHELL in the environment, if set, points to the real pathname of
      the shell.
      Therefore, we generally won't let lines like "SHELL=/bin/sh" from
@@ -1536,7 +1536,7 @@ parse_variable_definition (const char *p, struct variable *var)
 
 /* Try to interpret LINE (a null-terminated string) as a variable definition.
 
-   If LINE was recognized as a variable definition, a pointer to its `struct
+   If LINE was recognized as a variable definition, a pointer to its 'struct
    variable' is returned.  If LINE is not a variable definition, NULL is
    returned.  */
 
@@ -1569,7 +1569,7 @@ assign_variable_definition (struct variable *v, char *line)
 
    See the comments for assign_variable_definition().
 
-   If LINE was recognized as a variable definition, a pointer to its `struct
+   If LINE was recognized as a variable definition, a pointer to its 'struct
    variable' is returned.  If LINE is not a variable definition, NULL is
    returned.  */
 
@@ -1626,7 +1626,7 @@ print_variable (const void *item, void *arg)
       origin = _("command line");
       break;
     case o_override:
-      origin = _("`override' directive");
+      origin = _("'override' directive");
       break;
     case o_invalid:
     default:
@@ -1637,12 +1637,12 @@ print_variable (const void *item, void *arg)
   if (v->private_var)
     fputs (" private", stdout);
   if (v->fileinfo.filenm)
-    printf (_(" (from `%s', line %lu)"),
+    printf (_(" (from '%s', line %lu)"),
             v->fileinfo.filenm, v->fileinfo.lineno);
   putchar ('\n');
   fputs (prefix, stdout);
 
-  /* Is this a `define'?  */
+  /* Is this a 'define'?  */
   if (v->recursive && strchr (v->value, '\n') != 0)
     printf ("define %s\n%s\nendef\n", v->name, v->value);
   else

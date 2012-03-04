@@ -2,7 +2,7 @@
 $description = "Test various types of escaping in makefiles.";
 
 $details = "\
-Make sure that escaping of `:' works in target names.
+Make sure that escaping of ':' works in target names.
 Make sure escaping of whitespace works in target names.
 Make sure that escaping of '#' works.";
 
@@ -26,7 +26,7 @@ foo\#bar.ext: ; @echo "foo#bar.ext = ($@)"',
 
 run_make_test(undef,
 	      'path=pre:',
-	      "#MAKEFILE#:2: *** target pattern contains no `%'.  Stop.",
+	      "#MAKEFILE#:2: *** target pattern contains no '%'.  Stop.",
 	      512);
 
 # TEST 3: This one should work, since we escape the ":".
@@ -39,7 +39,7 @@ run_make_test(undef,
 
 run_make_test(undef,
 	      "'path=pre\\\\:'",
-	      "#MAKEFILE#:2: *** target pattern contains no `%'.  Stop.",
+	      "#MAKEFILE#:2: *** target pattern contains no '%'.  Stop.",
 	      512);
 
 # TEST 5: This one should work

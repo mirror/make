@@ -89,7 +89,7 @@ run_make_test(qq!
 .SHELLFLAGS = $flags
 all: ; \@$script
 !,
-              '', "$out#MAKEFILE#:3: recipe for target `all' failed
+              '', "$out#MAKEFILE#:3: recipe for target 'all' failed
 #MAKE#: *** [all] Error $err\n", 512);
 
 1;

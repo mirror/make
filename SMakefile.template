@@ -26,7 +26,7 @@
 
 # Ultrix 2.2 make doesn't expand the value of VPATH.
 VPATH = /make-%VERSION%/
-# This must repeat the value, because configure will remove `VPATH = .'.
+# This must repeat the value, because configure will remove 'VPATH = .'.
 srcdir = /make-%VERSION%/
 
 CC = sc
@@ -38,18 +38,18 @@ CPPFLAGS =
 LDFLAGS =
 
 # Define these for your system as follows:
-#	-DNO_ARCHIVES		To disable `ar' archive support.
+#	-DNO_ARCHIVES		To disable 'ar' archive support.
 #	-DNO_FLOAT		To avoid using floating-point numbers.
 #	-DENUM_BITFIELDS	If the compiler isn't GCC but groks enum foo:2.
 #				Some compilers apparently accept this
 #				without complaint but produce losing code,
 #				so beware.
 # NeXT 1.0a uses an old version of GCC, which required -D__inline=inline.
-# See also `config.h'.
+# See also 'config.h'.
 defines =
 
 # Which flavor of remote job execution support to use.
-# The code is found in `remote-$(REMOTE).c'.
+# The code is found in 'remote-$(REMOTE).c'.
 REMOTE = stub
 
 # If you are using the GNU C library, or have the GNU getopt functions in
@@ -83,9 +83,9 @@ prefix =
 # Common prefix for machine-dependent installed files.
 exec_prefix =
 
-# Directory to install `make' in.
+# Directory to install 'make' in.
 bindir = sc:c
-# Directory to find libraries in for `-lXXX'.
+# Directory to find libraries in for '-lXXX'.
 libdir = lib:
 # Directory to search by default for included makefiles.
 includedir = include:
@@ -95,20 +95,20 @@ infodir = doc:
 mandir = t:
 # Number to put on the man page filename.
 manext = 1
-# Prefix to put on installed `make' binary file name.
+# Prefix to put on installed 'make' binary file name.
 binprefix =
-# Prefix to put on installed `make' man page file name.
+# Prefix to put on installed 'make' man page file name.
 manprefix = $(binprefix)
 
 # Whether or not make needs to be installed setgid.
-# The value should be either `true' or `false'.
-# On many systems, the getloadavg function (used to implement the `-l'
+# The value should be either 'true' or 'false'.
+# On many systems, the getloadavg function (used to implement the '-l'
 # switch) will not work unless make is installed setgid kmem.
 install_setgid = false
 # Install make setgid to this group so it can read /dev/kmem.
 group = sys
 
-# Program to install `make'.
+# Program to install 'make'.
 INSTALL_PROGRAM = copy
 # Program to install the man page.
 INSTALL_DATA = copy
@@ -151,7 +151,7 @@ srcs = $(srcdir)commands.c $(srcdir)job.c $(srcdir)dir.c             \
 all: make
 info: make.info
 dvi: make.dvi
-# Some makes apparently use .PHONY as the default goal if it is before `all'.
+# Some makes apparently use .PHONY as the default goal if it is before 'all'.
 .PHONY: all check info dvi
 
 make.info: make.texinfo

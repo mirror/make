@@ -27,7 +27,7 @@ enum variable_origin
     o_file,		/* Variable given in a makefile.  */
     o_env_override,	/* Variable from environment, if -e.  */
     o_command,		/* Variable given by user.  */
-    o_override, 	/* Variable from an `override' directive.  */
+    o_override, 	/* Variable from an 'override' directive.  */
     o_automatic,	/* Automatic variable -- cannot be set.  */
     o_invalid		/* Core dump time.  */
   };
@@ -44,7 +44,7 @@ enum variable_flavor
 
 /* Structure that represents one variable definition.
    Each bucket of the hash table is a chain of these,
-   chained through `next'.  */
+   chained through 'next'.  */
 
 #define EXP_COUNT_BITS  15      /* This gets all the bitfields into 32 bits */
 #define EXP_COUNT_MAX   ((1<<EXP_COUNT_BITS)-1)
@@ -223,7 +223,7 @@ void undefine_variable_in_set (const char *name, unsigned int length,
 #define warn_undefined(n,l) do{\
                               if (warn_undefined_variables_flag) \
                                 error (reading_file, \
-                                       _("warning: undefined variable `%.*s'"), \
+                                       _("warning: undefined variable '%.*s'"), \
                                 (int)(l), (n)); \
                               }while(0)
 

@@ -27,11 +27,11 @@ struct commands
     char *lines_flags;		/* One set of flag bits for each line.  */
     unsigned short ncommand_lines;/* Number of command lines.  */
     char recipe_prefix;         /* Recipe prefix for this command set.  */
-    unsigned int any_recurse:1; /* Nonzero if any `lines_flags' elt has */
+    unsigned int any_recurse:1; /* Nonzero if any 'lines_flags' elt has */
 				/* the COMMANDS_RECURSE bit set.  */
   };
 
-/* Bits in `lines_flags'.  */
+/* Bits in 'lines_flags'.  */
 #define	COMMANDS_RECURSE	1 /* Recurses: + or $(MAKE).  */
 #define	COMMANDS_SILENT		2 /* Silent: @.  */
 #define	COMMANDS_NOERROR	4 /* No errors: -.  */

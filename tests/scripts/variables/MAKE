@@ -16,8 +16,8 @@ foo:
 !,
               '',
               "#MAKEPATH#\n#MAKEPATH# -f #MAKEFILE# foo\n"
-              . "#MAKE#[1]: Entering directory `#PWD#'\n"
-              . "#MAKEPATH#\n#MAKE#[1]: Leaving directory `#PWD#'\n");
+              . "#MAKE#[1]: Entering directory '#PWD#'\n"
+              . "#MAKEPATH#\n#MAKE#[1]: Leaving directory '#PWD#'\n");
 
 rmfiles("foo");
 

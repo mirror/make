@@ -68,7 +68,7 @@ char *alloca ();
 #include <ctype.h>
 
 #ifdef HAVE_SYS_TIMEB_H
-/* SCO 3.2 "devsys 4.2" has a prototype for `ftime' in <time.h> that bombs
+/* SCO 3.2 "devsys 4.2" has a prototype for 'ftime' in <time.h> that bombs
    unless <sys/timeb.h> has been included first.  */
 # include <sys/timeb.h>
 #endif
@@ -96,7 +96,7 @@ extern int errno;
 #ifdef  HAVE_UNISTD_H
 # include <unistd.h>
 /* Ultrix's unistd.h always defines _POSIX_VERSION, but you only get
-   POSIX.1 behavior with `cc -YPOSIX', which predefines POSIX itself!  */
+   POSIX.1 behavior with 'cc -YPOSIX', which predefines POSIX itself!  */
 # if defined (_POSIX_VERSION) && !defined (ultrix) && !defined (VMS)
 #  define POSIX 1
 # endif
@@ -201,7 +201,7 @@ unsigned int get_path_max (void);
 # if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 5) || __STRICT_ANSI__
 #  define __attribute__(x)
 # endif
-/* The __-protected variants of `format' and `printf' attributes
+/* The __-protected variants of 'format' and 'printf' attributes
    are accepted by gcc versions 2.6.4 (effectively 2.7) and later.  */
 # if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 7)
 #  define __format__ format
@@ -275,7 +275,7 @@ char *strsignal (int signum);
    - It's typically faster.
    POSIX 1003.2-1992 section 2.5.2.1 page 50 lines 1556-1558 says that
    only '0' through '9' are digits.  Prefer ISDIGIT to isdigit() unless
-   it's important to use the locale's definition of `digit' even when the
+   it's important to use the locale's definition of 'digit' even when the
    host does not conform to POSIX.  */
 #define ISDIGIT(c) ((unsigned) (c) - '0' <= 9)
 
