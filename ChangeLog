@@ -1,5 +1,8 @@
 2012-03-03  Paul Smith  <psmith@gnu.org>
 
+	* acinclude.m4 (AC_STRUCT_ST_MTIM_NSEC): Add support for AIX 5.2+
+	nanosecond timestamps.  Fixes Savannah bug #32485.
+
 	Convert uses of `foo' for quoting to 'foo' to reflect changes in
 	the GNU Coding Standards.  Fixes Savannah bug #34530.
 

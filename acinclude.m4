@@ -101,6 +101,7 @@ changequote([,])dnl
 dnl ---------------------------------------------------------------------------
 dnl From Paul Eggert <eggert@twinsun.com>
 dnl Update for Darwin by Troy Runkel <Troy.Runkel@mathworks.com>
+dnl Update for AIX by Olexiy Buyanskyy (Savannah bug 32485)
 
 AC_DEFUN([AC_STRUCT_ST_MTIM_NSEC],
  [AC_CACHE_CHECK([for nanoseconds field of struct stat],
@@ -112,8 +113,9 @@ AC_DEFUN([AC_STRUCT_ST_MTIM_NSEC],
     #	(defined _XOPEN_SOURCE && _XOPEN_SOURCE_EXTENDED == 1
     #	 && !defined __EXTENSIONS__)
     # st_mtim.st__tim.tv_nsec -- UnixWare 2.1.2
+    # st_mtime_n -- AIX 5.2 and above
     # st_mtimespec.tv_nsec -- Darwin (Mac OSX)
-    for ac_val in st_mtim.tv_nsec st_mtim._tv_nsec st_mtim.st__tim.tv_nsec st_mtimespec.tv_nsec; do
+    for ac_val in st_mtim.tv_nsec st_mtim._tv_nsec st_mtim.st__tim.tv_nsec st_mtime_n st_mtimespec.tv_nsec; do
       CPPFLAGS="$ac_save_CPPFLAGS -DST_MTIM_NSEC=$ac_val"
       AC_TRY_COMPILE([#include <sys/types.h>
 #include <sys/stat.h>
