@@ -371,7 +371,8 @@ struct floc
   };
 #define NILF ((struct floc *)0)
 
-#define STRING_SIZE_TUPLE(_s) (_s), (sizeof (_s)-1)
+#define CSTRLEN(_s) (sizeof (_s)-1)
+#define STRING_SIZE_TUPLE(_s) (_s), CSTRLEN(_s)
 
 
 /* We have to have stdarg.h or varargs.h AND v*printf or doprnt to use

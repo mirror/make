@@ -1,5 +1,11 @@
 2012-03-04  Paul Smith  <psmith@gnu.org>
 
+	* make.h (CSTRLEN): Determine the length of a constant string.
+	* main.c: Use the new macro.
+	* read.c: Ditto.
+	* variable.h: Ditto.
+	* function.c: Simplify checks for function alternatives.
+
 	* expand.c (variable_append): If the current set is local and the
 	next one is not a parent, then treat the next set as
 	local as well.  Fixes Savannah bug #35468.

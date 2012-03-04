@@ -235,4 +235,4 @@ struct pattern_var *create_pattern_var (const char *target,
 extern int export_all_variables;
 
 #define MAKELEVEL_NAME "MAKELEVEL"
-#define MAKELEVEL_LENGTH (sizeof (MAKELEVEL_NAME) - 1)
+#define MAKELEVEL_LENGTH (CSTRLEN (MAKELEVEL_NAME))

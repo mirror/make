@@ -525,7 +525,7 @@ func_notdir_suffix (char *o, char **argv, const char *funcname)
   int doneany =0;
   unsigned int len=0;
 
-  int is_suffix = streq (funcname, "suffix");
+  int is_suffix = funcname[0] == 's';
   int is_notdir = !is_suffix;
   while ((p2 = find_next_token (&list_iterator, &len)) != 0)
     {
@@ -549,7 +549,7 @@ func_notdir_suffix (char *o, char **argv, const char *funcname)
 	}
 #ifdef HAVE_DOS_PATHS
       /* Handle the case of "d:foo/bar".  */
-      else if (streq (funcname, "notdir") && p2[0] && p2[1] == ':')
+      else if (is_notdir && p2[0] && p2[1] == ':')
 	{
 	  p = p2 + 2;
 	  o = variable_buffer_output (o, p, len - (p - p2));
@@ -579,11 +579,11 @@ func_basename_dir (char *o, char **argv, const char *funcname)
   /* Expand the argument.  */
   const char *p3 = argv[0];
   const char *p2;
-  int doneany=0;
-  unsigned int len=0;
+  int doneany = 0;
+  unsigned int len = 0;
 
-  int is_basename= streq (funcname, "basename");
-  int is_dir= !is_basename;
+  int is_basename = funcname[0] == 'b';
+  int is_dir = !is_basename;
 
   while ((p2 = find_next_token (&p3, &len)) != 0)
     {
@@ -634,7 +634,7 @@ func_addsuffix_addprefix (char *o, char **argv, const char *funcname)
 {
   int fixlen = strlen (argv[0]);
   const char *list_iterator = argv[1];
-  int is_addprefix = streq (funcname, "addprefix");
+  int is_addprefix = funcname[3] == 'p';
   int is_addsuffix = !is_addprefix;
 
   int doneany = 0;
@@ -918,7 +918,7 @@ func_filter_filterout (char *o, char **argv, const char *funcname)
   struct a_pattern *pp;
 
   struct hash_table a_word_table;
-  int is_filter = streq (funcname, "filter");
+  int is_filter = funcname[CSTRLEN ("filter")] == '\0';
   const char *pat_iterator = argv[0];
   const char *word_iterator = argv[1];
   int literals = 0;
@@ -1913,7 +1913,7 @@ func_shell (char *o, char **argv, const char *funcname UNUSED)
   equality. Return is string-boolean, ie, the empty string is false.
  */
 static char *
-func_eq (char *o, char **argv, char *funcname)
+func_eq (char *o, char **argv, char *funcname UNUSED)
 {
   int result = ! strcmp (argv[0], argv[1]);
   o = variable_buffer_output (o,  result ? "1" : "", result);
@@ -1925,7 +1925,7 @@ func_eq (char *o, char **argv, char *funcname)
   string-boolean not operator.
  */
 static char *
-func_not (char *o, char **argv, char *funcname)
+func_not (char *o, char **argv, char *funcname UNUSED)
 {
   const char *s = argv[0];
   int result = 0;

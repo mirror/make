@@ -161,7 +161,7 @@ static char *find_char_unquote (char *string, int stop1, int stop2,
 /* Compare a word, both length and contents.
    P must point to the word to be tested, and WLEN must be the length.
 */
-#define	word1eq(s)	(wlen == sizeof(s)-1 && strneq (s, p, sizeof(s)-1))
+#define	word1eq(s)	(wlen == CSTRLEN (s) && strneq (s, p, CSTRLEN (s)))
 
 
 /* Read in all the makefiles and return the chain of their names.  */
@@ -1282,7 +1282,7 @@ eval (struct ebuffer *ebuf, int set_default)
       record_waiting_files ();
     }
 
-#undef	word1eq
+#undef word1eq
 
   if (conditionals->if_cmds)
     fatal (fstart, _("missing 'endif'"));
@@ -1467,7 +1467,7 @@ conditional_line (char *line, int len, const struct floc *flocp)
   unsigned int o;
 
   /* Compare a word, both length and contents. */
-#define	word1eq(s)      (len == sizeof(s)-1 && strneq (s, line, sizeof(s)-1))
+#define	word1eq(s)      (len == CSTRLEN (s) && strneq (s, line, CSTRLEN (s)))
 #define	chkword(s, t)   if (word1eq (s)) { cmdtype = (t); cmdname = (s); }
 
   /* Make sure this line is a conditional.  */
@@ -1542,7 +1542,7 @@ conditional_line (char *line, int len, const struct floc *flocp)
       len = p - line;
 
       /* If it's 'else' or 'endif' or an illegal conditional, fail.  */
-      if (word1eq("else") || word1eq("endif")
+      if (word1eq ("else") || word1eq ("endif")
           || conditional_line (line, len, flocp) < 0)
 	EXTRANEOUS ();
       else

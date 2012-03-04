@@ -1528,7 +1528,7 @@ main (int argc, char **argv, char **envp)
                )
 	      tmpdir = DEFAULT_TMPDIR;
 
-            template = alloca (strlen (tmpdir) + sizeof (DEFAULT_TMPFILE) + 1);
+            template = alloca (strlen (tmpdir) + CSTRLEN (DEFAULT_TMPFILE) + 2);
 	    strcpy (template, tmpdir);
 
 #ifdef HAVE_DOS_PATHS
@@ -1638,7 +1638,7 @@ main (int argc, char **argv, char **envp)
     {
       char *p, *value;
       unsigned int i;
-      unsigned int len = sizeof ("--eval=") * eval_strings->idx;
+      unsigned int len = (CSTRLEN ("--eval=") + 1) * eval_strings->idx;
 
       for (i = 0; i < eval_strings->idx; ++i)
         {
@@ -1652,7 +1652,7 @@ main (int argc, char **argv, char **envp)
       for (i = 0; i < eval_strings->idx; ++i)
         {
           strcpy (p, "--eval=");
-          p += strlen (p);
+          p += CSTRLEN ("--eval=");
           p = quote_for_env (p, eval_strings->list[i]);
           *(p++) = ' ';
         }
@@ -1846,12 +1846,11 @@ main (int argc, char **argv, char **envp)
       cp = xmalloc (MAX_PATH + 1);
       strcpy (cp, get_jobserver_semaphore_name());
 #else
-      cp = xmalloc ((sizeof ("1024")*2)+1);
+      cp = xmalloc ((CSTRLEN ("1024") * 2) + 2);
       sprintf (cp, "%d,%d", job_fds[0], job_fds[1]);
 #endif
 
-      jobserver_fds = (struct stringlist *)
-                        xmalloc (sizeof (struct stringlist));
+      jobserver_fds = xmalloc (sizeof (struct stringlist));
       jobserver_fds->list = xmalloc (sizeof (char *));
       jobserver_fds->list[0] = cp;
       jobserver_fds->idx = 1;
@@ -2149,7 +2148,7 @@ main (int argc, char **argv, char **envp)
           /* Reset makeflags in case they were changed.  */
           {
             const char *pv = define_makeflags (1, 1);
-            char *p = alloca (sizeof ("MAKEFLAGS=") + strlen (pv) + 1);
+            char *p = alloca (CSTRLEN ("MAKEFLAGS=") + strlen (pv) + 1);
             sprintf (p, "MAKEFLAGS=%s", pv);
             putenv (allocated_variable_expand (p));
           }
@@ -2625,8 +2624,7 @@ decode_switches (int argc, char **argv, int env)
 		  sl = *(struct stringlist **) cs->value_ptr;
 		  if (sl == 0)
 		    {
-		      sl = (struct stringlist *)
-			xmalloc (sizeof (struct stringlist));
+		      sl = xmalloc (sizeof (struct stringlist));
 		      sl->max = 5;
 		      sl->idx = 0;
 		      sl->list = xmalloc (5 * sizeof (char *));
@@ -2935,7 +2933,7 @@ define_makeflags (int all, int makefile)
 	}
 
   /* Four more for the possible " -- ".  */
-  flagslen += 4 + sizeof (posixref) + sizeof (evalref);
+  flagslen += 4 + CSTRLEN (posixref) + 1 + CSTRLEN (evalref) + 1;
 
 #undef	ADD_FLAG
 
@@ -3018,8 +3016,8 @@ define_makeflags (int all, int makefile)
 	p = flagstring;
       else
         *p++ = ' ';
-      memcpy (p, evalref, sizeof (evalref) - 1);
-      p += sizeof (evalref) - 1;
+      memcpy (p, evalref, CSTRLEN (evalref));
+      p += CSTRLEN (evalref);
     }
 
   if (all && command_variables != 0)
@@ -3047,13 +3045,13 @@ define_makeflags (int all, int makefile)
       /* Copy in the string.  */
       if (posix_pedantic)
 	{
-	  memcpy (p, posixref, sizeof (posixref) - 1);
-	  p += sizeof (posixref) - 1;
+	  memcpy (p, posixref, CSTRLEN (posixref));
+	  p += CSTRLEN (posixref);
 	}
       else
 	{
-	  memcpy (p, ref, sizeof (ref) - 1);
-	  p += sizeof (ref) - 1;
+	  memcpy (p, ref, CSTRLEN (ref));
+	  p += CSTRLEN (ref);
 	}
     }
   else if (p == &flagstring[1])
