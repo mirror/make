@@ -54,5 +54,13 @@ run_make_test(undef,
 	      'sharp',
 	      'foo#bar.ext = (foo#bar.ext)');
 
+# Test escaped colons in prerequisites
+# Quoting of backslashes in q!! is kind of messy.
+run_make_test(q!
+foo: foo\\:bar foo\\\\\\:bar foo\\\\\\\\\\:bar
+foo foo\\:bar foo\\\\\\:bar foo\\\\\\\\\\:bar: ; @echo '$@'
+!,
+              '', "foo:bar\nfoo\\:bar\nfoo\\\\:bar\nfoo\n");
+
 # This tells the test driver that the perl test script executed properly.
 1;

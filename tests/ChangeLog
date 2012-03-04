@@ -1,5 +1,11 @@
 2012-03-04  Paul Smith  <psmith@gnu.org>
 
+	* scripts/features/se_explicit: Test $(x:%=%) format in secondary
+	expansion prerequisite lists.  See Savannah bug #16545.
+
+	* scripts/features/escape: Test escaped ":" in prerequisite lists.
+	See Savannah bug #12126.
+
 	* scripts/variables/private: Test appending private variables in
 	pattern-specific target rules.  See Savannah bug #35468.
 

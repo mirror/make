@@ -1,5 +1,9 @@
 2012-03-04  Paul Smith  <psmith@gnu.org>
 
+	* read.c (unescape_char): New function to remove escapes from a char.
+	(record_files): Call it on the dependency string to unescape ":".
+	Fixes Savannah bug #12126 and bug #16545.
+
 	* make.h (CSTRLEN): Determine the length of a constant string.
 	* main.c: Use the new macro.
 	* read.c: Ditto.

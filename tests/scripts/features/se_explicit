@@ -152,5 +152,13 @@ a%l: q1x $$+ q2x ; @echo '$+'
                   '', "q1x bar bar q2x bar bar\n");
 
 
-# This tells the test driver that the perl test script executed properly.
+# Allow patsubst shorthand in second expansion context.
+# Requires the colon to be quoted.  Savannah bug #16545
+run_make_test(q!
+.PHONY: foo.bar
+.SECONDEXPANSION:
+foo: $$(@\\:%=%.bar); @echo '$^'
+!,
+              '', "foo.bar\n");
+
 1;

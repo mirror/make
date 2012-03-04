@@ -156,6 +156,7 @@ static enum make_word_type get_next_mword (char *buffer, char *delim,
 static void remove_comments (char *line);
 static char *find_char_unquote (char *string, int stop1, int stop2,
                                 int blank, int ignorevars);
+static char *unescape_char (char *string, int c);
 
 
 /* Compare a word, both length and contents.
@@ -1872,24 +1873,28 @@ record_files (struct nameseq *filenames, const char *pattern,
      expansion: if so, snap_deps() will do it.  */
   if (depstr == 0)
     deps = 0;
-  else if (second_expansion && strchr (depstr, '$'))
-    {
-      deps = alloc_dep ();
-      deps->name = depstr;
-      deps->need_2nd_expansion = 1;
-      deps->staticpattern = pattern != 0;
-    }
   else
     {
-      deps = split_prereqs (depstr);
-      free (depstr);
+      depstr = unescape_char (depstr, ':');
+      if (second_expansion && strchr (depstr, '$'))
+        {
+          deps = alloc_dep ();
+          deps->name = depstr;
+          deps->need_2nd_expansion = 1;
+          deps->staticpattern = pattern != 0;
+        }
+      else
+        {
+          deps = split_prereqs (depstr);
+          free (depstr);
 
-      /* We'll enter static pattern prereqs later when we have the stem.  We
-         don't want to enter pattern rules at all so that we don't think that
-         they ought to exist (make manual "Implicit Rule Search Algorithm",
-         item 5c).  */
-      if (! pattern && ! implicit_percent)
-        deps = enter_prereqs (deps, NULL);
+          /* We'll enter static pattern prereqs later when we have the stem.
+             We don't want to enter pattern rules at all so that we don't
+             think that they ought to exist (make manual "Implicit Rule Search
+             Algorithm", item 5c).  */
+          if (! pattern && ! implicit_percent)
+            deps = enter_prereqs (deps, NULL);
+        }
     }
 
   /* For implicit rules, _all_ the targets must have a pattern.  That means we
@@ -2209,6 +2214,46 @@ find_char_unquote (char *string, int stop1, int stop2, int blank,
 
   /* Never hit a STOPCHAR or blank (with BLANK nonzero).  */
   return 0;
+}
+
+/* Unescape a character in a string.  The string is compressed onto itself.  */
+
+static char *
+unescape_char (char *string, int c)
+{
+  char *p = string;
+  char *s = string;
+
+  while (*s != '\0')
+    {
+      if (*s == '\\')
+        {
+          char *e = s;
+          int l;
+
+          /* We found a backslash.  See if it's escaping our character.  */
+          while (*e == '\\')
+            ++e;
+          l = e - s;
+
+          if (*e != c || l%2 == 0)
+            /* It's not; just take it all without unescaping.  */
+            memcpy (p, s, l);
+          else if (l > 1)
+            {
+              /* It is, and there's >1 backslash.  Take half of them.  */
+              l /= 2;
+              memcpy (p, s, l);
+              p += l;
+            }
+          s = e;
+        }
+
+      *(p++) = *(s++);
+    }
+
+  *p = '\0';
+  return string;
 }
 
 /* Search PATTERN for an unquoted % and handle quoting.  */
