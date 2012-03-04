@@ -1,3 +1,8 @@
+2012-03-04  Paul Smith  <psmith@gnu.org>
+
+	* scripts/variables/private: Test appending private variables in
+	pattern-specific target rules.  See Savannah bug #35468.
+
 2012-03-03  Paul Smith  <psmith@gnu.org>
 
 	* scripts/variables/SHELL: Ensure .SHELLFLAGS works with options

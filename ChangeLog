@@ -1,3 +1,9 @@
+2012-03-04  Paul Smith  <psmith@gnu.org>
+
+	* expand.c (variable_append): If the current set is local and the
+	next one is not a parent, then treat the next set as
+	local as well.  Fixes Savannah bug #35468.
+
 2012-03-03  Paul Smith  <psmith@gnu.org>
 
 	* acinclude.m4 (AC_STRUCT_ST_MTIM_NSEC): Add support for AIX 5.2+

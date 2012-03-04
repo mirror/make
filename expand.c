@@ -497,6 +497,8 @@ variable_append (const char *name, unsigned int length,
 {
   const struct variable *v;
   char *buf = 0;
+  /* If this set is local and the next is not a parent, then next is local.  */
+  int nextlocal = local && set->next_is_parent == 0;
 
   /* If there's nothing left to check, return the empty buffer.  */
   if (!set)
@@ -507,12 +509,12 @@ variable_append (const char *name, unsigned int length,
 
   /* If there isn't one, or this one is private, try the set above us.  */
   if (!v || (!local && v->private_var))
-    return variable_append (name, length, set->next, 0);
+    return variable_append (name, length, set->next, nextlocal);
 
   /* If this variable type is append, first get any upper values.
      If not, initialize the buffer.  */
   if (v->append)
-    buf = variable_append (name, length, set->next, 0);
+    buf = variable_append (name, length, set->next, nextlocal);
   else
     buf = initialize_variable_output ();
 
