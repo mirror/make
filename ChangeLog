@@ -1,3 +1,8 @@
+2012-03-05  Paul Smith  <psmith@gnu.org>
+
+	Update copyright notices to use year ranges, as allowed by
+	clarifications in the GNU Maintainer's Manual.
+
 2012-03-04  Paul Smith  <psmith@gnu.org>
 
 	* read.c (unescape_char): New function to remove escapes from a char.
@@ -4482,8 +4487,7 @@ See ChangeLog.2, available in the CVS repository at:
 for earlier changes.
 
 
-Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-2011, 2012 Free Software Foundation, Inc.
+Copyright (C) 2000-2012 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the

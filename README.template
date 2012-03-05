@@ -21,7 +21,9 @@ Make, try using 'build.sh' instead.
 
 
 GNU Make is free software.  See the file COPYING for copying conditions.
-
+GNU Make is copyright by the Free Software Foundation.  Copyright notices
+condense sequential years into a range; e.g. "1987-1994" means all years
+from 1987 to 1994 inclusive.
 
 Downloading
 -----------
@@ -78,17 +80,6 @@ If you need help using GNU make, try these forums:
   help-utils@gnu.org
   news:gnu.utils.help
   news:gnu.utils.bug
-
-  http://savannah.gnu.org/support/?group=make
-
-You may also find interesting patches to GNU Make available here:
-
-  http://savannah.gnu.org/patch/?group=make
-
-Note these patches are provided by our users as a service and we make no
-statements regarding their correctness.  Please contact the authors
-directly if you have a problem or suggestion for a patch available on
-this page.
 
 
 CVS Access
@@ -171,9 +162,7 @@ at the right README!
 
 
 -------------------------------------------------------------------------------
-Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
-2012 Free Software Foundation, Inc.
+Copyright (C) 1988-2012 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the

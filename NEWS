@@ -1,6 +1,6 @@
 GNU make NEWS                                               -*-indented-text-*-
   History of user-visible changes.
-  15 January 2012
+  05 March 2012
 
 See the end of this file for copyrights and conditions.
 
@@ -1156,9 +1156,7 @@ Version 3.05
 (Changes from versions 1 through 3.05 were never recorded.  Sorry.)
 
 -------------------------------------------------------------------------------
-Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
-2012 Free Software Foundation, Inc.
+Copyright (C) 1988-2012 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the
