@@ -1,5 +1,7 @@
 2012-09-01  Eli Zaretskii  <eliz@gnu.org>
 
+	* README.W32.template: Update for job-server and Guile support.
+
 	* read.c (unescape_char): Advance 'p' after copying the unescaped
 	characters.  Otherwise the backslashes are incorrectly erased from
 	the original string.

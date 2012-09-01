@@ -1,10 +1,28 @@
-This version of GNU make has been tested on Microsoft Windows 2000/XP/2003.
+This version of GNU make has been tested on
+Microsoft Windows 2000/XP/2003/Vista/7/2008.
 It has also been used on Windows 95/98/NT, and on OS/2.
 
 It builds with the MinGW port of GCC (tested with GCC 3.4.2).
 
 It also builds with MSVC 2.x, 4.x, 5.x, 6.x, and 2003 as well as
 with .NET 7.x and .NET 2003.
+
+As of version 3.83, a build with Guile is supported (tested with Guile
+2.0.3).  To build with Guile, you will need, in addition to Guile
+itself, its dependency libraries and the pkg-config program.  The
+latter is used to figure out which compilation and link switches and
+libraries need to be mentioned on the compiler command lines to
+correctly link with Guile.  A Windows port of pkg-config can be found
+on the Windows download page of the GTK+ project:
+
+  http://www.gtk.org/download/win32.php
+
+The libraries on which Guile depends can vary depending on your
+version and build of Guile.  At the very least, the Boehm's GC library
+will be needed, and typically also GNU MP, libffi, libunistring, and
+libtool's libltdl.  Whoever built the port of Guile you have should
+also provide you with these dependencies or a URL where to download
+them.
 
 The Windows 32-bit port of GNU make is maintained jointly by various
 people.  It was originally made by Rob Tulloh.
@@ -41,6 +59,12 @@ Building with (MinGW-)GCC using build_w32.bat
 
     This produces gnumake.exe in the current directory.
 
+    The batch file will probe for Guile installation, and will build
+    gnumake.exe with Guile if it finds it.  If you have Guile
+    installed, but want to build Make without Guile support, type
+
+        build_w32.bat --without-guile gcc
+
 
 Building with (MSVC++-)cl using build_w32.bat or NMakefile
 ----------------------------------------------------------
@@ -61,6 +85,11 @@ Building with (MSVC++-)cl using build_w32.bat or NMakefile
 
     (this produces WinDebug/make.exe and WinRel/make.exe).
 
+    The batch file will probe for Guile installation, and will build
+    gnumake.exe with Guile if it finds it.  If you have Guile
+    installed, but want to build Make without Guile support, type
+
+        build_w32.bat --without-guile
 
 -------------------
 -- Notes/Caveats --
@@ -118,18 +147,10 @@ GNU make and brain-dead shells (BATCH_MODE_ONLY_SHELL):
 
 Support for parallel builds
 
-	Parallel builds (-jN) are supported in this port, with 2
-	limitations:
-
-	  - The number of concurrent processes has a hard limit of 64,
-            due to the way this port implements waiting for its
-            subprocesses;
-
-	  - The job server method (available when Make runs on Posix
-            platforms) is not supported, which means you must pass an
-            explicit -jN switch to sub-Make's in a recursive Makefile.
-            If a sub-Make does not receive an explicit -jN switch, it
-            will default to -j1, i.e. no parallelism in sub-Make's.
+	Parallel builds (-jN) are supported in this port, with 1
+	limitation: The number of concurrent processes has a hard
+	limit of 64, due to the way this port implements waiting for
+	its subprocesses.
 
 GNU make and Cygnus GNU Windows32 tools:
 
