@@ -1,3 +1,9 @@
+2012-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* read.c (unescape_char): Advance 'p' after copying the unescaped
+	characters.  Otherwise the backslashes are incorrectly erased from
+	the original string.
+
 2012-03-05  Paul Smith  <psmith@gnu.org>
 
 	Update copyright notices to use year ranges, as allowed by

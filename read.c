@@ -2242,9 +2242,9 @@ unescape_char (char *string, int c)
               /* It is, and there's >1 backslash.  Take half of them.  */
               l /= 2;
               memcpy (p, s, l);
-              p += l;
             }
           s = e;
+          p += l;
         }
 
       *(p++) = *(s++);
