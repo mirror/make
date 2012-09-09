@@ -2066,9 +2066,7 @@ func_realpath (char *o, char **argv, const char *funcname UNUSED)
   const char *path = 0;
   int doneany = 0;
   unsigned int len = 0;
-#ifndef HAVE_REALPATH
   struct stat st;
-#endif
   PATH_VAR (in);
   PATH_VAR (out);
 
@@ -2083,9 +2081,9 @@ func_realpath (char *o, char **argv, const char *funcname UNUSED)
 #ifdef HAVE_REALPATH
               realpath (in, out)
 #else
-              abspath (in, out) && stat (out, &st) == 0
+              abspath (in, out)
 #endif
-             )
+              && stat (out, &st) == 0)
             {
               o = variable_buffer_output (o, out, strlen (out));
               o = variable_buffer_output (o, " ", 1);

@@ -1,5 +1,8 @@
 2012-09-09  Paul Smith  <psmith@gnu.org>
 
+	* function.c (func_realpath): BSD realpath(3) doesn't fail if the
+	file does not exist: use stat.  Fixes Savannah bug #35919.
+
 	* file.c (expand_deps): Duplicate the current variable buffer, not
 	the old pointer.  Fixes Savannah bug #36925.
 
