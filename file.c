@@ -573,12 +573,11 @@ expand_deps (struct file *f)
          "$*" so they'll expand properly.  */
       if (d->staticpattern)
         {
-          char *o;
-          d->name = o = variable_expand ("");
+          char *o = variable_expand ("");
           o = subst_expand (o, name, "%", "$*", 1, 2, 0);
           *o = '\0';
           free (name);
-          d->name = name = xstrdup (d->name);
+          d->name = name = xstrdup (variable_buffer);
           d->staticpattern = 0;
         }
 

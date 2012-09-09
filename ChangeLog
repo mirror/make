@@ -1,5 +1,8 @@
 2012-09-09  Paul Smith  <psmith@gnu.org>
 
+	* file.c (expand_deps): Duplicate the current variable buffer, not
+	the old pointer.  Fixes Savannah bug #36925.
+
 	* read.c (eval): If we detect an initial UTF-8 BOM, skip it.
 	Fixes Savannah bug #36529.
 	(record_target_var): Remove unused variable "fname".
