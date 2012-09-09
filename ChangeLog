@@ -3,6 +3,8 @@
 	* read.c (eval): If we detect an initial UTF-8 BOM, skip it.
 	Fixes Savannah bug #36529.
 	(record_target_var): Remove unused variable "fname".
+	(eval): Use the correct pointer when adding to the variable buffer.
+	Fixes Savannah bug #36106.
 
 2012-09-09  Eli Zaretskii  <eliz@gnu.org>
 
