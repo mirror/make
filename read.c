@@ -1962,6 +1962,13 @@ record_files (struct nameseq *filenames, const char *pattern,
         {
           posix_pedantic = 1;
           define_variable_cname (".SHELLFLAGS", "-ec", o_default, 0);
+          /* These default values are based on IEEE Std 1003.1-2008.  */
+          define_variable_cname ("ARFLAGS", "-rv", o_default, 0);
+          define_variable_cname ("CC", "c99", o_default, 0);
+          define_variable_cname ("CFLAGS", "-O", o_default, 0);
+          define_variable_cname ("FC", "fort77", o_default, 0);
+          define_variable_cname ("FFLAGS", "-O 1", o_default, 0);
+          define_variable_cname ("SCCSGETFLAGS", "-s", o_default, 0);
         }
       else if (streq (name, ".SECONDEXPANSION"))
         second_expansion = 1;
