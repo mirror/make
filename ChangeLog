@@ -2,6 +2,8 @@
 
 	* read.c (record_files): Reset the default macro values if .POSIX
 	is set.  Fixes Savannah bug #37069.
+	(parse_file_seq): Break out of an infinite loop if we're not
+	making progress when parsing archive references.
 
 2012-09-01  Eli Zaretskii  <eliz@gnu.org>
 

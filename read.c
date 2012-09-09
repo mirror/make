@@ -3087,6 +3087,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopchar,
               const char *e = p;
               do
                 {
+                  const char *o = e;
                   e = next_token (e);
                   /* Find the end of this word.  We don't want to unquote and
                      we don't care about quoting since we're looking for the
@@ -3094,6 +3095,9 @@ parse_file_seq (char **stringp, unsigned int size, int stopchar,
                   while (*e != '\0' && *e != stopchar && *e != VMS_COMMA
                          && ! isblank ((unsigned char) *e))
                     ++e;
+                  /* If we didn't move, we're done now.  */
+                  if (e == o)
+                    break;
                   if (e[-1] == ')')
                     {
                       /* Found the end, so this is the first element in an
