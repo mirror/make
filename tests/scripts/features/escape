@@ -4,7 +4,8 @@ $description = "Test various types of escaping in makefiles.";
 $details = "\
 Make sure that escaping of ':' works in target names.
 Make sure escaping of whitespace works in target names.
-Make sure that escaping of '#' works.";
+Make sure that escaping of '#' works.
+Make sure that backslash before non-special characters are kept.";
 
 
 close(MAKEFILE);
@@ -61,6 +62,14 @@ foo: foo\\:bar foo\\\\\\:bar foo\\\\\\\\\\:bar
 foo foo\\:bar foo\\\\\\:bar foo\\\\\\\\\\:bar: ; @echo '$@'
 !,
               '', "foo:bar\nfoo\\:bar\nfoo\\\\:bar\nfoo\n");
+
+# Test backslash before non-special chars: should be kept as-is
+
+run_make_test(q!
+all: ..\foo
+.DEFAULT: ; @echo '$@'
+!,
+              '', '..\foo');
 
 # This tells the test driver that the perl test script executed properly.
 1;

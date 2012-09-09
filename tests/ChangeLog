@@ -1,5 +1,8 @@
 2012-09-09  Paul Smith  <psmith@gnu.org>
 
+	* scripts/features/escape: Check that backslashes before
+	non-special characters are not removed.
+
 	* scripts/features/utf8: New test for UTF-8 support.
 	See Savannah bug #36529.
 
