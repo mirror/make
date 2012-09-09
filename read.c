@@ -619,8 +619,24 @@ eval (struct ebuffer *ebuf, int set_default)
       if (nlines < 0)
         break;
 
-      /* If this line is empty, skip it.  */
       line = ebuf->buffer;
+
+      /* If this is the first line, check for a UTF-8 BOM and skip it.  */
+      if (ebuf->floc.lineno == 1 && line[0] == (char)0xEF
+          && line[1] == (char)0xBB && line[2] == (char)0xBF)
+        {
+          line += 3;
+          if (ISDB(DB_BASIC))
+            {
+              if (ebuf->floc.filenm)
+                printf (_("Skipping UTF-8 BOM in makefile '%s'\n"),
+                        ebuf->floc.filenm);
+              else
+                printf (_("Skipping UTF-8 BOM in makefile buffer\n"));
+            }
+        }
+
+      /* If this line is empty, skip it.  */
       if (line[0] == '\0')
         continue;
 
@@ -1741,7 +1757,6 @@ record_target_var (struct nameseq *filenames, char *defn,
     {
       struct variable *v;
       const char *name = filenames->name;
-      const char *fname;
       const char *percent;
       struct pattern_var *p;
 
@@ -1766,8 +1781,6 @@ record_target_var (struct nameseq *filenames, char *defn,
             v->value = allocated_variable_expand (v->value);
           else
             v->value = xstrdup (v->value);
-
-          fname = p->target;
         }
       else
         {
@@ -1784,7 +1797,6 @@ record_target_var (struct nameseq *filenames, char *defn,
             f = f->double_colon;
 
           initialize_file_variables (f, 1);
-          fname = f->name;
 
           current_variable_set_list = f->variables;
           v = try_variable_definition (flocp, defn, origin, 1);

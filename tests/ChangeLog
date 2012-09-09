@@ -1,5 +1,8 @@
 2012-09-09  Paul Smith  <psmith@gnu.org>
 
+	* scripts/features/utf8: New test for UTF-8 support.
+	See Savannah bug #36529.
+
 	* scripts/targets/POSIX: Add tests for default macro values as
 	specified by IEEE Std 1003.1-2008.  See Savannah bug #37069.
 
