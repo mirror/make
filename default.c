@@ -514,14 +514,14 @@ static const char *default_variables[] =
     "SCCS_OUTPUT_OPTION", "-G$@",
 #endif
 
-#ifdef _AMIGA
+#if defined(_AMIGA)
     ".LIBPATTERNS", "%.lib",
-#else
-#ifdef __MSDOS__
+#elif defined(__MSDOS__)
     ".LIBPATTERNS", "lib%.a $(DJDIR)/lib/lib%.a",
+#elif defined(__APPLE__)
+    ".LIBPATTERNS", "lib%.dylib lib%.a",
 #else
     ".LIBPATTERNS", "lib%.so lib%.a",
-#endif
 #endif
 
 #endif /* !VMS */
