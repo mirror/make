@@ -1,3 +1,7 @@
+2012-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* read.c (unescape_char): Fix a thinko in the last change.
+
 2012-09-09  Paul Smith  <psmith@gnu.org>
 
 	* default.c (default_variables): Use a correct default LIBPPATERNS
