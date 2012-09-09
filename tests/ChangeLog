@@ -1,5 +1,8 @@
 2012-09-09  Paul Smith  <psmith@gnu.org>
 
+	* scripts/functions/file: Get errors in the C locale, not the
+	current locale.  Fixes Savannah bug #35764.
+
 	* scripts/features/escape: Check that backslashes before
 	non-special characters are not removed.
 

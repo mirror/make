@@ -35,9 +35,16 @@ touch('file.out');
 chmod(0444, 'file.out');
 
 # Find the error that will be printed
+# This seems complicated, but we need the message from the C locale
+my $loc = undef;
+if ($has_POSIX) {
+    $loc = POSIX::setlocale(POSIX::LC_MESSAGES);
+    POSIX::setlocale(POSIX::LC_MESSAGES, 'C');
+}
 my $e;
 open(my $F, '>', 'file.out') and die "Opened read-only file!\n";
 $e = "$!";
+$loc and POSIX::setlocale(POSIX::LC_MESSAGES, $loc);
 
 run_make_test(q!
 define A
