@@ -1,5 +1,8 @@
 2012-09-09  Paul Smith  <psmith@gnu.org>
 
+	* job.c (construct_command_argv_internal): Keep the command line
+	on the heap for very long lines.  Fixes Savannah bug #36451.
+
 	* function.c (func_realpath): BSD realpath(3) doesn't fail if the
 	file does not exist: use stat.  Fixes Savannah bug #35919.
 
