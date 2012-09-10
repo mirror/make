@@ -612,6 +612,10 @@ update_file_1 (struct file *file, unsigned int depth)
                 d->file->dontcare = file->dontcare;
               }
 
+            /* We may have already considered this file, when we didn't know
+               we'd need to update it.  Force update_file() to consider it and
+               not prune it.  */
+            d->file->considered = !considered;
 
 	    dep_status |= update_file (d->file, depth);
 
