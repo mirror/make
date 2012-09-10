@@ -1,5 +1,8 @@
 2012-09-09  Paul Smith  <psmith@gnu.org>
 
+	* configure.in (bsd_signal): Define _GNU_SOURCE, a la make.h.
+	Fixes Savannah bug #32247.
+
 	* remake.c (update_file_1): Force intermediate files to be
 	considered, not pruned, if their non-intermediate parent needs to
 	be remade.  Fixes Savannah bug #30653.

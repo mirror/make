@@ -150,7 +150,8 @@ AC_CHECK_FUNCS([strdup strndup mkstemp mktemp fdopen fileno \
 # We need to check declarations, not just existence, because on Tru64 this
 # function is not declared without special flags, which themselves cause
 # other problems.  We'll just use our own.
-AC_CHECK_DECLS([bsd_signal], [], [], [[#include <signal.h>]])
+AC_CHECK_DECLS([bsd_signal], [], [], [[#define _GNU_SOURCE 1
+#include <signal.h>]])
 
 AC_FUNC_SETVBUF_REVERSED
 
