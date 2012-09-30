@@ -1,3 +1,8 @@
+2012-09-29  Paul Smith  <psmith@gnu.org>
+
+	* configure.in: Require a new version of gettext (1.18.1).
+	Fixes Savannah bug #37307.
+
 2012-09-09  Paul Smith  <psmith@gnu.org>
 
 	* configure.in (bsd_signal): Define _GNU_SOURCE, a la make.h.
