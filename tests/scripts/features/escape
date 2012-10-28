@@ -8,9 +8,6 @@ Make sure that escaping of '#' works.
 Make sure that backslash before non-special characters are kept.";
 
 
-close(MAKEFILE);
-
-
 # TEST 1
 
 run_make_test('
