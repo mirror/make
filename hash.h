@@ -41,6 +41,9 @@ typedef void (*hash_map_arg_func_t) __P((void const *item, void *arg));
 struct hash_table
 {
   void **ht_vec;
+  hash_func_t ht_hash_1;	/* primary hash function */
+  hash_func_t ht_hash_2;	/* secondary hash function */
+  hash_cmp_func_t ht_compare;	/* comparison function */
   unsigned long ht_size;	/* total number of slots (power of 2) */
   unsigned long ht_capacity;	/* usable slots, limited by loading-factor */
   unsigned long ht_fill;	/* items in table */
@@ -48,9 +51,6 @@ struct hash_table
   unsigned long ht_collisions;	/* # of failed calls to comparison function */
   unsigned long ht_lookups;	/* # of queries */
   unsigned int ht_rehashes;	/* # of times we've expanded table */
-  hash_func_t ht_hash_1;	/* primary hash function */
-  hash_func_t ht_hash_2;	/* secondary hash function */
-  hash_cmp_func_t ht_compare;	/* comparison function */
 };
 
 typedef int (*qsort_cmp_t) __P((void const *, void const *));
