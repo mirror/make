@@ -1,3 +1,15 @@
+2012-10-29  Paul Smith  <psmith@gnu.org>
+
+	New feature: "load" directive for dynamically-loaded objects.
+
+	* NEWS: Document new "load" directive.
+	* doc/make.texi (Extending make): New chapter on extensions to make.
+	* configure.in: Check for dlopen/dlsym/dlerror and -ldl.
+	* Makefile.am (make_SOURCES): Add new file load.c.
+	* make.h: Prototype for load_file().
+	* main.c (main): Add "load" to .FEATURES if it's available.
+	* read.c (eval): Parse "load" and "-load" directives.
+
 2012-09-29  Paul Smith  <psmith@gnu.org>
 
 	* configure.in: Require a new version of gettext (1.18.1).

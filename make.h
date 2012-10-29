@@ -472,8 +472,13 @@ const char *strcache_add_len (const char *str, unsigned int len);
 int strcache_setbufsize (unsigned int size);
 
 /* Guile support  */
-int setup_guile (void);
+#ifdef HAVE_GUILE
+int guile_gmake_setup (const struct floc *flocp);
+#endif
 
+/* Loadable object support  */
+typedef int (*load_func_t)(const struct floc *flocp);
+int load_file (const struct floc *flocp, const char *filename, int noerror);
 
 #ifdef  HAVE_VFORK_H
 # include <vfork.h>

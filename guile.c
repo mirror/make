@@ -104,17 +104,16 @@ func_guile (char *o, char **argv, const char *funcname UNUSED)
 
 /* ----- Public interface ----- */
 
+/* We could send the flocp to define_new_function(), but since guile is
+   "kind of" built-in, that didn't seem so useful.  */
 int
-setup_guile ()
+guile_gmake_setup (const struct floc *flocp UNUSED)
 {
   /* Initialize the Guile interpreter.  */
   scm_with_guile (guile_init, NULL);
 
   /* Create a make function "guile".  */
   define_new_function (NILF, "guile", 0, 1, 1, func_guile);
-
-  /* Add 'guile' to the list of features. */
-  do_variable_definition (NILF, ".FEATURES", "guile", o_default, f_append, 0);
 
   return 1;
 }

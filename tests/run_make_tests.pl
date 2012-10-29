@@ -97,6 +97,17 @@ sub valid_option
 
 $old_makefile = undef;
 
+sub subst_make_string
+{
+    local $_ = shift;
+    $makefile and s/#MAKEFILE#/$makefile/g;
+    s/#MAKEPATH#/$mkpath/g;
+    s/#MAKE#/$make_name/g;
+    s/#PERL#/$perl_name/g;
+    s/#PWD#/$pwd/g;
+    return $_;
+}
+
 sub run_make_test
 {
   local ($makestring, $options, $answer, $err_code, $timeout) = @_;
@@ -114,16 +125,9 @@ sub run_make_test
       $makefile = &get_tmpfile();
     }
 
-    # Make sure it ends in a newline.
+    # Make sure it ends in a newline and substitute any special tokens.
     $makestring && $makestring !~ /\n$/s and $makestring .= "\n";
-
-    # Replace @MAKEFILE@ with the makefile name and @MAKE@ with the path to
-    # make
-    $makestring =~ s/#MAKEFILE#/$makefile/g;
-    $makestring =~ s/#MAKEPATH#/$mkpath/g;
-    $makestring =~ s/#MAKE#/$make_name/g;
-    $makestring =~ s/#PERL#/$perl_name/g;
-    $makestring =~ s/#PWD#/$pwd/g;
+    $makestring = subst_make_string($makestring);
 
     # Populate the makefile!
     open(MAKEFILE, "> $makefile") || die "Failed to open $makefile: $!\n";
@@ -132,13 +136,8 @@ sub run_make_test
   }
 
   # Do the same processing on $answer as we did on $makestring.
-
   $answer && $answer !~ /\n$/s and $answer .= "\n";
-  $answer =~ s/#MAKEFILE#/$makefile/g;
-  $answer =~ s/#MAKEPATH#/$mkpath/g;
-  $answer =~ s/#MAKE#/$make_name/g;
-  $answer =~ s/#PERL#/$perl_name/g;
-  $answer =~ s/#PWD#/$pwd/g;
+  $answer = subst_make_string($answer);
 
   run_make_with_options($makefile, $options, &get_logfile(0),
                         $err_code, $timeout);

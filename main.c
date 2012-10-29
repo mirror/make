@@ -1149,6 +1149,12 @@ main (int argc, char **argv, char **envp)
 #ifdef MAKE_SYMLINKS
                            " check-symlink"
 #endif
+#ifdef HAVE_GUILE
+                           " guile"
+#endif
+#ifdef MAKE_LOAD
+                           " load"
+#endif
                            ;
 
     define_variable_cname (".FEATURES", features, o_default, 0);
@@ -1156,7 +1162,7 @@ main (int argc, char **argv, char **envp)
 
 #ifdef HAVE_GUILE
   /* Configure GNU Guile support */
-  setup_guile ();
+  guile_gmake_setup (NILF);
 #endif
 
   /* Read in variables from the environment.  It is important that this be
@@ -1661,8 +1667,7 @@ main (int argc, char **argv, char **envp)
 
   /* Read all the makefiles.  */
 
-  read_makefiles
-    = read_all_makefiles (makefiles == 0 ? 0 : makefiles->list);
+  read_makefiles = read_all_makefiles (makefiles == 0 ? 0 : makefiles->list);
 
 #ifdef WINDOWS32
   /* look one last time after reading all Makefiles */
@@ -3271,7 +3276,7 @@ die (int status)
       if (directory_before_chdir != 0)
         {
           /* If it fails we don't care: shut up GCC.  */
-          int _x;
+          int _x UNUSED;
           _x = chdir (directory_before_chdir);
         }
 

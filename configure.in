@@ -252,9 +252,7 @@ AS_IF([test "$PATH_SEPARATOR" = ';'],
             [Define to 1 if your system requires backslashes or drive specs in pathnames.])
 ])
 
-
 # See if the user wants to use pmake's "customs" distributed build capability
-
 AC_SUBST([REMOTE]) REMOTE=stub
 use_customs=false
 AC_ARG_WITH([customs],
@@ -280,7 +278,6 @@ AC_ARG_WITH([customs],
 AM_CONDITIONAL([USE_CUSTOMS], [test "$use_customs" = true])
 
 # See if the user asked to handle case insensitive file systems.
-
 AH_TEMPLATE([HAVE_CASE_INSENSITIVE_FS], [Use case insensitive file names])
 AC_ARG_ENABLE([case-insensitive-file-system],
   AC_HELP_STRING([--enable-case-insensitive-file-system],
@@ -288,7 +285,6 @@ AC_ARG_ENABLE([case-insensitive-file-system],
   [AS_IF([test "$enableval" = yes], [AC_DEFINE([HAVE_CASE_INSENSITIVE_FS])])])
 
 # See if we can handle the job server feature, and if the user wants it.
-
 AC_ARG_ENABLE([job-server],
   AC_HELP_STRING([--disable-job-server],
                  [disallow recursive make communication during -jN]),
@@ -324,11 +320,57 @@ AS_CASE([/$make_cv_job_server/$user_job_server/],
              [Define to 1 to enable job server support in GNU make.])
   ])
 
+# If dl*() functions are supported we can enable the load operation
+AC_CHECK_DECLS([dlopen, dlsym, dlerror], [], [],
+  [[#include <dlfcn.h>]])
+
+AC_ARG_ENABLE([load],
+  AC_HELP_STRING([--disable-load],
+                 [disable support for the 'load' operation]),
+  [make_cv_load="$enableval" user_load="$enableval"],
+  [make_cv_load="yes"])
+
+AS_CASE([/$ac_cv_func_dlopen/$ac_cv_func_dlsym/$ac_cv_func_dlerror/],
+  [*/no/*], [make_cv_load=no])
+
+AS_CASE([/$make_cv_load/$user_load/],
+  [*/no/*], [make_cv_load=no],
+  [AC_DEFINE(MAKE_LOAD, 1,
+             [Define to 1 to enable 'load' support in GNU make.])
+  ])
+
+# We might need -ldl
+AS_IF([test "$make_cv_load" = yes], [
+  AC_SEARCH_LIBS([dlopen], [dl], [], [make_cv_load=])
+  ])
+
+# If we want load support, we might need to link with export-dynamic.
+# See if we can figure it out.  Unfortunately this is very difficult.
+# For example passing -rdynamic to the SunPRO linker gives a warning
+# but succeeds and creates a shared object, not an executable!
+AS_IF([test "$make_cv_load" = yes], [
+  AC_MSG_CHECKING([If the linker accepts -Wl,--export-dynamic])
+  old_LDFLAGS="$LDFLAGS"
+  LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
+  AC_LINK_IFELSE([int main(){}],
+    [AC_MSG_RESULT([yes])
+     AC_SUBST([AM_LDFLAGS], [-Wl,--export-dynamic])],
+    [AC_MSG_RESULT([no])
+     AC_MSG_CHECKING([If the linker accepts -rdynamic])
+     LDFLAGS="$old_LDFLAGS -rdynamic"
+     AC_LINK_IFELSE([int main(){}],
+       [AC_MSG_RESULT([yes])
+        AC_SUBST([AM_LDFLAGS], [-rdynamic])],
+       [AC_MSG_RESULT([no])])
+   ])
+  LDFLAGS="$old_LDFLAGS"
+])
+
 # if we have both lstat() and readlink() then we can support symlink
 # timechecks.
 AS_IF([test "$ac_cv_func_lstat" = yes && test "$ac_cv_func_readlink" = yes],
-[ AC_DEFINE([MAKE_SYMLINKS], [1],
-            [Define to 1 to enable symbolic link timestamp checking.])
+  [ AC_DEFINE([MAKE_SYMLINKS], [1],
+              [Define to 1 to enable symbolic link timestamp checking.])
 ])
 
 # Find the SCCS commands, so we can include them in our default rules.
@@ -455,6 +497,15 @@ AS_IF([test "x$make_cv_job_server" = xno && test "x$user_job_server" = xyes],
   echo "         waitpid() or wait3() functions.  Your system doesn't"
   echo "         appear to provide one or more of those."
   echo "         Disabling job server support."
+  echo
+])
+
+AS_IF([test "x$make_cv_load" = xno && test "x$user_load" = xyes],
+[ echo
+  echo "WARNING: 'load' support requires a POSIX-ish system that"
+  echo "         supports the dlopen(), dlsym(), and dlerror() functions."
+  echo "         Your system doesn't appear to provide one or more of these."
+  echo "         Disabling 'load' support."
   echo
 ])
 

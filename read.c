@@ -595,9 +595,8 @@ eval (struct ebuffer *ebuf, int set_default)
      when the start of the next rule (or eof) is encountered.
 
      When you see a "continue" in the loop below, that means we are moving on
-     to the next line _without_ ending any rule that we happen to be working
-     with at the moment.  If you see a "goto rule_complete", then the
-     statement we just parsed also finishes the previous rule.  */
+     to the next line.  If you see record_waiting_files(), then the statement
+     we are parsing also finishes the previous rule.  */
 
   commands = xmalloc (200);
 
@@ -707,6 +706,9 @@ eval (struct ebuffer *ebuf, int set_default)
           struct variable *v;
           enum variable_origin origin = vmod.override_v ? o_override : o_file;
 
+          /* Variable assignment ends the previous rule.  */
+          record_waiting_files ();
+
           /* If we're ignoring then we're done now.  */
 	  if (ignoring)
             {
@@ -718,9 +720,7 @@ eval (struct ebuffer *ebuf, int set_default)
           if (vmod.undefine_v)
           {
             do_undefine (p, origin, ebuf);
-
-            /* This line has been dealt with.  */
-            goto rule_complete;
+            continue;
           }
           else if (vmod.define_v)
             v = do_define (p, origin, ebuf);
@@ -735,7 +735,7 @@ eval (struct ebuffer *ebuf, int set_default)
             v->private_var = 1;
 
           /* This line has been dealt with.  */
-          goto rule_complete;
+          continue;
         }
 
       /* If this line is completely empty, ignore it.  */
@@ -779,6 +779,9 @@ eval (struct ebuffer *ebuf, int set_default)
 	{
           int exporting = *p == 'u' ? 0 : 1;
 
+          /* Export/unexport ends the previous rule.  */
+          record_waiting_files ();
+
           /* (un)export by itself causes everything to be (un)exported. */
 	  if (*p2 == '\0')
             export_all_variables = exporting;
@@ -803,7 +806,7 @@ eval (struct ebuffer *ebuf, int set_default)
 
               free (ap);
             }
-          goto rule_complete;
+          continue;
 	}
 
       /* Handle the special syntax for vpath.  */
@@ -812,6 +815,10 @@ eval (struct ebuffer *ebuf, int set_default)
           const char *cp;
 	  char *vpat;
 	  unsigned int l;
+
+          /* vpath ends the previous rule.  */
+          record_waiting_files ();
+
 	  cp = variable_expand (p2);
 	  p = find_next_token (&cp, &l);
 	  if (p != 0)
@@ -828,7 +835,7 @@ eval (struct ebuffer *ebuf, int set_default)
 	  if (vpat != 0)
 	    free (vpat);
 
-          goto rule_complete;
+          continue;
 	}
 
       /* Handle include and variants.  */
@@ -842,6 +849,9 @@ eval (struct ebuffer *ebuf, int set_default)
 	  /* "-include" (vs "include") says no error if the file does not
 	     exist.  "sinclude" is an alias for this from SGI.  */
 	  int noerror = (p[0] != 'i');
+
+          /* Include ends the previous rule.  */
+          record_waiting_files ();
 
 	  p = allocated_variable_expand (p2);
 
@@ -887,8 +897,50 @@ eval (struct ebuffer *ebuf, int set_default)
 	  /* Restore conditional state.  */
 	  restore_conditionals (save);
 
-          goto rule_complete;
+          continue;
 	}
+
+      /* Handle the load operations.  */
+      if (word1eq ("load") || word1eq ("-load"))
+        {
+	  /* A 'load' line specifies a dynamic object to load.  */
+	  struct nameseq *files;
+          int noerror = (p[0] == '-');
+
+          /* Load ends the previous rule.  */
+          record_waiting_files ();
+
+	  p = allocated_variable_expand (p2);
+
+          /* If no filenames, it's a no-op.  */
+	  if (*p == '\0')
+            {
+              free (p);
+              continue;
+            }
+
+	  /* Parse the list of file names.
+             Don't expand archive references or strip "./"  */
+	  p2 = p;
+	  files = PARSE_FILE_SEQ (&p2, struct nameseq, '\0', NULL,
+                                  PARSEFS_NOAR|PARSEFS_NOSTRIP);
+	  free (p);
+
+	  /* Load each file.  */
+	  while (files != 0)
+	    {
+	      struct nameseq *next = files->next;
+	      const char *name = files->name;
+
+	      free_ns (files);
+	      files = next;
+
+              if (! load_file (&ebuf->floc, name, noerror) && ! noerror)
+                fatal (&ebuf->floc, _("%s: failed to load"), name);
+	    }
+
+          continue;
+        }
 
       /* This line starts with a tab but was not caught above because there
          was no preceding target, and the line might have been usable as a
@@ -1293,7 +1345,6 @@ eval (struct ebuffer *ebuf, int set_default)
       /* We get here except in the case that we just read a rule line.
 	 Record now the last rule we read, so following spurious
 	 commands are properly diagnosed.  */
- rule_complete:
       record_waiting_files ();
     }
 

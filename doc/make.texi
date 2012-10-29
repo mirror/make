@@ -100,6 +100,7 @@ Cover art by Etienne Suvasa.
 * Implicit Rules::              Use implicit rules to treat many files alike,
                                   based on their file names.
 * Archives::                    How @code{make} can update library archives.
+* Extending make::              Using extensions to @code{make}.
 * Features::                    Features GNU @code{make} has over other @code{make}s.
 * Missing::                     What GNU @code{make} lacks from other @code{make}s.
 * Makefile Conventions::        Conventions for writing makefiles for
@@ -277,13 +278,7 @@ Functions for Transforming Text
 * Flavor Function::             Find out the flavor of a variable.
 * Make Control Functions::      Functions that control how make runs.
 * Shell Function::              Substitute the output of a shell command.
-* Guile Function::              Call the GNU Guile embedded scripting language.
-
-The @code{guile} Function
-
-* Guile Types::                 Converting Guile types to @code{make} strings.
-* Guile Interface::             Invoking @code{make} functions from Guile.
-* Guile Example::               Example using Guile in @code{make}.
+* Guile Function::              Use GNU Guile embedded scripting language.
 
 How to Run @code{make}
 
@@ -338,6 +333,21 @@ Using @code{make} to Update Archive Files
 Implicit Rule for Archive Member Targets
 
 * Archive Symbols::             How to update archive symbol directories.
+
+Extending GNU @code{make}
+
+* Guile Integration::           Using Guile as an embedded scripting language.
+* Loading Objects::             Loading dynamic objects as extensions.
+
+GNU Guile Integration
+
+* Guile Types::                 Converting Guile types to @code{make} strings.
+* Guile Interface::             Invoking @code{make} functions from Guile.
+* Guile Example::               Example using Guile in @code{make}.
+
+Loading Dynamic Objects
+
+* load Directive::              Loading dynamic objects as extensions.
 
 @end detailmenu
 @end menu
@@ -6280,7 +6290,11 @@ Supports the @code{undefine} directive.  @xref{Undefine Directive}.
 
 @item guile
 Has GNU Guile available as an embedded extension language.
-@xref{Guile Function}.
+@xref{Guile Integration, ,GNU Guile Integration}.
+
+@item load
+Supports dynamically loadable objects for creating custom extensions.
+@xref{Loading Objects, ,Loading Dynamic Objects}.
 
 @end table
 
@@ -6422,12 +6436,12 @@ endif
 or:
 
 @example
-@var{conditional-directive}
+@var{conditional-directive-one}
 @var{text-if-one-is-true}
-else @var{conditional-directive}
-@var{text-if-true}
+else @var{conditional-directive-two}
+@var{text-if-two-is-true}
 else
-@var{text-if-false}
+@var{text-if-one-and-two-are-false}
 endif
 @end example
 
@@ -6631,7 +6645,7 @@ be substituted.
 * Flavor Function::             Find out the flavor of a variable.
 * Make Control Functions::      Functions that control how make runs.
 * Shell Function::              Substitute the output of a shell command.
-* Guile Function::              Call the GNU Guile embedded scripting language.
+* Guile Function::              Use GNU Guile embedded scripting language.
 @end menu
 
 @node Syntax of Functions, Text Functions, Functions, Functions
@@ -7896,208 +7910,17 @@ exists).@refill
 @findex guile
 @cindex Guile
 
-GNU make may be built with support for GNU Guile as an embedded
-extension language.  You can check the @code{.FEATURES} variable for
-the word @samp{guile} to determine if your version of GNU make
-provides this capability.
+If GNU @code{make} is built with support for GNU Guile as an embedded
+extension language then the @code{guile} function will be available.
+The @code{guile} function takes one argument which is first expanded
+by @code{make} in the normal fashion, then passed to the GNU Guile
+evaluator.  The result of the evaluator is converted into a string and
+used as the expansion of the @code{guile} function in the makefile.
+See @ref{Guile Integration, ,GNU Guile Integration} for details on
+writing extensions to @code{make} in Guile.
 
-GNU Guile implements the Scheme language.  A review of GNU Guile and
-the Scheme language and its features is beyond the scope of this
-manual: see the documentation for GNU Guile and Scheme.
-
-If GNU Guile is available as an extension language, there will be one
-new @code{make} function available: @code{guile}.  The @code{guile}
-function takes one argument which is first expanded by @code{make} in
-the normal fashion, then passed to the GNU Guile evaluator.  The
-result of the evaluator is converted into a string and used as the
-expansion of the @code{guile} function in the makefile.
-
-Similarly, there are Guile procedures exposed by @code{make} for use
-in Guile scripts.
-
-@menu
-* Guile Types::                 Converting Guile types to @code{make} strings.
-* Guile Interface::             Invoking @code{make} functions from Guile.
-* Guile Example::               Example using Guile in @code{make}.
-@end menu
-
-@node Guile Types, Guile Interface, Guile Function, Guile Function
-@subsection Conversion of Guile Types
-@cindex convert guile types
-@cindex guile, conversion of types
-@cindex types, conversion of
-
-There is only one ``data type'' in @code{make}: a string.  GNU Guile,
-on the other hand, provides a rich variety of different data types.
-An important aspect of the interface between @code{make} and GNU Guile
-is the conversion of Guile data types into @code{make} strings.
-
-This conversion is relevant in two places: when a makefile invokes the
-@code{guile} function to evaluate a Guile expression, the result of
-that evaluation must be converted into a make string so it can be
-further evaluated by @code{make}.  And secondly, when a Guile script
-invokes one of the procedures exported by @code{make} the argument
-provided to the procedure must be converted into a string.
-
-The conversion of Guile types into @code{make} strings is as below:
-
-@table @code
-@item #f
-False is converted into the empty string: in @code{make} conditionals
-the empty string is considered false.
-
-@item #t
-True is converted to the string @samp{#t}: in @code{make} conditionals
-any non-empty string is considered true.
-
-@item symbol
-@item number
-A symbol or number is converted into the string representation of that
-symbol or number.
-
-@item character
-A printable character is converted to the same character.
-
-@item string
-A string containing only printable characters is converted to the same
-string.
-
-@item list
-A list is converted recursively according to the above rules.  This
-implies that any structured list will be flattened (that is, a result
-of @samp{'(a b (c d) e)} will be converted to the @code{make} string
-@samp{a b c d e}).
-
-@item other
-Any other Guile type results in an error.  In future versions of
-@code{make}, other Guile types may be converted.
-
-@end table
-
-The translation of @samp{#f} (to the empty string) and @samp{#t} (to
-the non-empty string @samp{#t}) is designed to allow you to use Guile
-boolean results directly as @code{make} boolean conditions.  For
-example:
-
-@example
-$(if $(guile (access? "myfile" R_OK)),$(info myfile exists))
-@end example
-
-As a consequence of these conversion rules you must consider the
-result of your Guile script, as that result will be converted into a
-string and parsed by @code{make}.  If there is no natural result for
-the script (that is, the script exists solely for its side-effects),
-you should add @samp{#f} as the final expression in order to avoid
-syntax errors in your makefile.
-
-@node Guile Interface, Guile Example, Guile Types, Guile Function
-@subsection Interfaces from Guile to @code{make}
-@cindex make interface to guile
-@cindex make procedures in guile
-
-In addition to the @code{guile} function available in makefiles,
-@code{make} exposes some procedures for use in your Guile scripts.  At
-startup @code{make} creates a new Guile module, @code{gnu make}, and
-exports these procedures as public interfaces from that module:
-
-@table @code
-@item gmk-expand
-This procedure takes a single argument which is converted into a
-string.  The string is expanded by @code{make} using normal
-@code{make} expansion rules.  The result of the expansion is converted
-into a Guile string and provided as the result of the procedure.
-
-@item gmk-eval
-This procedure takes a single argument which is converted into a
-string.  The string is evaluated by @code{make} as if it were a
-makefile.  This is the same capability available via the @code{eval}
-function (@pxref{Eval Function}).  The result of the @code{gmk-eval}
-procedure is always the empty string.
-
-@item gmk-var
-This procedure takes a single argument which is converted into a
-string.  The string is assumed to be the name of a @code{make}
-variable, which is then expanded.  The expansion is converted into a
-string and provided as the result of the procedure.
-
-@end table
-
-@node Guile Example,  , Guile Interface, Guile Function
-@subsection Example Using Guile in @code{make}
-@cindex Guile example
-@cindex example using Guile
-
-Here is a very simple example using GNU Guile to manage writing to a
-file.  These Guile procedures simply open a file, allow writing to the
-file (one string per line), and close the file.  Note that because we
-cannot store complex values such as Guile ports in @code{make}
-variables, we'll keep the port as a global variable in the Guile
-interpreter.
-
-You can create Guile functions easily using @code{define}/@code{endef}
-to create a Guile script, then use the @code{guile} function to
-internalize it:
-
-@example
-@group
-define GUILEIO
-;; A simple Guile IO library for GNU make
-
-(define MKPORT #f)
-
-(define (mkopen name mode)
-  (set! MKPORT (open-file name mode))
-  #f)
-
-(define (mkwrite s)
-  (display s MKPORT)
-  (newline MKPORT)
-  #f)
-
-(define (mkclose)
-  (close-port MKPORT)
-  #f)
-
-#f
-endef
-
-# Internalize the Guile IO functions
-$(guile $(GUILEIO))
-@end group
-@end example
-
-If you have a significant amount of Guile support code, you might
-consider keeping it in a different file (e.g., @file{guileio.scm}) and
-then loading it in your makefile using the @code{guile} function:
-
-@example
-$(guile (load "guileio.scm"))
-@end example
-
-An advantage to this method is that when editing @file{guileio.scm},
-your editor will understand that this file contains Scheme syntax
-rather than makefile syntax.
-
-Now you can use these Guile functions to create files.  Suppose you
-need to operate on a very large list, which cannot fit on the command
-line, but the utility you're using accepts the list as input as well:
-
-@example
-@group
-prog: $(PREREQS)
-        @@$(guile (mkopen "tmp.out" "w")) \
-         $(foreach X,$^,$(guile (mkwrite "$(X)"))) \
-         $(guile (mkclose))
-        $(LINK) < tmp.out
-@end group
-@end example
-
-A more comprehensive suite of file manipulation procedures is possible
-of course.  You could, for example, maintain multiple output files at
-the same time by choosing a symbol for each one and using it as the
-key to a hash table, where the value is a port, then returning the
-symbol to be stored in a @code{make} variable.
-
+You can determine whether GNU Guile support is available by checking
+the @code{.FEATURES} variable for the word @var{guile}.
 
 @node Running, Implicit Rules, Functions, Top
 @chapter How to Run @code{make}
@@ -10476,7 +10299,7 @@ When the recipe of a pattern rule is executed for @var{t}, the
 automatic variables are set corresponding to the target and
 prerequisites.  @xref{Automatic Variables}.
 
-@node Archives, Features, Implicit Rules, Top
+@node Archives, Extending make, Implicit Rules, Top
 @chapter Using @code{make} to Update Archive Files
 @cindex archive
 
@@ -10703,7 +10526,345 @@ in the normal way (@pxref{Suffix Rules}).  Thus a double-suffix rule
 @w{@samp{.@var{x}.a}} produces two pattern rules: @samp{@w{(%.o):}
 @w{%.@var{x}}} and @samp{@w{%.a}: @w{%.@var{x}}}.@refill
 
-@node Features, Missing, Archives, Top
+@node Extending make, Features, Archives, Top
+@chapter Extending GNU @code{make}
+@cindex make extensions
+
+GNU @code{make} provides many advanced capabilities, including many
+useful functions.  However, it does not contain a complete programming
+language and so it has limitations.  Sometimes these limitations can be
+overcome through use of the @code{shell} function to invoke a separate
+program, although this can be inefficient.
+
+In cases where the built-in capabilities of GNU @code{make} are
+insufficient to your requirements there are two options for extending
+@code{make}.  On systems where it's provided, you can utilize GNU
+Guile as an embedded scripting language (@pxref{Guile Integration,
+,GNU Guile Integration}).  On systems which support dynamically
+loadable objects, you can write your own extension in any language
+(which can be compiled into such an object) and load it to provide
+extended capabilities (@pxref{load Directive, ,The @code{load} Directive}).
+
+@menu
+* Guile Integration::           Using Guile as an embedded scripting language.
+* Loading Objects::             Loading dynamic objects as extensions.
+@end menu
+
+@node Guile Integration, Loading Objects, Extending make, Extending make
+@section GNU Guile Integration
+@cindex Guile
+@cindex extensions, Guile
+
+GNU @code{make} may be built with support for GNU Guile as an embedded
+extension language.  Guile implements the Scheme language.  A review
+of GNU Guile and the Scheme language and its features is beyond the
+scope of this manual: see the documentation for GNU Guile and Scheme.
+
+You can determine if @code{make} contains support for Guile by
+examining the @code{.FEATURES} variable; it will contain the word
+@var{guile} if Guile support is available.
+
+The Guile integration provides one new @code{make} function: @code{guile}.
+The @code{guile} function takes one argument which is first expanded
+by @code{make} in the normal fashion, then passed to the GNU Guile
+evaluator.  The result of the evaluator is converted into a string and
+used as the expansion of the @code{guile} function in the makefile.
+
+In addition, GNU @code{make} exposes Guile procedures for use in Guile
+scripts.
+
+@menu
+* Guile Types::                 Converting Guile types to @code{make} strings.
+* Guile Interface::             Invoking @code{make} functions from Guile.
+* Guile Example::               Example using Guile in @code{make}.
+@end menu
+
+@node Guile Types, Guile Interface, Guile Integration, Guile Integration
+@subsection Conversion of Guile Types
+@cindex convert guile types
+@cindex guile, conversion of types
+@cindex types, conversion of
+
+There is only one ``data type'' in @code{make}: a string.  GNU Guile,
+on the other hand, provides a rich variety of different data types.
+An important aspect of the interface between @code{make} and GNU Guile
+is the conversion of Guile data types into @code{make} strings.
+
+This conversion is relevant in two places: when a makefile invokes the
+@code{guile} function to evaluate a Guile expression, the result of
+that evaluation must be converted into a make string so it can be
+further evaluated by @code{make}.  And secondly, when a Guile script
+invokes one of the procedures exported by @code{make} the argument
+provided to the procedure must be converted into a string.
+
+The conversion of Guile types into @code{make} strings is as below:
+
+@table @code
+@item #f
+False is converted into the empty string: in @code{make} conditionals
+the empty string is considered false.
+
+@item #t
+True is converted to the string @samp{#t}: in @code{make} conditionals
+any non-empty string is considered true.
+
+@item symbol
+@item number
+A symbol or number is converted into the string representation of that
+symbol or number.
+
+@item character
+A printable character is converted to the same character.
+
+@item string
+A string containing only printable characters is converted to the same
+string.
+
+@item list
+A list is converted recursively according to the above rules.  This
+implies that any structured list will be flattened (that is, a result
+of @samp{'(a b (c d) e)} will be converted to the @code{make} string
+@samp{a b c d e}).
+
+@item other
+Any other Guile type results in an error.  In future versions of
+@code{make}, other Guile types may be converted.
+
+@end table
+
+The translation of @samp{#f} (to the empty string) and @samp{#t} (to
+the non-empty string @samp{#t}) is designed to allow you to use Guile
+boolean results directly as @code{make} boolean conditions.  For
+example:
+
+@example
+$(if $(guile (access? "myfile" R_OK)),$(info myfile exists))
+@end example
+
+As a consequence of these conversion rules you must consider the
+result of your Guile script, as that result will be converted into a
+string and parsed by @code{make}.  If there is no natural result for
+the script (that is, the script exists solely for its side-effects),
+you should add @samp{#f} as the final expression in order to avoid
+syntax errors in your makefile.
+
+@node Guile Interface, Guile Example, Guile Types, Guile Integration
+@subsection Interfaces from Guile to @code{make}
+@cindex make interface to guile
+@cindex make procedures in guile
+
+In addition to the @code{guile} function available in makefiles,
+@code{make} exposes some procedures for use in your Guile scripts.  At
+startup @code{make} creates a new Guile module, @code{gnu make}, and
+exports these procedures as public interfaces from that module:
+
+@table @code
+@item gmk-expand
+This procedure takes a single argument which is converted into a
+string.  The string is expanded by @code{make} using normal
+@code{make} expansion rules.  The result of the expansion is converted
+into a Guile string and provided as the result of the procedure.
+
+@item gmk-eval
+This procedure takes a single argument which is converted into a
+string.  The string is evaluated by @code{make} as if it were a
+makefile.  This is the same capability available via the @code{eval}
+function (@pxref{Eval Function}).  The result of the @code{gmk-eval}
+procedure is always the empty string.
+
+@item gmk-var
+This procedure takes a single argument which is converted into a
+string.  The string is assumed to be the name of a @code{make}
+variable, which is then expanded.  The expansion is converted into a
+string and provided as the result of the procedure.
+
+@end table
+
+@node Guile Example,  , Guile Interface, Guile Integration
+@subsection Example Using Guile in @code{make}
+@cindex Guile example
+@cindex example using Guile
+
+Here is a very simple example using GNU Guile to manage writing to a
+file.  These Guile procedures simply open a file, allow writing to the
+file (one string per line), and close the file.  Note that because we
+cannot store complex values such as Guile ports in @code{make}
+variables, we'll keep the port as a global variable in the Guile
+interpreter.
+
+You can create Guile functions easily using @code{define}/@code{endef}
+to create a Guile script, then use the @code{guile} function to
+internalize it:
+
+@example
+@group
+define GUILEIO
+;; A simple Guile IO library for GNU make
+
+(define MKPORT #f)
+
+(define (mkopen name mode)
+  (set! MKPORT (open-file name mode))
+  #f)
+
+(define (mkwrite s)
+  (display s MKPORT)
+  (newline MKPORT)
+  #f)
+
+(define (mkclose)
+  (close-port MKPORT)
+  #f)
+
+#f
+endef
+
+# Internalize the Guile IO functions
+$(guile $(GUILEIO))
+@end group
+@end example
+
+If you have a significant amount of Guile support code, you might
+consider keeping it in a different file (e.g., @file{guileio.scm}) and
+then loading it in your makefile using the @code{guile} function:
+
+@example
+$(guile (load "guileio.scm"))
+@end example
+
+An advantage to this method is that when editing @file{guileio.scm},
+your editor will understand that this file contains Scheme syntax
+rather than makefile syntax.
+
+Now you can use these Guile functions to create files.  Suppose you
+need to operate on a very large list, which cannot fit on the command
+line, but the utility you're using accepts the list as input as well:
+
+@example
+@group
+prog: $(PREREQS)
+        @@$(guile (mkopen "tmp.out" "w")) \
+         $(foreach X,$^,$(guile (mkwrite "$(X)"))) \
+         $(guile (mkclose))
+        $(LINK) < tmp.out
+@end group
+@end example
+
+A more comprehensive suite of file manipulation procedures is possible
+of course.  You could, for example, maintain multiple output files at
+the same time by choosing a symbol for each one and using it as the
+key to a hash table, where the value is a port, then returning the
+symbol to be stored in a @code{make} variable.
+
+@node Loading Objects,  , Guile Integration, Extending make
+@section Loading Dynamic Objects
+@cindex loading objects
+@cindex objects, loading
+@cindex extensions, loading
+
+@cartouche
+@quotation Warning
+The @code{load} directive and extension capability is considered a
+``technology preview'' in this release of GNU make.  We encourage you
+to experiment with this feature and we appreciate any feedback on it.
+However we cannot guarantee to maintain backward-compatibility in the
+next release.
+
+In particular, for this feature to be useful your extensions will need
+to invoke various functions internal to GNU @code{make}.  In this
+release there is no stable programming interface defined for
+@code{make}: any internal function may change or even disappear in
+future releases.
+@end quotation
+@end cartouche
+
+Many operating systems provide a facility for dynamically loading
+compiled objects.  If your system provides this facility, GNU
+@code{make} can make use of it to load dynamic objects at runtime,
+providing new capabilities which may then be invoked by your makefile.
+
+The @code{load} directive is used to load a dynamic object.  Once the
+object is loaded, a ``setup'' function will be invoked to allow the
+object to initialize itself and register new facilities with GNU
+@code{make}.  Typically a dynamic object would create new functions,
+for example, and the ``setup'' function would register them with GNU
+@code{make}'s function handling system.
+
+@menu
+* load Directive::              Loading dynamic objects as extensions.
+@end menu
+
+@node load Directive,  , Loading Objects, Loading Objects
+@subsection The @code{load} Directive
+@cindex load directive
+@cindex extensions, load directive
+
+Objects are loaded into GNU @code{make} by placing the @code{load}
+directive into your makefile.  The syntax of the @code{load} directive
+is as follows:
+
+@findex load
+@example
+load @var{object-file} @dots{}
+@end example
+
+or:
+
+@example
+load @var{object-file}(@var{symbol-name}) @dots{}
+@end example
+
+In the first form, the file @var{object-file} is dynamically loaded by
+GNU @code{make}.  On failure, @code{make} will print a message and
+exit.  If the load succeeds @code{make} will invoke an initializing
+function whose name is created by taking the base file name of
+@var{object-file}, up to the first character which is not a valid
+symbol name character (alphanumerics and underscores are valid symbol
+name characters).  To this prefix will be appended the suffix
+@code{_gmake_setup}, then this symbol will be invoked.
+
+In the second form, the function @var{symbol-name} will be invoked.
+
+More than one object file may be loaded with a single @code{load}
+directive, and both forms of @code{load} arguments may be used in the
+same directive.
+
+For example:
+
+@example
+load ../mk_funcs.so
+@end example
+
+will load the dynamic object @file{../mk_funcs.so}.  After the object
+is loaded, @code{make} will invoke the function (assumed to be defined
+by the shared object) @code{mk_funcs_gmake_setup}.
+
+On the other hand:
+
+@example
+load ../mk_funcs.so(init_mk_func)
+@end example
+
+will load the dynamic object @file{../mk_funcs.so}.  After the object
+is loaded, @code{make} will invoke the function @code{init_mk_func}.
+
+Regardless of how many times an object file appears in a @code{load}
+directive, it will only be loaded (and it's setup function will only
+be invoked) once.
+
+@vindex .LOADED
+After an object has been successfully loaded, its file name is
+appended to the @code{.LOADED} variable.
+
+@findex -load
+If you would prefer that failure to load a dynamic object not be
+reported as an error, you can use the @code{-load} directive instead
+of @code{load}.  GNU @code{make} will not fail and no message will be
+generated if an object fails to load.  The failed object is not added
+to the @code{.LOADED} variable, which can then be consulted to
+determine if the load was successful.
+
+@node Features, Missing, Extending make, Top
 @chapter Features of GNU @code{make}
 @cindex features of GNU @code{make}
 @cindex portability

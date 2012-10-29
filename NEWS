@@ -9,7 +9,7 @@ manual, which is contained in this distribution as the file doc/make.texi.
 See the README file and the GNU make manual for instructions for
 reporting bugs.
 
-Version 3.82.90
+Version 3.99.90
 
 A complete list of bugs fixed in this version is available here:
 
@@ -49,6 +49,11 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
   This version of GNU make can be compiled with GNU Guile integration.
   GNU Guile serves as an embedded extension language for make.
   See the "Guile Function" section in the GNU Make manual for details.
+
+* New feature: Loadable objects
+  This version of GNU make contains a "technology preview": the ability to
+  load dynamic objects into the make runtime.  These objects can be created by
+  the user and can add extended functionality, usable by makefiles.
 
 * New function: $(file ...) writes to a file.
 

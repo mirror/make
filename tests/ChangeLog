@@ -1,3 +1,7 @@
+2012-10-29  Paul Smith  <psmith@gnu.org>
+
+	* scripts/features/load: New test suite for the "load" directive.
+
 2012-09-09  Paul Smith  <psmith@gnu.org>
 
 	* scripts/functions/file: Get errors in the C locale, not the

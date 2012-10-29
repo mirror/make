@@ -229,7 +229,7 @@ file2: file1 ; @touch $@
 !,
               '--no-print-directory -j2', "touch file3");
 
-#rmfiles('file1', 'file2', 'file3', 'file4');
+rmfiles('file1', 'file2', 'file3', 'file4');
 
 if ($all_tests) {
     # Jobserver FD handling is messed up in some way.
