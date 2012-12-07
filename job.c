@@ -2491,7 +2491,14 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
 			     "unset", "unsetenv", "version",
 			     0 };
 #elif defined (WINDOWS32)
-  static char sh_chars_dos[] = "\"|&<>";
+  /* We used to have a double quote (") in sh_chars_dos[] below, but
+     that caused any command line with quoted file names be run
+     through a temporary batch file, which introduces command-line
+     limit of 4K charcaters imposed by cmd.exe.  Since CreateProcess
+     can handle quoted file names just fine, removing the quote lifts
+     the limit from a very frequent use case, because using quoted
+     file names is commonplace on MS-Windows.  */
+  static char sh_chars_dos[] = "|&<>";
   static char *sh_cmds_dos[] = { "assoc", "break", "call", "cd", "chcp",
 				 "chdir", "cls", "color", "copy", "ctty",
 				 "date", "del", "dir", "echo", "echo.",
@@ -2683,6 +2690,10 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
 	     quotes have the same effect.  */
 	  else if (instring == '"' && strchr ("\\$`", *p) != 0 && unixy_shell)
 	    goto slow;
+#ifdef WINDOWS32
+	  else if (instring == '"' && strncmp (p, "\\\"", 2) == 0)
+	    *ap++ = *++p;
+#endif
 	  else
 	    *ap++ = *p;
 	}
