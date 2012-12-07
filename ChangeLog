@@ -7,6 +7,8 @@
 	avoids leaving behind temporary batch files in the temporary
 	directory, which happens frequently on a fast machine when using
 	parallel builds.
+	(reap_children): Add debug message for when removal of a temporary
+	batch file fails.
 
 2012-10-29  Paul Smith  <psmith@gnu.org>
 

@@ -816,7 +816,6 @@ reap_children (int block, int err)
         DB (DB_JOBS, (_("Cleaning up temp batch file %s\n"),
                       c->sh_batch_file));
 
-        /* just try and remove, don't care if this fails */
 	errno = 0;
         rm_status = remove (c->sh_batch_file);
 	if (rm_status)
