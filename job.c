@@ -273,7 +273,7 @@ create_batch_file (char const *base, int unixy, int *fd)
      available, while it really isn't.  This happens in parallel
      builds, where Make doesn't wait for one job to finish before it
      launches the next one.  */
-  static unsigned uniq = 1;
+  static unsigned uniq = 0;
   static int second_loop = 0;
   const unsigned sizemax = strlen (base) + strlen (ext) + 10;
 
@@ -283,6 +283,16 @@ create_batch_file (char const *base, int unixy, int *fd)
       path_is_dot = 1;
     }
 
+  ++uniq;
+  if (uniq >= 0x10000 && !second_loop)
+    {
+      /* If we already had 64K batch files in this
+	 process, make a second loop through the numbers,
+	 looking for free slots, i.e. files that were
+	 deleted in the meantime.  */
+      second_loop = 1;
+      uniq = 1;
+    }
   while (path_size > 0 &&
          path_size + sizemax < sizeof temp_path &&
          !(uniq >= 0x10000 && second_loop))
@@ -309,12 +319,8 @@ create_batch_file (char const *base, int unixy, int *fd)
 	      ++uniq;
 	      if (uniq == 0x10000 && !second_loop)
 		{
-		  /* If we already had 64K batch files in this
-		     process, make a second loop through the numbers,
-		     looking for free slots, i.e. files that were
-		     deleted in the meantime.  */
 		  second_loop = 1;
-		  uniq = 0;
+		  uniq = 1;
 		}
 	    }
 

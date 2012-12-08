@@ -1,3 +1,8 @@
+2012-12-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* job.c (create_batch_file): Fix last change: always increment the
+	counter of batch files before trying to use it.
+
 2012-12-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* job.c (construct_command_argv_internal): Remove " from
