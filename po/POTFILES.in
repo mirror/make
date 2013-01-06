@@ -27,6 +27,7 @@ guile.c
 hash.c
 implicit.c
 job.c
+load.c
 main.c
 misc.c
 read.c
