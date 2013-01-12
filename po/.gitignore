@@ -1,6 +1,15 @@
-*.gmo *.mo *.pot *.po
-
-Makefile Makefile.in Makefile.in.in Makevars.template
-Rules-quot stamp-po
-*.sed *.sin *.header
+Makefile.in.in
+Makevars.template
 POTFILES
+Rules-quot
+boldquot.sed
+en@boldquot.header
+en@quot.header
+insert-header.sin
+make.pot
+quot.sed
+remove-potcdate.sin
+remove-potcdate.sed
+stamp-po
+*.gmo
+*.po

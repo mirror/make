@@ -1,8 +1,20 @@
-Makefile Makefile.in
-version.texi fdl.texi make-stds.texi texinfo.tex
+fdl.texi
+make-stds.texi
+stamp-vti
+version.texi
 make.info*
 make*.html
-make.aux make.cp make.cps make.fn make.fns make.ky
-make.pg make.toc make.tp make.vr make.log
-make.dvi make.ps make.pdf
-stamp-vti
+make.aux
+make.cp
+make.cps
+make.dvi
+make.fn
+make.fns
+make.ky
+make.log
+make.pdf
+make.pg
+make.ps
+make.toc
+make.tp
+make.vr
