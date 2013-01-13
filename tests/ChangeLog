@@ -1,3 +1,8 @@
+2013-01-12  Paul Smith  <psmith@gnu.org>
+
+	* scripts/features/parallelism: Change rule so it doesn't depend
+	on invocation order, etc.
+
 2012-10-29  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/load: New test suite for the "load" directive.

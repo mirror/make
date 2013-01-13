@@ -1,3 +1,19 @@
+2013-01-12  Paul Smith  <psmith@gnu.org>
+
+	Convert CVS archive to Git.
+
+	* configure.in: Rename to configure.ac.
+	* README.cvs: Rename to README.git and rework for Git.
+	* maintMakefile: Use git clean for cleanup.
+	* ChangeLog: Use new Git repository URL.
+	* ChangeLog.2: Ditto.
+	* Makefile.am: Change documentation for Git
+	* Makefile.DOS.template: Ditto.
+	* README.template: Ditto.
+	* build_w32.bat: Ditto.
+	* prepare_w32.bat: Ditto.
+	* .cvsignore: Rename to .gitignore, and change to Git format.
+
 2012-12-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* job.c (create_batch_file): Fix last change: always increment the
