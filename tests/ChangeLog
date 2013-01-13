@@ -1,3 +1,8 @@
+2013-01-13  Paul Smith  <psmith@gnu.org>
+
+	* scripts/options/dash-n: Verify -n is preserved after recursive /
+	re-exec.  See Savannah bug #38051.
+
 2013-01-12  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/parallelism: Change rule so it doesn't depend

@@ -1,3 +1,8 @@
+2013-01-13  Paul Smith  <psmith@gnu.org>
+
+	* main.c (main): Restore all make flags after re-exec is complete.
+	Fixes Savannah bug #38051.
+
 2013-01-12  Paul Smith  <psmith@gnu.org>
 
 	Convert CVS archive to Git.

@@ -2150,7 +2150,7 @@ main (int argc, char **argv, char **envp)
 
           /* Reset makeflags in case they were changed.  */
           {
-            const char *pv = define_makeflags (1, 1);
+            const char *pv = define_makeflags (1, 0);
             char *p = alloca (CSTRLEN ("MAKEFLAGS=") + strlen (pv) + 1);
             sprintf (p, "MAKEFLAGS=%s", pv);
             putenv (allocated_variable_expand (p));
