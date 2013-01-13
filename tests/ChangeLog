@@ -1,5 +1,8 @@
 2013-01-13  Paul Smith  <psmith@gnu.org>
 
+	* scripts/features/archives: Add a check targets that have parens,
+	but are not archives.  See Savannah bug #37878.
+
 	* scripts/options/dash-n: Verify -n is preserved after recursive /
 	re-exec.  See Savannah bug #38051.
 

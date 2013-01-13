@@ -43,5 +43,13 @@ run_make_test('all: libxx.a(  a3.o    *.o     )', '',
 
 rmfiles(qw(a1.o a2.o a3.o libxx.a));
 
+# Check non-archive targets
+# See Savannah bug #37878
+run_make_test(q!
+all: foo(bar).baz
+foo(bar).baz: ; @echo '$@'
+!,
+              '', "foo(bar).baz\n");
+
 # This tells the test driver that the perl test script executed properly.
 1;
