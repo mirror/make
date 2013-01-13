@@ -87,12 +87,14 @@ DEP_FILES := $(wildcard $(DEPDIR)/*.Po)
 
 GIT :=	git
 
-# This rule cleans out the tree right down to how it looks when you do a
-# vanilla Git checkout.  It depends on correct .gitignore file content.
+# git-clean:      Clean all "ignored" files.  Leave untracked files.
+# git-very-clean: Clean all files that aren't stored in source control.
 
-.PHONY: git-clean
+.PHONY: git-clean git-very-clean
 git-clean:
 	-$(GIT) clean -fdX
+git-very-clean: git-clean
+	-$(GIT) clean -fd
 
 
 # ----------------------------------------------------------------------
