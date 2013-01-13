@@ -506,7 +506,7 @@ html
 #
 dist-hook:
 	(cd $(srcdir); \
-	 w32=`find w32 -follow \( -name CVS -prune \) -o -type f -print`; \
+	 w32=`find w32 -follow \( -name .git -prune \) -o -type f -print`; \
 	 tar chf - $$w32) \
 	| (cd $(distdir); tar xfBp -)
 

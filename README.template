@@ -82,19 +82,19 @@ If you need help using GNU make, try these forums:
   news:gnu.utils.bug
 
 
-CVS Access
+Git Access
 ----------
 
-The GNU make source repository is available via anonymous CVS from the
-GNU Subversions CVS server; look here for details:
+The GNU make source repository is available via Git from the
+GNU Savannah Git server; look here for details:
 
-  http://savannah.gnu.org/cvs/?group=make
+  http://savannah.gnu.org/git/?group=make
 
-Please note: you won't be able to build GNU make from CVS without
+Please note: you won't be able to build GNU make from Git without
 installing appropriate maintainer's tools, such as GNU m4, automake,
-autoconf, Perl, GNU make, and GCC.  See the README.cvs file for hints on
+autoconf, Perl, GNU make, and GCC.  See the README.git file for hints on
 how to build GNU make once these tools are available.  We make no
-guarantees about the contents or quality of the latest code in the CVS
+guarantees about the contents or quality of the latest code in the Git
 repository: it is not unheard of for code that is known to be broken to
 be checked in.  Use at your own risk.
 

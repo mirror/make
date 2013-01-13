@@ -144,7 +144,7 @@ gmk-default.h: $(srcdir)/gmk-default.scm
 #
 dist-hook:
 	(cd $(srcdir); \
-	 sub=`find w32 tests -follow \( -name CVS -o -name .deps -o -name work -o -name .cvsignore -o -name \*.orig -o -name \*.rej -o -name \*~ -o -name Makefile \) -prune -o -type f -print`; \
+	 sub=`find w32 tests -follow \( -name .git -o -name .deps -o -name work -o -name .gitignore -o -name \*.orig -o -name \*.rej -o -name \*~ -o -name Makefile \) -prune -o -type f -print`; \
 	 tar chf - $$sub) \
 	| (cd $(distdir); tar xfBp -)
 
@@ -206,7 +206,7 @@ check-regression:
 # --------------- Maintainer's Section
 
 # Tell automake that I haven't forgotten about this file and it will be
-# created before we build a distribution (see maintMakefile in the CVS
+# created before we build a distribution (see maintMakefile in the Git
 # distribution).
 
 README:

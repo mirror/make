@@ -4566,9 +4566,9 @@
 
 
 
-See ChangeLog.2, available in the CVS repository at:
+See ChangeLog.2, available in the Git repository at:
 
-	http://savannah.gnu.org/cvs/?group=make
+	http://git.savannah.gnu.org/cgit/make.git/tree/
 
 for earlier changes.
 

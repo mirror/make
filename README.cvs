@@ -17,35 +17,26 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.
 -------------------------------------------------------------------------------
 
-Obtaining CVS Code
+Obtaining Git Code
 ------------------
 
 This seems redundant, since if you're reading this you most likely have
-already performed this step; however, for completeness, you can obtain
-the GNU make source code via anonymous CVS from the FSF's Savannah
-project <http://savannah.gnu.org/projects/make/>:
+already performed this step; however, for completeness, you can obtain the GNU
+make source code via Git from the FSF's Savannah project
+<http://savannah.gnu.org/projects/make/>:
 
-  $ cvs -d:pserver:anoncvs@cvs.savannah.gnu.org:/sources/make co make
-
-You might want to use the "-z3" option to get compression, and you most
-certainly will want the -P option to avoid unneeded directories
-cluttering up your source.  Personally I add these (as well as -dP for
-update) to my ~/.cvsrc file.
+  $ git clone git://git.savannah.gnu.org/make.git
 
 
-If you have an older version of CVS, you might have to login first.
-There is no password; just hit the ENTER key if you are asked for one.
-
-
-Building From CVS
+Building From Git
 -----------------
 
-To build GNU make from CVS, you will need Autoconf, Automake, and
+To build GNU make from Git, you will need Autoconf, Automake, and
 Gettext, and any tools that those utilities require (GNU m4, Perl,
 etc.).  See the configure.in file to find the minimum versions of each
 of these tools.  You will also need a copy of wget.
 
-When building from CVS you must build in the source directory: "VPATH
+When building from Git you must build in the source directory: "VPATH
 builds" from remote directories are not supported.  Once you've created
 a distribution, of course, you can unpack it and do a VPATH build from
 there.
@@ -77,7 +68,7 @@ to the point where you can run "make".
     a platform-local make you may get problems with missing files in doc/.
 
 
-At this point you have successfully brought your CVS copy of the GNU
+At this point you have successfully brought your Git copy of the GNU
 make source directory up to the point where it can be treated
 more-or-less like the official package you would get from ftp.gnu.org.
 That is, you can just run:
@@ -87,7 +78,7 @@ That is, you can just run:
 to build and install GNU make.
 
 
-Windows builds from CVS
+Windows builds from Git
 -----------------------
 
 If you have a UNIX emulation like CYGWIN you can opt to run the general
@@ -132,16 +123,24 @@ before making an official release:
 
   * Update the configure.in file with the new release number.
   * Update the NEWS file with the release number and date.
+  * In Savannah modify the "Value", "Rank", and "Description" values for the
+    current "SCM" entry in both "Component Version" and "Fix Release" fields
+    to refer to the new release, for "Bugs" and "Patches".
+  * Update the Savannah bug list URL in the NEWS file to use the correct
+    "Fixed Release" ID number.
+  * In Savannah create a new entry for the "Component Version" and "Fix
+    Release" fields:
+      - Value: SCM
+      - Rank:  20
+      - Descr: Fixed in Git; will be available in the next version of Make.
+  * Run "make distcheck" to be sure it all works.
+  * git tag -u <GPGID> <VER> where GPGID is my GPG key fingerprint,
+    and VER is the release version.
+  * Push everything.
   * Create the new release in the Savannah "Bugs" Administration for
     both the "Component Version" and "Fixed Release" fields.
   * Create the new release in the Savannah "Patches" Administration for
     the "Fixed Release" field.
-  * Update the Savannah bug list URL in the NEWS file to use the correct
-    "Fixed Release" ID number.
-  * Run "make distcheck" to be sure it all works.
-  * Commit everything.
-  * cvs tag <RTAG> where RTAG is constructed by replacing each "." in
-    the version with "-" and prefixing it with "make-".
 
 
 Publishing a Package
@@ -151,12 +150,11 @@ In order to publish a package on the FSF FTP site, either the release
 site ftp://ftp.gnu.org, or the prerelease site ftp://alpha.gnu.org, you
 first need to have my GPG private key and my passphrase to unlock it.
 And, you can't have them!  So there!  But, just so I remember here's
-what you do:
+what to do:
 
   Make sure the "Steps to Release" are complete and committed and tagged.
 
-  cvs -d :pserver:anonymous@cvs.savannah.gnu.org:/sources/make \
-     export -r<RTAG> -d make-release make
+  git clone git://git.savannah.gnu.org/make.git make-release
 
   cd make-release
 
@@ -166,7 +164,10 @@ what you do:
        -OR-
   make upload-ftp               # for ftp.gnu.org (official releases)
 
-It will ask for the GPG passphrase _THREE_ times.  Sigh.
+Depending on your distribution (whether GnuPG is integrated with your keyring
+etc.) it will either pop up a window asking for your GPG key passphrase one
+time, or else it will use the CLI to ask for the GPG passphrase _THREE_ times.
+Sigh.
 
 
 For both final releases and pre-releases, send an email with the URL of
@@ -185,8 +186,9 @@ Create the announcement in a text file, then sign it with GPG.
 
 Upload to gnu.org, then login and send from my account there.
 
-Email to: make-alpha@gnu.org, bug-make@gnu.org, help-make@gnu.org, make-w32@gnu.org.
-Email to: info-gnu@gnu.org
+To: bug-make@gnu.org, help-make@gnu.org, make-w32@gnu.org
+CC: info-gnu@gnu.org
+BCC: make-alpha@gnu.org
 
 Add a news item to the Savannah project site.
 
@@ -198,7 +200,7 @@ Appendix A - For The Brave
 
 For those of you who trust me implicitly, or are just brave (or
 foolhardy), here is a canned sequence of commands to build a GNU make
-distribution package from a virgin CVS source checkout (assuming all the
+distribution package from a virgin Git source checkout (assuming all the
 prerequisites are available of course).
 
 This list is eminently suitable for a quick swipe o' the mouse and a
