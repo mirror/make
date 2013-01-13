@@ -19,7 +19,6 @@
 AC_INIT([GNU make],[3.82.90],[bug-make@gnu.org])
 
 AC_PREREQ([2.59])
-AC_REVISION([$Id$])
 
 # Autoconf setup
 AC_CONFIG_AUX_DIR([config])

@@ -36,6 +36,7 @@ README.DOS
 README.OS2
 README.W32
 SMakefile
+build.sh
 build.sh.in
 config.ami
 config.h-vms
