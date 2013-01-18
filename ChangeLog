@@ -29,7 +29,7 @@
 	* job.c (construct_command_argv_internal): Remove " from
 	sh_chars_dos[].  Ignore an escaped backslash inside a string
 	quoted with "..".  This lifts the 4KB or 8KB command-line length
-	limitation imposed by the Windows shell when a command uses quoted
+	limitation imposed by the Windows shells when a command uses quoted
 	strings, because we now don't call the shell in that case.
 
 	* job.c (create_batch_file): Declare the counter of batch files
