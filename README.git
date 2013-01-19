@@ -28,6 +28,34 @@ make source code via Git from the FSF's Savannah project
   $ git clone git://git.savannah.gnu.org/make.git
 
 
+Changes using Git
+-----------------
+
+For non-developers, please continue to provide patches as before, or if you
+make a public repository I can pull from that if you prefer.
+
+For developers, I'm still new to Git myself, so I don't have a ton of advice.
+In this release we will continue to create ChangeLog files by hand so please
+don't forget to update the ChangeLog.
+
+Rule #1: Don't rewrite pushed history (don't use "git push --force").
+
+Typical simple workflow might be:
+
+  * Edit files
+  * Use "git status" and "git diff" to verify your changes
+  * Use "git add" to stage the changes you want to make
+  * Use "git commit" to commit the staged changes to your local repository
+  * Use "git pull" to accept & merge new changes from the Savannah repository
+  * Use "git push" to push your commits back to the Savannah repository
+
+For Emacs users, there are many options for Git integration but I strongly
+recommend the Magit package: http://www.emacswiki.org/emacs/Magit
+It makes the workflow much clearer, and has advanced features such as
+constructing multiple commits from various files and even from different
+diff chunks in the same file.  There is a video available which helps a lot.
+
+
 Building From Git
 -----------------
 

@@ -1,3 +1,7 @@
+2013-01-19  Paul Smith  <psmith@gnu.org>
+
+	* README.git: Add a bit more documentation on Git workflow & rules.
+
 2013-01-13  Paul Smith  <psmith@gnu.org>
 
 	* main.c (main): Restore all make flags after re-exec is complete.
