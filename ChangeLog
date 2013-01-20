@@ -1,5 +1,9 @@
 2013-01-20  Paul Smith  <psmith@gnu.org>
 
+	* gnumake.h: New file to contain externally-visible content.
+	* makeint.h: Include gnumake.h.  Move gmk_floc type to gnumake.h.
+	* Makefile.am (include_HEADERS): Install the gnumake.h header.
+
 	* makeint.h: Change struct floc to gmk_floc typedef.
 	* Many: Use the new typedef.
 

@@ -47,6 +47,9 @@ char *alloca ();
 # define NDEBUG 1
 #endif
 
+/* Include the externally-visible content.
+   Be sure to use the local one, and not one installed on the system.  */
+#include "gnumake.h"
 
 #ifdef  CRAY
 /* This must happen before #include <signal.h> so
@@ -362,11 +365,6 @@ extern int unixy_shell;
 extern struct rlimit stack_limit;
 #endif
 
-typedef struct
-  {
-    const char *filenm;
-    unsigned long lineno;
-  } gmk_floc;
 #define NILF ((gmk_floc *)0)
 
 #define CSTRLEN(_s) (sizeof (_s)-1)
@@ -424,9 +422,9 @@ int ar_touch (const char *);
 time_t ar_member_date (const char *);
 
 typedef long int (*ar_member_func_t) (int desc, const char *mem, int truncated,
-				      long int hdrpos, long int datapos,
-				      long int size, long int date, int uid,
-				      int gid, int mode, const void *arg);
+                                      long int hdrpos, long int datapos,
+                                      long int size, long int date, int uid,
+                                      int gid, int mode, const void *arg);
 
 long int ar_scan (const char *archive, ar_member_func_t function, const void *arg);
 int ar_name_equal (const char *name, const char *mem, int truncated);

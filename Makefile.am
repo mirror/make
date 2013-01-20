@@ -31,6 +31,7 @@ endif
 SUBDIRS =	glob config po doc $(MAYBE_W32)
 
 bin_PROGRAMS =	make
+include_HEADERS = gnumake.h
 
 if USE_CUSTOMS
   remote =	remote-cstms.c
