@@ -14,7 +14,7 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include "make.h"
+#include "makeint.h"
 #include "filedef.h"
 #include "variable.h"
 #ifdef WINDOWS32
@@ -146,7 +146,7 @@ build_vpath_lists ()
    If DIRPATH is nil, remove all previous listings with the same
    pattern.  If PATTERN is nil, remove all VPATH listings.  Existing
    and readable directories that are not "." given in the DIRPATH
-   separated by the path element separator (defined in make.h) are
+   separated by the path element separator (defined in makeint.h) are
    loaded into the directory hash table if they are not there already
    and put in the VPATH searchpath for the given pattern with trailing
    slashes stripped off if present (and if the directory is not the

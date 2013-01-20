@@ -140,7 +140,7 @@ srcs = $(srcdir)commands.c $(srcdir)job.c $(srcdir)dir.c             \
        $(srcdir)ar.c $(srcdir)arscan.c $(srcdir)strcache.c           \
        $(srcdir)signame.c $(srcdir)signame.h $(GETOPT_SRC)           \
        $(srcdir)commands.h $(srcdir)dep.h $(srcdir)file.h            \
-       $(srcdir)job.h $(srcdir)make.h $(srcdir)rule.h                \
+       $(srcdir)job.h $(srcdir)makeint.h $(srcdir)rule.h             \
        $(srcdir)variable.h $(ALLOCA_SRC) $(srcdir)config.h.in
 
 

@@ -424,7 +424,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if using alloca.c.  */
 /* #undef C_ALLOCA */
-/* maybe this should be placed into make.h */
+/* maybe this should be placed into makeint.h */
 #if	defined(__VAX) && defined(__DECC)
 #define alloca(n)	__ALLOCA(n)
 #endif

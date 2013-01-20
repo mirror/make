@@ -134,7 +134,7 @@ srcs = $(srcdir)commands.c $(srcdir)job.c $(srcdir)dir.c             \
        $(srcdir)ar.c $(srcdir)arscan.c $(srcdir)strcache.c           \
        $(srcdir)signame.c $(srcdir)signame.h $(GETOPT_SRC)           \
        $(srcdir)commands.h $(srcdir)dep.h $(srcdir)filedep.h         \
-       $(srcdir)job.h $(srcdir)make.h $(srcdir)rule.h                \
+       $(srcdir)job.h $(srcdir)makeint.h $(srcdir)rule.h             \
        $(srcdir)variable.h $(ALLOCA_SRC) $(srcdir)config.h.in
 
 
@@ -273,36 +273,36 @@ $(objs): config.h
 # Automatically generated dependencies will be put at the end of the file.
 
 # Automatically generated dependencies.
-commands.o: commands.c make.h dep.h filedef.h variable.h job.h \
+commands.o: commands.c makeint.h dep.h filedef.h variable.h job.h \
  commands.h
-job.o: job.c make.h job.h filedef.h commands.h variable.h
-dir.o: dir.c make.h
-file.o: file.c make.h dep.h filedef.h job.h commands.h variable.h
-misc.o: misc.c make.h dep.h
-main.o: main.c make.h dep.h filedef.h variable.h job.h commands.h \
+job.o: job.c makeint.h job.h filedef.h commands.h variable.h
+dir.o: dir.c makeint.h
+file.o: file.c makeint.h dep.h filedef.h job.h commands.h variable.h
+misc.o: misc.c makeint.h dep.h
+main.o: main.c makeint.h dep.h filedef.h variable.h job.h commands.h \
  getopt.h
-guile.o: guile.c make.h dep.h debug.h variable.h gmk-default.h
-read.o: read.c make.h dep.h filedef.h job.h commands.h variable.h \
+guile.o: guile.c makeint.h dep.h debug.h variable.h gmk-default.h
+read.o: read.c makeint.h dep.h filedef.h job.h commands.h variable.h \
  glob/glob.h
-remake.o: remake.c make.h filedef.h job.h commands.h dep.h
-rule.o: rule.c make.h dep.h filedef.h job.h commands.h variable.h \
+remake.o: remake.c makeint.h filedef.h job.h commands.h dep.h
+rule.o: rule.c makeint.h dep.h filedef.h job.h commands.h variable.h \
  rule.h
-implicit.o: implicit.c make.h rule.h dep.h filedef.h
-default.o: default.c make.h rule.h dep.h filedef.h job.h commands.h \
+implicit.o: implicit.c makeint.h rule.h dep.h filedef.h
+default.o: default.c makeint.h rule.h dep.h filedef.h job.h commands.h \
  variable.h
-variable.o: variable.c make.h dep.h filedef.h job.h commands.h \
+variable.o: variable.c makeint.h dep.h filedef.h job.h commands.h \
  variable.h
-expand.o: expand.c make.h filedef.h job.h commands.h variable.h
-function.o: function.c make.h filedef.h variable.h dep.h job.h \
+expand.o: expand.c makeint.h filedef.h job.h commands.h variable.h
+function.o: function.c makeint.h filedef.h variable.h dep.h job.h \
  commands.h amiga.h
-vpath.o: vpath.c make.h filedef.h variable.h
-strcache.o: strcache.c make.h hash.h
+vpath.o: vpath.c makeint.h filedef.h variable.h
+strcache.o: strcache.c makeint.h hash.h
 version.o: version.c
-ar.o: ar.c make.h filedef.h dep.h
-arscan.o: arscan.c make.h
+ar.o: ar.c makeint.h filedef.h dep.h
+arscan.o: arscan.c makeint.h
 signame.o: signame.c signame.h
-remote-stub.o: remote-stub.c make.h filedef.h job.h commands.h
+remote-stub.o: remote-stub.c makeint.h filedef.h job.h commands.h
 getopt.o: getopt.c
 getopt1.o : getopt1.c getopt.h
 getloadavg.o: getloadavg.c
-amiga.o: amiga.c make.h variable.h amiga.h
+amiga.o: amiga.c makeint.h variable.h amiga.h

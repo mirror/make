@@ -278,7 +278,7 @@
 				RelativePath=".\job.h">
 			</File>
 			<File
-				RelativePath=".\make.h">
+				RelativePath=".\makeint.h">
 			</File>
 			<File
 				RelativePath=".\rule.h">

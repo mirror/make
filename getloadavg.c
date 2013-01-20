@@ -985,7 +985,7 @@ getloadavg (double loadavg[], int nelem)
 #endif /* ! HAVE_GETLOADAVG */
 
 #ifdef TEST
-#include "make.h"
+#include "makeint.h"
 
 int
 main (int argc, char **argv)

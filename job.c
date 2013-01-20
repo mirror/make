@@ -14,7 +14,7 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include "make.h"
+#include "makeint.h"
 
 #include <assert.h>
 
@@ -245,7 +245,7 @@ unsigned int jobserver_tokens = 0;
 
 #ifdef WINDOWS32
 /*
- * The macro which references this function is defined in make.h.
+ * The macro which references this function is defined in makeint.h.
  */
 int
 w32_kill(pid_t pid, int sig)

@@ -50,7 +50,7 @@ endif
 
 EXTRA_make_SOURCES = vmsjobs.c remote-stub.c remote-cstms.c
 
-noinst_HEADERS = commands.h dep.h filedef.h job.h make.h rule.h variable.h \
+noinst_HEADERS = commands.h dep.h filedef.h job.h makeint.h rule.h variable.h \
 		debug.h getopt.h gettext.h hash.h
 
 make_LDADD =	@LIBOBJS@ @ALLOCA@ $(GLOBLIB) @GETLOADAVG_LIBS@ @LIBINTL@ \

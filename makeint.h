@@ -16,7 +16,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* We use <config.h> instead of "config.h" so that a compilation
    using -I. -I$srcdir will use ./config.h rather than $srcdir/config.h
-   (which it would do because make.h was found in $srcdir).  */
+   (which it would do because makeint.h was found in $srcdir).  */
 #include <config.h>
 #undef  HAVE_CONFIG_H
 #define HAVE_CONFIG_H 1
