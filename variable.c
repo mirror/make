@@ -193,7 +193,7 @@ struct variable *
 define_variable_in_set (const char *name, unsigned int length,
                         const char *value, enum variable_origin origin,
                         int recursive, struct variable_set *set,
-                        const struct floc *flocp)
+                        const gmk_floc *flocp)
 {
   struct variable *v;
   struct variable **var_slot;
@@ -1136,7 +1136,7 @@ shell_result (const char *p)
    See the try_variable_definition() function for details on the parameters. */
 
 struct variable *
-do_variable_definition (const struct floc *flocp, const char *varname,
+do_variable_definition (const gmk_floc *flocp, const char *varname,
                         const char *value, enum variable_origin origin,
                         enum variable_flavor flavor, int target_var)
 {
@@ -1572,7 +1572,7 @@ assign_variable_definition (struct variable *v, char *line)
    returned.  */
 
 struct variable *
-try_variable_definition (const struct floc *flocp, char *line,
+try_variable_definition (const gmk_floc *flocp, char *line,
                          enum variable_origin origin, int target_var)
 {
   struct variable v;

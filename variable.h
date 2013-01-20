@@ -20,14 +20,14 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
    Increasing numeric values signify less-overridable definitions.  */
 enum variable_origin
   {
-    o_default,		/* Variable from the default set.  */
-    o_env,		/* Variable from environment.  */
-    o_file,		/* Variable given in a makefile.  */
-    o_env_override,	/* Variable from environment, if -e.  */
-    o_command,		/* Variable given by user.  */
-    o_override, 	/* Variable from an 'override' directive.  */
-    o_automatic,	/* Automatic variable -- cannot be set.  */
-    o_invalid		/* Core dump time.  */
+    o_default,          /* Variable from the default set.  */
+    o_env,              /* Variable from environment.  */
+    o_file,             /* Variable given in a makefile.  */
+    o_env_override,     /* Variable from environment, if -e.  */
+    o_command,          /* Variable given by user.  */
+    o_override,         /* Variable from an 'override' directive.  */
+    o_automatic,        /* Automatic variable -- cannot be set.  */
+    o_invalid           /* Core dump time.  */
   };
 
 enum variable_flavor
@@ -49,34 +49,34 @@ enum variable_flavor
 
 struct variable
   {
-    char *name;			/* Variable name.  */
-    char *value;		/* Variable value.  */
-    struct floc fileinfo;       /* Where the variable was defined.  */
-    int length;			/* strlen (name) */
-    unsigned int recursive:1;	/* Gets recursively re-evaluated.  */
-    unsigned int append:1;	/* Nonzero if an appending target-specific
+    char *name;                 /* Variable name.  */
+    char *value;                /* Variable value.  */
+    gmk_floc fileinfo;          /* Where the variable was defined.  */
+    int length;                 /* strlen (name) */
+    unsigned int recursive:1;   /* Gets recursively re-evaluated.  */
+    unsigned int append:1;      /* Nonzero if an appending target-specific
                                    variable.  */
     unsigned int conditional:1; /* Nonzero if set with a ?=. */
-    unsigned int per_target:1;	/* Nonzero if a target-specific variable.  */
+    unsigned int per_target:1;  /* Nonzero if a target-specific variable.  */
     unsigned int special:1;     /* Nonzero if this is a special variable.  */
     unsigned int exportable:1;  /* Nonzero if the variable _could_ be
                                    exported.  */
-    unsigned int expanding:1;	/* Nonzero if currently being expanded.  */
+    unsigned int expanding:1;   /* Nonzero if currently being expanded.  */
     unsigned int private_var:1; /* Nonzero avoids inheritance of this
                                    target-specific variable.  */
     unsigned int exp_count:EXP_COUNT_BITS;
                                 /* If >1, allow this many self-referential
                                    expansions.  */
     enum variable_flavor
-      flavor ENUM_BITFIELD (3);	/* Variable flavor.  */
+      flavor ENUM_BITFIELD (3); /* Variable flavor.  */
     enum variable_origin
-      origin ENUM_BITFIELD (3);	/* Variable origin.  */
+      origin ENUM_BITFIELD (3); /* Variable origin.  */
     enum variable_export
       {
-	v_export,		/* Export this variable.  */
-	v_noexport,		/* Don't export this variable.  */
-	v_ifset,		/* Export it if it has a non-default value.  */
-	v_default		/* Decide in target_environment.  */
+        v_export,               /* Export this variable.  */
+        v_noexport,             /* Don't export this variable.  */
+        v_ifset,                /* Export it if it has a non-default value.  */
+        v_default               /* Decide in target_environment.  */
       } export ENUM_BITFIELD (2);
   };
 
@@ -84,15 +84,15 @@ struct variable
 
 struct variable_set
   {
-    struct hash_table table;	/* Hash table of variables.  */
+    struct hash_table table;    /* Hash table of variables.  */
   };
 
 /* Structure that represents a list of variable sets.  */
 
 struct variable_set_list
   {
-    struct variable_set_list *next;	/* Link in the chain.  */
-    struct variable_set *set;		/* Variable set.  */
+    struct variable_set_list *next;     /* Link in the chain.  */
+    struct variable_set *set;           /* Variable set.  */
     int next_is_parent;                 /* True if next is a parent target.  */
   };
 
@@ -116,7 +116,7 @@ char *variable_buffer_output (char *ptr, const char *string, unsigned int length
 char *variable_expand (const char *line);
 char *variable_expand_for_file (const char *line, struct file *file);
 char *allocated_variable_expand_for_file (const char *line, struct file *file);
-#define	allocated_variable_expand(line) \
+#define allocated_variable_expand(line) \
   allocated_variable_expand_for_file (line, (struct file *) 0)
 char *expand_argument (const char *str, const char *end);
 char *variable_expand_string (char *line, const char *string, long length);
@@ -152,7 +152,7 @@ void print_file_variables (const struct file *file);
 void print_target_variables (const struct file *file);
 void merge_variable_set_lists (struct variable_set_list **to_list,
                                struct variable_set_list *from_list);
-struct variable *do_variable_definition (const struct floc *flocp,
+struct variable *do_variable_definition (const gmk_floc *flocp,
                                          const char *name, const char *value,
                                          enum variable_origin origin,
                                          enum variable_flavor flavor,
@@ -160,12 +160,12 @@ struct variable *do_variable_definition (const struct floc *flocp,
 char *parse_variable_definition (const char *line,
                                  struct variable *v);
 struct variable *assign_variable_definition (struct variable *v, char *line);
-struct variable *try_variable_definition (const struct floc *flocp, char *line,
+struct variable *try_variable_definition (const gmk_floc *flocp, char *line,
                                           enum variable_origin origin,
                                           int target_var);
 void init_hash_global_variable_set (void);
 void hash_init_function_table (void);
-void define_new_function(const struct floc *flocp,
+void define_new_function(const gmk_floc *flocp,
                          const char *name, int min, int max, int expand,
                          char *(*func)(char *, char **, const char *));
 struct variable *lookup_variable (const char *name, unsigned int length);
@@ -177,7 +177,7 @@ struct variable *define_variable_in_set (const char *name, unsigned int length,
                                          enum variable_origin origin,
                                          int recursive,
                                          struct variable_set *set,
-                                         const struct floc *flocp);
+                                         const gmk_floc *flocp);
 
 /* Define a variable in the current variable set.  */
 

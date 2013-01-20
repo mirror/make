@@ -255,10 +255,10 @@ message (prefix, fmt, va_alist)
 
 void
 #if HAVE_ANSI_COMPILER && USE_VARIADIC && HAVE_STDARG_H
-error (const struct floc *flocp, const char *fmt, ...)
+error (const gmk_floc *flocp, const char *fmt, ...)
 #else
 error (flocp, fmt, va_alist)
-     const struct floc *flocp;
+     const gmk_floc *flocp;
      const char *fmt;
      va_dcl
 #endif
@@ -288,10 +288,10 @@ error (flocp, fmt, va_alist)
 
 void
 #if HAVE_ANSI_COMPILER && USE_VARIADIC && HAVE_STDARG_H
-fatal (const struct floc *flocp, const char *fmt, ...)
+fatal (const gmk_floc *flocp, const char *fmt, ...)
 #else
 fatal (flocp, fmt, va_alist)
-     const struct floc *flocp;
+     const gmk_floc *flocp;
      const char *fmt;
      va_dcl
 #endif

@@ -33,7 +33,7 @@ static void *global_dl = NULL;
 #include "variable.h"
 
 static int
-init_symbol (const struct floc *flocp, const char *ldname, load_func_t symp)
+init_symbol (const gmk_floc *flocp, const char *ldname, load_func_t symp)
 {
   int r;
   const char *p;
@@ -58,7 +58,7 @@ init_symbol (const struct floc *flocp, const char *ldname, load_func_t symp)
 }
 
 int
-load_file (const struct floc *flocp, const char **ldname, int noerror)
+load_file (const gmk_floc *flocp, const char **ldname, int noerror)
 {
   load_func_t symp;
   const char *fp;
@@ -159,7 +159,7 @@ load_file (const struct floc *flocp, const char **ldname, int noerror)
 #else
 
 int
-load_file (const struct floc *flocp, const char **ldname, int noerror)
+load_file (const gmk_floc *flocp, const char **ldname, int noerror)
 {
   if (! noerror)
     fatal (flocp, _("The 'load' operation is not supported on this platform."));

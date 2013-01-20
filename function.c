@@ -2484,7 +2484,7 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
 }
 
 void
-define_new_function(const struct floc *flocp,
+define_new_function(const gmk_floc *flocp,
                     const char *name, int min, int max, int expand,
                     char *(*func)(char *, char **, const char *))
 {

@@ -1,5 +1,8 @@
 2013-01-20  Paul Smith  <psmith@gnu.org>
 
+	* makeint.h: Change struct floc to gmk_floc typedef.
+	* Many: Use the new typedef.
+
 	* make.h: Rename to makeint.h.
 	* Many: Use the new name makeint.h.
 

@@ -51,7 +51,7 @@ struct ebuffer
     char *bufstart;     /* Start of the entire buffer.  */
     unsigned int size;  /* Malloc'd size of buffer. */
     FILE *fp;           /* File, or NULL if this is an internal buffer.  */
-    struct floc floc;   /* Info on the file in fp (if any).  */
+    gmk_floc floc;   /* Info on the file in fp (if any).  */
   };
 
 /* Track the modifiers we can have on variable assignments */
@@ -125,7 +125,7 @@ static unsigned int max_incl_len;
 /* The filename and pointer to line number of the
    makefile currently being read in.  */
 
-const struct floc *reading_file = 0;
+const gmk_floc *reading_file = 0;
 
 /* The chain of files read by read_all_makefiles.  */
 
@@ -139,16 +139,16 @@ static void do_undefine (char *name, enum variable_origin origin,
                          struct ebuffer *ebuf);
 static struct variable *do_define (char *name, enum variable_origin origin,
                                    struct ebuffer *ebuf);
-static int conditional_line (char *line, int len, const struct floc *flocp);
+static int conditional_line (char *line, int len, const gmk_floc *flocp);
 static void record_files (struct nameseq *filenames, const char *pattern,
                           const char *pattern_percent, char *depstr,
                           unsigned int cmds_started, char *commands,
                           unsigned int commands_idx, int two_colon,
-                          char prefix, const struct floc *flocp);
+                          char prefix, const gmk_floc *flocp);
 static void record_target_var (struct nameseq *filenames, char *defn,
                                enum variable_origin origin,
                                struct vmodifiers *vmod,
-                               const struct floc *flocp);
+                               const gmk_floc *flocp);
 static enum make_word_type get_next_mword (char *buffer, char *delim,
                                            char **startp, unsigned int *length);
 static void remove_comments (char *line);
@@ -319,7 +319,7 @@ eval_makefile (const char *filename, int flags)
 {
   struct dep *deps;
   struct ebuffer ebuf;
-  const struct floc *curfile;
+  const gmk_floc *curfile;
   char *expanded = 0;
   int makefile_errno;
 
@@ -440,7 +440,7 @@ eval_buffer (char *buffer)
   struct ebuffer ebuf;
   struct conditionals *saved;
   struct conditionals new;
-  const struct floc *curfile;
+  const gmk_floc *curfile;
 
   /* Evaluate the buffer */
 
@@ -564,8 +564,8 @@ eval (struct ebuffer *ebuf, int set_default)
   char prefix = cmd_prefix;
   const char *pattern = 0;
   const char *pattern_percent;
-  struct floc *fstart;
-  struct floc fi;
+  gmk_floc *fstart;
+  gmk_floc fi;
 
 #define record_waiting_files()                                                \
   do                                                                          \
@@ -1417,7 +1417,7 @@ do_define (char *name, enum variable_origin origin, struct ebuffer *ebuf)
 {
   struct variable *v;
   struct variable var;
-  struct floc defstart;
+  gmk_floc defstart;
   int nlevels = 1;
   unsigned int length = 100;
   char *definition = xmalloc (length);
@@ -1533,7 +1533,7 @@ do_define (char *name, enum variable_origin origin, struct ebuffer *ebuf)
    1 if following text should be ignored.  */
 
 static int
-conditional_line (char *line, int len, const struct floc *flocp)
+conditional_line (char *line, int len, const gmk_floc *flocp)
 {
   char *cmdname;
   enum { c_ifdef, c_ifndef, c_ifeq, c_ifneq, c_else, c_endif } cmdtype;
@@ -1802,7 +1802,7 @@ conditional_line (char *line, int len, const struct floc *flocp)
 static void
 record_target_var (struct nameseq *filenames, char *defn,
                    enum variable_origin origin, struct vmodifiers *vmod,
-                   const struct floc *flocp)
+                   const gmk_floc *flocp)
 {
   struct nameseq *nextf;
   struct variable_set_list *global;
@@ -1907,7 +1907,7 @@ record_files (struct nameseq *filenames, const char *pattern,
               const char *pattern_percent, char *depstr,
               unsigned int cmds_started, char *commands,
               unsigned int commands_idx, int two_colon,
-              char prefix, const struct floc *flocp)
+              char prefix, const gmk_floc *flocp)
 {
   struct commands *cmds;
   struct dep *deps;

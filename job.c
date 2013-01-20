@@ -469,7 +469,7 @@ child_error (const struct file *file,
   const char *pre = "*** ";
   const char *post = "";
   const char *dump = "";
-  struct floc *flocp = &file->cmds->fileinfo;
+  gmk_floc *flocp = &file->cmds->fileinfo;
 
   if (ignored && silent_flag)
     return;

@@ -362,12 +362,12 @@ extern int unixy_shell;
 extern struct rlimit stack_limit;
 #endif
 
-struct floc
+typedef struct
   {
     const char *filenm;
     unsigned long lineno;
-  };
-#define NILF ((struct floc *)0)
+  } gmk_floc;
+#define NILF ((gmk_floc *)0)
 
 #define CSTRLEN(_s) (sizeof (_s)-1)
 #define STRING_SIZE_TUPLE(_s) (_s), CSTRLEN(_s)
@@ -386,9 +386,9 @@ struct floc
 const char *concat (unsigned int, ...);
 void message (int prefix, const char *fmt, ...)
               __attribute__ ((__format__ (__printf__, 2, 3)));
-void error (const struct floc *flocp, const char *fmt, ...)
+void error (const gmk_floc *flocp, const char *fmt, ...)
             __attribute__ ((__format__ (__printf__, 2, 3)));
-void fatal (const struct floc *flocp, const char *fmt, ...)
+void fatal (const gmk_floc *flocp, const char *fmt, ...)
                    __attribute__ ((noreturn, __format__ (__printf__, 2, 3)));
 #else
 const char *concat ();
@@ -473,12 +473,12 @@ int strcache_setbufsize (unsigned int size);
 
 /* Guile support  */
 #ifdef HAVE_GUILE
-int guile_gmake_setup (const struct floc *flocp);
+int guile_gmake_setup (const gmk_floc *flocp);
 #endif
 
 /* Loadable object support.  Sets to the strcached name of the loaded file.  */
-typedef int (*load_func_t)(const struct floc *flocp);
-int load_file (const struct floc *flocp, const char **filename, int noerror);
+typedef int (*load_func_t)(const gmk_floc *flocp);
+int load_file (const gmk_floc *flocp, const char **filename, int noerror);
 
 #ifdef  HAVE_VFORK_H
 # include <vfork.h>
@@ -527,8 +527,8 @@ int strncasecmp (const char *s1, const char *s2, int n);
 # endif
 #endif
 
-extern const struct floc *reading_file;
-extern const struct floc **expanding_var;
+extern const gmk_floc *reading_file;
+extern const gmk_floc **expanding_var;
 
 extern char **environ;
 

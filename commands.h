@@ -19,20 +19,20 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 struct commands
   {
-    struct floc fileinfo;	/* Where commands were defined.  */
-    char *commands;		/* Commands text.  */
-    char **command_lines;	/* Commands chopped up into lines.  */
-    char *lines_flags;		/* One set of flag bits for each line.  */
+    gmk_floc fileinfo;          /* Where commands were defined.  */
+    char *commands;             /* Commands text.  */
+    char **command_lines;       /* Commands chopped up into lines.  */
+    char *lines_flags;          /* One set of flag bits for each line.  */
     unsigned short ncommand_lines;/* Number of command lines.  */
     char recipe_prefix;         /* Recipe prefix for this command set.  */
     unsigned int any_recurse:1; /* Nonzero if any 'lines_flags' elt has */
-				/* the COMMANDS_RECURSE bit set.  */
+                                /* the COMMANDS_RECURSE bit set.  */
   };
 
 /* Bits in 'lines_flags'.  */
-#define	COMMANDS_RECURSE	1 /* Recurses: + or $(MAKE).  */
-#define	COMMANDS_SILENT		2 /* Silent: @.  */
-#define	COMMANDS_NOERROR	4 /* No errors: -.  */
+#define COMMANDS_RECURSE        1 /* Recurses: + or $(MAKE).  */
+#define COMMANDS_SILENT         2 /* Silent: @.  */
+#define COMMANDS_NOERROR        4 /* No errors: -.  */
 
 void execute_file_commands (struct file *file);
 void print_commands (const struct commands *cmds);

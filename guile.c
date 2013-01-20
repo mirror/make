@@ -107,7 +107,7 @@ func_guile (char *o, char **argv, const char *funcname UNUSED)
 /* We could send the flocp to define_new_function(), but since guile is
    "kind of" built-in, that didn't seem so useful.  */
 int
-guile_gmake_setup (const struct floc *flocp UNUSED)
+guile_gmake_setup (const gmk_floc *flocp UNUSED)
 {
   /* Initialize the Guile interpreter.  */
   scm_with_guile (guile_init, NULL);
