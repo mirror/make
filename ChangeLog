@@ -1,5 +1,24 @@
 2013-01-19  Paul Smith  <psmith@gnu.org>
 
+	* doc/make.texi (load Directive): Update to discuss location of
+	loaded object file.
+	(Remaking Loaded Objects): Document remaking of loaded objects.
+
+	* main.c (main): Rename READ_MAKEFILES to READ_FILES.
+	* read.c: Change READ_MAKEFILES to READ_FILES since it now
+	contains loaded object files as well.
+	(read_all_makefiles): Ditto.
+	(eval_makefile): Ditto.
+	(eval): Add any loaded file to the READ_FILES list, so that it
+	will be considered for re-build.
+
+	* load.c (load_file): Return the simple filename (no symbol) in
+	the LDNAME argument (now a const char **).
+	This filename should no longer have "./" prepended: modify the
+	function to always check the current directory if the name has no
+	"/", before using the normal methods.
+	* make.h: Change the load_file() prototype.
+
 	* README.git: Add a bit more documentation on Git workflow & rules.
 
 2013-01-13  Paul Smith  <psmith@gnu.org>

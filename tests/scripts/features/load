@@ -49,7 +49,7 @@ run_make_test('testload.so: testload.c ; @$(CC) -g -shared -fPIC -o $@ $<',
 # TEST 1
 run_make_test(q!
 all: ; @echo $(func-a foo) $(func-b bar)
-load ./testload.so
+load testload.so
 !,
               '', "func-a\n");
 
@@ -64,19 +64,42 @@ load ./testload.so(explicit_setup)
 # TEST 3
 # Verify the .LOADED variable
 run_make_test(q!
-all: ; @echo $(filter ./testload.so,$(.LOADED)) $(func-a foo) $(func-b bar)
-load ./testload.so(explicit_setup)
+all: ; @echo $(filter testload.so,$(.LOADED)) $(func-a foo) $(func-b bar)
+load testload.so(explicit_setup)
 !,
-              '', "./testload.so func-b\n");
+              '', "testload.so func-b\n");
 
 # TEST 4
 # Check multiple loads
 run_make_test(q!
-all: ; @echo $(filter ./testload.so,$(.LOADED)) $(func-a foo) $(func-b bar)
+all: ; @echo $(filter testload.so,$(.LOADED)) $(func-a foo) $(func-b bar)
 load ./testload.so
-load ./testload.so(explicit_setup)
+load testload.so(explicit_setup)
 !,
-              '', "./testload.so func-a\n");
+              '', "testload.so func-a\n");
+
+# TEST 5
+# Check auto-rebuild of loaded file that's out of date
+utouch(-10, 'testload.so');
+touch('testload.c');
+
+run_make_test(q!
+all: ; @echo $(func-a foo) $(func-b bar)
+load ./testload.so
+testload.so: testload.c ; @echo "rebuilding $@"; $(CC) -g -shared -fPIC -o $@ $<
+!,
+              '', "rebuilding testload.so\nfunc-a\n");
+
+# TEST 5
+# Check auto-rebuild of loaded file when it doesn't exist
+unlink('testload.so');
+
+run_make_test(q!
+all: ; @echo $(func-a foo) $(func-b bar)
+-load ./testload.so(explicit_setup)
+%.so: %.c ; @echo "rebuilding $@"; $(CC) -g -shared -fPIC -o $@ $<
+!,
+              '', "rebuilding testload.so\nfunc-b\n");
 
 unlink(qw(testload.c testload.so)) unless $keep;
 

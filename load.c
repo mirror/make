@@ -58,12 +58,12 @@ init_symbol (const struct floc *flocp, const char *ldname, load_func_t symp)
 }
 
 int
-load_file (const struct floc *flocp, const char *ldname, int noerror)
+load_file (const struct floc *flocp, const char **ldname, int noerror)
 {
   load_func_t symp;
   const char *fp;
   char *symname = NULL;
-  char *new = alloca (strlen (ldname) + CSTRLEN (SYMBOL_EXTENSION) + 1);
+  char *new = alloca (strlen (*ldname) + CSTRLEN (SYMBOL_EXTENSION) + 1);
 
   if (! global_dl)
     {
@@ -73,27 +73,27 @@ load_file (const struct floc *flocp, const char *ldname, int noerror)
     }
 
   /* If a symbol name was provided, use it.  */
-  fp = strchr (ldname, '(');
+  fp = strchr (*ldname, '(');
   if (fp)
     {
       const char *ep;
 
-      /* If there's an open paren, see if there's a close paren: if so use
+      /* There's an open paren, so see if there's a close paren: if so use
          that as the symbol name.  We can't have whitespace: it would have
          been chopped up before this function is called.  */
       ep = strchr (fp+1, ')');
       if (ep && ep[1] == '\0')
         {
-          int l = fp - ldname;;
+          int l = fp - *ldname;;
 
           ++fp;
           if (fp == ep)
-            fatal (flocp, _("Empty symbol name for load: %s"), ldname);
+            fatal (flocp, _("Empty symbol name for load: %s"), *ldname);
 
           /* Make a copy of the ldname part.  */
-          memcpy (new, ldname, l);
+          memcpy (new, *ldname, l);
           new[l] = '\0';
-          ldname = new;
+          *ldname = new;
 
           /* Make a copy of the symbol name part.  */
           symname = new + l + 1;
@@ -102,14 +102,17 @@ load_file (const struct floc *flocp, const char *ldname, int noerror)
         }
     }
 
+  /* Add this name to the string cache so it can be reused later.  */
+  *ldname = strcache_add (*ldname);
+
   /* If we didn't find a symbol name yet, construct it from the ldname.  */
   if (! symname)
     {
       char *p = new;
 
-      fp = strrchr (ldname, '/');
+      fp = strrchr (*ldname, '/');
       if (!fp)
-        fp = ldname;
+        fp = *ldname;
       else
         ++fp;
       while (isalnum (*fp) || *fp == '_')
@@ -118,12 +121,22 @@ load_file (const struct floc *flocp, const char *ldname, int noerror)
       symname = new;
     }
 
-  DB (DB_VERBOSE, (_("Loading symbol %s from %s\n"), symname, ldname));
+  DB (DB_VERBOSE, (_("Loading symbol %s from %s\n"), symname, *ldname));
 
   /* See if it's already defined.  */
   symp = (load_func_t) dlsym (global_dl, symname);
   if (! symp) {
-    void *dlp = dlopen (ldname, RTLD_LAZY|RTLD_GLOBAL);
+    void *dlp = NULL;
+
+    /* If the path has no "/", try the current directory first.  */
+    if (! strchr (*ldname, '/'))
+      dlp = dlopen (concat (2, "./", *ldname), RTLD_LAZY|RTLD_GLOBAL);
+
+    /* If we haven't opened it yet, try the default search path.  */
+    if (! dlp)
+      dlp = dlopen (*ldname, RTLD_LAZY|RTLD_GLOBAL);
+
+    /* Still no?  Then fail.  */
     if (! dlp)
       {
         if (noerror)
@@ -136,17 +149,17 @@ load_file (const struct floc *flocp, const char *ldname, int noerror)
     symp = dlsym (dlp, symname);
     if (! symp)
       fatal (flocp, _("Failed to load symbol %s from %s: %s"),
-             symname, ldname, dlerror());
+             symname, *ldname, dlerror());
   }
 
   /* Invoke the symbol to initialize the loaded object.  */
-  return init_symbol(flocp, ldname, symp);
+  return init_symbol(flocp, *ldname, symp);
 }
 
 #else
 
 int
-load_file (const struct floc *flocp, const char *ldname, int noerror)
+load_file (const struct floc *flocp, const char **ldname, int noerror)
 {
   if (! noerror)
     fatal (flocp, _("The 'load' operation is not supported on this platform."));

@@ -4,7 +4,6 @@
 
 @include version.texi
 @set EDITION 0.72
-@set RCSID $Id$
 
 @settitle GNU @code{make}
 @setchapternewpage odd
@@ -27,7 +26,7 @@ of @cite{The GNU Make Manual}, for GNU @code{make} version @value{VERSION}.
 
 Copyright @copyright{} 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995,
 1996, 1997, 1998, 1999, 2000, 2002, 2003, 2004, 2005, 2006, 2007,
-2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -348,6 +347,7 @@ GNU Guile Integration
 Loading Dynamic Objects
 
 * load Directive::              Loading dynamic objects as extensions.
+* Remaking Loaded Objects::     How loaded objects get remade.
 
 @end detailmenu
 @end menu
@@ -1287,7 +1287,6 @@ in the makefiles.  @xref{Include, , Including Other Makefiles}.
 
 @node Remaking Makefiles, Overriding Makefiles, MAKEFILES Variable, Makefiles
 @section How Makefiles Are Remade
-
 @cindex updating makefiles
 @cindex remaking makefiles
 @cindex makefile, remaking of
@@ -6295,7 +6294,6 @@ Has GNU Guile available as an embedded extension language.
 @item load
 Supports dynamically loadable objects for creating custom extensions.
 @xref{Loading Objects, ,Loading Dynamic Objects}.
-
 @end table
 
 @vindex .INCLUDE_DIRS @r{(list of include directories)}
@@ -10539,11 +10537,11 @@ program, although this can be inefficient.
 In cases where the built-in capabilities of GNU @code{make} are
 insufficient to your requirements there are two options for extending
 @code{make}.  On systems where it's provided, you can utilize GNU
-Guile as an embedded scripting language (@pxref{Guile Integration,
-,GNU Guile Integration}).  On systems which support dynamically
-loadable objects, you can write your own extension in any language
-(which can be compiled into such an object) and load it to provide
-extended capabilities (@pxref{load Directive, ,The @code{load} Directive}).
+Guile as an embedded scripting language (@pxref{Guile Integration,,GNU
+Guile Integration}).  On systems which support dynamically loadable
+objects, you can write your own extension in any language (which can
+be compiled into such an object) and load it to provide extended
+capabilities (@pxref{load Directive, ,The @code{load} Directive}).
 
 @menu
 * Guile Integration::           Using Guile as an embedded scripting language.
@@ -10786,15 +10784,16 @@ providing new capabilities which may then be invoked by your makefile.
 The @code{load} directive is used to load a dynamic object.  Once the
 object is loaded, a ``setup'' function will be invoked to allow the
 object to initialize itself and register new facilities with GNU
-@code{make}.  Typically a dynamic object would create new functions,
+@code{make}.  A dynamic object might include new @code{make} functions,
 for example, and the ``setup'' function would register them with GNU
 @code{make}'s function handling system.
 
 @menu
 * load Directive::              Loading dynamic objects as extensions.
+* Remaking Loaded Objects::     How loaded objects get remade.
 @end menu
 
-@node load Directive,  , Loading Objects, Loading Objects
+@node load Directive, Remaking Loaded Objects, Loading Objects, Loading Objects
 @subsection The @code{load} Directive
 @cindex load directive
 @cindex extensions, load directive
@@ -10814,20 +10813,32 @@ or:
 load @var{object-file}(@var{symbol-name}) @dots{}
 @end example
 
-In the first form, the file @var{object-file} is dynamically loaded by
-GNU @code{make}.  On failure, @code{make} will print a message and
-exit.  If the load succeeds @code{make} will invoke an initializing
-function whose name is created by taking the base file name of
-@var{object-file}, up to the first character which is not a valid
-symbol name character (alphanumerics and underscores are valid symbol
-name characters).  To this prefix will be appended the suffix
-@code{_gmake_setup}, then this symbol will be invoked.
+The file @var{object-file} is dynamically loaded by GNU @code{make}.
+If @var{object-file} does not include a directory path then it is
+first looked for in the current directory.  If it is not found there,
+or a directory path is included, then system-specific paths will be
+searched.  If the load fails for any reason, @code{make} will print a
+message and exit.
 
-In the second form, the function @var{symbol-name} will be invoked.
+If the load succeeds @code{make} will invoke an initializing function.
+
+If @var{symbol-name} is provided, it will be used as the name of the
+initializing function.
+
+If no @var{symbol-name} is provided, the initializing function name is
+created by taking the base file name of @var{object-file}, up to the
+first character which is not a valid symbol name character
+(alphanumerics and underscores are valid symbol name characters).  To
+this prefix will be appended the suffix @code{_gmake_setup}.
 
 More than one object file may be loaded with a single @code{load}
 directive, and both forms of @code{load} arguments may be used in the
 same directive.
+
+The initializing function will be provided the file name and line
+number of the invocation of the @code{load} operation.  It should
+return a value of type @code{int}, which must be @code{0} on failure
+and non-@code{0} on success.
 
 For example:
 
@@ -10863,6 +10874,22 @@ of @code{load}.  GNU @code{make} will not fail and no message will be
 generated if an object fails to load.  The failed object is not added
 to the @code{.LOADED} variable, which can then be consulted to
 determine if the load was successful.
+
+@node Remaking Loaded Objects,  , load Directive, Loading Objects
+@subsection How Loaded Objects Are Remade
+@cindex updating load objects
+@cindex remaking load objects
+@cindex load objects, remaking of
+
+Loaded objects undergo the same re-make procedure as makefiles
+(@pxref{Remaking Makefiles, ,How Makefiles Are Remade}).  If any
+loaded object is recreated, then @code{make} will start from scratch
+and re-read all the makefiles, and reload the object files again.  It
+is not necessary for the loaded object to do anything special to
+support this.@refill
+
+It's up to the makefile author to provide the rules needed for
+rebuilding the loaded object.
 
 @node Features, Missing, Extending make, Top
 @chapter Features of GNU @code{make}
@@ -11007,6 +11034,12 @@ nonexistent file comes from SunOS 4 @code{make}.  (But note that SunOS 4
 The @code{!=} shell assignment operator exists in many BSD of
 @code{make} and is purposefully implemented here to behave identically
 to those implementations.
+
+@item
+Various build management tools are implemented using scripting
+languages such as Perl or Python and thus provide a natural embedded
+scripting language, similar to GNU @code{make}'s integration of GNU
+Guile.
 @end itemize
 
 The remaining features are inventions new in GNU @code{make}:
@@ -11116,6 +11149,10 @@ Various new built-in implicit rules.
 The built-in variable @samp{MAKE_VERSION} gives the version number of
 @code{make}.
 @vindex MAKE_VERSION
+
+@item
+Load dynamic objects which can modify the behavior of @code{make}.
+@xref{Loading Objects, ,Loading Dynamic Objects}.
 @end itemize
 
 @node Missing, Makefile Conventions, Features, Top

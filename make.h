@@ -476,9 +476,9 @@ int strcache_setbufsize (unsigned int size);
 int guile_gmake_setup (const struct floc *flocp);
 #endif
 
-/* Loadable object support  */
+/* Loadable object support.  Sets to the strcached name of the loaded file.  */
 typedef int (*load_func_t)(const struct floc *flocp);
-int load_file (const struct floc *flocp, const char *filename, int noerror);
+int load_file (const struct floc *flocp, const char **filename, int noerror);
 
 #ifdef  HAVE_VFORK_H
 # include <vfork.h>

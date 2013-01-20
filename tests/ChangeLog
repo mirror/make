@@ -1,3 +1,9 @@
+2013-01-19  Paul Smith  <psmith@gnu.org>
+
+	* scripts/features/load: Test loaded files with and without "./"
+	prefix.  Add tests for automatically rebuilding loaded files if
+	they are out of date or non-existent.
+
 2013-01-13  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/archives: Add a check targets that have parens,
