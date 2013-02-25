@@ -42,4 +42,5 @@ config.ami
 config.h-vms
 config.h.W32
 configh.dos
-make*.tar.*
+make-[0-9]*/
+make-[0-9]*.tar.*

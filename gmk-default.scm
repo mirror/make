@@ -45,10 +45,6 @@
     (walk x)
     (string-join (reverse! acc))))
 
-;; eval (GNU make eval) the input string S
-(define (gmk-eval s)
-  (gmk-expand (format #f "$(eval ~a)" (obj-to-str s))))
-
 ;; Return the value of the GNU make variable V
 (define (gmk-var v)
   (gmk-expand (format #f "$(~a)" (obj-to-str v))))

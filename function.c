@@ -29,12 +29,16 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 struct function_table_entry
   {
+    union {
+      char *(*func_ptr) (char *output, char **argv, const char *fname);
+      char *(*alloc_func_ptr) (const char *fname, int argc, char **argv);
+    } fptr;
     const char *name;
     unsigned char len;
     unsigned char minimum_args;
     unsigned char maximum_args;
-    char expand_args;
-    char *(*func_ptr) (char *output, char **argv, const char *fname);
+    unsigned char expand_args:1;
+    unsigned char alloc_fn:1;
   };
 
 static unsigned long
@@ -1361,7 +1365,7 @@ func_eval (char *o, char **argv, const char *funcname UNUSED)
 
   install_variable_buffer (&buf, &len);
 
-  eval_buffer (argv[0]);
+  eval_buffer (argv[0], NULL);
 
   restore_variable_buffer (buf, len);
 
@@ -2186,49 +2190,51 @@ func_abspath (char *o, char **argv, const char *funcname UNUSED)
 
 static char *func_call (char *o, char **argv, const char *funcname);
 
+#define FT_ENTRY(_name, _min, _max, _exp, _func) \
+  { (_func), STRING_SIZE_TUPLE(_name), (_min), (_max), (_exp), 0 }
 
 static struct function_table_entry function_table_init[] =
 {
- /* Name/size */                    /* MIN MAX EXP? Function */
-  { STRING_SIZE_TUPLE("abspath"),       0,  1,  1,  func_abspath},
-  { STRING_SIZE_TUPLE("addprefix"),     2,  2,  1,  func_addsuffix_addprefix},
-  { STRING_SIZE_TUPLE("addsuffix"),     2,  2,  1,  func_addsuffix_addprefix},
-  { STRING_SIZE_TUPLE("basename"),      0,  1,  1,  func_basename_dir},
-  { STRING_SIZE_TUPLE("dir"),           0,  1,  1,  func_basename_dir},
-  { STRING_SIZE_TUPLE("notdir"),        0,  1,  1,  func_notdir_suffix},
-  { STRING_SIZE_TUPLE("subst"),         3,  3,  1,  func_subst},
-  { STRING_SIZE_TUPLE("suffix"),        0,  1,  1,  func_notdir_suffix},
-  { STRING_SIZE_TUPLE("filter"),        2,  2,  1,  func_filter_filterout},
-  { STRING_SIZE_TUPLE("filter-out"),    2,  2,  1,  func_filter_filterout},
-  { STRING_SIZE_TUPLE("findstring"),    2,  2,  1,  func_findstring},
-  { STRING_SIZE_TUPLE("firstword"),     0,  1,  1,  func_firstword},
-  { STRING_SIZE_TUPLE("flavor"),        0,  1,  1,  func_flavor},
-  { STRING_SIZE_TUPLE("join"),          2,  2,  1,  func_join},
-  { STRING_SIZE_TUPLE("lastword"),      0,  1,  1,  func_lastword},
-  { STRING_SIZE_TUPLE("patsubst"),      3,  3,  1,  func_patsubst},
-  { STRING_SIZE_TUPLE("realpath"),      0,  1,  1,  func_realpath},
-  { STRING_SIZE_TUPLE("shell"),         0,  1,  1,  func_shell},
-  { STRING_SIZE_TUPLE("sort"),          0,  1,  1,  func_sort},
-  { STRING_SIZE_TUPLE("strip"),         0,  1,  1,  func_strip},
-  { STRING_SIZE_TUPLE("wildcard"),      0,  1,  1,  func_wildcard},
-  { STRING_SIZE_TUPLE("word"),          2,  2,  1,  func_word},
-  { STRING_SIZE_TUPLE("wordlist"),      3,  3,  1,  func_wordlist},
-  { STRING_SIZE_TUPLE("words"),         0,  1,  1,  func_words},
-  { STRING_SIZE_TUPLE("origin"),        0,  1,  1,  func_origin},
-  { STRING_SIZE_TUPLE("foreach"),       3,  3,  0,  func_foreach},
-  { STRING_SIZE_TUPLE("call"),          1,  0,  1,  func_call},
-  { STRING_SIZE_TUPLE("info"),          0,  1,  1,  func_error},
-  { STRING_SIZE_TUPLE("error"),         0,  1,  1,  func_error},
-  { STRING_SIZE_TUPLE("warning"),       0,  1,  1,  func_error},
-  { STRING_SIZE_TUPLE("if"),            2,  3,  0,  func_if},
-  { STRING_SIZE_TUPLE("or"),            1,  0,  0,  func_or},
-  { STRING_SIZE_TUPLE("and"),           1,  0,  0,  func_and},
-  { STRING_SIZE_TUPLE("value"),         0,  1,  1,  func_value},
-  { STRING_SIZE_TUPLE("eval"),          0,  1,  1,  func_eval},
-  { STRING_SIZE_TUPLE("file"),          1,  2,  1,  func_file},
+ /*         Name            MIN MAX EXP? Function */
+  FT_ENTRY ("abspath",       0,  1,  1,  func_abspath),
+  FT_ENTRY ("addprefix",     2,  2,  1,  func_addsuffix_addprefix),
+  FT_ENTRY ("addsuffix",     2,  2,  1,  func_addsuffix_addprefix),
+  FT_ENTRY ("basename",      0,  1,  1,  func_basename_dir),
+  FT_ENTRY ("dir",           0,  1,  1,  func_basename_dir),
+  FT_ENTRY ("notdir",        0,  1,  1,  func_notdir_suffix),
+  FT_ENTRY ("subst",         3,  3,  1,  func_subst),
+  FT_ENTRY ("suffix",        0,  1,  1,  func_notdir_suffix),
+  FT_ENTRY ("filter",        2,  2,  1,  func_filter_filterout),
+  FT_ENTRY ("filter-out",    2,  2,  1,  func_filter_filterout),
+  FT_ENTRY ("findstring",    2,  2,  1,  func_findstring),
+  FT_ENTRY ("firstword",     0,  1,  1,  func_firstword),
+  FT_ENTRY ("flavor",        0,  1,  1,  func_flavor),
+  FT_ENTRY ("join",          2,  2,  1,  func_join),
+  FT_ENTRY ("lastword",      0,  1,  1,  func_lastword),
+  FT_ENTRY ("patsubst",      3,  3,  1,  func_patsubst),
+  FT_ENTRY ("realpath",      0,  1,  1,  func_realpath),
+  FT_ENTRY ("shell",         0,  1,  1,  func_shell),
+  FT_ENTRY ("sort",          0,  1,  1,  func_sort),
+  FT_ENTRY ("strip",         0,  1,  1,  func_strip),
+  FT_ENTRY ("wildcard",      0,  1,  1,  func_wildcard),
+  FT_ENTRY ("word",          2,  2,  1,  func_word),
+  FT_ENTRY ("wordlist",      3,  3,  1,  func_wordlist),
+  FT_ENTRY ("words",         0,  1,  1,  func_words),
+  FT_ENTRY ("origin",        0,  1,  1,  func_origin),
+  FT_ENTRY ("foreach",       3,  3,  0,  func_foreach),
+  FT_ENTRY ("call",          1,  0,  1,  func_call),
+  FT_ENTRY ("info",          0,  1,  1,  func_error),
+  FT_ENTRY ("error",         0,  1,  1,  func_error),
+  FT_ENTRY ("warning",       0,  1,  1,  func_error),
+  FT_ENTRY ("if",            2,  3,  0,  func_if),
+  FT_ENTRY ("or",            1,  0,  0,  func_or),
+  FT_ENTRY ("and",           1,  0,  0,  func_and),
+  FT_ENTRY ("value",         0,  1,  1,  func_value),
+  FT_ENTRY ("eval",          0,  1,  1,  func_eval),
+  FT_ENTRY ("file",          1,  2,  1,  func_file),
 #ifdef EXPERIMENTAL
-  { STRING_SIZE_TUPLE("eq"),            2,  2,  1,  func_eq},
-  { STRING_SIZE_TUPLE("not"),           0,  1,  1,  func_not},
+  FT_ENTRY ("eq",            2,  2,  1,  func_eq),
+  FT_ENTRY ("not",           0,  1,  1,  func_not),
 #endif
 };
 
@@ -2241,23 +2247,38 @@ static char *
 expand_builtin_function (char *o, int argc, char **argv,
                          const struct function_table_entry *entry_p)
 {
+  char *p;
+
   if (argc < (int)entry_p->minimum_args)
     fatal (*expanding_var,
            _("insufficient number of arguments (%d) to function '%s'"),
            argc, entry_p->name);
 
-  /* I suppose technically some function could do something with no
-     arguments, but so far none do, so just test it for all functions here
+  /* I suppose technically some function could do something with no arguments,
+     but so far no internal ones do, so just test it for all functions here
      rather than in each one.  We can change it later if necessary.  */
 
-  if (!argc)
+  if (!argc && !entry_p->alloc_fn)
     return o;
 
-  if (!entry_p->func_ptr)
+  if (!entry_p->fptr.func_ptr)
     fatal (*expanding_var,
            _("unimplemented on this platform: function '%s'"), entry_p->name);
 
-  return entry_p->func_ptr (o, argv, entry_p->name);
+  if (!entry_p->alloc_fn)
+    return entry_p->fptr.func_ptr (o, argv, entry_p->name);
+
+  /* This function allocates memory and returns it to us.
+     Write it to the variable buffer, then free it.  */
+
+  p = entry_p->fptr.alloc_func_ptr (entry_p->name, argc, argv);
+  if (p)
+    {
+      o = variable_buffer_output (o, p, strlen (p));
+      free (p);
+    }
+
+  return o;
 }
 
 /* Check for a function invocation in *STRINGP.  *STRINGP points at the
@@ -2486,26 +2507,28 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
 void
 define_new_function(const gmk_floc *flocp,
                     const char *name, int min, int max, int expand,
-                    char *(*func)(char *, char **, const char *))
+                    char *(*func)(const char *, int, char **))
 {
+  struct function_table_entry *ent;
   size_t len = strlen (name);
-  struct function_table_entry *ent = xmalloc (sizeof (struct function_table_entry));
 
   if (len > 255)
     fatal (flocp, _("Function name too long: %s\n"), name);
   if (min < 0 || min > 255)
     fatal (flocp, _("Invalid minimum argument count (%d) for function %s\n"),
            min, name);
-  if (max < 0 || max > 255 || max < min)
+  if (max < 0 || max > 255 || (max && max < min))
     fatal (flocp, _("Invalid maximum argument count (%d) for function %s\n"),
            max, name);
 
+  ent = xmalloc (sizeof (struct function_table_entry));
   ent->name = name;
   ent->len = len;
   ent->minimum_args = min;
   ent->maximum_args = max;
   ent->expand_args = expand ? 1 : 0;
-  ent->func_ptr = func;
+  ent->alloc_fn = 1;
+  ent->fptr.alloc_func_ptr = func;
 
   hash_insert (&function_table, ent);
 }

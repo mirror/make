@@ -24,7 +24,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <dlfcn.h>
 #include <errno.h>
 
-#define SYMBOL_EXTENSION        "_gmake_setup"
+#define SYMBOL_EXTENSION        "_gmk_setup"
 
 static void *global_dl = NULL;
 

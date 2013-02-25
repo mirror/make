@@ -40,8 +40,8 @@ else
 endif
 
 make_SOURCES =	ar.c arscan.c commands.c default.c dir.c expand.c file.c \
-		function.c getopt.c getopt1.c implicit.c job.c load.c main.c \
-		misc.c read.c remake.c rule.c signame.c \
+		function.c getopt.c getopt1.c implicit.c job.c load.c \
+		loadapi.c main.c misc.c read.c remake.c rule.c signame.c \
 		strcache.c variable.c version.c vpath.c hash.c \
 		$(remote)
 
@@ -184,18 +184,18 @@ loadavg_LDADD = @GETLOADAVG_LIBS@
 MAKETESTFLAGS =
 
 check-regression:
-	@if test -f "$(srcdir)/tests/run_make_tests"; then \
+	@if test -f '$(srcdir)/tests/run_make_tests'; then \
 	  if $(PERL) -v >/dev/null 2>&1; then \
-	    case `cd $(srcdir); pwd` in `pwd`) : ;; \
+	    case `cd '$(srcdir)'; pwd` in `pwd`) : ;; \
 	      *) test -d tests || mkdir tests; \
 		 rm -f srctests; \
-		 if ln -s "$(srcdir)/tests" srctests; then \
+		 if ln -s '$(srcdir)/tests' srctests; then \
 		   for f in run_make_tests run_make_tests.pl test_driver.pl scripts; do \
 		     rm -f tests/$$f; ln -s ../srctests/$$f tests; \
 		   done; fi ;; \
 	    esac; \
-	    echo "cd tests && $(PERL) ./run_make_tests.pl -make ../make$(EXEEXT) $(MAKETESTFLAGS)"; \
-	    cd tests && $(PERL) ./run_make_tests.pl -make ../make$(EXEEXT) $(MAKETESTFLAGS); \
+	    echo "cd tests && $(PERL) ./run_make_tests.pl -srcdir $(abs_srcdir) -make ../make$(EXEEXT) $(MAKETESTFLAGS)"; \
+	    cd tests && $(PERL) ./run_make_tests.pl -srcdir '$(abs_srcdir)' -make '../make$(EXEEXT)' $(MAKETESTFLAGS); \
 	  else \
 	    echo "Can't find a working Perl ($(PERL)); the test suite requires Perl."; \
 	  fi; \

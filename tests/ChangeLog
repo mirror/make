@@ -1,3 +1,12 @@
+2013-02-25  Paul Smith  <psmith@gnu.org>
+
+	* run_make_tests.pl (valid_option): Support the -srcdir flag.
+	(set_more_defaults): Set up $srcdir if it's not set yet.
+
+	* scripts/functions/guile: Verify gmk-eval doesn't expand twice.
+	* scripts/features/load: Rework to test just the load capability.
+	* scripts/features/loadapi: New set of tests for the load API.
+
 2013-01-19  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/load: Test loaded files with and without "./"

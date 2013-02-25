@@ -14,6 +14,8 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#include "gnumake.h"
+
 #include "makeint.h"
 #include "debug.h"
 #include "dep.h"
@@ -40,13 +42,25 @@ guile_expand_wrapper (SCM obj)
   char *res;
 
   DB (DB_BASIC, (_("guile: Expanding '%s'\n"), str));
-  res = allocated_variable_expand (str);
+  res = gmk_expand (str);
   ret = scm_from_locale_string (res);
 
   free (str);
   free (res);
 
   return ret;
+}
+
+/* Perform the GNU make eval function.  */
+static SCM
+guile_eval_wrapper (SCM obj)
+{
+  char *str = cvt_scm_to_str (obj);
+
+  DB (DB_BASIC, (_("guile: Evaluating '%s'\n"), str));
+  gmk_eval (str, 0);
+
+  return SCM_BOOL_F;
 }
 
 /* Invoked by scm_c_define_module(), in the context of the GNU make module.  */
@@ -58,6 +72,9 @@ guile_define_module (void *data UNUSED)
 
   /* Register a subr for GNU make's eval capability.  */
   scm_c_define_gsubr ("gmk-expand", 1, 0, 0, guile_expand_wrapper);
+
+  /* Register a subr for GNU make's eval capability.  */
+  scm_c_define_gsubr ("gmk-eval", 1, 0, 0, guile_eval_wrapper);
 
   /* Define the rest of the module.  */
   scm_c_eval_string (GUILE_module_defn);
@@ -87,19 +104,12 @@ internal_guile_eval (void *arg)
 
 /* This is the function registered with make  */
 static char *
-func_guile (char *o, char **argv, const char *funcname UNUSED)
+func_guile (const char *funcname UNUSED, int argc UNUSED, char **argv)
 {
   if (argv[0] && argv[0][0] != '\0')
-    {
-      char *str = scm_with_guile (internal_guile_eval, argv[0]);
-      if (str)
-        {
-          o = variable_buffer_output (o, str, strlen (str));
-          free (str);
-        }
-    }
+    return scm_with_guile (internal_guile_eval, argv[0]);
 
-  return o;
+  return NULL;
 }
 
 /* ----- Public interface ----- */
@@ -113,7 +123,7 @@ guile_gmake_setup (const gmk_floc *flocp UNUSED)
   scm_with_guile (guile_init, NULL);
 
   /* Create a make function "guile".  */
-  define_new_function (NILF, "guile", 0, 1, 1, func_guile);
+  gmk_add_function ("guile", func_guile, 0, 1, 1);
 
   return 1;
 }

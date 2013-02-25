@@ -44,8 +44,12 @@ x:;@echo '$(VAR)'
               '', "hi");
 
 # Verify the gmk-eval function
+# Prove that the string is expanded only once (by eval)
 run_make_test(q!
-$(guile (gmk-eval "VAR = hi $(shell echo there)"))
+TEST = bye
+EVAL = VAR = $(TEST) $(shell echo there)
+$(guile (gmk-eval "$(value EVAL)"))
+TEST = hi
 x:;@echo '$(VAR)'
 !,
               '', "hi there");
@@ -80,7 +84,7 @@ define fib
 ;; A procedure for counting the n:th Fibonacci number
 ;; See SICP, p. 37
 (define (fib n)
-  (cond ((= n 0) 0)  
+  (cond ((= n 0) 0)
         ((= n 1) 1)
         (else (+ (fib (- n 1))
                  (fib (- n 2))))))

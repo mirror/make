@@ -435,7 +435,7 @@ eval_makefile (const char *filename, int flags)
 }
 
 void
-eval_buffer (char *buffer)
+eval_buffer (char *buffer, const gmk_floc *floc)
 {
   struct ebuffer ebuf;
   struct conditionals *saved;
@@ -448,7 +448,9 @@ eval_buffer (char *buffer)
   ebuf.buffer = ebuf.bufnext = ebuf.bufstart = buffer;
   ebuf.fp = NULL;
 
-  if (reading_file)
+  if (floc)
+    ebuf.floc = *floc;
+  else if (reading_file)
     ebuf.floc = *reading_file;
   else
     ebuf.floc.filenm = NULL;

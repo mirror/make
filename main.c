@@ -1648,7 +1648,7 @@ main (int argc, char **argv, char **envp)
         {
           p = xstrdup (eval_strings->list[i]);
           len += 2 * strlen (p);
-          eval_buffer (p);
+          eval_buffer (p, NULL);
           free (p);
         }
 

@@ -6,6 +6,8 @@ $details = "Test dynamic loading of modules.";
 # Don't do anything if this system doesn't support "load"
 exists $FEATURES{load} or return -1;
 
+my $sobuild = '$(CC) '.($srcdir? "-I$srcdir":'').' -g -shared -fPIC -o $@ $<';
+
 # First build a shared object
 # Provide both a default and non-default load symbol
 
@@ -16,67 +18,56 @@ print $F <<'EOF' ;
 #include <string.h>
 #include <stdio.h>
 
-void define_new_function (void *, const char *, int, int, int,
-                          char *(*)(char *, char **, const char *));
-
-char *variable_buffer_output (char *, const char *, unsigned int);
-
-static char *
-func_test(char *o, char **argv, const char *funcname)
-{
-    return variable_buffer_output (o, funcname, strlen (funcname));
-}
+#include "gnumake.h"
 
 int
-testload_gmake_setup ()
+testload_gmk_setup ()
 {
-    define_new_function (0, "func-a", 1, 1, 1, func_test);
+    gmk_eval ("TESTLOAD = implicit", 0);
     return 1;
 }
 
 int
 explicit_setup ()
 {
-    define_new_function (0, "func-b", 1, 1, 1, func_test);
+    gmk_eval ("TESTLOAD = explicit", 0);
     return 1;
 }
 EOF
 close($F) or die "close: testload.c: $!\n";
 
-run_make_test('testload.so: testload.c ; @$(CC) -g -shared -fPIC -o $@ $<',
-              '', '');
+# Make sure we can compile
+run_make_test('testload.so: testload.c ; @'.$sobuild, '', '');
 
 # TEST 1
 run_make_test(q!
-all: ; @echo $(func-a foo) $(func-b bar)
+PRE := $(.LOADED)
 load testload.so
+POST := $(.LOADED)
+all: ; @echo pre=$(PRE) post=$(POST) $(TESTLOAD)
 !,
-              '', "func-a\n");
+              '', "pre= post=testload.so implicit\n");
 
 # TEST 2
-# Load a different function
+# Load using an explicit function
 run_make_test(q!
-all: ; @echo $(func-a foo) $(func-b bar)
+PRE := $(.LOADED)
 load ./testload.so(explicit_setup)
+POST := $(.LOADED)
+all: ; @echo pre=$(PRE) post=$(POST) $(TESTLOAD)
 !,
-              '', "func-b\n");
-
-# TEST 3
-# Verify the .LOADED variable
-run_make_test(q!
-all: ; @echo $(filter testload.so,$(.LOADED)) $(func-a foo) $(func-b bar)
-load testload.so(explicit_setup)
-!,
-              '', "testload.so func-b\n");
+              '', "pre= post=testload.so explicit\n");
 
 # TEST 4
 # Check multiple loads
 run_make_test(q!
-all: ; @echo $(filter testload.so,$(.LOADED)) $(func-a foo) $(func-b bar)
+PRE := $(.LOADED)
 load ./testload.so
 load testload.so(explicit_setup)
+POST := $(.LOADED)
+all: ; @echo pre=$(PRE) post=$(POST) $(TESTLOAD)
 !,
-              '', "testload.so func-a\n");
+              '', "pre= post=testload.so implicit\n");
 
 # TEST 5
 # Check auto-rebuild of loaded file that's out of date
@@ -84,22 +75,24 @@ utouch(-10, 'testload.so');
 touch('testload.c');
 
 run_make_test(q!
-all: ; @echo $(func-a foo) $(func-b bar)
+PRE := $(.LOADED)
 load ./testload.so
-testload.so: testload.c ; @echo "rebuilding $@"; $(CC) -g -shared -fPIC -o $@ $<
-!,
-              '', "rebuilding testload.so\nfunc-a\n");
+POST := $(.LOADED)
+all: ; @echo pre=$(PRE) post=$(POST) $(TESTLOAD)
+testload.so: testload.c ; @echo "rebuilding $@"; !.$sobuild,
+              '', "rebuilding testload.so\npre= post=testload.so implicit\n");
 
 # TEST 5
 # Check auto-rebuild of loaded file when it doesn't exist
 unlink('testload.so');
 
 run_make_test(q!
-all: ; @echo $(func-a foo) $(func-b bar)
+PRE := $(.LOADED)
 -load ./testload.so(explicit_setup)
-%.so: %.c ; @echo "rebuilding $@"; $(CC) -g -shared -fPIC -o $@ $<
-!,
-              '', "rebuilding testload.so\nfunc-b\n");
+POST := $(.LOADED)
+all: ; @echo pre=$(PRE) post=$(POST) $(TESTLOAD)
+%.so: %.c ; @echo "rebuilding $@"; !.$sobuild,
+              '', "rebuilding testload.so\npre= post=testload.so explicit\n");
 
 unlink(qw(testload.c testload.so)) unless $keep;
 

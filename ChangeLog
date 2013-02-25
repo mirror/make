@@ -1,3 +1,30 @@
+2013-02-25  Paul Smith  <psmith@gnu.org>
+
+	Add a proposed supported API for GNU make loaded objects.
+
+	* doc/make.texi (Loaded Object API): Document it.
+	* Makefile.am (make_SOURCES): Add new loadapi.c.
+	* dep.h: Remove eval_buffer(); moved to loadapi.c:gmk_eval().
+	* read.c (eval_buffer): Change eval_buffer() signature.
+	* main.c (main): Change eval_buffer() signature.
+	* variable.h (define_new_function): Change func_ptr signature.
+	* load.c (SYMBOL_EXTENSION): Change the extension.
+	* loadapi.c: Implement the new API.
+	* gnumake.h (gmk_eval): New function prototype.
+	(gmk_expand) Ditto.
+	(gmk_add_function) Ditto.
+	* gmk-default.scm (gmk-eval): Remove: now implemented in guile.c.
+	* guile.c (guile_expand_wrapper): Use gmk_expand()
+	(guile_eval_wrapper): Implement eval here to avoid double-expansion.
+	(guile_define_module): Define gmk-eval.
+	(func_guile): Use new func_ptr calling model.
+	(guile_gmake_setup): Use gmk_add_function() to declare $(guile ...)
+	* function.c (function_table_entry): Provide alternative func_ptr.
+	(func_eval): New signature for eval_buffer();
+	(function_table_init): New initialization for function_table_entry.
+	(expand_builtin_function): Support alternative invocation signature.
+	(define_new_function): Ditto.
+
 2013-01-20  Paul Smith  <psmith@gnu.org>
 
 	* gnumake.h: New file to contain externally-visible content.

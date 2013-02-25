@@ -348,6 +348,7 @@ Loading Dynamic Objects
 
 * load Directive::              Loading dynamic objects as extensions.
 * Remaking Loaded Objects::     How loaded objects get remade.
+* Loaded Object API::           Programmatic interface for loaded objects.
 
 @end detailmenu
 @end menu
@@ -10658,23 +10659,24 @@ exports these procedures as public interfaces from that module:
 
 @table @code
 @item gmk-expand
+@findex gmk-expand
 This procedure takes a single argument which is converted into a
 string.  The string is expanded by @code{make} using normal
 @code{make} expansion rules.  The result of the expansion is converted
 into a Guile string and provided as the result of the procedure.
 
 @item gmk-eval
+@findex gmk-eval
 This procedure takes a single argument which is converted into a
 string.  The string is evaluated by @code{make} as if it were a
 makefile.  This is the same capability available via the @code{eval}
 function (@pxref{Eval Function}).  The result of the @code{gmk-eval}
 procedure is always the empty string.
 
-@item gmk-var
-This procedure takes a single argument which is converted into a
-string.  The string is assumed to be the name of a @code{make}
-variable, which is then expanded.  The expansion is converted into a
-string and provided as the result of the procedure.
+Note that @code{gmk-eval} is not quite the same as using
+@code{gmk-expand} with the @code{eval} function: in the latter case
+the evaluated string will be expanded @emph{twice}; first by
+@code{gmk-expand}, then again by the @code{eval} function.
 
 @end table
 
@@ -10756,8 +10758,8 @@ symbol to be stored in a @code{make} variable.
 
 @node Loading Objects,  , Guile Integration, Extending make
 @section Loading Dynamic Objects
-@cindex loading objects
-@cindex objects, loading
+@cindex loaded objects
+@cindex objects, loaded
 @cindex extensions, loading
 
 @cartouche
@@ -10767,12 +10769,6 @@ The @code{load} directive and extension capability is considered a
 to experiment with this feature and we appreciate any feedback on it.
 However we cannot guarantee to maintain backward-compatibility in the
 next release.
-
-In particular, for this feature to be useful your extensions will need
-to invoke various functions internal to GNU @code{make}.  In this
-release there is no stable programming interface defined for
-@code{make}: any internal function may change or even disappear in
-future releases.
 @end quotation
 @end cartouche
 
@@ -10791,6 +10787,7 @@ for example, and the ``setup'' function would register them with GNU
 @menu
 * load Directive::              Loading dynamic objects as extensions.
 * Remaking Loaded Objects::     How loaded objects get remade.
+* Loaded Object API::           Programmatic interface for loaded objects.
 @end menu
 
 @node load Directive, Remaking Loaded Objects, Loading Objects, Loading Objects
@@ -10829,7 +10826,7 @@ If no @var{symbol-name} is provided, the initializing function name is
 created by taking the base file name of @var{object-file}, up to the
 first character which is not a valid symbol name character
 (alphanumerics and underscores are valid symbol name characters).  To
-this prefix will be appended the suffix @code{_gmake_setup}.
+this prefix will be appended the suffix @code{_gmk_setup}.
 
 More than one object file may be loaded with a single @code{load}
 directive, and both forms of @code{load} arguments may be used in the
@@ -10848,7 +10845,7 @@ load ../mk_funcs.so
 
 will load the dynamic object @file{../mk_funcs.so}.  After the object
 is loaded, @code{make} will invoke the function (assumed to be defined
-by the shared object) @code{mk_funcs_gmake_setup}.
+by the shared object) @code{mk_funcs_gmk_setup}.
 
 On the other hand:
 
@@ -10875,11 +10872,11 @@ generated if an object fails to load.  The failed object is not added
 to the @code{.LOADED} variable, which can then be consulted to
 determine if the load was successful.
 
-@node Remaking Loaded Objects,  , load Directive, Loading Objects
+@node Remaking Loaded Objects, Loaded Object API, load Directive, Loading Objects
 @subsection How Loaded Objects Are Remade
-@cindex updating load objects
-@cindex remaking load objects
-@cindex load objects, remaking of
+@cindex updating loaded objects
+@cindex remaking loaded objects
+@cindex loaded objects, remaking of
 
 Loaded objects undergo the same re-make procedure as makefiles
 (@pxref{Remaking Makefiles, ,How Makefiles Are Remade}).  If any
@@ -10890,6 +10887,119 @@ support this.@refill
 
 It's up to the makefile author to provide the rules needed for
 rebuilding the loaded object.
+
+@node Loaded Object API,  , Remaking Loaded Objects, Loading Objects
+@subsection Loaded Object Interface
+@cindex loaded object API
+@cindex interface for loaded objects
+
+@cartouche
+@quotation Warning
+For this feature to be useful your extensions will need to invoke
+various functions internal to GNU @code{make}.  The programming
+interfaces provided in this release should not be considered stable:
+functions may be added, removed, or change calling signatures or
+implementations in future versions of GNU @code{make}.
+@end quotation
+@end cartouche
+
+To be useful, loaded objects must be able to interact with GNU
+@code{make}.  This interaction includes both interfaces the loaded
+object provides to makefiles and also interfaces the loaded object can
+use to manipulate @code{make}'s operation.
+
+The interface between loaded objects and @code{make} is defined by the
+@file{gnumake.h} C header file.  All loaded objects written in C
+should include this header file.  Any loaded object not written in C
+will need to implement the interface defined in this header file.
+
+Typically, a loaded object will register one or more new GNU
+@code{make} functions using the @code{gmk_add_function} routine from
+within its setup function.  The implementations of these @code{make}
+functions may make use of the @code{gmk_expand} and @code{gmk_eval}
+routines to perform their tasks.
+
+@subsubheading Data Structures
+
+@table @code
+@item gmk_floc
+This structure represents a filename/location pair.  It is provided
+when defining items, so GNU @code{make} can inform the user later
+where the definition occurred if necessary.
+@end table
+
+@subsubheading Registering Functions
+
+There is currently one way for makefiles to invoke operations provided
+by the loaded object: through the @code{make} function call
+interface.  A loaded object can register one or more new functions
+which may then be invoked from within the makefile in the same way as
+any other function.
+
+Use @code{gmk_add_function} to create a new @code{make} function.  Its
+arguments are as follows:
+
+@table @code
+@item name
+The function name.  This is what the makefile should use to invoke the
+function.  The name must be between 1 and 255 characters long.
+
+@item func_ptr
+A pointer to a function that @code{make} will invoke when it expands
+the function in a makefile.  This function must be defined by the
+loaded object.  GNU @code{make} will call it with three arguments:
+@code{name} (the same name as above), @code{argc} (the number of
+arguments to the function), and @code{argv} (the list of arguments to
+the function).  The last argument (that is, @code{argv[argc]} will be
+null (@code{0}).
+
+@item min_args
+The minimum number of arguments the function will accept.  Must be
+between 0 and 255.  GNU @code{make} will check this and fail before
+invoking @code{func_ptr} if the function was invoked with too few
+arguments.
+
+@item max_args
+The maximum number of arguments the function will accept.  Must be
+between 0 and 255.  GNU @code{make} will check this and fail before
+invoking @code{func_ptr} if the function was invoked with too few
+arguments.  If the value is 0, then any number of arguments is
+accepted.  If the value is greater than 0, then it must be greater
+than or equal to @code{min_args}.
+
+@item expand_args
+If this value is 0, then @code{make} will not expand the arguments to
+the function before passing them to @code{func_ptr}.  If the value is
+non-0, then the arguments will be expanded first.
+@end table
+
+@subsubheading GNU @code{make} Facilities
+
+There are some facilities exported by GNU @code{make} for use by
+loaded objects.  Typically these would be run from within the
+setup function and/or the functions registered via
+@code{gmk_add_function}, to retrieve or modify the data @code{make}
+works with.
+
+@table @code
+@item gmk_expand
+This function takes a string and expands it using @code{make}
+expansion rules.  The result of the expansion is returned in a string
+that has been allocated using @code{malloc}.  The caller is
+responsible for calling @code{free} on the string when done.
+
+@item gmk_eval
+This function takes a buffer and evaluates it as a segment of makefile
+syntax.  This function can be used to define new variables, new rules,
+etc.  It is equivalent to using the @code{eval} @code{make} function.
+
+Note that there is a difference between @code{gmk_eval} and calling
+@code{gmk_expand} with a string using the @code{eval} function: in
+the latter case the string will be expanded @emph{twice}; once by
+@code{gmk_expand} and then again by the @code{eval} function.  Using
+@code{gmk_eval} the buffer is only expanded once, at most (as it's
+read by the @code{make} parser).
+@end table
 
 @node Features, Missing, Extending make, Top
 @chapter Features of GNU @code{make}

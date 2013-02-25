@@ -35,6 +35,9 @@ $memcheck_args = '--num-callers=15 --tool=memcheck --leak-check=full --suppressi
 $massif_args = '--num-callers=15 --tool=massif --alloc-fn=xmalloc --alloc-fn=xcalloc --alloc-fn=xrealloc --alloc-fn=xstrdup --alloc-fn=xstrndup';
 $pure_log = undef;
 
+# The location of the GNU make source directory
+$srcdir = '';
+
 $command_string = '';
 
 $all_tests = 0;
@@ -54,6 +57,15 @@ sub valid_option
        $make_path = shift @argv;
        if (!-f $make_path) {
            print "$option $make_path: Not found.\n";
+           exit 0;
+       }
+       return 1;
+   }
+
+   if ($option =~ /^-srcdir$/i) {
+       $srcdir = shift @argv;
+       if (! -f "$srcdir/gnumake.h") {
+           print "$option $srcdir: Not a valid GNU make source directory.\n";
            exit 0;
        }
        return 1;
@@ -226,14 +238,16 @@ sub run_make_with_options {
 sub print_usage
 {
    &print_standard_usage ("run_make_tests",
-                          "[-make_path make_pathname] [-memcheck] [-massif]",);
+                          "[-make MAKE_PATHNAME] [-srcdir SRCDIR] [-memcheck] [-massif]",);
 }
 
 sub print_help
 {
    &print_standard_help (
-        "-make_path",
+        "-make",
         "\tYou may specify the pathname of the copy of make to run.",
+        "-srcdir",
+        "\tSpecify the make source directory.",
         "-valgrind",
         "-memcheck",
         "\tRun the test suite under valgrind's memcheck tool.",
@@ -327,12 +341,8 @@ sub set_more_defaults
      $make_name = $1;
    }
    else {
-     if ($make_path =~ /$pathsep([^\n$pathsep]*)$/) {
-       $make_name = $1;
-     }
-     else {
-       $make_name = $make_path;
-     }
+     $make_path =~ /^(?:.*$pathsep)?(.+)$/;
+     $make_name = $1;
    }
 
    # prepend pwd if this is a relative path (ie, does not
@@ -346,6 +356,15 @@ sub set_more_defaults
    else
    {
       $mkpath = $make_path;
+   }
+
+   # If srcdir wasn't provided on the command line, see if the
+   # location of the make program gives us a clue.  Don't fail if not;
+   # we'll assume it's been installed into /usr/include or wherever.
+   if (! $srcdir) {
+       $make_path =~ /^(.*$pathsep)?/;
+       my $d = $1 || '../';
+       -f "${d}gnumake.h" and $srcdir = $d;
    }
 
    # Get Purify log info--if any.
