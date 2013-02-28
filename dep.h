@@ -87,4 +87,5 @@ struct dep *copy_dep_chain (const struct dep *d);
 void free_dep_chain (struct dep *d);
 void free_ns_chain (struct nameseq *n);
 struct dep *read_all_makefiles (const char **makefiles);
+void eval_buffer (char *buffer, const gmk_floc *floc);
 int update_goal_chain (struct dep *goals);

@@ -1,3 +1,8 @@
+2013-02-28  Paul Smith  <psmith@gnu.org>
+
+	* function.c (func_realpath): On Solaris (at least) realpath() can
+	fail due to EINTR, so loop it.  Fixes Savannah bug #38420.
+
 2013-02-25  Paul Smith  <psmith@gnu.org>
 
 	Add a proposed supported API for GNU make loaded objects.

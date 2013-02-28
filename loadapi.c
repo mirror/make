@@ -20,6 +20,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "filedef.h"
 #include "variable.h"
+#include "dep.h"
 
 /* Evaluate a buffer as make syntax.
    Ideally eval_buffer() will take const char *, but not yet.  */
