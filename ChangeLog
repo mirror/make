@@ -1,5 +1,8 @@
 2013-04-06  Paul Smith  <psmith@gnu.org>
 
+	* doc/make.texi (Implicit Variables): Clarify LDFLAGS vs. LDLIBS.
+	Fixes Savannah bug #37970.
+
 	* remake.c (check_dep): Reconsider files waiting on prerequisites,
 	as they may have finished.  Fixes Savannah bug #37703.
 

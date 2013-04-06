@@ -9377,14 +9377,16 @@ Extra flags to give to the SCCS @code{get} program.
 @item LDFLAGS
 @vindex LDFLAGS
 Extra flags to give to compilers when they are supposed to invoke the linker,
-@samp{ld}.
+@samp{ld}, such as @code{-L}.  Libraries (@code{-lfoo}) should be
+added to the @code{LDLIBS} variable instead.
 
 @item LDLIBS
 @vindex LDLIBS
 @vindex LOADLIBES
 Library flags or names given to compilers when they are supposed to
 invoke the linker, @samp{ld}.  @code{LOADLIBES} is a deprecated (but
-still supported) alternative to @code{LDLIBS}.
+still supported) alternative to @code{LDLIBS}.  Non-library linker
+flags, such as @code{-L}, should go in the @code{LDFLAGS} variable.
 
 @item LFLAGS
 @vindex LFLAGS
