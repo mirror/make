@@ -1,3 +1,8 @@
+2013-04-06  Paul Smith  <psmith@gnu.org>
+
+	* remake.c (check_dep): Reconsider files waiting on prerequisites,
+	as they may have finished.  Fixes Savannah bug #37703.
+
 2013-02-28  Paul Smith  <psmith@gnu.org>
 
 	* function.c (func_realpath): On Solaris (at least) realpath() can

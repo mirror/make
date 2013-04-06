@@ -1046,7 +1046,14 @@ check_dep (struct file *file, unsigned int depth,
              fresh.  It could be it was checked as part of an order-only
              prerequisite and so wasn't rebuilt then, but should be now.  */
           if (file->command_state != cs_running)
-            set_command_state (file, cs_not_started);
+            {
+              /* If the target was waiting for a dependency it has to be
+                 reconsidered, as that dependency might have finished.  */
+              if (file->command_state == cs_deps_running)
+                file->considered = !considered;
+
+              set_command_state (file, cs_not_started);
+            }
 
 	  ld = 0;
 	  d = file->deps;
