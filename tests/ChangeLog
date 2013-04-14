@@ -1,10 +1,14 @@
 2013-04-14  Paul Smith  <psmith@gnu.org>
 
+	* scripts/features/output-sync: Rewrite to be more reliable.
+
 	* test_driver.pl (_run_command): Don't set SIGALRM until after we
 	start the child.  Print errors to the top-level output, which will
 	be stderr.
 	(attach_default_output): Use a list of file handles as the stack.
 	(detach_default_output): Ditto.
+
+	* scripts/features/output-sync: Add a test for output-sync.
 
 2013-02-25  Paul Smith  <psmith@gnu.org>
 

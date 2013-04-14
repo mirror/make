@@ -15,18 +15,50 @@ else {
   $sleep_command = "sleep";
 }
 
+@syncfiles = ();
+
+sub output_sync_clean {
+    rmfiles('foo/Makefile', 'bar/Makefile', @syncfiles);
+    rmdir('foo');
+    rmdir('bar');
+}
+
+# We synchronize the different jobs by having them wait for a sentinel file to
+# be created, instead of relying on a certain amount of time passing.
+# Unfortunately in this test we have to sleep after we see the sync file,
+# since we also want to make the obtaining of the write synchronization lock
+# reliable.  If things are too fast, then sometimes a different job will steal
+# the output sync lock and the output is mis-ordered from what we expect.
+sub output_sync_wait {
+    return "while [ ! -f ../mksync.$_[0] ]; do :; done; rm -f ../mksync.$_[0].wait; $sleep_command 1";
+}
+sub output_sync_set {
+    return "date > ../mksync.$_[0]";
+}
+
+@syncfiles = qw(mksync.foo mksync.bar);
+
 # The following subdirectories with Makefiles are used in several
 # of the following tests.
+output_sync_clean();
 mkdir('foo', 0777);
 mkdir('bar', 0777);
+
+$set_foo = output_sync_set('foo');
+$set_bar = output_sync_set('bar');
+
+$wait_foo = output_sync_wait('foo');
+$wait_bar = output_sync_wait('bar');
 
 open(MAKEFILE,"> foo/Makefile");
 print MAKEFILE <<EOF;
 all: foo
 
-foo: ; \@echo foo: start; $sleep_command 2; echo foo: end
+foo: foo-base ; \@$set_foo
 
-foo-fail: ; \@$sleep_command 2; false
+foo-base: ; \@echo foo: start; $wait_bar ; echo foo: end
+
+foo-fail: ; \@$wait_bar ; false
 EOF
 close(MAKEFILE);
 
@@ -34,20 +66,23 @@ open(MAKEFILE,"> bar/Makefile");
 print MAKEFILE <<EOF;
 all: bar baz
 
-bar: ; \@echo bar: start; $sleep_command 1; echo bar: end
+bar: ; \@echo bar: start; echo bar: end; $set_bar
 
-baz: ; \@echo baz: start; $sleep_command 4; echo baz: end
+baz: baz-base
+
+baz-base: ; \@echo baz: start; $wait_foo; echo baz: end
 EOF
 close(MAKEFILE);
 
 # Test coarse synchronization.
-run_make_test('
+unlink(@syncfiles);
+run_make_test(qq!
 all: make-foo make-bar
 
-make-foo: ; $(MAKE) -C foo
+make-foo: ; \$(MAKE) -C foo
 
-make-bar: ; $(MAKE) -C bar',
-'-j -O2',
+make-bar: ; \$(MAKE) -C bar!,
+              '-j -O2',
 "#MAKEPATH# -C foo
 #MAKEPATH# -C bar
 #MAKE#[1]: Entering directory '#PWD#/foo'
@@ -65,18 +100,23 @@ bar: end
 baz: start
 baz: end
 #MAKE#[1]: Leaving directory '#PWD#/bar'
-#MAKE#[1]: Leaving directory '#PWD#/bar'\n");
+#MAKE#[1]: Leaving directory '#PWD#/bar'\n", 0, 6);
 
 # Test fine synchronization.
-run_make_test('
+# Note we have to sleep again here after starting the foo makefile before
+# starting the bar makefile, otherwise the "entering/leaving" messages for the
+# submakes might be ordered differently than we expect.
+
+unlink(@syncfiles);
+run_make_test(qq!
 all: make-foo make-bar
 
-make-foo: ; $(MAKE) -C foo
+make-foo: ; \$(MAKE) -C foo
 
-make-bar: ; $(MAKE) -C bar',
-'-j --output-sync',
+make-bar: ; $sleep_command 1 ; \$(MAKE) -C bar!,
+              '-j --output-sync',
 "#MAKEPATH# -C foo
-#MAKEPATH# -C bar
+$sleep_command 1 ; #MAKEPATH# -C bar
 #MAKE#[1]: Entering directory '#PWD#/foo'
 #MAKE#[1]: Entering directory '#PWD#/bar'
 #MAKE#[1]: Entering directory '#PWD#/bar'
@@ -92,19 +132,20 @@ foo: end
 baz: start
 baz: end
 #MAKE#[1]: Leaving directory '#PWD#/bar'
-#MAKE#[1]: Leaving directory '#PWD#/bar'\n");
+#MAKE#[1]: Leaving directory '#PWD#/bar'\n", 0, 6);
 
 # Test that messages from make itself are enclosed with
 # "Entering/Leaving directory" messages.
-run_make_test('
+unlink(@syncfiles);
+run_make_test(qq!
 all: make-foo-fail make-bar-bar
 
-make-foo-fail: ; $(MAKE) -C foo foo-fail
+make-foo-fail: ; \$(MAKE) -C foo foo-fail
 
-make-bar-bar: ; $(MAKE) -C bar bar',
-'-j -O',
+make-bar-bar: ; $sleep_command 1 ; \$(MAKE) -C bar bar!,
+              '-j -O',
 "#MAKEPATH# -C foo foo-fail
-#MAKEPATH# -C bar bar
+$sleep_command 1 ; #MAKEPATH# -C bar bar
 #MAKE#[1]: Entering directory '#PWD#/foo'
 #MAKE#[1]: Entering directory '#PWD#/bar'
 #MAKE#[1]: Entering directory '#PWD#/bar'
@@ -113,7 +154,7 @@ bar: end
 #MAKE#[1]: Leaving directory '#PWD#/bar'
 #MAKE#[1]: Leaving directory '#PWD#/bar'
 #MAKE#[1]: Entering directory '#PWD#/foo'
-Makefile:5: recipe for target 'foo-fail' failed
+Makefile:7: recipe for target 'foo-fail' failed
 #MAKE#[1]: Leaving directory '#PWD#/foo'
 #MAKE#[1]: Entering directory '#PWD#/foo'
 #MAKE#[1]: *** [foo-fail] Error 1
@@ -124,10 +165,7 @@ Makefile:5: recipe for target 'foo-fail' failed
 512);
 
 # Remove temporary directories and contents.
-rmfiles('foo/Makefile');
-rmdir('foo');
-rmfiles('bar/Makefile');
-rmdir('bar');
+output_sync_clean();
 
 # This tells the test driver that the perl test script executed properly.
 1;
