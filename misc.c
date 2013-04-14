@@ -231,10 +231,13 @@ message (prefix, fmt, va_alist)
   va_list args;
 #endif
 
-  log_working_directory (1);
+  log_working_directory (1, 0);
 
   if (fmt != 0)
     {
+      if (parallel_sync)
+        log_working_directory (1, 1);
+
       if (prefix)
 	{
 	  if (makelevel == 0)
@@ -246,6 +249,9 @@ message (prefix, fmt, va_alist)
       VA_PRINTF (stdout, fmt, args);
       VA_END (args);
       putchar ('\n');
+
+      if (parallel_sync)
+        log_working_directory (0, 1);
     }
 
   fflush (stdout);
@@ -267,7 +273,10 @@ error (flocp, fmt, va_alist)
   va_list args;
 #endif
 
-  log_working_directory (1);
+  if (parallel_sync)
+    log_working_directory (1, 1);
+  else
+    log_working_directory (1, 0);
 
   if (flocp && flocp->filenm)
     fprintf (stderr, "%s:%lu: ", flocp->filenm, flocp->lineno);
@@ -282,6 +291,9 @@ error (flocp, fmt, va_alist)
 
   putc ('\n', stderr);
   fflush (stderr);
+
+  if (parallel_sync)
+    log_working_directory (0, 1);
 }
 
 /* Print an error message and exit.  */
@@ -300,7 +312,10 @@ fatal (flocp, fmt, va_alist)
   va_list args;
 #endif
 
-  log_working_directory (1);
+  if (parallel_sync)
+    log_working_directory (1, 1);
+  else
+    log_working_directory (1, 0);
 
   if (flocp && flocp->filenm)
     fprintf (stderr, "%s:%lu: *** ", flocp->filenm, flocp->lineno);
@@ -314,6 +329,9 @@ fatal (flocp, fmt, va_alist)
   VA_END (args);
 
   fputs (_(".  Stop.\n"), stderr);
+
+  if (parallel_sync)
+    log_working_directory (0, 1);
 
   die (2);
 }

@@ -396,7 +396,7 @@ void fatal ();
 #endif
 
 void die (int) __attribute__ ((noreturn));
-void log_working_directory (int);
+void log_working_directory (int, int);
 void pfatal_with_name (const char *) __attribute__ ((noreturn));
 void perror_with_name (const char *, const char *);
 void *xmalloc (unsigned int);
@@ -525,6 +525,9 @@ int strncasecmp (const char *s1, const char *s2, int n);
 # endif
 #endif
 
+#define PARALLEL_SYNC_FINE 1
+#define PARALLEL_SYNC_COARSE 2
+
 extern const gmk_floc *reading_file;
 extern const gmk_floc **expanding_var;
 
@@ -536,7 +539,7 @@ extern int env_overrides, no_builtin_rules_flag, no_builtin_variables_flag;
 extern int print_version_flag, print_directory_flag, check_symlink_flag;
 extern int warn_undefined_variables_flag, trace_flag, posix_pedantic;
 extern int not_parallel, second_expansion, clock_skew_detected;
-extern int rebuilding_makefiles, one_shell;
+extern int rebuilding_makefiles, one_shell, parallel_sync;
 
 /* can we run commands via 'sh -c xxx' or must we use batch files? */
 extern int batch_mode_shell;

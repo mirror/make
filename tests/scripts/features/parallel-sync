@@ -1,0 +1,143 @@
+#                                                                    -*-perl-*-
+
+$description = "Test parallel-sync (-P) option.";
+
+$details = "Test the synchronization of output from parallel jobs.";
+
+if (!$parallel_jobs) {
+  return -1;
+}
+
+if ($vos) {
+  $sleep_command = "sleep -seconds";
+}
+else {
+  $sleep_command = "sleep";
+}
+
+# The following subdirectories with Makefiles are used in several
+# of the following tests.
+mkdir('foo', 0777);
+mkdir('bar', 0777);
+
+open(MAKEFILE,"> foo/Makefile");
+print MAKEFILE <<EOF;
+all: foo
+
+foo:
+	\@echo foo: start; $sleep_command 2; echo foo: end
+
+foo-fail:
+	\@$sleep_command 2; false
+EOF
+close(MAKEFILE);
+
+open(MAKEFILE,"> bar/Makefile");
+print MAKEFILE <<EOF;
+all: bar baz
+
+bar:
+	\@echo bar: start; $sleep_command 1; echo bar: end
+
+baz:
+	\@echo baz: start; $sleep_command 4; echo baz: end
+EOF
+close(MAKEFILE);
+
+# Test coarse synchronization.
+run_make_test('
+all: make-foo make-bar
+
+make-foo:
+	$(MAKE) -C foo
+
+make-bar:
+	$(MAKE) -C bar',
+'-j -P2',
+"#MAKEPATH# -C foo
+#MAKEPATH# -C bar
+#MAKE#[1]: Entering directory '#PWD#/foo'
+#MAKE#[1]: Entering directory '#PWD#/foo'
+foo: start
+foo: end
+#MAKE#[1]: Leaving directory '#PWD#/foo'
+#MAKE#[1]: Leaving directory '#PWD#/foo'
+#MAKE#[1]: Entering directory '#PWD#/bar'
+#MAKE#[1]: Entering directory '#PWD#/bar'
+bar: start
+bar: end
+#MAKE#[1]: Leaving directory '#PWD#/bar'
+#MAKE#[1]: Entering directory '#PWD#/bar'
+baz: start
+baz: end
+#MAKE#[1]: Leaving directory '#PWD#/bar'
+#MAKE#[1]: Leaving directory '#PWD#/bar'\n");
+
+# Test fine synchronization.
+run_make_test('
+all: make-foo make-bar
+
+make-foo:
+	$(MAKE) -C foo
+
+make-bar:
+	$(MAKE) -C bar',
+'-j -P',
+"#MAKEPATH# -C foo
+#MAKEPATH# -C bar
+#MAKE#[1]: Entering directory '#PWD#/foo'
+#MAKE#[1]: Entering directory '#PWD#/bar'
+#MAKE#[1]: Entering directory '#PWD#/bar'
+bar: start
+bar: end
+#MAKE#[1]: Leaving directory '#PWD#/bar'
+#MAKE#[1]: Entering directory '#PWD#/foo'
+foo: start
+foo: end
+#MAKE#[1]: Leaving directory '#PWD#/foo'
+#MAKE#[1]: Leaving directory '#PWD#/foo'
+#MAKE#[1]: Entering directory '#PWD#/bar'
+baz: start
+baz: end
+#MAKE#[1]: Leaving directory '#PWD#/bar'
+#MAKE#[1]: Leaving directory '#PWD#/bar'\n");
+
+# Test that messages from make itself are enclosed with
+# "Entering/Leaving directory" messages.
+run_make_test('
+all: make-foo-fail make-bar-bar
+
+make-foo-fail:
+	$(MAKE) -C foo foo-fail
+
+make-bar-bar:
+	$(MAKE) -C bar bar',
+'-j -P',
+"#MAKEPATH# -C foo foo-fail
+#MAKEPATH# -C bar bar
+#MAKE#[1]: Entering directory '#PWD#/foo'
+#MAKE#[1]: Entering directory '#PWD#/bar'
+#MAKE#[1]: Entering directory '#PWD#/bar'
+bar: start
+bar: end
+#MAKE#[1]: Leaving directory '#PWD#/bar'
+#MAKE#[1]: Leaving directory '#PWD#/bar'
+#MAKE#[1]: Entering directory '#PWD#/foo'
+Makefile:7: recipe for target 'foo-fail' failed
+#MAKE#[1]: Leaving directory '#PWD#/foo'
+#MAKE#[1]: Entering directory '#PWD#/foo'
+#MAKE#[1]: *** [foo-fail] Error 1
+#MAKE#[1]: Leaving directory '#PWD#/foo'
+#MAKE#[1]: Leaving directory '#PWD#/foo'
+#MAKEFILE#:5: recipe for target 'make-foo-fail' failed
+#MAKE#: *** [make-foo-fail] Error 2\n",
+512);
+
+# Remove temporary directories and contents.
+rmfiles('foo/Makefile');
+rmdir('foo');
+rmfiles('bar/Makefile');
+rmdir('bar');
+
+# This tells the test driver that the perl test script executed properly.
+1;
