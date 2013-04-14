@@ -1,6 +1,6 @@
 #                                                                    -*-perl-*-
 
-$description = "Test parallel-sync (-P) option.";
+$description = "Test --output-sync (-O) option.";
 
 $details = "Test the synchronization of output from parallel jobs.";
 
@@ -24,11 +24,9 @@ open(MAKEFILE,"> foo/Makefile");
 print MAKEFILE <<EOF;
 all: foo
 
-foo:
-	\@echo foo: start; $sleep_command 2; echo foo: end
+foo: ; \@echo foo: start; $sleep_command 2; echo foo: end
 
-foo-fail:
-	\@$sleep_command 2; false
+foo-fail: ; \@$sleep_command 2; false
 EOF
 close(MAKEFILE);
 
@@ -36,11 +34,9 @@ open(MAKEFILE,"> bar/Makefile");
 print MAKEFILE <<EOF;
 all: bar baz
 
-bar:
-	\@echo bar: start; $sleep_command 1; echo bar: end
+bar: ; \@echo bar: start; $sleep_command 1; echo bar: end
 
-baz:
-	\@echo baz: start; $sleep_command 4; echo baz: end
+baz: ; \@echo baz: start; $sleep_command 4; echo baz: end
 EOF
 close(MAKEFILE);
 
@@ -48,12 +44,10 @@ close(MAKEFILE);
 run_make_test('
 all: make-foo make-bar
 
-make-foo:
-	$(MAKE) -C foo
+make-foo: ; $(MAKE) -C foo
 
-make-bar:
-	$(MAKE) -C bar',
-'-j -P2',
+make-bar: ; $(MAKE) -C bar',
+'-j -O2',
 "#MAKEPATH# -C foo
 #MAKEPATH# -C bar
 #MAKE#[1]: Entering directory '#PWD#/foo'
@@ -77,12 +71,10 @@ baz: end
 run_make_test('
 all: make-foo make-bar
 
-make-foo:
-	$(MAKE) -C foo
+make-foo: ; $(MAKE) -C foo
 
-make-bar:
-	$(MAKE) -C bar',
-'-j -P',
+make-bar: ; $(MAKE) -C bar',
+'-j --output-sync',
 "#MAKEPATH# -C foo
 #MAKEPATH# -C bar
 #MAKE#[1]: Entering directory '#PWD#/foo'
@@ -107,12 +99,10 @@ baz: end
 run_make_test('
 all: make-foo-fail make-bar-bar
 
-make-foo-fail:
-	$(MAKE) -C foo foo-fail
+make-foo-fail: ; $(MAKE) -C foo foo-fail
 
-make-bar-bar:
-	$(MAKE) -C bar bar',
-'-j -P',
+make-bar-bar: ; $(MAKE) -C bar bar',
+'-j -O',
 "#MAKEPATH# -C foo foo-fail
 #MAKEPATH# -C bar bar
 #MAKE#[1]: Entering directory '#PWD#/foo'
@@ -123,13 +113,13 @@ bar: end
 #MAKE#[1]: Leaving directory '#PWD#/bar'
 #MAKE#[1]: Leaving directory '#PWD#/bar'
 #MAKE#[1]: Entering directory '#PWD#/foo'
-Makefile:7: recipe for target 'foo-fail' failed
+Makefile:5: recipe for target 'foo-fail' failed
 #MAKE#[1]: Leaving directory '#PWD#/foo'
 #MAKE#[1]: Entering directory '#PWD#/foo'
 #MAKE#[1]: *** [foo-fail] Error 1
 #MAKE#[1]: Leaving directory '#PWD#/foo'
 #MAKE#[1]: Leaving directory '#PWD#/foo'
-#MAKEFILE#:5: recipe for target 'make-foo-fail' failed
+#MAKEFILE#:4: recipe for target 'make-foo-fail' failed
 #MAKE#: *** [make-foo-fail] Error 2\n",
 512);
 

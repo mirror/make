@@ -34,9 +34,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define CLOSE_ON_EXEC(_d) (void) fcntl ((_d), F_SETFD, FD_CLOEXEC)
 #endif
 
-#ifdef POSIX /* PARALLEL_SYNC */
-#define PARALLEL_SYNC
-#endif /* POSIX */
+#ifdef POSIX
+# define OUTPUT_SYNC
+#endif
 
 /* Structure describing a running or dead child process.  */
 
@@ -64,10 +64,10 @@ struct child
     unsigned int good_stdin:1;	/* Nonzero if this child has a good stdin.  */
     unsigned int deleted:1;	/* Nonzero if targets have been deleted.  */
     unsigned int dontcare:1;    /* Saved dontcare flag.  */
-#ifdef PARALLEL_SYNC
-    int outfd;			/* Optional file descriptor for saving stdout */
-    int errfd;			/* Optional file descriptor for saving stderr */
-#endif /* PARALLEL_SYNC */
+#ifdef OUTPUT_SYNC
+    int outfd;			/* File descriptor for saving stdout */
+    int errfd;			/* File descriptor for saving stderr */
+#endif
   };
 
 extern struct child *children;

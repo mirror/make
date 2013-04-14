@@ -243,15 +243,15 @@ unsigned long job_counter = 0;
 
 unsigned int jobserver_tokens = 0;
 
-#ifdef PARALLEL_SYNC
-/* Semaphore for use in -j mode with parallel_sync. */
+#ifdef OUTPUT_SYNC
+/* Semaphore for use in -j mode with output_sync. */
 
 int sync_handle = -1;
 
-#define STREAM_OK(strm)		((fcntl (fileno ((strm)), F_GETFD) != -1) || (errno != EBADF))
+#define STREAM_OK(_s)       ((fcntl (fileno (_s), F_GETFD) != -1) || (errno != EBADF))
 
-#define FD_NOT_EMPTY(FD) ((FD) >= 0 && lseek ((FD), 0, SEEK_CUR) > 0)
-#endif /* PARALLEL_SYNC */
+#define FD_NOT_EMPTY(_f)    ((_f) >= 0 && lseek ((_f), 0, SEEK_CUR) > 0)
+#endif /* OUTPUT_SYNC */
 
 #ifdef WINDOWS32
 /*
@@ -549,8 +549,8 @@ child_handler (int sig UNUSED)
   */
 }
 
-#ifdef PARALLEL_SYNC
-/* Adds file descriptors to the child structure to support parallel_sync;
+#ifdef OUTPUT_SYNC
+/* Adds file descriptors to the child structure to support output_sync;
    one for stdout and one for stderr as long as they are (a) open and
    (b) separate. If stdout and stderr share a device they can share a
    temp file too.  */
@@ -559,38 +559,38 @@ assign_child_tempfiles (struct child *c, int combined)
 {
   FILE *outstrm = NULL, *errstrm = NULL;
   int o_ok, e_ok;
-  const char *suppressed = "parallel-sync suppressed: ";
+  const char *suppressed = "output-sync suppressed: ";
   char *failmode = NULL;
 
   /* Check status of stdout and stderr before hooking up temp files. */
   o_ok = STREAM_OK (stdout);
   e_ok = STREAM_OK (stderr);
 
-  /* The tmpfile() function returns a FILE pointer but those can be in 
+  /* The tmpfile() function returns a FILE pointer but those can be in
      limited supply, so we immediately dup its file descriptor and keep
      only that, closing the FILE pointer.  */
 
   if (combined)
     {
       if (!(outstrm = tmpfile ()))
-	failmode = "tmpfile()";
+        failmode = "tmpfile()";
       else
-	errstrm = outstrm;
+        errstrm = outstrm;
     }
   else if (o_ok && e_ok)
     {
       if (!(outstrm = tmpfile ()) || !(errstrm = tmpfile ()))
-	failmode = "tmpfile()";
+        failmode = "tmpfile()";
     }
   else if (o_ok)
     {
       if (!(outstrm = tmpfile ()))
-	failmode = "tmpfile()";
+        failmode = "tmpfile()";
     }
   else if (e_ok)
     {
       if (!(errstrm = tmpfile ()))
-	failmode = "tmpfile()";
+        failmode = "tmpfile()";
     }
   else
     failmode = "stdout";
@@ -598,22 +598,22 @@ assign_child_tempfiles (struct child *c, int combined)
   if (!failmode && outstrm)
     {
       if ((c->outfd = dup (fileno (outstrm))) == -1)
-	failmode = "dup2()";
+        failmode = "dup2()";
       else
-	CLOSE_ON_EXEC (c->outfd);
+        CLOSE_ON_EXEC (c->outfd);
     }
 
   if (!failmode && errstrm)
     {
       if (combined)
-	c->errfd = c->outfd;
+        c->errfd = c->outfd;
       else
-	{
-	  if ((c->errfd = dup (fileno (errstrm))) == -1)
-	    failmode = "dup2()";
-	  else
-	    CLOSE_ON_EXEC (c->errfd);
-	}
+        {
+          if ((c->errfd = dup (fileno (errstrm))) == -1)
+            failmode = "dup2()";
+          else
+            CLOSE_ON_EXEC (c->errfd);
+        }
     }
 
   if (failmode)
@@ -643,9 +643,9 @@ pump_from_tmp_fd (int from_fd, int to_fd)
       char *write_buf = buffer;
       EINTRLOOP (nleft, read (from_fd, buffer, sizeof (buffer)));
       if (nleft < 0)
-	perror ("read()");
+        perror ("read()");
       if (nleft <= 0)
-	break;
+        break;
       while (nleft > 0)
       {
         EINTRLOOP (nwrite, write (to_fd, write_buf, nleft));
@@ -702,10 +702,8 @@ sync_output (struct child *c)
 
   if ((outfd_not_empty || errfd_not_empty) && (sem = acquire_semaphore ()))
     {
-      /*
-       * We've entered the "critical section" during which a lock is held.
-       * We want to keep it as short as possible.
-       */
+      /* We've entered the "critical section" during which a lock is held.
+         We want to keep it as short as possible.  */
       if (outfd_not_empty)
         {
           log_working_directory (1, 1);
@@ -715,7 +713,7 @@ sync_output (struct child *c)
       if (errfd_not_empty && c->errfd != c->outfd)
         pump_from_tmp_fd (c->errfd, fileno (stderr));
 
-      /* Exit the critical section */
+      /* Exit the critical section.  */
       release_semaphore (sem);
     }
 
@@ -725,7 +723,7 @@ sync_output (struct child *c)
     close (c->errfd);
   c->outfd = c->errfd = -1;
 }
-#endif /* PARALLEL_SYNC */
+#endif /* OUTPUT_SYNC */
 
 extern int shell_function_pid, shell_function_completed;
 
@@ -1021,11 +1019,11 @@ reap_children (int block, int err)
         c->sh_batch_file = NULL;
       }
 
-#ifdef PARALLEL_SYNC
+#ifdef OUTPUT_SYNC
       /* Synchronize parallel output if requested */
-      if (parallel_sync)
-	sync_output (c);
-#endif /* PARALLEL_SYNC */
+      if (output_sync)
+        sync_output (c);
+#endif /* OUTPUT_SYNC */
 
       /* If this child had the good stdin, say it is now free.  */
       if (c->good_stdin)
@@ -1607,44 +1605,44 @@ start_job_command (struct child *child)
 
 #else  /* !__EMX__ */
 
-#ifdef PARALLEL_SYNC
-      if (parallel_sync)
-	{
-	  static int combined_output;
-	  /* If parallel_sync is turned on, find a resource to
-	      synchronize on. This block is traversed only once. */
-	  if (sync_handle == -1)
-	    {
-	      struct stat stbuf_o, stbuf_e;
+#ifdef OUTPUT_SYNC
+      if (output_sync)
+        {
+          static int combined_output;
+          /* If output_sync is turned on, find a resource to
+              synchronize on. This block is traversed only once. */
+          if (sync_handle == -1)
+            {
+              struct stat stbuf_o, stbuf_e;
 
-	      if (STREAM_OK (stdout))
-		{
-		  sync_handle = fileno (stdout);
-		  combined_output =
-		    fstat (fileno (stdout), &stbuf_o) == 0 &&
-		    fstat (fileno (stderr), &stbuf_e) == 0 &&
-		    stbuf_o.st_dev == stbuf_e.st_dev &&
-		    stbuf_o.st_ino == stbuf_e.st_ino;
-		}
-	      else if (STREAM_OK (stderr))
-		sync_handle = fileno (stderr);
-	      else
-		{
-		  perror_with_name ("parallel-sync suppressed: ", "stderr");
-		  parallel_sync = 0;
-		}
-	    }
+              if (STREAM_OK (stdout))
+                {
+                  sync_handle = fileno (stdout);
+                  combined_output =
+                    fstat (fileno (stdout), &stbuf_o) == 0 &&
+                    fstat (fileno (stderr), &stbuf_e) == 0 &&
+                    stbuf_o.st_dev == stbuf_e.st_dev &&
+                    stbuf_o.st_ino == stbuf_e.st_ino;
+                }
+              else if (STREAM_OK (stderr))
+                sync_handle = fileno (stderr);
+              else
+                {
+                  perror_with_name ("output-sync suppressed: ", "stderr");
+                  output_sync = 0;
+                }
+            }
 
-	  /* If it still looks like we can synchronize, create a temp
-	      file to hold stdout (and one for stderr if separate). */
-	  if (parallel_sync >= PARALLEL_SYNC_COARSE
-	      || (parallel_sync == PARALLEL_SYNC_FINE && !(flags & COMMANDS_RECURSE)))
-	    {
-	      if (!assign_child_tempfiles (child, combined_output))
-	        parallel_sync = 0;
-	    }
-	}
-#endif /* PARALLEL_SYNC */
+          /* If it still looks like we can synchronize, create a temp
+              file to hold stdout (and one for stderr if separate). */
+          if (output_sync >= OUTPUT_SYNC_COARSE
+              || (output_sync == OUTPUT_SYNC_FINE && !(flags & COMMANDS_RECURSE)))
+            {
+              if (!assign_child_tempfiles (child, combined_output))
+                output_sync = 0;
+            }
+        }
+#endif /* OUTPUT_SYNC */
 
       child->pid = vfork ();
       environ = parent_environ;	/* Restore value child may have clobbered.  */
@@ -1669,22 +1667,22 @@ start_job_command (struct child *child)
             setrlimit (RLIMIT_STACK, &stack_limit);
 #endif
 
-#ifdef PARALLEL_SYNC
-	  /* Divert child output into tempfile(s) if parallel_sync in use. */
-	  if (parallel_sync)
-	    {
-	      int outfd = fileno (stdout);
-	      int errfd = fileno (stderr);
+#ifdef OUTPUT_SYNC
+          /* Divert child output into tempfile(s) if output_sync in use. */
+          if (output_sync)
+            {
+              int outfd = fileno (stdout);
+              int errfd = fileno (stderr);
 
-	      if ((child->outfd >= 0 &&
-		  (close (outfd) == -1 || dup2 (child->outfd, outfd) == -1))
-		|| (child->errfd >= 0 &&
-		  (close (errfd) == -1 || dup2 (child->errfd, errfd) == -1)))
-		{
-		  perror_with_name ("parallel-sync: ", "dup2()");
-		}
-	    }
-#endif /* PARALLEL_SYNC */
+              if ((child->outfd >= 0 &&
+                  (close (outfd) == -1 || dup2 (child->outfd, outfd) == -1))
+                || (child->errfd >= 0 &&
+                  (close (errfd) == -1 || dup2 (child->errfd, errfd) == -1)))
+                {
+                  perror_with_name ("output-sync: ", "dup2()");
+                }
+            }
+#endif /* OUTPUT_SYNC */
 
 	  child_execute_job (child->good_stdin ? 0 : bad_stdin, 1,
                              argv, child->environment);
@@ -2019,7 +2017,7 @@ new_job (struct file *file)
   c->file = file;
   c->command_lines = lines;
   c->sh_batch_file = NULL;
-#ifdef PARALLEL_SYNC
+#ifdef OUTPUT_SYNC
   c->outfd = c->errfd = -1;
 #endif
 

@@ -235,7 +235,7 @@ message (prefix, fmt, va_alist)
 
   if (fmt != 0)
     {
-      if (parallel_sync)
+      if (output_sync)
         log_working_directory (1, 1);
 
       if (prefix)
@@ -250,7 +250,7 @@ message (prefix, fmt, va_alist)
       VA_END (args);
       putchar ('\n');
 
-      if (parallel_sync)
+      if (output_sync)
         log_working_directory (0, 1);
     }
 
@@ -273,7 +273,7 @@ error (flocp, fmt, va_alist)
   va_list args;
 #endif
 
-  if (parallel_sync)
+  if (output_sync)
     log_working_directory (1, 1);
   else
     log_working_directory (1, 0);
@@ -292,7 +292,7 @@ error (flocp, fmt, va_alist)
   putc ('\n', stderr);
   fflush (stderr);
 
-  if (parallel_sync)
+  if (output_sync)
     log_working_directory (0, 1);
 }
 
@@ -312,7 +312,7 @@ fatal (flocp, fmt, va_alist)
   va_list args;
 #endif
 
-  if (parallel_sync)
+  if (output_sync)
     log_working_directory (1, 1);
   else
     log_working_directory (1, 0);
@@ -330,7 +330,7 @@ fatal (flocp, fmt, va_alist)
 
   fputs (_(".  Stop.\n"), stderr);
 
-  if (parallel_sync)
+  if (output_sync)
     log_working_directory (0, 1);
 
   die (2);

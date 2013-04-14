@@ -228,12 +228,12 @@ static unsigned int master_job_slots = 0;
 
 static unsigned int inf_jobs = 0;
 
-#ifdef PARALLEL_SYNC
+#ifdef OUTPUT_SYNC
 
-/* Default value for parallel sync without an argument.  */
+/* Default value for output-sync without an argument.  */
 
-static unsigned int no_parallel_sync = 0;
-static unsigned int default_parallel_sync = PARALLEL_SYNC_FINE;
+static unsigned int no_output_sync = 0;
+static unsigned int default_output_sync = OUTPUT_SYNC_FINE;
 
 #endif
 
@@ -351,12 +351,12 @@ static const char *const usage[] =
     N_("\
   -o FILE, --old-file=FILE, --assume-old=FILE\n\
                               Consider FILE to be very old and don't remake it.\n"),
+#ifdef OUTPUT_SYNC
+    N_("\
+  -O [2], --output-sync[=2]   Synchronize output of parallel jobs [coarse].\n"),
+#endif
     N_("\
   -p, --print-data-base       Print make's internal database.\n"),
-#ifdef PARALLEL_SYNC
-    N_("\
-  -P [2], --parallel-sync[=2] Synchronize output of parallel jobs [coarse].\n"),
-#endif
     N_("\
   -q, --question              Run no recipe; exit status says if up to date.\n"),
     N_("\
@@ -420,12 +420,12 @@ static const struct command_switch switches[] =
     { 'm', ignore, 0, 0, 0, 0, 0, 0, 0 },
     { 'n', flag, &just_print_flag, 1, 1, 1, 0, 0, "just-print" },
     { 'o', filename, &old_files, 0, 0, 0, 0, 0, "old-file" },
-    { 'p', flag, &print_data_base_flag, 1, 1, 0, 0, 0, "print-data-base" },
-#ifdef PARALLEL_SYNC
-    // { 'P', flag, &parallel_sync, 1, 1, 0, 0, 0, "parallel-sync" },  // two-state
-    { 'P', positive_int, &parallel_sync, 1, 1, 0, &default_parallel_sync,
-      &no_parallel_sync, "parallel-sync" },
+#ifdef OUTPUT_SYNC
+    // { 'O', flag, &output_sync, 1, 1, 0, 0, 0, "output-sync" },  // two-state
+    { 'O', positive_int, &output_sync, 1, 1, 0, &default_output_sync,
+      &no_output_sync, "output-sync" },
 #endif
+    { 'p', flag, &print_data_base_flag, 1, 1, 0, 0, 0, "print-data-base" },
     { 'q', flag, &question_flag, 1, 1, 1, 0, 0, "question" },
     { 'r', flag, &no_builtin_rules_flag, 1, 1, 0, 0, 0, "no-builtin-rules" },
     { 'R', flag, &no_builtin_variables_flag, 1, 1, 0, 0, 0,
@@ -521,13 +521,13 @@ int second_expansion;
 
 int one_shell;
 
-/* Either PARALLEL_SYNC_FINE or PARALLEL_SYNC_COARSE
-   if the "--parallel-sync" option was given.
+/* Either OUTPUT_SYNC_FINE or OUTPUT_SYNC_COARSE
+   if the "--output-sync" option was given.
    This attempts to synchronize the output of parallel
    jobs such that the results of each job stay together.
    It works best in combination with .ONESHELL.  */
 
-int parallel_sync;
+int output_sync;
 
 /* Nonzero if we have seen the '.NOTPARALLEL' target.
    This turns off parallel builds for this invocation of make.  */
@@ -1763,7 +1763,7 @@ main (int argc, char **argv, char **envp)
       if (! open_jobserver_semaphore(cp))
         {
           DWORD err = GetLastError();
-          fatal (NILF, _("internal error: unable to open jobserver semaphore '%s': (Error %ld: %s)"), 
+          fatal (NILF, _("internal error: unable to open jobserver semaphore '%s': (Error %ld: %s)"),
                  cp, err, map_windows32_error_to_string(err));
         }
       DB (DB_JOBS, (_("Jobserver client (semaphore %s)\n"), cp));
