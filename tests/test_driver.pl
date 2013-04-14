@@ -730,6 +730,9 @@ sub read_file_into_string
   return $slurp;
 }
 
+my @OUTSTACK = ();
+my @ERRSTACK = ();
+
 sub attach_default_output
 {
   local ($filename) = @_;
@@ -742,17 +745,15 @@ sub attach_default_output
     return 1;
   }
 
-  open ("SAVEDOS" . $default_output_stack_level . "out", ">&STDOUT")
-        || &error ("ado: $! duping STDOUT\n", 1);
-  open ("SAVEDOS" . $default_output_stack_level . "err", ">&STDERR")
-        || &error ("ado: $! duping STDERR\n", 1);
+  my $dup = undef;
+  open($dup, '>&', STDOUT) or error("ado: $! duping STDOUT\n", 1);
+  push @OUTSTACK, $dup;
 
-  open (STDOUT, "> " . $filename)
-        || &error ("ado: $filename: $!\n", 1);
-  open (STDERR, ">&STDOUT")
-        || &error ("ado: $filename: $!\n", 1);
+  open($dup, '>&', STDERR) or error("ado: $! duping STDERR\n", 1);
+  push @ERRSTACK, $dup;
 
-  $default_output_stack_level++;
+  open(STDOUT, '>', $filename) or error("ado: $filename: $!\n", 1);
+  open(STDERR, ">&STDOUT") or error("ado: $filename: $!\n", 1);
 }
 
 # close the current stdout/stderr, and restore the previous ones from
@@ -769,23 +770,13 @@ sub detach_default_output
     return 1;
   }
 
-  if (--$default_output_stack_level < 0)
-  {
-    &error ("default output stack has flown under!\n", 1);
-  }
+  @OUTSTACK or error("default output stack has flown under!\n", 1);
 
-  close (STDOUT);
-  close (STDERR);
+  close(STDOUT);
+  close(STDERR);
 
-  open (STDOUT, ">&SAVEDOS" . $default_output_stack_level . "out")
-        || &error ("ddo: $! duping STDOUT\n", 1);
-  open (STDERR, ">&SAVEDOS" . $default_output_stack_level . "err")
-        || &error ("ddo: $! duping STDERR\n", 1);
-
-  close ("SAVEDOS" . $default_output_stack_level . "out")
-        || &error ("ddo: $! closing SCSDOSout\n", 1);
-  close ("SAVEDOS" . $default_output_stack_level . "err")
-         || &error ("ddo: $! closing SAVEDOSerr\n", 1);
+  open (STDOUT, '>&', pop @OUTSTACK) or error("ddo: $! duping STDOUT\n", 1);
+  open (STDERR, '>&', pop @ERRSTACK) or error("ddo: $! duping STDERR\n", 1);
 }
 
 # This runs a command without any debugging info.
@@ -799,14 +790,19 @@ sub _run_command
   resetENV();
 
   eval {
-      local $SIG{ALRM} = sub { die "timeout\n"; };
+      my $pid = fork();
+      if (! $pid) {
+          exec(@_) or die "Cannot execute $_[0]\n";
+      }
+      local $SIG{ALRM} = sub { my $e = $ERRSTACK[0]; print $e "\nTest timed out after $test_timeout seconds\n"; die "timeout\n"; };
       alarm $test_timeout;
-      $code = system(@_);
+      waitpid($pid, 0) > 0 or die "No such pid: $pid\n";
+      $code = $?;
       alarm 0;
   };
   if ($@) {
       # The eval failed.  If it wasn't SIGALRM then die.
-      $@ eq "timeout\n" or die;
+      $@ eq "timeout\n" or die "Command failed: $@";
 
       # Timed out.  Resend the alarm to our process group to kill the children.
       $SIG{ALRM} = 'IGNORE';
@@ -840,8 +836,12 @@ sub run_command_with_output
 
   print "\nrun_command_with_output($filename,$runname): @_\n" if $debug;
   &attach_default_output ($filename);
-  my $code = _run_command(@_);
+  my $code = eval { _run_command(@_) };
+  my $err = $@;
   &detach_default_output;
+
+  $err and die $err;
+
   print "run_command_with_output returned $code.\n" if $debug;
 
   return $code;
