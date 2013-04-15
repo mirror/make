@@ -562,6 +562,10 @@ assign_child_tempfiles (struct child *c, int combined)
   const char *suppressed = "output-sync suppressed: ";
   char *failmode = NULL;
 
+  /* If we already have a temp file assigned we're done.  */
+  if (c->outfd != -1 && c->errfd != -1)
+    return 1;
+
   /* Check status of stdout and stderr before hooking up temp files. */
   o_ok = STREAM_OK (stdout);
   e_ok = STREAM_OK (stderr);
@@ -1019,12 +1023,6 @@ reap_children (int block, int err)
         c->sh_batch_file = NULL;
       }
 
-#ifdef OUTPUT_SYNC
-      /* Synchronize parallel output if requested */
-      if (output_sync)
-        sync_output (c);
-#endif /* OUTPUT_SYNC */
-
       /* If this child had the good stdin, say it is now free.  */
       if (c->good_stdin)
         good_stdin_used = 0;
@@ -1099,9 +1097,16 @@ reap_children (int block, int err)
             c->file->update_status = 0;
         }
 
-      /* When we get here, all the commands for C->file are finished
-         (or aborted) and C->file->update_status contains 0 or 2.  But
-         C->file->command_state is still cs_running if all the commands
+      /* When we get here, all the commands for c->file are finished.  */
+
+#ifdef OUTPUT_SYNC
+      /* Synchronize parallel output if requested */
+      if (output_sync)
+        sync_output (c);
+#endif /* OUTPUT_SYNC */
+
+      /* At this point c->file->update_status contains 0 or 2.  But
+         c->file->command_state is still cs_running if all the commands
          ran; notice_finish_file looks for cs_running to tell it that
          it's interesting to check the file's modtime again now.  */
 
@@ -1613,10 +1618,10 @@ start_job_command (struct child *child)
               synchronize on. This block is traversed only once. */
           if (sync_handle == -1)
             {
-              struct stat stbuf_o, stbuf_e;
-
               if (STREAM_OK (stdout))
                 {
+                  struct stat stbuf_o, stbuf_e;
+
                   sync_handle = fileno (stdout);
                   combined_output =
                     fstat (fileno (stdout), &stbuf_o) == 0 &&
@@ -1674,13 +1679,11 @@ start_job_command (struct child *child)
               int outfd = fileno (stdout);
               int errfd = fileno (stderr);
 
-              if ((child->outfd >= 0 &&
-                  (close (outfd) == -1 || dup2 (child->outfd, outfd) == -1))
-                || (child->errfd >= 0 &&
-                  (close (errfd) == -1 || dup2 (child->errfd, errfd) == -1)))
-                {
-                  perror_with_name ("output-sync: ", "dup2()");
-                }
+              if ((child->outfd >= 0 && (close (outfd) == -1
+                                         || dup2 (child->outfd, outfd) == -1))
+                  || (child->errfd >= 0 && (close (errfd) == -1
+                                            || dup2 (child->errfd, errfd) == -1)))
+                perror_with_name ("output-sync: ", "dup2()");
             }
 #endif /* OUTPUT_SYNC */
 
