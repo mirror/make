@@ -82,7 +82,7 @@ all: make-foo make-bar
 make-foo: ; \$(MAKE) -C foo
 
 make-bar: ; \$(MAKE) -C bar!,
-              '-j -O2',
+              '-j -Omake',
 "#MAKEPATH# -C foo
 #MAKEPATH# -C bar
 #MAKE#[1]: Entering directory '#PWD#/foo'
@@ -114,7 +114,7 @@ all: make-foo make-bar
 make-foo: ; \$(MAKE) -C foo
 
 make-bar: ; $sleep_command 1 ; \$(MAKE) -C bar!,
-              '-j --output-sync',
+              '-j --output-sync=target',
 "#MAKEPATH# -C foo
 $sleep_command 1 ; #MAKEPATH# -C bar
 #MAKE#[1]: Entering directory '#PWD#/foo'

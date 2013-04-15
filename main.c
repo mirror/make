@@ -151,6 +151,14 @@ static int debug_flag = 0;
 
 int db_level = 0;
 
+#ifdef OUTPUT_SYNC
+
+/* Synchronize output (--output-sync).  */
+
+static struct stringlist *output_sync_option;
+
+#endif
+
 /* Tracing (--trace).  */
 
 int trace_flag = 0;
@@ -227,15 +235,6 @@ static unsigned int master_job_slots = 0;
 /* Value of job_slots that means no limit.  */
 
 static unsigned int inf_jobs = 0;
-
-#ifdef OUTPUT_SYNC
-
-/* Default value for output-sync without an argument.  */
-
-static unsigned int no_output_sync = 0;
-static unsigned int default_output_sync = OUTPUT_SYNC_FINE;
-
-#endif
 
 /* File descriptors for the jobs pipe.  */
 
@@ -353,7 +352,8 @@ static const char *const usage[] =
                               Consider FILE to be very old and don't remake it.\n"),
 #ifdef OUTPUT_SYNC
     N_("\
-  -O [2], --output-sync[=2]   Synchronize output of parallel jobs [coarse].\n"),
+  -O[TYPE], --output-sync[=TYPE]\n\
+                              Synchronize output of parallel jobs by TYPE.\n"),
 #endif
     N_("\
   -p, --print-data-base       Print make's internal database.\n"),
@@ -421,9 +421,7 @@ static const struct command_switch switches[] =
     { 'n', flag, &just_print_flag, 1, 1, 1, 0, 0, "just-print" },
     { 'o', filename, &old_files, 0, 0, 0, 0, 0, "old-file" },
 #ifdef OUTPUT_SYNC
-    // { 'O', flag, &output_sync, 1, 1, 0, 0, 0, "output-sync" },  // two-state
-    { 'O', positive_int, &output_sync, 1, 1, 0, &default_output_sync,
-      &no_output_sync, "output-sync" },
+    { 'O', string, &output_sync_option, 1, 1, 0, "target", 0, "output-sync" },
 #endif
     { 'p', flag, &print_data_base_flag, 1, 1, 0, 0, 0, "print-data-base" },
     { 'q', flag, &question_flag, 1, 1, 1, 0, 0, "question" },
@@ -521,11 +519,9 @@ int second_expansion;
 
 int one_shell;
 
-/* Either OUTPUT_SYNC_FINE or OUTPUT_SYNC_COARSE
-   if the "--output-sync" option was given.
-   This attempts to synchronize the output of parallel
-   jobs such that the results of each job stay together.
-   It works best in combination with .ONESHELL.  */
+/* Either OUTPUT_SYNC_TARGET or OUTPUT_SYNC_MAKE if the "--output-sync" option
+   was given.  This attempts to synchronize the output of parallel jobs such
+   that the results of each job stay together.  */
 
 int output_sync;
 
@@ -686,6 +682,27 @@ decode_debug_flags (void)
 
           ++p;
         }
+    }
+}
+
+static void
+decode_output_sync_flags (void)
+{
+  const char **pp;
+
+  if (!output_sync_option)
+    return;
+
+  for (pp=output_sync_option->list; *pp; ++pp)
+    {
+      const char *p = *pp;
+
+      if (streq (p, "target"))
+        output_sync = OUTPUT_SYNC_TARGET;
+      else if (streq (p, "make"))
+        output_sync = OUTPUT_SYNC_MAKE;
+      else
+        fatal (NILF, _("unknown output-sync type '%s'"), p);
     }
 }
 
@@ -1313,8 +1330,6 @@ main (int argc, char **argv, char **envp)
         fprintf(stderr, _("done sleep(30). Continuing.\n"));
   }
 #endif
-
-  decode_debug_flags ();
 
   /* Set always_make_flag if -B was given and we've not restarted already.  */
   always_make_flag = always_make_set && (restarts == 0);
@@ -2465,14 +2480,17 @@ init_switches (void)
   long_options[i].name = 0;
 }
 
+
+/* Non-option argument.  It might be a variable definition.  */
 static void
 handle_non_switch_argument (char *arg, int env)
 {
-  /* Non-option argument.  It might be a variable definition.  */
   struct variable *v;
+
   if (arg[0] == '-' && arg[1] == '\0')
     /* Ignore plain '-' for compatibility.  */
     return;
+
   v = try_variable_definition (0, arg, o_command, 0);
   if (v != 0)
     {
@@ -2738,12 +2756,15 @@ decode_switches (int argc, char **argv, int env)
   while (optind < argc)
     handle_non_switch_argument (argv[optind++], env);
 
-
   if (!env && (bad || print_usage_flag))
     {
       print_usage (bad);
       die (bad ? 2 : 0);
     }
+
+  /* If there are any options that need to be decoded do it now.  */
+  decode_debug_flags ();
+  decode_output_sync_flags ();
 }
 
 /* Decode switches from environment variable ENVAR (which is LEN chars long).
@@ -2876,8 +2897,8 @@ define_makeflags (int all, int makefile)
     if (new->arg == 0)                                                        \
       ++flagslen;               /* Just a single flag letter.  */             \
     else                                                                      \
-      /* " -x foo", plus space to expand "foo".  */                           \
-      flagslen += 1 + 1 + 1 + 1 + (3 * (LEN));                                \
+      /* " -xfoo", plus space to expand "foo".  */                            \
+      flagslen += 1 + 1 + 1 + (3 * (LEN));                                    \
     if (!short_option (cs->c))                                                \
       /* This switch has no single-letter version, so we use the long.  */    \
       flagslen += 2 + strlen (cs->long_name);                                 \
@@ -2997,8 +3018,9 @@ define_makeflags (int all, int makefile)
              is considered the arg for the first.  */
           if (flags->arg[0] != '\0')
             {
-              /* Add its argument too.  */
-              *p++ = !short_option (flags->cs->c) ? '=' : ' ';
+              /* Add its argument too.  Long options require '='.  */
+              if (!short_option (flags->cs->c))
+                *p++ = '=';
               p = quote_for_env (p, flags->arg);
             }
           ++words;

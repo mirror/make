@@ -1,3 +1,15 @@
+2013-04-15  Paul Smith  <psmith@gnu.org>
+
+	* makeint.h (OUTPUT_SYNC_TARGET, OUTPUT_SYNC_MAKE): Rename.
+	* job.c (start_job_command): Use new constants.
+	* main.c: New -O argument format.
+
+	* doc/make.texi (Options Summary): Document the argument to -O.
+	* make.1: Ditto.
+
+	* main.c (define_makeflags): Don't add space between a single-char
+	option and its argument.
+
 2013-04-06  Paul Smith  <psmith@gnu.org>
 
 	* doc/make.texi (Implicit Variables): Clarify LDFLAGS vs. LDLIBS.

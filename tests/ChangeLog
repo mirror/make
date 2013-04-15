@@ -1,3 +1,7 @@
+2013-04-15  Paul Smith  <psmith@gnu.org>
+
+	* scripts/features/output-sync (output_sync_set): New arg syntax.
+
 2013-04-14  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/output-sync: Rewrite to be more reliable.

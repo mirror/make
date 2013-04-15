@@ -1635,8 +1635,8 @@ start_job_command (struct child *child)
 
           /* If it still looks like we can synchronize, create a temp
               file to hold stdout (and one for stderr if separate). */
-          if (output_sync >= OUTPUT_SYNC_COARSE
-              || (output_sync == OUTPUT_SYNC_FINE && !(flags & COMMANDS_RECURSE)))
+          if (output_sync == OUTPUT_SYNC_MAKE
+              || (output_sync == OUTPUT_SYNC_TARGET && !(flags & COMMANDS_RECURSE)))
             {
               if (!assign_child_tempfiles (child, combined_output))
                 output_sync = 0;

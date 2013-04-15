@@ -525,8 +525,8 @@ int strncasecmp (const char *s1, const char *s2, int n);
 # endif
 #endif
 
-#define OUTPUT_SYNC_FINE 1
-#define OUTPUT_SYNC_COARSE 2
+#define OUTPUT_SYNC_TARGET 1
+#define OUTPUT_SYNC_MAKE 2
 
 extern const gmk_floc *reading_file;
 extern const gmk_floc **expanding_var;

@@ -220,6 +220,19 @@ on account of changes in
 .IR file .
 Essentially the file is treated as very old and its rules are ignored.
 .TP 0.5i
+\fB\-O\fR[\fItype\fR], \fB\-\-output\-sync\fR[=\fItype\fR]
+When running multiple jobs in parallel with \fB-j\fR, ensure the output of
+each job is collected together rather than interspersed with output from
+other jobs.  If
+.I type
+is not specified or is
+.B target
+output is grouped together on a per-target basis.  If
+.I type
+is
+.B make
+output from an entire recursive make is grouped together.
+.TP 0.5i
 \fB\-p\fR, \fB\-\-print\-data\-base\fR
 Print the data base (rules and variable values) that results from
 reading the makefiles; then execute as usual or as otherwise
