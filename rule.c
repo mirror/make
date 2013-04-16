@@ -70,7 +70,7 @@ count_implicit_rule_limits (void)
 {
   char *name;
   int namelen;
-  struct rule *rule, *lastrule;
+  struct rule *rule;
 
   num_pattern_rules = max_pattern_targets = max_pattern_deps = 0;
   max_pattern_dep_length = 0;
@@ -78,7 +78,6 @@ count_implicit_rule_limits (void)
   name = 0;
   namelen = 0;
   rule = pattern_rules;
-  lastrule = 0;
   while (rule != 0)
     {
       unsigned int ndeps = 0;
@@ -138,7 +137,6 @@ count_implicit_rule_limits (void)
       if (ndeps > max_pattern_deps)
 	max_pattern_deps = ndeps;
 
-      lastrule = rule;
       rule = next;
     }
 

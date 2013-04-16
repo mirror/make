@@ -141,7 +141,7 @@ AS_IF([test "$ac_cv_func_gettimeofday" = yes],
 ])
 
 AC_CHECK_FUNCS([strdup strndup mkstemp mktemp fdopen fileno \
-	        dup2 getcwd realpath sigsetmask sigaction \
+	        dup dup2 getcwd realpath sigsetmask sigaction \
                 getgroups seteuid setegid setlinebuf setreuid setregid \
                 getrlimit setrlimit setvbuf pipe strerror strsignal \
 		lstat readlink atexit])
@@ -351,13 +351,13 @@ AS_IF([test "$make_cv_load" = yes], [
   AC_MSG_CHECKING([If the linker accepts -Wl,--export-dynamic])
   old_LDFLAGS="$LDFLAGS"
   LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
-  AC_LINK_IFELSE([int main(){}],
+  AC_LINK_IFELSE([AC_LANG_SOURCE([int main(){}])],
     [AC_MSG_RESULT([yes])
      AC_SUBST([AM_LDFLAGS], [-Wl,--export-dynamic])],
     [AC_MSG_RESULT([no])
      AC_MSG_CHECKING([If the linker accepts -rdynamic])
      LDFLAGS="$old_LDFLAGS -rdynamic"
-     AC_LINK_IFELSE([int main(){}],
+     AC_LINK_IFELSE([AC_LANG_SOURCE([int main(){}])],
        [AC_MSG_RESULT([yes])
         AC_SUBST([AM_LDFLAGS], [-rdynamic])],
        [AC_MSG_RESULT([no])])
