@@ -413,6 +413,7 @@ int alpha_compare (const void *, const void *);
 void print_spaces (unsigned int);
 char *find_percent (char *);
 const char *find_percent_cached (const char **);
+int open_tmpfd (void);
 FILE *open_tmpfile (char **, const char *);
 
 #ifndef NO_ARCHIVES
@@ -523,6 +524,10 @@ int strcasecmp (const char *s1, const char *s2);
 /* Create our own, in misc.c */
 int strncasecmp (const char *s1, const char *s2, int n);
 # endif
+#endif
+
+#ifdef POSIX
+# define OUTPUT_SYNC
 #endif
 
 #define OUTPUT_SYNC_TARGET 1

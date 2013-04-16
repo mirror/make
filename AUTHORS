@@ -41,6 +41,7 @@ GNU make porting efforts:
       Jonathan Grant <jg@jguk.org>
       Andreas Beuning <andreas.buening@nexgo.de>
       Earnie Boyd <earnie@uses.sf.net>
+      Troy Runkel <Troy.Runkel@mathworks.com>
 
 -----------------------------------
 Other contributors:
@@ -64,6 +65,8 @@ Other contributors:
   Carl Staelin (Princeton University)
   Ian Stewartson (Data Logic Limited)
   David A. Wheeler <dwheeler@dwheeler.com>
+  David Boyce <dsb@boyski.com>
+  Frank Heckenbach <f.heckenbach@fh-soft.de>
 
 With suggestions/comments/bug reports from a cast of ... well ...
 hundreds, anyway :)

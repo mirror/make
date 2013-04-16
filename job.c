@@ -558,7 +558,6 @@ static int
 assign_child_tempfiles (struct child *c, int combined)
 {
   FILE *outstrm = NULL, *errstrm = NULL;
-  int o_ok, e_ok;
   const char *suppressed = "output-sync suppressed: ";
   char *failmode = NULL;
 
@@ -566,70 +565,24 @@ assign_child_tempfiles (struct child *c, int combined)
   if (c->outfd != -1 && c->errfd != -1)
     return 1;
 
-  /* Check status of stdout and stderr before hooking up temp files. */
-  o_ok = STREAM_OK (stdout);
-  e_ok = STREAM_OK (stderr);
-
-  /* The tmpfile() function returns a FILE pointer but those can be in
-     limited supply, so we immediately dup its file descriptor and keep
-     only that, closing the FILE pointer.  */
-
-  if (combined)
+  if (STREAM_OK (stdout))
     {
-      if (!(outstrm = tmpfile ()))
-        failmode = "tmpfile()";
-      else
-        errstrm = outstrm;
-    }
-  else if (o_ok && e_ok)
-    {
-      if (!(outstrm = tmpfile ()) || !(errstrm = tmpfile ()))
-        failmode = "tmpfile()";
-    }
-  else if (o_ok)
-    {
-      if (!(outstrm = tmpfile ()))
-        failmode = "tmpfile()";
-    }
-  else if (e_ok)
-    {
-      if (!(errstrm = tmpfile ()))
-        failmode = "tmpfile()";
-    }
-  else
-    failmode = "stdout";
-
-  if (!failmode && outstrm)
-    {
-      if ((c->outfd = dup (fileno (outstrm))) == -1)
-        failmode = "dup2()";
-      else
-        CLOSE_ON_EXEC (c->outfd);
+      c->outfd = open_tmpfd ();
+      CLOSE_ON_EXEC (c->outfd);
     }
 
-  if (!failmode && errstrm)
+  if (STREAM_OK (stderr))
     {
-      if (combined)
+      if (c->outfd >= 0 && combined)
         c->errfd = c->outfd;
       else
         {
-          if ((c->errfd = dup (fileno (errstrm))) == -1)
-            failmode = "dup2()";
-          else
-            CLOSE_ON_EXEC (c->errfd);
+          c->errfd = open_tmpfd ();
+          CLOSE_ON_EXEC (c->errfd);
         }
     }
 
-  if (failmode)
-    perror_with_name (suppressed, failmode);
-
-  if (outstrm)
-    (void) fclose (outstrm);
-
-  if (errstrm && errstrm != outstrm)
-    (void) fclose (errstrm);
-
-  return failmode == NULL;
+  return 1;
 }
 
 /* Support routine for sync_output() */

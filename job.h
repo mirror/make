@@ -34,10 +34,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define CLOSE_ON_EXEC(_d) (void) fcntl ((_d), F_SETFD, FD_CLOEXEC)
 #endif
 
-#ifdef POSIX
-# define OUTPUT_SYNC
-#endif
-
 /* Structure describing a running or dead child process.  */
 
 struct child

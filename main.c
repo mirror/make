@@ -907,50 +907,6 @@ msdos_return_to_initial_directory (void)
 }
 #endif  /* __MSDOS__ */
 
-char *mktemp (char *template);
-int mkstemp (char *template);
-
-FILE *
-open_tmpfile(char **name, const char *template)
-{
-#ifdef HAVE_FDOPEN
-  int fd;
-#endif
-
-#if defined HAVE_MKSTEMP || defined HAVE_MKTEMP
-# define TEMPLATE_LEN   strlen (template)
-#else
-# define TEMPLATE_LEN   L_tmpnam
-#endif
-  *name = xmalloc (TEMPLATE_LEN + 1);
-  strcpy (*name, template);
-
-#if defined HAVE_MKSTEMP && defined HAVE_FDOPEN
-  /* It's safest to use mkstemp(), if we can.  */
-  fd = mkstemp (*name);
-  if (fd == -1)
-    return 0;
-  return fdopen (fd, "w");
-#else
-# ifdef HAVE_MKTEMP
-  (void) mktemp (*name);
-# else
-  (void) tmpnam (*name);
-# endif
-
-# ifdef HAVE_FDOPEN
-  /* Can't use mkstemp(), but guard against a race condition.  */
-  fd = open (*name, O_CREAT|O_EXCL|O_WRONLY, 0600);
-  if (fd == -1)
-    return 0;
-  return fdopen (fd, "w");
-# else
-  /* Not secure, but what can we do?  */
-  return fopen (*name, "w");
-# endif
-#endif
-}
-
 #ifdef _AMIGA
 int
 main (int argc, char **argv)

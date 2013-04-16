@@ -1,6 +1,6 @@
 GNU make NEWS                                               -*-indented-text-*-
   History of user-visible changes.
-  05 March 2012
+  16 April 2013
 
 See the end of this file for copyrights and conditions.
 
@@ -9,7 +9,7 @@ manual, which is contained in this distribution as the file doc/make.texi.
 See the README file and the GNU make manual for instructions for
 reporting bugs.
 
-Version 3.99.90
+Version 3.82.90
 
 A complete list of bugs fixed in this version is available here:
 
@@ -28,6 +28,12 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
   by .SILENT or a "@" prefix character.  Also before each recipe is run the
   makefile name and linenumber where it was defined are shown as well as the
   prerequisites that caused the target to be considered out of date.
+
+* New command line option: --output-sync (-O) enables grouping of output by
+  target or by recursive make.  This is useful during parallel builds to avoid
+  mixing output from different jobs together giving hard-to-understand results.
+  Original implementation by David Boyce <dsb@boyski.com>.  Patch was reworked
+  by Frank Heckenbach <f.heckenbach@fh-soft.de>.
 
 * New feature: The "job server" capability is now supported on Windows.
   Implementation contributed by Troy Runkel <Troy.Runkel@mathworks.com>

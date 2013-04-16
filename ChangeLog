@@ -1,3 +1,10 @@
+2013-04-16  Paul Smith  <psmith@gnu.org>
+
+	* misc.c (open_tmpfd): Add a new function that returns a temporary
+	file by file descriptor.
+	(open_tmpfile): Move here from main.c.
+	* job.c (assign_child_tempfiles): Use the new open_tmpfd().
+
 2013-04-15  Paul Smith  <psmith@gnu.org>
 
 	* makeint.h (OUTPUT_SYNC_TARGET, OUTPUT_SYNC_MAKE): Rename.
