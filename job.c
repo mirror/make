@@ -557,10 +557,6 @@ child_handler (int sig UNUSED)
 static int
 assign_child_tempfiles (struct child *c, int combined)
 {
-  FILE *outstrm = NULL, *errstrm = NULL;
-  const char *suppressed = "output-sync suppressed: ";
-  char *failmode = NULL;
-
   /* If we already have a temp file assigned we're done.  */
   if (c->outfd != -1 && c->errfd != -1)
     return 1;

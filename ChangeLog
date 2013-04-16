@@ -1,5 +1,10 @@
 2013-04-16  Paul Smith  <psmith@gnu.org>
 
+	* build_w32.bat: Add load.c to the Windows build.
+	* main.c: Parse the output-sync options, even if they're not
+	supported on the platform.  They'll just be ignored.
+	Patches from Ray Donnelly <mingw.android@gmail.com>
+
 	* misc.c (open_tmpfd): Add a new function that returns a temporary
 	file by file descriptor.
 	(open_tmpfile): Move here from main.c.

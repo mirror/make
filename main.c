@@ -146,18 +146,14 @@ int just_print_flag;
 
 /* Print debugging info (--debug).  */
 
-static struct stringlist *db_flags;
+static struct stringlist *db_flags = 0;
 static int debug_flag = 0;
 
 int db_level = 0;
 
-#ifdef OUTPUT_SYNC
-
 /* Synchronize output (--output-sync).  */
 
-static struct stringlist *output_sync_option;
-
-#endif
+static struct stringlist *output_sync_option = 0;
 
 /* Tracing (--trace).  */
 
@@ -350,11 +346,9 @@ static const char *const usage[] =
     N_("\
   -o FILE, --old-file=FILE, --assume-old=FILE\n\
                               Consider FILE to be very old and don't remake it.\n"),
-#ifdef OUTPUT_SYNC
     N_("\
   -O[TYPE], --output-sync[=TYPE]\n\
                               Synchronize output of parallel jobs by TYPE.\n"),
-#endif
     N_("\
   -p, --print-data-base       Print make's internal database.\n"),
     N_("\
@@ -420,9 +414,7 @@ static const struct command_switch switches[] =
     { 'm', ignore, 0, 0, 0, 0, 0, 0, 0 },
     { 'n', flag, &just_print_flag, 1, 1, 1, 0, 0, "just-print" },
     { 'o', filename, &old_files, 0, 0, 0, 0, 0, "old-file" },
-#ifdef OUTPUT_SYNC
     { 'O', string, &output_sync_option, 1, 1, 0, "target", 0, "output-sync" },
-#endif
     { 'p', flag, &print_data_base_flag, 1, 1, 0, 0, 0, "print-data-base" },
     { 'q', flag, &question_flag, 1, 1, 1, 0, 0, "question" },
     { 'r', flag, &no_builtin_rules_flag, 1, 1, 0, 0, 0, "no-builtin-rules" },
