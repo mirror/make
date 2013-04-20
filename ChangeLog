@@ -1,3 +1,11 @@
+2013-04-20  Stefano Lattarini <stefano.lattarini@gmail.com>  (tiny change)
+
+	* README.git: Our autoconf input file is 'configure.ac', not
+	'configure.in'.  Adjust accordingly.
+	* build_w32.bat: Likewise.
+	* config.h-vms.template: Likewise.
+	* Makefile.DOS.template: Likewise.
+
 2013-04-16  Paul Smith  <psmith@gnu.org>
 
 	* build_w32.bat: Add load.c to the Windows build.

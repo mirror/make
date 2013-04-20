@@ -61,7 +61,7 @@ Building From Git
 
 To build GNU make from Git, you will need Autoconf, Automake, and
 Gettext, and any tools that those utilities require (GNU m4, Perl,
-etc.).  See the configure.in file to find the minimum versions of each
+etc.).  See the configure.ac file to find the minimum versions of each
 of these tools.  You will also need a copy of wget.
 
 When building from Git you must build in the source directory: "VPATH
@@ -149,7 +149,7 @@ Steps to Release
 Here are the things that need to be done (in more or less this order)
 before making an official release:
 
-  * Update the configure.in file with the new release number.
+  * Update the configure.ac file with the new release number.
   * Update the NEWS file with the release number and date.
   * In Savannah modify the "Value", "Rank", and "Description" values for the
     current "SCM" entry in both "Component Version" and "Fix Release" fields
