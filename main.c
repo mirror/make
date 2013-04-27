@@ -239,6 +239,11 @@ static struct stringlist *jobserver_fds = 0;
 int job_fds[2] = { -1, -1 };
 int job_rfd = -1;
 
+/* Handle for the mutex used on Windows to synchronize output of our
+   children under -O.  */
+
+static struct stringlist *sync_mutex = 0;
+
 /* Maximum load average at which multiple jobs will be run.
    Negative values mean unlimited, while zero means limit to
    zero load (which could be useful to start infinite jobs remotely
@@ -415,6 +420,7 @@ static const struct command_switch switches[] =
     { 'n', flag, &just_print_flag, 1, 1, 1, 0, 0, "just-print" },
     { 'o', filename, &old_files, 0, 0, 0, 0, 0, "old-file" },
     { 'O', string, &output_sync_option, 1, 1, 0, "target", 0, "output-sync" },
+    { CHAR_MAX+7, string, &sync_mutex, 1, 1, 0, 0, 0, "sync-mutex" },
     { 'p', flag, &print_data_base_flag, 1, 1, 0, 0, 0, "print-data-base" },
     { 'q', flag, &question_flag, 1, 1, 1, 0, 0, "question" },
     { 'r', flag, &no_builtin_rules_flag, 1, 1, 0, 0, 0, "no-builtin-rules" },
@@ -696,9 +702,47 @@ decode_output_sync_flags (void)
       else
         fatal (NILF, _("unknown output-sync type '%s'"), p);
     }
+
+  if (sync_mutex)
+    {
+      const char *mp;
+      unsigned int idx;
+
+      for (idx = 1; idx < sync_mutex->idx; idx++)
+        if (!streq (sync_mutex->list[0], sync_mutex->list[idx]))
+          fatal (NILF, _("internal error: multiple --sync-mutex options"));
+
+      /* Now parse the mutex handle string.  */
+      mp = sync_mutex->list[0];
+      RECORD_SYNC_MUTEX (mp);
+    }
 }
 
 #ifdef WINDOWS32
+
+/* This is called from start_job_command when it detects that
+   output_sync option is in effect.  The handle to the synchronization
+   mutex is passed, as a string, to sub-makes via the --sync-mutex
+   command-line argument.  */
+void
+prepare_mutex_handle_string (sync_handle_t handle)
+{
+  if (!sync_mutex)
+    {
+      /* 2 hex digits per byte + 2 characters for "0x" + null.  */
+      char hdl_string[2 * sizeof (sync_handle_t) + 2 + 1];
+
+      /* Prepare the mutex handle string for our children.  */
+      sprintf (hdl_string, "0x%x", handle);
+      sync_mutex = xmalloc (sizeof (struct stringlist));
+      sync_mutex->list = xmalloc (sizeof (char *));
+      sync_mutex->list[0] = xstrdup (hdl_string);
+      sync_mutex->idx = 1;
+      sync_mutex->max = 1;
+      define_makeflags (1, 0);
+    }
+}
+
 /*
  * HANDLE runtime exceptions by avoiding a requestor on the GUI. Capture
  * exception and print it to stderr instead.
@@ -1136,6 +1180,9 @@ main (int argc, char **argv, char **envp)
 #endif
 #ifdef MAKE_JOBSERVER
                            " jobserver"
+#endif
+#ifdef OUTPUT_SYNC
+                           " output-sync"
 #endif
 #ifdef MAKE_SYMLINKS
                            " check-symlink"

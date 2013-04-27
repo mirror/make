@@ -246,11 +246,11 @@ unsigned int jobserver_tokens = 0;
 #ifdef OUTPUT_SYNC
 /* Semaphore for use in -j mode with output_sync. */
 
-int sync_handle = -1;
+sync_handle_t sync_handle = -1;
 
 #define STREAM_OK(_s)       ((fcntl (fileno (_s), F_GETFD) != -1) || (errno != EBADF))
 
-#define FD_NOT_EMPTY(_f)    ((_f) >= 0 && lseek ((_f), 0, SEEK_CUR) > 0)
+#define FD_NOT_EMPTY(_f)    ((_f) >= 0 && lseek ((_f), 0, SEEK_END) > 0)
 #endif /* OUTPUT_SYNC */
 
 #ifdef WINDOWS32
@@ -588,6 +588,14 @@ pump_from_tmp_fd (int from_fd, int to_fd)
   ssize_t nleft, nwrite;
   char buffer[8192];
 
+#ifdef WINDOWS32
+  int prev_mode;
+
+  /* from_fd is opened by open_tmpfd, which does it in binary mode, so
+     we need the mode of to_fd to match that.  */
+  prev_mode = _setmode (to_fd, _O_BINARY);
+#endif
+
   if (lseek (from_fd, 0, SEEK_SET) == -1)
     perror ("lseek()");
 
@@ -605,13 +613,20 @@ pump_from_tmp_fd (int from_fd, int to_fd)
         if (nwrite < 0)
           {
             perror ("write()");
-            return;
+            goto finished;
           }
 
         write_buf += nwrite;
         nleft -= nwrite;
       }
     }
+finished:
+
+#ifdef WINDOWS32
+  /* Switch to_fd back to its original mode, so that log messages by
+     Make have the same EOL format as without --output-sync.  */
+  _setmode (to_fd, prev_mode);
+#endif
 }
 
 /* Support routine for sync_output() */
@@ -622,7 +637,7 @@ acquire_semaphore (void)
 
   fl.l_type = F_WRLCK;
   fl.l_whence = SEEK_SET;
-  fl.l_start = 0; /* lock just one byte according to pid */
+  fl.l_start = 0; /* lock just one byte */
   fl.l_len = 1;
   if (fcntl (sync_handle, F_SETLKW, &fl) != -1)
     return &fl;
@@ -648,13 +663,15 @@ release_semaphore (void *sem)
 static void
 sync_output (struct child *c)
 {
-  void *sem;
-
   int outfd_not_empty = FD_NOT_EMPTY (c->outfd);
   int errfd_not_empty = FD_NOT_EMPTY (c->errfd);
 
-  if ((outfd_not_empty || errfd_not_empty) && (sem = acquire_semaphore ()))
+  if (outfd_not_empty || errfd_not_empty)
     {
+      /* Try to acquire the semaphore.  If it fails, dump the output
+         unsynchronized; still better than silently discarding it.  */
+      void *sem = acquire_semaphore ();
+
       /* We've entered the "critical section" during which a lock is held.
          We want to keep it as short as possible.  */
       if (outfd_not_empty)
@@ -667,7 +684,8 @@ sync_output (struct child *c)
         pump_from_tmp_fd (c->errfd, fileno (stderr));
 
       /* Exit the critical section.  */
-      release_semaphore (sem);
+      if (sem)
+	release_semaphore (sem);
     }
 
   if (c->outfd >= 0)
@@ -1723,6 +1741,42 @@ start_job_command (struct child *child)
       HANDLE hPID;
       char* arg0;
 
+#ifdef OUTPUT_SYNC
+      if (output_sync)
+        {
+          static int combined_output;
+          /* If output_sync is turned on, create a mutex to
+              synchronize on.  This is done only once.  */
+          if (sync_handle == -1)
+	    {
+	      if ((!STREAM_OK (stdout) && !STREAM_OK (stderr))
+		  || (sync_handle = create_mutex ()) == -1)
+                {
+                  perror_with_name ("output-sync suppressed: ", "stderr");
+                  output_sync = 0;
+                }
+	      else
+		{
+		  combined_output = same_stream (stdout, stderr);
+		  prepare_mutex_handle_string (sync_handle);
+		}
+	    }
+          /* If we can synchronize, create a temporary file to hold
+              child's stdout, and another one for its stderr, if they
+              are separate. */
+          if (output_sync == OUTPUT_SYNC_MAKE
+              || (output_sync == OUTPUT_SYNC_TARGET
+		  && !(flags & COMMANDS_RECURSE)))
+            {
+              if (!assign_child_tempfiles (child, combined_output))
+		{
+                  perror_with_name ("output-sync suppressed: ", "stderr");
+		  output_sync = 0;
+		}
+            }
+        }
+#endif /* OUTPUT_SYNC */
+
       /* make UNC paths safe for CreateProcess -- backslash format */
       arg0 = argv[0];
       if (arg0 && arg0[0] == '/' && arg0[1] == '/')
@@ -1733,7 +1787,14 @@ start_job_command (struct child *child)
       /* make sure CreateProcess() has Path it needs */
       sync_Path_environment();
 
-      hPID = process_easy(argv, child->environment);
+#ifdef OUTPUT_SYNC
+          /* Divert child output into tempfile(s) if output_sync in use. */
+          if (output_sync)
+	    hPID = process_easy(argv, child->environment,
+				child->outfd, child->errfd);
+	  else
+#endif
+	    hPID = process_easy(argv, child->environment, -1, -1);
 
       if (hPID != INVALID_HANDLE_VALUE)
         child->pid = (pid_t) hPID;
@@ -2417,7 +2478,7 @@ exec_command (char **argv, char **envp)
   sync_Path_environment();
 
   /* launch command */
-  hPID = process_easy(argv, envp);
+  hPID = process_easy(argv, envp, -1, -1);
 
   /* make sure launch ok */
   if (hPID == INVALID_HANDLE_VALUE)

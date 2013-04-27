@@ -30,7 +30,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "hash.h"
 
 
-#ifndef WINDOWS32
+#ifdef WINDOWS32
+#include <windows.h>
+#include "sub_proc.h"
+#else  /* !WINDOWS32 */
 #ifndef _AMIGA
 #ifndef VMS
 #include <pwd.h>

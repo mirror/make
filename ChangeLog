@@ -1,20 +1,73 @@
-2013-04-25  Eli Zaretskii  <eliz@gnu.org>
+2013-04-27  Frank Heckenbach <f.heckenbach@fh-soft.de>  (tiny change)
 
-	* build_w32.bat: Improve.  Remove 'setlocal', as it isn't
-	supported on Windows 9X.  Add --help and usage instructions.
-	Support both debug and optimized builds with GCC under --debug.
-	If building out of Git repo, always produce config.h, and edit
-	gmk-default.scm into gmk-default.h.
+	* job.c (sync_output): Don't discard the output if
+	acquire_semaphore fails; instead, dump the output unsynchronized.
 
-	* w32/subproc/build.bat: Support debug and optimized builds with
-	GCC.
+2013-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	Support --output-sync on MS-Windows.
+	* w32/compat/posixfcn.c: New file, with emulations of Posix
+	functions and Posix functionality for MS-Windows.
+
+	* w32/subproc/sub_proc.c: Include io.h.
+	(process_noinherit): New function, forces a file descriptor to not
+	be inherited by child processes.
+	(process_easy): Accept two additional arguments, and use them to
+	set up the standard output and standard error handles of the child
+	process.
+
+	* w32/include/sub_proc.h (process_easy): Adjust prototype.
+	(process_noinherit): Add prototype.
+
+	* read.c [WINDOWS32]: Include windows.h and sub_proc.h.
+
+	* makeint.h (LOCALEDIR) [WINDOWS32}: Define to NULL if not
+	defined.  This is needed because the MS-Windows build doesn't have
+	a canonical place for LOCALEDIR.
+	(WIN32_LEAN_AND_MEAN) [WINDOWS32]: Define, to avoid getting from
+	windows.h header too much stuff that could conflict with the code.
+
+	* main.c <sync_mutex>: New static variable.
+	<switches>: Add support for "--sync-mutex" switch.
+	(decode_output_sync_flags): Decode the --sync-mutex= switch.
+	(prepare_mutex_handle_string) [WINDOWS32]: New function.
+	(main): Add "output-sync" to .FEATURES.
+
+	* job.h (CLOSE_ON_EXEC) [WINDOWS32]: Define to call
+	process_noinherit.
+	(F_GETFD, F_SETLKW, F_WRLCK, F_UNLCK, struct flock) [WINDOWS32]:
+	New macros.
+	(RECORD_SYNC_MUTEX): New macro, a no-op for Posix platforms.
+	(sync_handle_t): New typedef.
+
+	* job.c <sync_handle>: Change type to sync_handle_t.
+	(FD_NOT_EMPTY): Seek to the file's end.  Suggested by Frank
+	Heckenbach <f.heckenbach@fh-soft.de>.
+	(pump_from_tmp_fd) [WINDOWS32]: Switch to_fd to binary mode for
+	the duration of this function, and then change back before
+	returning.
+	(start_job_command) [WINDOWS32]: Support output_sync mode on
+	MS-Windows.  Use a system-wide mutex instead of locking
+	stdout/stderr.  Call process_easy with two additional arguments:
+	child->outfd and child->errfd.
+	(exec_command) [WINDOWS32]: Pass two additional arguments, both
+	-1, to process_easy, to adjust for the changed function signature.
+
+	* function.c (windows32_openpipe) [WINDOWS32]: This function now
+	returns an int, which is -1 if it fails and zero otherwise.  It
+	also calls 'error' instead of 'fatal', to avoid exiting
+	prematurely.
+	(func_shell_base) [WINDOWS32]: Call perror_with_name if
+	windows32_openpipe fails, now that it always returns.  This avoids
+	a compiler warning that error_prefix is not used in the MS-Windows
+	build.
+
+	* config.h.W32.template (OUTPUT_SYNC): Define.
+
+	* build_w32.bat: Add w32/compat/posixfcn.c to compilation and
+	linking commands.
 
 2013-04-16  Paul Smith  <psmith@gnu.org>
-
-	* build_w32.bat: Add load.c to the Windows build.
-	* main.c: Parse the output-sync options, even if they're not
-	supported on the platform.  They'll just be ignored.
-	Patches from Ray Donnelly <mingw.android@gmail.com>
 
 	* misc.c (open_tmpfd): Add a new function that returns a temporary
 	file by file descriptor.

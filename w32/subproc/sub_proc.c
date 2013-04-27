@@ -17,6 +17,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <io.h>		/* for _get_osfhandle */
 #ifdef _MSC_VER
 # include <stddef.h>    /* for intptr_t */
 #else
@@ -339,6 +340,15 @@ process_exit_code(HANDLE proc)
 {
         if (proc == INVALID_HANDLE_VALUE) return EXIT_FAILURE;
 	return (((sub_process *)proc)->exit_code);
+}
+
+void
+process_noinherit(int fd)
+{
+  HANDLE fh = (HANDLE)_get_osfhandle(fd);
+
+  if (fh && fh != INVALID_HANDLE_VALUE)
+	SetHandleInformation(fh, HANDLE_FLAG_INHERIT, 0);
 }
 
 /*
@@ -1340,7 +1350,9 @@ make_command_line( char *shell_name, char *full_exec_path, char **argv)
 HANDLE
 process_easy(
 	char **argv,
-	char **envp)
+	char **envp,
+	int outfd,
+	int errfd)
 {
   HANDLE hIn = INVALID_HANDLE_VALUE;
   HANDLE hOut = INVALID_HANDLE_VALUE;
@@ -1383,7 +1395,10 @@ process_easy(
       return INVALID_HANDLE_VALUE;
     }
   }
-  tmpOut = GetStdHandle (STD_OUTPUT_HANDLE);
+  if (outfd >= 0)
+    tmpOut = (HANDLE)_get_osfhandle (outfd);
+  else
+    tmpOut = GetStdHandle (STD_OUTPUT_HANDLE);
   if (DuplicateHandle(GetCurrentProcess(),
 		      tmpOut,
 		      GetCurrentProcess(),
@@ -1410,7 +1425,10 @@ process_easy(
       return INVALID_HANDLE_VALUE;
     }
   }
-  tmpErr = GetStdHandle(STD_ERROR_HANDLE);
+  if (errfd >= 0)
+    tmpErr = (HANDLE)_get_osfhandle (errfd);
+  else
+    tmpErr = GetStdHandle(STD_ERROR_HANDLE);
   if (DuplicateHandle(GetCurrentProcess(),
 		      tmpErr,
 		      GetCurrentProcess(),

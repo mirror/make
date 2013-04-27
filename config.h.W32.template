@@ -554,3 +554,5 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_CYGWIN_SHELL
 #undef BATCH_MODE_ONLY_SHELL
 #endif
+
+#define OUTPUT_SYNC

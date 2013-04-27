@@ -1431,7 +1431,7 @@ int shell_function_pid = 0, shell_function_completed;
 #include "sub_proc.h"
 
 
-void
+int
 windows32_openpipe (int *pipedes, pid_t *pid_p, char **command_argv, char **envp)
 {
   SECURITY_ATTRIBUTES saAttr;
@@ -1441,6 +1441,10 @@ windows32_openpipe (int *pipedes, pid_t *pid_p, char **command_argv, char **envp
   HANDLE hChildOutWr;
   HANDLE hProcess, tmpIn, tmpErr;
   DWORD e;
+
+  /* Set status for return.  */
+  pipedes[0] = pipedes[1] = -1;
+  *pid_p = (pid_t)-1;
 
   saAttr.nLength = sizeof (SECURITY_ATTRIBUTES);
   saAttr.bInheritHandle = TRUE;
@@ -1472,8 +1476,10 @@ windows32_openpipe (int *pipedes, pid_t *pid_p, char **command_argv, char **envp
 			     DUPLICATE_SAME_ACCESS) == FALSE)
 	CloseHandle(tmpIn);
     }
-    if (hIn == INVALID_HANDLE_VALUE)
-      fatal (NILF, _("windows32_openpipe: DuplicateHandle(In) failed (e=%ld)\n"), e);
+    if (hIn == INVALID_HANDLE_VALUE) {
+      error (NILF, _("windows32_openpipe: DuplicateHandle(In) failed (e=%ld)\n"), e);
+      return -1;
+    }
   }
   tmpErr = GetStdHandle(STD_ERROR_HANDLE);
   if (DuplicateHandle(GetCurrentProcess(),
@@ -1497,17 +1503,23 @@ windows32_openpipe (int *pipedes, pid_t *pid_p, char **command_argv, char **envp
 			     DUPLICATE_SAME_ACCESS) == FALSE)
 	CloseHandle(tmpErr);
     }
-    if (hErr == INVALID_HANDLE_VALUE)
-      fatal (NILF, _("windows32_openpipe: DuplicateHandle(Err) failed (e=%ld)\n"), e);
+    if (hErr == INVALID_HANDLE_VALUE) {
+      error (NILF, _("windows32_openpipe: DuplicateHandle(Err) failed (e=%ld)\n"), e);
+      return -1;
+    }
   }
 
-  if (!CreatePipe(&hChildOutRd, &hChildOutWr, &saAttr, 0))
-    fatal (NILF, _("CreatePipe() failed (e=%ld)\n"), GetLastError());
+  if (!CreatePipe(&hChildOutRd, &hChildOutWr, &saAttr, 0)) {
+    error (NILF, _("CreatePipe() failed (e=%ld)\n"), GetLastError());
+    return -1;
+  }
 
   hProcess = process_init_fd(hIn, hChildOutWr, hErr);
 
-  if (!hProcess)
-    fatal (NILF, _("windows32_openpipe(): process_init_fd() failed\n"));
+  if (!hProcess) {
+    error (NILF, _("windows32_openpipe(): process_init_fd() failed\n"));
+    return -1;
+  }
 
   /* make sure that CreateProcess() has Path it needs */
   sync_Path_environment();
@@ -1527,6 +1539,7 @@ windows32_openpipe (int *pipedes, pid_t *pid_p, char **command_argv, char **envp
 
     /* this will be closed almost right away */
 	pipedes[1] = _open_osfhandle((intptr_t) hChildOutWr, O_APPEND);
+	return 0;
   } else {
     /* reap/cleanup the failed process */
 	process_cleanup(hProcess);
@@ -1541,9 +1554,7 @@ windows32_openpipe (int *pipedes, pid_t *pid_p, char **command_argv, char **envp
 	CloseHandle(hChildOutRd);
 	CloseHandle(hChildOutWr);
 
-    /* set status for return */
-    pipedes[0] = pipedes[1] = -1;
-    *pid_p = (pid_t)-1;
+    return -1;
   }
 }
 #endif
@@ -1698,6 +1709,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
     {
       /* Open of the pipe failed, mark as failed execution.  */
       shell_function_completed = -1;
+      perror_with_name (error_prefix, "pipe");
       return o;
     }
   else
