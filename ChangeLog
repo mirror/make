@@ -1,3 +1,10 @@
+2013-04-27  Paul Smith  <psmith@gnu.org>
+
+	* load.c (load_object): Extract all POSIX-isms into a separate
+	function for portability.
+	(load_file): Check the .LOADED variable first and don't invoke
+	load_object() if it's already been loaded.
+
 2013-04-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* read.c (record_files): Pay attention to .ONESHELL in MS-Windows.

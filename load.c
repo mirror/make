@@ -26,44 +26,16 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SYMBOL_EXTENSION        "_gmk_setup"
 
-static void *global_dl = NULL;
-
 #include "debug.h"
 #include "filedef.h"
 #include "variable.h"
 
-static int
-init_symbol (const gmk_floc *flocp, const char *ldname, load_func_t symp)
+static load_func_t
+load_object (const gmk_floc *flocp, int noerror,
+             const char *ldname, const char *symname)
 {
-  int r;
-  const char *p;
-  int nmlen = strlen (ldname);
-  char *loaded = allocated_variable_expand("$(.LOADED)");
-
-  /* If it's already been loaded don't do it again.  */
-  p = strstr (loaded, ldname);
-  r = p && (p==loaded || p[-1]==' ') && (p[nmlen]=='\0' || p[nmlen]==' ');
-  free (loaded);
-  if (r)
-    return 1;
-
-  /* Now invoke the symbol.  */
-  r = (*symp) (flocp);
-
-  /* If it succeeded, add the symbol to the loaded variable.  */
-  if (r > 0)
-    do_variable_definition (flocp, ".LOADED", ldname, o_default, f_append, 0);
-
-  return r;
-}
-
-int
-load_file (const gmk_floc *flocp, const char **ldname, int noerror)
-{
+  static void *global_dl = NULL;
   load_func_t symp;
-  const char *fp;
-  char *symname = NULL;
-  char *new = alloca (strlen (*ldname) + CSTRLEN (SYMBOL_EXTENSION) + 1);
 
   if (! global_dl)
     {
@@ -72,7 +44,50 @@ load_file (const gmk_floc *flocp, const char **ldname, int noerror)
         fatal (flocp, _("Failed to open global symbol table: %s"), dlerror());
     }
 
-  /* If a symbol name was provided, use it.  */
+  symp = (load_func_t) dlsym (global_dl, symname);
+  if (! symp) {
+    void *dlp = NULL;
+
+    /* If the path has no "/", try the current directory first.  */
+    if (! strchr (ldname, '/'))
+      dlp = dlopen (concat (2, "./", ldname), RTLD_LAZY|RTLD_GLOBAL);
+
+    /* If we haven't opened it yet, try the default search path.  */
+    if (! dlp)
+      dlp = dlopen (ldname, RTLD_LAZY|RTLD_GLOBAL);
+
+    /* Still no?  Then fail.  */
+    if (! dlp)
+      {
+        if (noerror)
+          DB (DB_BASIC, ("%s", dlerror()));
+        else
+          error (flocp, "%s", dlerror());
+        return NULL;
+      }
+
+    symp = dlsym (dlp, symname);
+    if (! symp)
+      fatal (flocp, _("Failed to load symbol %s from %s: %s"),
+             symname, ldname, dlerror());
+  }
+
+  return symp;
+}
+
+int
+load_file (const gmk_floc *flocp, const char **ldname, int noerror)
+{
+  int nmlen = strlen (*ldname);
+  char *new = alloca (nmlen + CSTRLEN (SYMBOL_EXTENSION) + 1);
+  char *symname = NULL;
+  char *loaded;
+  const char *fp;
+  int r;
+  load_func_t symp;
+
+  /* Break the input into an object file name and a symbol name.  If no symbol
+     name was provided, compute one from the object file name.  */
   fp = strchr (*ldname, '(');
   if (fp)
     {
@@ -105,6 +120,14 @@ load_file (const gmk_floc *flocp, const char **ldname, int noerror)
   /* Add this name to the string cache so it can be reused later.  */
   *ldname = strcache_add (*ldname);
 
+  /* If this object has been loaded, we're done.  */
+  loaded = allocated_variable_expand("$(.LOADED)");
+  fp = strstr (loaded, *ldname);
+  r = fp && (fp==loaded || fp[-1]==' ') && (fp[nmlen]=='\0' || fp[nmlen]==' ');
+  free (loaded);
+  if (r)
+    return 1;
+
   /* If we didn't find a symbol name yet, construct it from the ldname.  */
   if (! symname)
     {
@@ -123,37 +146,19 @@ load_file (const gmk_floc *flocp, const char **ldname, int noerror)
 
   DB (DB_VERBOSE, (_("Loading symbol %s from %s\n"), symname, *ldname));
 
-  /* See if it's already defined.  */
-  symp = (load_func_t) dlsym (global_dl, symname);
-  if (! symp) {
-    void *dlp = NULL;
+  /* Load it!  */
+  symp = load_object(flocp, noerror, *ldname, symname);
+  if (! symp)
+    return 0;
 
-    /* If the path has no "/", try the current directory first.  */
-    if (! strchr (*ldname, '/'))
-      dlp = dlopen (concat (2, "./", *ldname), RTLD_LAZY|RTLD_GLOBAL);
+  /* Invoke the symbol.  */
+  r = (*symp) (flocp);
 
-    /* If we haven't opened it yet, try the default search path.  */
-    if (! dlp)
-      dlp = dlopen (*ldname, RTLD_LAZY|RTLD_GLOBAL);
+  /* If it succeeded, add the load file to the loaded variable.  */
+  if (r > 0)
+    do_variable_definition (flocp, ".LOADED", *ldname, o_default, f_append, 0);
 
-    /* Still no?  Then fail.  */
-    if (! dlp)
-      {
-        if (noerror)
-          DB (DB_BASIC, ("%s", dlerror()));
-        else
-          error (flocp, "%s", dlerror());
-        return 0;
-      }
-
-    symp = dlsym (dlp, symname);
-    if (! symp)
-      fatal (flocp, _("Failed to load symbol %s from %s: %s"),
-             symname, *ldname, dlerror());
-  }
-
-  /* Invoke the symbol to initialize the loaded object.  */
-  return init_symbol(flocp, *ldname, symp);
+  return r;
 }
 
 #else
