@@ -1,5 +1,12 @@
 2013-04-27  Eli Zaretskii  <eliz@gnu.org>
 
+	* read.c (record_files): Pay attention to .ONESHELL in MS-Windows.
+
+	* job.c (construct_command_argv_internal): Support .ONESHELL on
+	MS-Windows, when the shell is not a Unixy shell.
+
+2013-04-27  Eli Zaretskii  <eliz@gnu.org>
+
 	* job.c: Fix compilation error on GNU/Linux due to "label at end
 	of compound statement".
 
