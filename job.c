@@ -620,13 +620,18 @@ pump_from_tmp_fd (int from_fd, int to_fd)
         nleft -= nwrite;
       }
     }
-finished:
+
+ finished:
 
 #ifdef WINDOWS32
   /* Switch to_fd back to its original mode, so that log messages by
      Make have the same EOL format as without --output-sync.  */
   _setmode (to_fd, prev_mode);
 #endif
+
+  /* This is needed to avoid the "label at end of compound statement"
+     diagnostics on Posix platforms.  */
+  return;
 }
 
 /* Support routine for sync_output() */
