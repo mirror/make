@@ -1,5 +1,8 @@
 2013-04-27  Paul Smith  <psmith@gnu.org>
 
+	* job.c (construct_command_argv_internal): Fix oneshell support
+	for non-POSIX-sh shells.
+
 	* load.c (load_object): Extract all POSIX-isms into a separate
 	function for portability.
 	(load_file): Check the .LOADED variable first and don't invoke

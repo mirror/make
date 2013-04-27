@@ -3272,30 +3272,6 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
                   }
               }
             *t = '\0';
-
-	    /* Create an argv list for the shell command line.  */
-	    {
-	      int n = 0;
-
-	      new_argv = xmalloc ((4 + sflags_len/2) * sizeof (char *));
-	      new_argv[n++] = xstrdup (shell);
-
-	      /* Chop up the shellflags (if any) and assign them.  */
-	      if (! shellflags)
-		new_argv[n++] = xstrdup ("");
-	      else
-		{
-		  const char *s = shellflags;
-		  char *t;
-		  unsigned int len;
-		  while ((t = find_next_token (&s, &len)) != 0)
-		    new_argv[n++] = xstrndup (t, len);
-		}
-
-	      /* Set the command to invoke.  */
-	      new_argv[n++] = line;
-	      new_argv[n++] = NULL;
-	    }
           }
 #ifdef WINDOWS32
 	else	/* non-Posix shell */
@@ -3368,8 +3344,32 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
 	    new_argv[0] = xstrdup (*batch_filename);
 	    new_argv[1] = NULL;
 	  }
-#endif  /* WINDOWS32 */
-	return new_argv;
+#else /* WINDOWS32 */
+        /* Create an argv list for the shell command line.  */
+        {
+          int n = 0;
+
+          new_argv = xmalloc ((4 + sflags_len/2) * sizeof (char *));
+          new_argv[n++] = xstrdup (shell);
+
+          /* Chop up the shellflags (if any) and assign them.  */
+          if (! shellflags)
+            new_argv[n++] = xstrdup ("");
+          else
+            {
+              const char *s = shellflags;
+              char *t;
+              unsigned int len;
+              while ((t = find_next_token (&s, &len)) != 0)
+                new_argv[n++] = xstrndup (t, len);
+            }
+
+          /* Set the command to invoke.  */
+          new_argv[n++] = line;
+          new_argv[n++] = NULL;
+        }
+#endif /* WINDOWS32 */
+        return new_argv;
       }
 
     new_line = xmalloc ((shell_len*2) + 1 + sflags_len + 1
