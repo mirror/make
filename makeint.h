@@ -355,6 +355,14 @@ extern int no_default_sh_exe;
 
 /* is default_shell unixy? */
 extern int unixy_shell;
+
+/* We don't have a preferred fixed value for LOCALEDIR.  */
+# ifndef LOCALEDIR
+#  define LOCALEDIR NULL
+# endif
+
+/* Include only the minimal stuff from windows.h.   */
+#define WIN32_LEAN_AND_MEAN
 #endif  /* WINDOWS32 */
 
 #if defined(HAVE_SYS_RESOURCE_H) && defined(HAVE_GETRLIMIT) && defined(HAVE_SETRLIMIT)

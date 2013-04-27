@@ -30,7 +30,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "hash.h"
 
 
-#ifndef WINDOWS32
+#ifdef WINDOWS32
+#include <windows.h>
+#include "sub_proc.h"
+#else  /* !WINDOWS32 */
 #ifndef _AMIGA
 #ifndef VMS
 #include <pwd.h>
@@ -2045,7 +2048,7 @@ record_files (struct nameseq *filenames, const char *pattern,
         }
       else if (streq (name, ".SECONDEXPANSION"))
         second_expansion = 1;
-#if !defined(WINDOWS32) && !defined (__MSDOS__) && !defined (__EMX__)
+#if !defined (__MSDOS__) && !defined (__EMX__)
       else if (streq (name, ".ONESHELL"))
         one_shell = 1;
 #endif

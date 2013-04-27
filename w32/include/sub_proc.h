@@ -41,7 +41,8 @@ EXTERN_DECL(long process_file_io, (HANDLE proc));
 EXTERN_DECL(void process_cleanup, (HANDLE proc));
 EXTERN_DECL(HANDLE process_wait_for_any, (int block, DWORD* pdwWaitStatus));
 EXTERN_DECL(void process_register, (HANDLE proc));
-EXTERN_DECL(HANDLE process_easy, (char** argv, char** env));
+EXTERN_DECL(HANDLE process_easy, (char** argv, char** env,
+				  int outfd, int errfd));
 EXTERN_DECL(BOOL process_kill, (HANDLE proc, int signal));
 EXTERN_DECL(int process_used_slots, (VOID_DECL));
 
@@ -55,6 +56,7 @@ EXTERN_DECL(char * process_errbuf, (HANDLE proc));
 EXTERN_DECL(int process_outcnt, (HANDLE proc));
 EXTERN_DECL(int process_errcnt, (HANDLE proc));
 EXTERN_DECL(void process_pipes, (HANDLE proc, int pipes[3]));
+EXTERN_DECL(void process_noinherit, (int fildes));
 
 /* jobserver routines */
 EXTERN_DECL(int open_jobserver_semaphore, (const char* name));

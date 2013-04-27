@@ -246,11 +246,11 @@ unsigned int jobserver_tokens = 0;
 #ifdef OUTPUT_SYNC
 /* Semaphore for use in -j mode with output_sync. */
 
-int sync_handle = -1;
+sync_handle_t sync_handle = -1;
 
 #define STREAM_OK(_s)       ((fcntl (fileno (_s), F_GETFD) != -1) || (errno != EBADF))
 
-#define FD_NOT_EMPTY(_f)    ((_f) >= 0 && lseek ((_f), 0, SEEK_CUR) > 0)
+#define FD_NOT_EMPTY(_f)    ((_f) >= 0 && lseek ((_f), 0, SEEK_END) > 0)
 #endif /* OUTPUT_SYNC */
 
 #ifdef WINDOWS32
@@ -588,6 +588,14 @@ pump_from_tmp_fd (int from_fd, int to_fd)
   ssize_t nleft, nwrite;
   char buffer[8192];
 
+#ifdef WINDOWS32
+  int prev_mode;
+
+  /* from_fd is opened by open_tmpfd, which does it in binary mode, so
+     we need the mode of to_fd to match that.  */
+  prev_mode = _setmode (to_fd, _O_BINARY);
+#endif
+
   if (lseek (from_fd, 0, SEEK_SET) == -1)
     perror ("lseek()");
 
@@ -605,13 +613,25 @@ pump_from_tmp_fd (int from_fd, int to_fd)
         if (nwrite < 0)
           {
             perror ("write()");
-            return;
+            goto finished;
           }
 
         write_buf += nwrite;
         nleft -= nwrite;
       }
     }
+
+ finished:
+
+#ifdef WINDOWS32
+  /* Switch to_fd back to its original mode, so that log messages by
+     Make have the same EOL format as without --output-sync.  */
+  _setmode (to_fd, prev_mode);
+#endif
+
+  /* This is needed to avoid the "label at end of compound statement"
+     diagnostics on Posix platforms.  */
+  return;
 }
 
 /* Support routine for sync_output() */
@@ -622,7 +642,7 @@ acquire_semaphore (void)
 
   fl.l_type = F_WRLCK;
   fl.l_whence = SEEK_SET;
-  fl.l_start = 0; /* lock just one byte according to pid */
+  fl.l_start = 0; /* lock just one byte */
   fl.l_len = 1;
   if (fcntl (sync_handle, F_SETLKW, &fl) != -1)
     return &fl;
@@ -648,13 +668,15 @@ release_semaphore (void *sem)
 static void
 sync_output (struct child *c)
 {
-  void *sem;
-
   int outfd_not_empty = FD_NOT_EMPTY (c->outfd);
   int errfd_not_empty = FD_NOT_EMPTY (c->errfd);
 
-  if ((outfd_not_empty || errfd_not_empty) && (sem = acquire_semaphore ()))
+  if (outfd_not_empty || errfd_not_empty)
     {
+      /* Try to acquire the semaphore.  If it fails, dump the output
+         unsynchronized; still better than silently discarding it.  */
+      void *sem = acquire_semaphore ();
+
       /* We've entered the "critical section" during which a lock is held.
          We want to keep it as short as possible.  */
       if (outfd_not_empty)
@@ -667,7 +689,8 @@ sync_output (struct child *c)
         pump_from_tmp_fd (c->errfd, fileno (stderr));
 
       /* Exit the critical section.  */
-      release_semaphore (sem);
+      if (sem)
+	release_semaphore (sem);
     }
 
   if (c->outfd >= 0)
@@ -1723,6 +1746,42 @@ start_job_command (struct child *child)
       HANDLE hPID;
       char* arg0;
 
+#ifdef OUTPUT_SYNC
+      if (output_sync)
+        {
+          static int combined_output;
+          /* If output_sync is turned on, create a mutex to
+              synchronize on.  This is done only once.  */
+          if (sync_handle == -1)
+	    {
+	      if ((!STREAM_OK (stdout) && !STREAM_OK (stderr))
+		  || (sync_handle = create_mutex ()) == -1)
+                {
+                  perror_with_name ("output-sync suppressed: ", "stderr");
+                  output_sync = 0;
+                }
+	      else
+		{
+		  combined_output = same_stream (stdout, stderr);
+		  prepare_mutex_handle_string (sync_handle);
+		}
+	    }
+          /* If we can synchronize, create a temporary file to hold
+              child's stdout, and another one for its stderr, if they
+              are separate. */
+          if (output_sync == OUTPUT_SYNC_MAKE
+              || (output_sync == OUTPUT_SYNC_TARGET
+		  && !(flags & COMMANDS_RECURSE)))
+            {
+              if (!assign_child_tempfiles (child, combined_output))
+		{
+                  perror_with_name ("output-sync suppressed: ", "stderr");
+		  output_sync = 0;
+		}
+            }
+        }
+#endif /* OUTPUT_SYNC */
+
       /* make UNC paths safe for CreateProcess -- backslash format */
       arg0 = argv[0];
       if (arg0 && arg0[0] == '/' && arg0[1] == '/')
@@ -1733,7 +1792,14 @@ start_job_command (struct child *child)
       /* make sure CreateProcess() has Path it needs */
       sync_Path_environment();
 
-      hPID = process_easy(argv, child->environment);
+#ifdef OUTPUT_SYNC
+          /* Divert child output into tempfile(s) if output_sync in use. */
+          if (output_sync)
+	    hPID = process_easy(argv, child->environment,
+				child->outfd, child->errfd);
+	  else
+#endif
+	    hPID = process_easy(argv, child->environment, -1, -1);
 
       if (hPID != INVALID_HANDLE_VALUE)
         child->pid = (pid_t) hPID;
@@ -2417,7 +2483,7 @@ exec_command (char **argv, char **envp)
   sync_Path_environment();
 
   /* launch command */
-  hPID = process_easy(argv, envp);
+  hPID = process_easy(argv, envp, -1, -1);
 
   /* make sure launch ok */
   if (hPID == INVALID_HANDLE_VALUE)
@@ -3166,7 +3232,12 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
 #if defined __MSDOS__ || defined (__EMX__)
 	if (unixy_shell)     /* the test is complicated and we already did it */
 #else
-	if (is_bourne_compatible_shell(shell))
+	if (is_bourne_compatible_shell(shell)
+#ifdef WINDOWS32
+	    /* If we didn't find any sh.exe, don't behave is if we did!  */
+	    && !no_default_sh_exe
+#endif
+	    )
 #endif
           {
             const char *f = line;
@@ -3201,31 +3272,103 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
                   }
               }
             *t = '\0';
+
+	    /* Create an argv list for the shell command line.  */
+	    {
+	      int n = 0;
+
+	      new_argv = xmalloc ((4 + sflags_len/2) * sizeof (char *));
+	      new_argv[n++] = xstrdup (shell);
+
+	      /* Chop up the shellflags (if any) and assign them.  */
+	      if (! shellflags)
+		new_argv[n++] = xstrdup ("");
+	      else
+		{
+		  const char *s = shellflags;
+		  char *t;
+		  unsigned int len;
+		  while ((t = find_next_token (&s, &len)) != 0)
+		    new_argv[n++] = xstrndup (t, len);
+		}
+
+	      /* Set the command to invoke.  */
+	      new_argv[n++] = line;
+	      new_argv[n++] = NULL;
+	    }
           }
+#ifdef WINDOWS32
+	else	/* non-Posix shell */
+	  {
+            const char *f = line;
+            char *t = line;
+	    char *tstart = t;
+	    int temp_fd;
+	    FILE* batch = NULL;
+	    int id = GetCurrentProcessId();
+	    PATH_VAR(fbuf);
 
-        /* Create an argv list for the shell command line.  */
-        {
-          int n = 0;
+	    /* Generate a file name for the temporary batch file.  */
+	    sprintf(fbuf, "make%d", id);
+	    *batch_filename = create_batch_file (fbuf, 0, &temp_fd);
+	    DB (DB_JOBS, (_("Creating temporary batch file %s\n"),
+			  *batch_filename));
 
-          new_argv = xmalloc ((4 + sflags_len/2) * sizeof (char *));
-          new_argv[n++] = xstrdup (shell);
+	    /* Create a FILE object for the batch file, and write to it the
+	       commands to be executed.  Put the batch file in TEXT mode.  */
+	    _setmode (temp_fd, _O_TEXT);
+	    batch = _fdopen (temp_fd, "wt");
+	    fputs ("@echo off\n", batch);
+	    DB (DB_JOBS, (_("Batch file contents:\n\t@echo off\n")));
 
-          /* Chop up the shellflags (if any) and assign them.  */
-          if (! shellflags)
-            new_argv[n++] = xstrdup ("");
-          else
-            {
-              const char *s = shellflags;
-              char *t;
-              unsigned int len;
-              while ((t = find_next_token (&s, &len)) != 0)
-                new_argv[n++] = xstrndup (t, len);
-            }
+            /* Copy the recipe, removing and ignoring interior prefix chars
+               [@+-]: they're meaningless in .ONESHELL mode.  */
+            while (*f != '\0')
+              {
+                /* This is the start of a new recipe line.
+                   Skip whitespace and prefix characters.  */
+                while (isblank (*f) || *f == '-' || *f == '@' || *f == '+')
+                  ++f;
 
-          /* Set the command to invoke.  */
-          new_argv[n++] = line;
-          new_argv[n++] = NULL;
-        }
+                /* Copy until we get to the next logical recipe line.  */
+                while (*f != '\0')
+                  {
+		    /* Remove the escaped newlines in the command, and
+		       the whitespace that follows them.  Windows
+		       shells cannot handle escaped newlines.  */
+		    if (*f == '\\' && f[1] == '\n')
+		      {
+			f += 2;
+			while (isblank (*f))
+			  ++f;
+		      }
+                    *(t++) = *(f++);
+		    /* On an unescaped newline, we're done with this
+		       line.  */
+		    if (f[-1] == '\n')
+		      break;
+                  }
+		/* Write another line into the batch file.  */
+		if (t > tstart)
+		  {
+		    int c = *t;
+		    *t = '\0';
+		    fputs (tstart, batch);
+		    DB (DB_JOBS, ("\t%s", tstart));
+		    tstart = t;
+		    *t = c;
+		  }
+	      }
+	    DB (DB_JOBS, ("\n"));
+	    fclose (batch);
+
+	    /* Create an argv list for the shell command line that
+	       will run the batch file.  */
+	    new_argv = xmalloc (2 * sizeof (char *));
+	    new_argv[0] = xstrdup (*batch_filename);
+	    new_argv[1] = NULL;
+	  }
+#endif  /* WINDOWS32 */
 	return new_argv;
       }
 
