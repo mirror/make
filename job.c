@@ -2199,14 +2199,15 @@ new_job (struct file *file)
   if (trace_flag)
     {
       char *newer = allocated_variable_expand_for_file ("$?", c->file);
-      char *nm;
+      const char *nm;
 
       if (! cmds->fileinfo.filenm)
         nm = _("<builtin>");
       else
         {
-          nm = alloca (strlen (cmds->fileinfo.filenm) + 1 + 11 + 1);
-          sprintf (nm, "%s:%lu", cmds->fileinfo.filenm, cmds->fileinfo.lineno);
+          char *n = alloca (strlen (cmds->fileinfo.filenm) + 1 + 11 + 1);
+          sprintf (n, "%s:%lu", cmds->fileinfo.filenm, cmds->fileinfo.lineno);
+          nm = n;
         }
 
       if (newer[0] == '\0')
