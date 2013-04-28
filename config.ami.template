@@ -53,9 +53,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if you have <alloca.h> and it should be used (not on Ultrix).  */
 /* #undef HAVE_ALLOCA_H */
 
-/* Define if you don't have vprintf but do have _doprnt.  */
-/* #undef HAVE_DOPRNT */
-
 /* Define if your system has a working fnmatch function.  */
 /* #undef HAVE_FNMATCH */
 
@@ -114,9 +111,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if you have <vfork.h>.  */
 /* #undef HAVE_VFORK_H */
-
-/* Define if you have the vprintf function.  */
-#define HAVE_VPRINTF 1
 
 /* Define if you have the wait3 system call.  */
 /* #undef HAVE_WAIT3 */
@@ -302,9 +296,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if you have the <ndir.h> header file.  */
 /* #undef HAVE_NDIR_H */
-
-/* Define to 1 if you have the <stdarg.h> header file. */
-#define HAVE_STDARG_H 1
 
 /* Define if you have the <stdlib.h> header file.  */
 /* #undef HAVE_STDLIB_H */

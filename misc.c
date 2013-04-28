@@ -18,36 +18,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dep.h"
 #include "debug.h"
 
-/* Variadic functions.  We go through contortions to allow proper function
-   prototypes for both ANSI and pre-ANSI C compilers, and also for those
-   which support stdarg.h vs. varargs.h, and finally those which have
-   vfprintf(), etc. and those who have _doprnt... or nothing.
+/* GNU make no longer supports pre-ANSI89 environments.  */
 
-   This fancy stuff all came from GNU fileutils, except for the VA_PRINTF and
-   VA_END macros used here since we have multiple print functions.  */
-
-#if USE_VARIADIC
-# if HAVE_STDARG_H
-#  include <stdarg.h>
-#  define VA_START(args, lastarg) va_start(args, lastarg)
-# else
-#  include <varargs.h>
-#  define VA_START(args, lastarg) va_start(args)
-# endif
-# if HAVE_VPRINTF
-#  define VA_PRINTF(fp, lastarg, args) vfprintf((fp), (lastarg), (args))
-# else
-#  define VA_PRINTF(fp, lastarg, args) _doprnt((lastarg), (args), (fp))
-# endif
-# define VA_END(args) va_end(args)
-#else
-/* We can't use any variadic interface! */
-# define va_alist a1, a2, a3, a4, a5, a6, a7, a8
-# define va_dcl char *a1, *a2, *a3, *a4, *a5, *a6, *a7, *a8;
-# define VA_START(args, lastarg)
-# define VA_PRINTF(fp, lastarg, args) fprintf((fp), (lastarg), va_alist)
-# define VA_END(args)
-#endif
+#include <stdarg.h>
 
 
 /* Compare strings *S1 and *S2.
@@ -164,23 +137,14 @@ print_spaces (unsigned int n)
    This string lives in static, re-used memory.  */
 
 const char *
-#if HAVE_ANSI_COMPILER && USE_VARIADIC && HAVE_STDARG_H
 concat (unsigned int num, ...)
-#else
-concat (num, va_alist)
-     unsigned int num;
-     va_dcl
-#endif
 {
   static unsigned int rlen = 0;
   static char *result = NULL;
   unsigned int ri = 0;
-
-#if USE_VARIADIC
   va_list args;
-#endif
 
-  VA_START (args, num);
+  va_start (args, num);
 
   while (num-- > 0)
     {
@@ -200,7 +164,7 @@ concat (num, va_alist)
       ri += l;
     }
 
-  VA_END (args);
+  va_end (args);
 
   /* Get some more memory if we don't have enough space for the
      terminating '\0'.   */
@@ -218,18 +182,9 @@ concat (num, va_alist)
 /* Print a message on stdout.  */
 
 void
-#if HAVE_ANSI_COMPILER && USE_VARIADIC && HAVE_STDARG_H
 message (int prefix, const char *fmt, ...)
-#else
-message (prefix, fmt, va_alist)
-     int prefix;
-     const char *fmt;
-     va_dcl
-#endif
 {
-#if USE_VARIADIC
   va_list args;
-#endif
 
   log_working_directory (1, 0);
 
@@ -245,9 +200,9 @@ message (prefix, fmt, va_alist)
 	  else
 	    printf ("%s[%u]: ", program, makelevel);
 	}
-      VA_START (args, fmt);
-      VA_PRINTF (stdout, fmt, args);
-      VA_END (args);
+      va_start (args, fmt);
+      vfprintf (stdout, fmt, args);
+      va_end (args);
       putchar ('\n');
 
       if (output_sync)
@@ -260,18 +215,9 @@ message (prefix, fmt, va_alist)
 /* Print an error message.  */
 
 void
-#if HAVE_ANSI_COMPILER && USE_VARIADIC && HAVE_STDARG_H
 error (const gmk_floc *flocp, const char *fmt, ...)
-#else
-error (flocp, fmt, va_alist)
-     const gmk_floc *flocp;
-     const char *fmt;
-     va_dcl
-#endif
 {
-#if USE_VARIADIC
   va_list args;
-#endif
 
   if (output_sync)
     log_working_directory (1, 1);
@@ -285,9 +231,9 @@ error (flocp, fmt, va_alist)
   else
     fprintf (stderr, "%s[%u]: ", program, makelevel);
 
-  VA_START(args, fmt);
-  VA_PRINTF (stderr, fmt, args);
-  VA_END (args);
+  va_start (args, fmt);
+  vfprintf (stderr, fmt, args);
+  va_end (args);
 
   putc ('\n', stderr);
   fflush (stderr);
@@ -299,18 +245,9 @@ error (flocp, fmt, va_alist)
 /* Print an error message and exit.  */
 
 void
-#if HAVE_ANSI_COMPILER && USE_VARIADIC && HAVE_STDARG_H
 fatal (const gmk_floc *flocp, const char *fmt, ...)
-#else
-fatal (flocp, fmt, va_alist)
-     const gmk_floc *flocp;
-     const char *fmt;
-     va_dcl
-#endif
 {
-#if USE_VARIADIC
   va_list args;
-#endif
 
   if (output_sync)
     log_working_directory (1, 1);
@@ -324,9 +261,9 @@ fatal (flocp, fmt, va_alist)
   else
     fprintf (stderr, "%s[%u]: *** ", program, makelevel);
 
-  VA_START(args, fmt);
-  VA_PRINTF (stderr, fmt, args);
-  VA_END (args);
+  va_start (args, fmt);
+  vfprintf (stderr, fmt, args);
+  va_end (args);
 
   fputs (_(".  Stop.\n"), stderr);
 

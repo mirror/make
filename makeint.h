@@ -382,16 +382,6 @@ extern struct rlimit stack_limit;
 #define STRING_SIZE_TUPLE(_s) (_s), CSTRLEN(_s)
 
 
-/* We have to have stdarg.h or varargs.h AND v*printf or doprnt to use
-   variadic versions of these functions.  */
-
-#if HAVE_STDARG_H || HAVE_VARARGS_H
-# if HAVE_VPRINTF || HAVE_DOPRNT
-#  define USE_VARIADIC 1
-# endif
-#endif
-
-#if HAVE_ANSI_COMPILER && USE_VARIADIC && HAVE_STDARG_H
 const char *concat (unsigned int, ...);
 void message (int prefix, const char *fmt, ...)
               __attribute__ ((__format__ (__printf__, 2, 3)));
@@ -399,12 +389,6 @@ void error (const gmk_floc *flocp, const char *fmt, ...)
             __attribute__ ((__format__ (__printf__, 2, 3)));
 void fatal (const gmk_floc *flocp, const char *fmt, ...)
                    __attribute__ ((noreturn, __format__ (__printf__, 2, 3)));
-#else
-const char *concat ();
-void message ();
-void error ();
-void fatal ();
-#endif
 
 void die (int) __attribute__ ((noreturn));
 void log_working_directory (int, int);

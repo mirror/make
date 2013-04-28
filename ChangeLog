@@ -1,5 +1,13 @@
 2013-04-28  Paul Smith  <psmith@gnu.org>
 
+	* configure.ac: Remove support for pre-ANSI variadic function calls.
+	* makeint.h: Ditto.
+	* misc.c: Ditto.
+	* config.ami.template: Ditto.
+	* config.h-vms.template: Ditto.
+	* config.h.W32.template: Ditto.
+	* configh.dos.template: Ditto.
+
 	Implement a "per-job" output synchronization option.
 
 	* main.c (decode_output_sync_flags): Recognize the new option.

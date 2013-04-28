@@ -70,10 +70,6 @@ AS_IF([test "$ac_cv_prog_cc_stdc" != no],
             [Define to 1 if your compiler conforms to the ANSI C standard.])
 ])
 
-
-# Determine what kind of variadic function calls we support
-AC_CHECK_HEADERS([stdarg.h varargs.h], [break])
-
 AM_PROG_CC_C_O
 AC_C_CONST
 AC_TYPE_SIGNAL
@@ -164,7 +160,6 @@ AC_FUNC_STRCOLL
 
 AC_FUNC_ALLOCA
 AC_FUNC_FORK([])
-AC_FUNC_VPRINTF
 AC_FUNC_CLOSEDIR_VOID
 
 # See if the user wants to add (or not) GNU Guile support
