@@ -1,3 +1,9 @@
+2013-04-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* dir.c (local_stat) [WINDOWS32]: Use the wrapper on MS-Windows.
+	If the argument ends in "dir/.", make sure the parent dir exists
+	and is indeed a directory.  Fixes Savannah bug #37065.
+
 2013-04-28  Paul Smith  <psmith@gnu.org>
 
 	* makeint.h (message_s, error_s): Functions that print to strings

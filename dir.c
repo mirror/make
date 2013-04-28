@@ -1185,8 +1185,11 @@ ansi_free (void *p)
 /* On 64 bit ReliantUNIX (5.44 and above) in LFS mode, stat() is actually a
  * macro for stat64().  If stat is a macro, make a local wrapper function to
  * invoke it.
+ *
+ * On MS-Windows, stat() "succeeds" for foo/bar/. where foo/bar is a
+ * regular file; fix that here.
  */
-#ifndef stat
+#if !defined(stat) && !defined(WINDOWS32)
 # ifndef VMS
 int stat (const char *path, struct stat *sbuf);
 # endif
@@ -1196,6 +1199,23 @@ static int
 local_stat (const char *path, struct stat *buf)
 {
   int e;
+#ifdef WINDOWS32
+  size_t plen = strlen (path);
+
+  /* Make sure the parent of "." exists and is a directory, not a
+     file.  This is because 'stat' on Windows normalizes the argument
+     foo/. => foo without checking first that foo is a directory.  */
+  if (plen > 1 && path[plen - 1] == '.'
+      && (path[plen - 2] == '/' || path[plen - 2] == '\\'))
+    {
+      char parent[MAXPATHLEN];
+
+      strncpy (parent, path, plen - 2);
+      parent[plen - 2] = '\0';
+      if (stat (parent, buf) < 0 || !_S_ISDIR (buf->st_mode))
+	return -1;
+    }
+#endif
 
   EINTRLOOP (e, stat (path, buf));
   return e;
