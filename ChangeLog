@@ -1,5 +1,12 @@
 2013-04-28  Paul Smith  <psmith@gnu.org>
 
+	* makeint.h (message_s, error_s): Functions that print to strings
+	rather than directly to files.
+	* misc.c (message_s, error_s): Create them.
+	* job.c (child_error): Print error messages to the output sync
+	logs, if one exists, rather then directly to the terminal.
+	(reap_children): Move the per-line sync after child_error().
+
 	* configure.ac: Remove support for pre-ANSI variadic function calls.
 	* makeint.h: Ditto.
 	* misc.c: Ditto.

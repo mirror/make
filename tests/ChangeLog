@@ -2,6 +2,7 @@
 
 	* scripts/features/output-sync (output_sync_set): Add tests for
 	the per-job syntax mode.
+	(output_sync_set): Test improved error message location.
 
 2013-04-15  Paul Smith  <psmith@gnu.org>
 

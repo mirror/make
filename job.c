@@ -467,19 +467,46 @@ is_bourne_compatible_shell (const char *path)
 }
 
 
+/* Write a message relating to a child.  Write it to the child's output
+   sync file if present, otherwise to the terminal.  */
+
+static void
+child_out (const struct child *child, const char *msg, int out)
+{
+  int outfd = out ? child->outfd : child->errfd;
+
+  if (outfd >= 0)
+    {
+      lseek (outfd, 0, SEEK_END);
+      write (outfd, msg, strlen (msg));
+      write (outfd, "\n", 1);
+    }
+  else
+    {
+      FILE *outf = out ? stdout : stderr;
+
+      fputs (msg, outf);
+      putc ('\n', outf);
+      fflush (outf);
+    }
+}
+
 /* Write an error message describing the exit status given in
    EXIT_CODE, EXIT_SIG, and COREDUMP, for the target TARGET_NAME.
    Append "(ignored)" if IGNORED is nonzero.  */
 
 static void
-child_error (const struct file *file,
+child_error (const struct child *child,
              int exit_code, int exit_sig, int coredump, int ignored)
 {
-  const char *nm;
   const char *pre = "*** ";
   const char *post = "";
   const char *dump = "";
-  gmk_floc *flocp = &file->cmds->fileinfo;
+  const struct file *f = child->file;
+  gmk_floc *flocp = &f->cmds->fileinfo;
+  const char *msg;
+  const char *nm;
+  unsigned int l;
 
   if (ignored && silent_flag)
     return;
@@ -501,18 +528,32 @@ child_error (const struct file *file,
       sprintf (a, "%s:%lu", flocp->filenm, flocp->lineno);
       nm = a;
     }
-  message (0, _("%s: recipe for target '%s' failed"), nm, file->name);
+
+  msg = message_s (strlen (nm) + strlen (f->name),
+                   0, _("%s: recipe for target '%s' failed"), nm, f->name);
+  child_out (child, msg, 1);
+
+  l = strlen (pre) + strlen (f->name) + strlen (post);
 
 #ifdef VMS
-  if (!(exit_code & 1))
-    error (NILF, _("%s[%s] Error 0x%x%s"), pre, file->name, exit_code, post);
+  if (exit_code & 1 != 0)
+    return;
+
+  msg = error_s (l + INTEGER_LENGTH, NILF, _("%s[%s] Error 0x%x%s"),
+                 pre, f->name, exit_code, post);
 #else
   if (exit_sig == 0)
-    error (NILF, _("%s[%s] Error %d%s"), pre, file->name, exit_code, post);
+    msg = error_s (l + INTEGER_LENGTH, NILF, _("%s[%s] Error %d%s"),
+                   pre, f->name, exit_code, post);
   else
-    error (NILF, _("%s[%s] %s%s%s"),
-           pre, file->name, strsignal (exit_sig), dump, post);
+    {
+      const char *s = strsignal (exit_sig);
+      msg = error_s (l + strlen (s) + strlen (dump),
+                     NILF, _("%s[%s] %s%s%s"), pre, f->name, s, dump, post);
+    }
 #endif /* VMS */
+
+  child_out (child, msg, 0);
 }
 
 
@@ -1006,11 +1047,6 @@ reap_children (int block, int err)
         c->sh_batch_file = NULL;
       }
 
-#ifdef OUTPUT_SYNC
-      if (output_sync == OUTPUT_SYNC_JOB)
-        sync_output (c);
-#endif
-
       /* If this child had the good stdin, say it is now free.  */
       if (c->good_stdin)
         good_stdin_used = 0;
@@ -1024,7 +1060,7 @@ reap_children (int block, int err)
           static int delete_on_error = -1;
 
           if (!dontcare)
-            child_error (c->file, exit_code, exit_sig, coredump, 0);
+            child_error (c, exit_code, exit_sig, coredump, 0);
 
           c->file->update_status = 2;
           if (delete_on_error == -1)
@@ -1040,7 +1076,7 @@ reap_children (int block, int err)
           if (child_failed)
             {
               /* The commands failed, but we don't care.  */
-              child_error (c->file, exit_code, exit_sig, coredump, 1);
+              child_error (c, exit_code, exit_sig, coredump, 1);
               child_failed = 0;
             }
 
@@ -1057,6 +1093,11 @@ reap_children (int block, int err)
                 }
               else
                 {
+#ifdef OUTPUT_SYNC
+                  /* If we're sync'ing per job, write it now.  */
+                  if (output_sync == OUTPUT_SYNC_JOB)
+                    sync_output (c);
+#endif
                   /* Check again whether to start remotely.
                      Whether or not we want to changes over time.
                      Also, start_remote_job may need state set up
@@ -1089,7 +1130,7 @@ reap_children (int block, int err)
 
 #ifdef OUTPUT_SYNC
       /* Synchronize parallel output if requested */
-      if (output_sync > OUTPUT_SYNC_JOB)
+      if (output_sync)
         sync_output (c);
 #endif /* OUTPUT_SYNC */
 
