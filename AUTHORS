@@ -37,7 +37,7 @@ GNU make porting efforts:
   Port to MS-DOS (DJGPP), OS/2, and MS-Windows (native/MinGW) by:
       DJ Delorie <dj@delorie.com>
       Rob Tulloh <rob_tulloh@tivoli.com>
-      Eli Zaretskii <eliz@is.elta.co.il>
+      Eli Zaretskii <eliz@gnu.org>
       Jonathan Grant <jg@jguk.org>
       Andreas Beuning <andreas.buening@nexgo.de>
       Earnie Boyd <earnie@uses.sf.net>

@@ -1,6 +1,6 @@
 GNU make NEWS                                               -*-indented-text-*-
   History of user-visible changes.
-  16 April 2013
+  27 April 2013
 
 See the end of this file for copyrights and conditions.
 
@@ -31,12 +31,16 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
 
 * New command line option: --output-sync (-O) enables grouping of output by
   target or by recursive make.  This is useful during parallel builds to avoid
-  mixing output from different jobs together giving hard-to-understand results.
-  Original implementation by David Boyce <dsb@boyski.com>.  Patch was reworked
-  by Frank Heckenbach <f.heckenbach@fh-soft.de>.
+  mixing output from different jobs together giving hard-to-understand
+  results.  Original implementation by David Boyce <dsb@boyski.com>.
+  Reworked and enhanced by Frank Heckenbach <f.heckenbach@fh-soft.de>.
+  Windows support by Eli Zaretskii <eliz@gnu.org>.
 
 * New feature: The "job server" capability is now supported on Windows.
   Implementation contributed by Troy Runkel <Troy.Runkel@mathworks.com>
+
+* New feature: The .ONESHELL capability is now supported on Windows.  Support
+  added by Eli Zaretskii <eliz@gnu.org>.
 
 * New feature: "!=" shell assignment operator as an alternative to the
   $(shell ...) function.  Implemented for compatibility with BSD makefiles.

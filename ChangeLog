@@ -1,3 +1,21 @@
+2013-04-28  Paul Smith  <psmith@gnu.org>
+
+	Implement a "per-job" output synchronization option.
+
+	* main.c (decode_output_sync_flags): Recognize the new option.
+	* makeint.h (OUTPUT_SYNC_JOB): Add new values for "job"
+	* job.c (assign_child_tempfiles): In per-job mode, truncate the
+	temp file for re-use by the next job.
+	(sync_output): Don't close the temp files as we may still use them.
+	(free_child): Close the temp files here as we definitely don't
+	need them.
+	(new_job): In per-job output mode, sync_output() after each job.
+	* job.h (struct child): Avoid ifdefs.
+	* make.1: Add new options to the man page.
+	* doc/make.texi (Parallel Output): Break documentation on input
+	and output into separate sections for readability.  Document the
+	new "job" and "none" modes.
+
 2013-04-27  Paul Smith  <psmith@gnu.org>
 
 	* job.c (construct_command_argv_internal): Fix oneshell support

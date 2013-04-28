@@ -227,11 +227,20 @@ other jobs.  If
 .I type
 is not specified or is
 .B target
-output is grouped together on a per-target basis.  If
+the output from the entire recipe for each target is grouped together.  If
+.I type
+is
+.B job
+the output from each job within a recipe is grouped together.
+If
 .I type
 is
 .B make
-output from an entire recursive make is grouped together.
+output from an entire recursive make is grouped together.  If
+.I type
+is
+.B none
+output synchronization is disabled.
 .TP 0.5i
 \fB\-p\fR, \fB\-\-print\-data\-base\fR
 Print the data base (rules and variable values) that results from

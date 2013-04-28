@@ -1,3 +1,8 @@
+2013-04-28  Paul Smith  <psmith@gnu.org>
+
+	* scripts/features/output-sync (output_sync_set): Add tests for
+	the per-job syntax mode.
+
 2013-04-15  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/output-sync (output_sync_set): New arg syntax.

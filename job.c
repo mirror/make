@@ -557,24 +557,41 @@ child_handler (int sig UNUSED)
 static int
 assign_child_tempfiles (struct child *c, int combined)
 {
-  /* If we already have a temp file assigned we're done.  */
-  if (c->outfd != -1 && c->errfd != -1)
-    return 1;
-
-  if (STREAM_OK (stdout))
+  /* If we don't have a temp file, get one.  */
+  if (c->outfd < 0 && c->errfd < 0)
     {
-      c->outfd = open_tmpfd ();
-      CLOSE_ON_EXEC (c->outfd);
+      if (STREAM_OK (stdout))
+        {
+          c->outfd = open_tmpfd ();
+          CLOSE_ON_EXEC (c->outfd);
+        }
+
+      if (STREAM_OK (stderr))
+        {
+          if (c->outfd >= 0 && combined)
+            c->errfd = c->outfd;
+          else
+            {
+              c->errfd = open_tmpfd ();
+              CLOSE_ON_EXEC (c->errfd);
+            }
+        }
+
+      return 1;
     }
 
-  if (STREAM_OK (stderr))
+  /* We already have a temp file.  On per-job output, truncate and reset.  */
+  if (output_sync == OUTPUT_SYNC_JOB)
     {
-      if (c->outfd >= 0 && combined)
-        c->errfd = c->outfd;
-      else
+      if (c->outfd >= 0)
         {
-          c->errfd = open_tmpfd ();
-          CLOSE_ON_EXEC (c->errfd);
+          lseek(c->outfd, 0, SEEK_SET);
+          ftruncate(c->outfd, 0);
+        }
+      if (c->errfd >= 0 && c->errfd != c->outfd)
+        {
+          lseek(c->errfd, 0, SEEK_SET);
+          ftruncate(c->outfd, 0);
         }
     }
 
@@ -690,14 +707,8 @@ sync_output (struct child *c)
 
       /* Exit the critical section.  */
       if (sem)
-	release_semaphore (sem);
+        release_semaphore (sem);
     }
-
-  if (c->outfd >= 0)
-    close (c->outfd);
-  if (c->errfd >= 0)
-    close (c->errfd);
-  c->outfd = c->errfd = -1;
 }
 #endif /* OUTPUT_SYNC */
 
@@ -995,6 +1006,11 @@ reap_children (int block, int err)
         c->sh_batch_file = NULL;
       }
 
+#ifdef OUTPUT_SYNC
+      if (output_sync == OUTPUT_SYNC_JOB)
+        sync_output (c);
+#endif
+
       /* If this child had the good stdin, say it is now free.  */
       if (c->good_stdin)
         good_stdin_used = 0;
@@ -1073,7 +1089,7 @@ reap_children (int block, int err)
 
 #ifdef OUTPUT_SYNC
       /* Synchronize parallel output if requested */
-      if (output_sync)
+      if (output_sync > OUTPUT_SYNC_JOB)
         sync_output (c);
 #endif /* OUTPUT_SYNC */
 
@@ -1131,6 +1147,11 @@ reap_children (int block, int err)
 static void
 free_child (struct child *child)
 {
+  if (child->outfd >= 0)
+    close (child->outfd);
+  if (child->errfd >= 0 && child->errfd != child->outfd)
+    close (child->errfd);
+
   if (!jobserver_tokens)
     fatal (NILF, "INTERNAL: Freeing child %p (%s) but no tokens left!\n",
            child, child->file->name);
@@ -1613,7 +1634,7 @@ start_job_command (struct child *child)
           /* If it still looks like we can synchronize, create a temp
               file to hold stdout (and one for stderr if separate). */
           if (output_sync == OUTPUT_SYNC_MAKE
-              || (output_sync == OUTPUT_SYNC_TARGET && !(flags & COMMANDS_RECURSE)))
+              || (output_sync && !(flags & COMMANDS_RECURSE)))
             {
               if (!assign_child_tempfiles (child, combined_output))
                 output_sync = 0;
@@ -2035,9 +2056,7 @@ new_job (struct file *file)
   c->file = file;
   c->command_lines = lines;
   c->sh_batch_file = NULL;
-#ifdef OUTPUT_SYNC
   c->outfd = c->errfd = -1;
-#endif
 
   /* Cache dontcare flag because file->dontcare can be changed once we
      return. Check dontcare inheritance mechanism for details.  */

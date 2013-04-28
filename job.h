@@ -99,16 +99,14 @@ struct child
 #endif
 
     unsigned int command_line;	/* Index into command_lines.  */
-    pid_t pid;			/* Child process's ID number.  */
+    int          outfd;		/* File descriptor for saving stdout */
+    int          errfd;		/* File descriptor for saving stderr */
+    pid_t        pid;		/* Child process's ID number.  */
     unsigned int remote:1;	/* Nonzero if executing remotely.  */
     unsigned int noerror:1;	/* Nonzero if commands contained a '-'.  */
     unsigned int good_stdin:1;	/* Nonzero if this child has a good stdin.  */
     unsigned int deleted:1;	/* Nonzero if targets have been deleted.  */
     unsigned int dontcare:1;    /* Saved dontcare flag.  */
-#ifdef OUTPUT_SYNC
-    int outfd;			/* File descriptor for saving stdout */
-    int errfd;			/* File descriptor for saving stderr */
-#endif
   };
 
 extern struct child *children;

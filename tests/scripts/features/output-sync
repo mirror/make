@@ -15,6 +15,18 @@ else {
   $sleep_command = "sleep";
 }
 
+# The following subdirectories with Makefiles are used in several
+# of the following tests.  The model is:
+#   foo/Makefile - has a "foo" target that waits for the bar target
+#   bar/Makefile - has a "bar" target that runs immediately
+#                - has a "baz" target that waits for the foo target
+#
+# So, you start the two sub-makes in parallel and first the "bar" target is
+# built, followed by "foo", followed by "baz".  The trick is that first each
+# target prints a "start" statement, then waits (if appropriate), then prints
+# an end statement.  Thus we can tell if the -O flag is working, since
+# otherwise these statements would be mixed together.
+
 @syncfiles = ();
 
 sub output_sync_clean {
@@ -36,19 +48,21 @@ sub output_sync_set {
     return "date > ../mksync.$_[0]";
 }
 
-@syncfiles = qw(mksync.foo mksync.bar);
+@syncfiles = qw(mksync.foo mksync.foo_start mksync.bar mksync.bar_start);
 
-# The following subdirectories with Makefiles are used in several
-# of the following tests.
 output_sync_clean();
 mkdir('foo', 0777);
 mkdir('bar', 0777);
 
 $set_foo = output_sync_set('foo');
 $set_bar = output_sync_set('bar');
+$set_foo_start = output_sync_set('foo_start');
+$set_bar_start = output_sync_set('bar_start');
 
 $wait_foo = output_sync_wait('foo');
 $wait_bar = output_sync_wait('bar');
+$wait_foo_start = output_sync_set('foo_start');
+$wait_bar_start = output_sync_set('bar_start');
 
 open(MAKEFILE,"> foo/Makefile");
 print MAKEFILE <<EOF;
@@ -56,9 +70,25 @@ all: foo
 
 foo: foo-base ; \@$set_foo
 
-foo-base: ; \@echo foo: start; $wait_bar ; echo foo: end
+foo-base:
+\t\@echo foo: start
+\t\@$wait_bar
+\t\@echo foo: end
 
-foo-fail: ; \@$wait_bar ; false
+foo-job: foo-job-base ; \@$set_foo
+
+foo-job-base:
+\t\@$wait_bar_start
+\t\@echo foo: start
+\t\@$set_foo_start
+\t\@$wait_bar
+\t\@echo foo: end
+
+foo-fail:
+\t\@echo foo-fail: start
+\t\@$wait_bar
+\t\@echo foo-fail: end
+\t\@false
 EOF
 close(MAKEFILE);
 
@@ -66,15 +96,28 @@ open(MAKEFILE,"> bar/Makefile");
 print MAKEFILE <<EOF;
 all: bar baz
 
-bar: ; \@echo bar: start; echo bar: end; $set_bar
+bar: bar-base ; \@$set_bar
+bar-base:
+\t\@echo bar: start
+\t\@echo bar: end
+
+bar-job: bar-job-base ; \@$set_bar
+
+bar-job-base:
+\t\@echo bar: start
+\t\@$set_bar_start
+\t\@$wait_foo_start
+\t\@echo bar: end
 
 baz: baz-base
-
-baz-base: ; \@echo baz: start; $wait_foo; echo baz: end
+baz-base:
+\t\@echo baz: start
+\t\@$wait_foo
+\t\@echo baz: end
 EOF
 close(MAKEFILE);
 
-# Test coarse synchronization.
+# Test per-make synchronization.
 unlink(@syncfiles);
 run_make_test(qq!
 all: make-foo make-bar
@@ -102,7 +145,7 @@ baz: end
 #MAKE#[1]: Leaving directory '#PWD#/bar'
 #MAKE#[1]: Leaving directory '#PWD#/bar'\n", 0, 6);
 
-# Test fine synchronization.
+# Test per-target synchronization.
 # Note we have to sleep again here after starting the foo makefile before
 # starting the bar makefile, otherwise the "entering/leaving" messages for the
 # submakes might be ordered differently than we expect.
@@ -154,15 +197,53 @@ bar: end
 #MAKE#[1]: Leaving directory '#PWD#/bar'
 #MAKE#[1]: Leaving directory '#PWD#/bar'
 #MAKE#[1]: Entering directory '#PWD#/foo'
-Makefile:7: recipe for target 'foo-fail' failed
-#MAKE#[1]: Leaving directory '#PWD#/foo'
-#MAKE#[1]: Entering directory '#PWD#/foo'
-#MAKE#[1]: *** [foo-fail] Error 1
+Makefile:20: recipe for target 'foo-fail' failed
+make[1]: Leaving directory '/home/psmith/src/make/make/tests/foo'
+make[1]: Entering directory '/home/psmith/src/make/make/tests/foo'
+make[1]: *** [foo-fail] Error 1
+make[1]: Leaving directory '/home/psmith/src/make/make/tests/foo'
+make[1]: Entering directory '/home/psmith/src/make/make/tests/foo'
+foo-fail: start
+foo-fail: end
 #MAKE#[1]: Leaving directory '#PWD#/foo'
 #MAKE#[1]: Leaving directory '#PWD#/foo'
 #MAKEFILE#:4: recipe for target 'make-foo-fail' failed
 #MAKE#: *** [make-foo-fail] Error 2\n",
 512);
+
+# Test the per-job synchronization.
+# For this we'll have bar-job:
+#   print start, invoke bar-start, wait for foo-start, print end, print-bar-end
+# And foo-job:
+#   wait for bar-start, print foo-start, wait for bar-end, print end
+
+unlink(@syncfiles);
+run_make_test(qq!
+all: make-foo make-bar
+
+make-foo: ; \$(MAKE) -C foo foo-job
+
+make-bar: ; $sleep_command 1 ; \$(MAKE) -C bar bar-job!,
+              '-j --output-sync=job',
+"#MAKEPATH# -C foo foo-job
+$sleep_command 1 ; #MAKEPATH# -C bar bar-job
+#MAKE#[1]: Entering directory '#PWD#/foo'
+#MAKE#[1]: Entering directory '#PWD#/foo'
+foo: start
+#MAKE#[1]: Leaving directory '#PWD#/foo'
+#MAKE#[1]: Entering directory '#PWD#/bar'
+#MAKE#[1]: Entering directory '#PWD#/bar'
+bar: start
+#MAKE#[1]: Leaving directory '#PWD#/bar'
+#MAKE#[1]: Entering directory '#PWD#/bar'
+bar: end
+#MAKE#[1]: Leaving directory '#PWD#/bar'
+#MAKE#[1]: Leaving directory '#PWD#/bar'
+#MAKE#[1]: Entering directory '#PWD#/foo'
+foo: end
+#MAKE#[1]: Leaving directory '#PWD#/foo'
+#MAKE#[1]: Leaving directory '#PWD#/foo'\n", 0, 6);
+
 
 # Remove temporary directories and contents.
 output_sync_clean();

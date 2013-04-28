@@ -695,7 +695,11 @@ decode_output_sync_flags (void)
     {
       const char *p = *pp;
 
-      if (streq (p, "target"))
+      if (streq (p, "none"))
+        output_sync = OUTPUT_SYNC_NONE;
+      else if (streq (p, "job"))
+        output_sync = OUTPUT_SYNC_JOB;
+      else if (streq (p, "target"))
         output_sync = OUTPUT_SYNC_TARGET;
       else if (streq (p, "make"))
         output_sync = OUTPUT_SYNC_MAKE;
