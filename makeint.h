@@ -168,6 +168,9 @@ unsigned int get_path_max (void);
   (! INTEGER_TYPE_SIGNED (t) ? (t) 0 : ~ (t) 0 << (sizeof (t) * CHAR_BIT - 1))
 #define INTEGER_TYPE_MAXIMUM(t) (~ (t) 0 - INTEGER_TYPE_MINIMUM (t))
 
+/* The maximum number of digits needed to represent the largest integer.  */
+#define INTEGER_LENGTH sizeof("18446744073709551616")
+
 #ifndef CHAR_MAX
 # define CHAR_MAX INTEGER_TYPE_MAXIMUM (char)
 #endif

@@ -659,7 +659,7 @@ acquire_semaphore (void)
 
   fl.l_type = F_WRLCK;
   fl.l_whence = SEEK_SET;
-  fl.l_start = 0; /* lock just one byte */
+  fl.l_start = 0;
   fl.l_len = 1;
   if (fcntl (sync_handle, F_SETLKW, &fl) != -1)
     return &fl;
@@ -976,7 +976,7 @@ reap_children (int block, int err)
       /* Search for a child matching the deceased one.  */
       lastc = 0;
       for (c = children; c != 0; lastc = c, c = c->next)
-	if (c->remote == remote && c->pid == pid)
+	if (c->pid == pid && c->remote == remote)
 	  break;
 
       if (c == 0)

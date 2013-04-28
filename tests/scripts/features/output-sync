@@ -198,11 +198,11 @@ bar: end
 #MAKE#[1]: Leaving directory '#PWD#/bar'
 #MAKE#[1]: Entering directory '#PWD#/foo'
 Makefile:20: recipe for target 'foo-fail' failed
-make[1]: Leaving directory '/home/psmith/src/make/make/tests/foo'
-make[1]: Entering directory '/home/psmith/src/make/make/tests/foo'
-make[1]: *** [foo-fail] Error 1
-make[1]: Leaving directory '/home/psmith/src/make/make/tests/foo'
-make[1]: Entering directory '/home/psmith/src/make/make/tests/foo'
+#MAKE#[1]: Leaving directory '/home/psmith/src/make/make/tests/foo'
+#MAKE#[1]: Entering directory '/home/psmith/src/make/make/tests/foo'
+#MAKE#[1]: *** [foo-fail] Error 1
+#MAKE#[1]: Leaving directory '/home/psmith/src/make/make/tests/foo'
+#MAKE#[1]: Entering directory '/home/psmith/src/make/make/tests/foo'
 foo-fail: start
 foo-fail: end
 #MAKE#[1]: Leaving directory '#PWD#/foo'

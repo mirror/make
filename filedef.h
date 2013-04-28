@@ -28,13 +28,9 @@ struct file
     const char *vpath;          /* VPATH/vpath pathname */
     struct dep *deps;		/* all dependencies, including duplicates */
     struct commands *cmds;	/* Commands to execute for this target.  */
-    int command_flags;		/* Flags OR'd in for cmds; see commands.h.  */
     const char *stem;		/* Implicit stem, if an implicit
                                    rule has been used */
     struct dep *also_make;	/* Targets that are made by making this.  */
-    FILE_TIMESTAMP last_mtime;	/* File's modtime, if already known.  */
-    FILE_TIMESTAMP mtime_before_update;	/* File's modtime before any updating
-                                           has been performed.  */
     struct file *prev;		/* Previous entry for same file name;
 				   used when there are multiple double-colon
 				   entries for the same file.  */
@@ -59,7 +55,11 @@ struct file
        the same file.  Otherwise this is null.  */
     struct file *double_colon;
 
-    short int update_status;	/* Status of the last attempt to update,
+    FILE_TIMESTAMP last_mtime;	/* File's modtime, if already known.  */
+    FILE_TIMESTAMP mtime_before_update;	/* File's modtime before any updating
+                                           has been performed.  */
+    int command_flags;		/* Flags OR'd in for cmds; see commands.h.  */
+    char update_status;         /* Status of the last attempt to update,
 				   or -1 if none has been made.  */
     enum cmd_state		/* State of the commands.  */
       {		/* Note: It is important that cs_not_started be zero.  */
