@@ -1,5 +1,16 @@
 2013-04-29  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32/include/dlfcn.h: New file.
+
+	* w32/compat/posixfcn.c: Include dlfcn.h.
+	(dlopen, dlerror, dlsym) [MAKE_LOAD]: New functions, in support of
+	dynamic loading.
+
+	* config.h.W32.template (MAKE_LOAD): Define.
+
+	* load.c (load_object) [HAVE_DOS_PATHS]: Support backslashes and
+	drive letters in file names of dynamic objects.
+
 	* job.c (construct_command_argv_internal) [WINDOWS32]: Return
 	right after generating new_argv for one_shell case.  This fixes
 	the Windows build for both Unixy shell and stock Windows shells.

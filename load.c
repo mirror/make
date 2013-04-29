@@ -49,7 +49,11 @@ load_object (const gmk_floc *flocp, int noerror,
     void *dlp = NULL;
 
     /* If the path has no "/", try the current directory first.  */
-    if (! strchr (ldname, '/'))
+    if (! strchr (ldname, '/')
+#ifdef HAVE_DOS_PATHS
+	&& ! strchr (ldname, '\\')
+#endif
+	)
       dlp = dlopen (concat (2, "./", ldname), RTLD_LAZY|RTLD_GLOBAL);
 
     /* If we haven't opened it yet, try the default search path.  */
@@ -134,6 +138,20 @@ load_file (const gmk_floc *flocp, const char **ldname, int noerror)
       char *p = new;
 
       fp = strrchr (*ldname, '/');
+#ifdef HAVE_DOS_PATHS
+      if (fp)
+	{
+	  const char *fp2 = strchr (fp, '\\');
+
+	  if (fp2 > fp)
+	    fp = fp2;
+	}
+      else
+	fp = strrchr (*ldname, '\\');
+      /* The (improbable) case of d:foo.  */
+      if (fp && *fp && fp[1] == ':')
+	fp++;
+#endif
       if (!fp)
         fp = *ldname;
       else

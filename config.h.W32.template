@@ -366,6 +366,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 to enable job server support in GNU make. */
 #define MAKE_JOBSERVER 1
 
+/* Define to 1 to enable 'load' support in GNU make. */
+#define MAKE_LOAD 1
+
 /* Define to 1 to enable symbolic link timestamp checking. */
 /* #undef MAKE_SYMLINKS */
 

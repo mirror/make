@@ -21,6 +21,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 #include <windows.h>
 
+#include "dlfcn.h"
+
 #include "makeint.h"
 #include "job.h"
 
@@ -256,3 +258,86 @@ same_stream (FILE *f1, FILE *f2)
 }
 
 #endif	/* OUTPUT_SYNC */
+
+#if MAKE_LOAD
+
+/* Support for dynamic loading of objects.  */
+
+
+static DWORD last_err;
+
+void *
+dlopen (const char *file, int mode)
+{
+  char dllfn[MAX_PATH], *p;
+  HANDLE dllhandle;
+
+  if ((mode & ~(RTLD_LAZY | RTLD_NOW | RTLD_GLOBAL)) != 0)
+    {
+      errno = EINVAL;
+      last_err = ERROR_INVALID_PARAMETER;
+      return NULL;
+    }
+
+  if (!file)
+    dllhandle = GetModuleHandle (NULL);
+  else
+    {
+      /* MSDN says to be sure to use backslashes in the DLL file name.  */
+      strcpy (dllfn, file);
+      for (p = dllfn; *p; p++)
+	if (*p == '/')
+	  *p = '\\';
+
+      dllhandle = LoadLibrary (dllfn);
+    }
+  if (!dllhandle)
+    last_err = GetLastError ();
+
+  return dllhandle;
+}
+
+char *
+dlerror (void)
+{
+  static char errbuf[1024];
+  DWORD ret;
+
+  if (!last_err)
+    return NULL;
+
+  ret = FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM
+		       | FORMAT_MESSAGE_IGNORE_INSERTS,
+		       NULL, last_err, 0, errbuf, sizeof (errbuf), NULL);
+  while (ret > 0 && (errbuf[ret - 1] == '\n' || errbuf[ret - 1] == '\r'))
+    --ret;
+
+  errbuf[ret] = '\0';
+  if (!ret)
+    sprintf (errbuf, "Error code %lu", last_err);
+
+  last_err = 0;
+  return errbuf;
+}
+
+void *
+dlsym (void *handle, const char *name)
+{
+  FARPROC addr = NULL;
+
+  if (!handle || handle == INVALID_HANDLE_VALUE)
+    {
+      last_err = ERROR_INVALID_PARAMETER;
+      return NULL;
+    }
+
+  addr = GetProcAddress (handle, name);
+  if (!addr)
+    last_err = GetLastError ();
+
+  return (void *)addr;
+}
+
+
+#endif	/* MAKE_LOAD */
+
