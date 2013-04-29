@@ -3335,7 +3335,7 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
             *t = '\0';
           }
 #ifdef WINDOWS32
-	else	/* non-Posix shell */
+	else	/* non-Posix shell (cmd.exe etc.) */
 	  {
             const char *f = line;
             char *t = line;
@@ -3404,8 +3404,9 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
 	    new_argv = xmalloc (2 * sizeof (char *));
 	    new_argv[0] = xstrdup (*batch_filename);
 	    new_argv[1] = NULL;
+	    return new_argv;
 	  }
-#else /* WINDOWS32 */
+#endif /* WINDOWS32 */
         /* Create an argv list for the shell command line.  */
         {
           int n = 0;
@@ -3429,7 +3430,6 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
           new_argv[n++] = line;
           new_argv[n++] = NULL;
         }
-#endif /* WINDOWS32 */
         return new_argv;
       }
 

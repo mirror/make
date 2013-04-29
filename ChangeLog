@@ -1,3 +1,9 @@
+2013-04-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* job.c (construct_command_argv_internal) [WINDOWS32]: Return
+	right after generating new_argv for one_shell case.  This fixes
+	the Windows build for both Unixy shell and stock Windows shells.
+
 2013-04-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* dir.c (local_stat) [WINDOWS32]: Use the wrapper on MS-Windows.
