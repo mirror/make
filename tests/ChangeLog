@@ -512,7 +512,7 @@
 	* test_driver.pl (toplevel): Skip all hidden files/directories (ones
 	beginning with ".").
 
-	* scripts/functions/andor: Tests for $(and ..) and $(or ...)
+	* scripts/functions/andor: Tests for $(and ...) and $(or ...)
 	functions.
 
 2006-02-08  Boris Kolpackov  <boris@kolpackov.net>
@@ -599,9 +599,9 @@
 
 2005-08-13  Boris Kolpackov  <boris@kolpackov.net>
 
-	* scripts/functions/wildcard: Wrap calls to $(wildcard ) with
+	* scripts/functions/wildcard: Wrap calls to $(wildcard) with
 	$(sort) so that the resulting order is no longer filesystem-
-	dependant.
+	dependent.
 
 2005-08-10  Boris Kolpackov  <boris@kolpackov.net>
 
@@ -672,7 +672,7 @@
 
 2005-06-09  Paul D. Smith  <psmith@gnu.org>
 
-        * scripts/functions/foreach: Add a test for Savannah bug #11913.
+	* scripts/functions/foreach: Add a test for Savannah bug #11913.
 
 2005-05-31  Boris Kolpackov  <boris@kolpackov.net>
 
@@ -692,7 +692,7 @@
 2005-05-02  Paul D. Smith  <psmith@gnu.org>
 
 	* scripts/features/parallelism: Add a test for exporting recursive
-	variables containing $(shell ) calls.  Rewrite this script to use
+	variables containing $(shell) calls.  Rewrite this script to use
 	run_make_test() everywhere.
 
 2005-04-07  Paul D. Smith  <psmith@gnu.org>

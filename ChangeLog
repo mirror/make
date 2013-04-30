@@ -126,6 +126,30 @@
 	* config.h.W32.template: Likewise.
 	* configh.dos.template: Likewise.
 
+2013-04-30  Stefano Lattarini <stefano.lattarini@gmail.com>  (tiny change)
+
+	cosmetics: fix few innocuous typos
+
+	Most of these were found using Lucas De Marchi's 'codespell' tool.
+
+	* ChangeLog: Fix minor typos.
+	* ChangeLog.2: Likewise.
+	* README.Amiga: Likewise.
+	* TODO.private: Likewise.
+	* function.c: Likewise.
+	* glob/glob.h: Likewise.
+	* job.c: Likewise.
+	* main.c: Likewise.
+	* readme.vms: Likewise.
+	* remake.c: Likewise.
+	* tests/ChangeLog: Likewise.
+	* tests/NEWS: Likewise.
+	* tests/README: Likewise.
+	* tests/scripts/variables/private: Likewise.
+	* vmsdir.h: Likewise.
+	* signame.c: Likewise.  While at it, improve line wrapping in the
+	touched comment.
+
 2013-04-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32/include/dlfcn.h: New file.

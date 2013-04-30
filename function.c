@@ -1924,7 +1924,7 @@ func_shell (char *o, char **argv, const char *funcname UNUSED)
 #ifdef EXPERIMENTAL
 
 /*
-  equality. Return is string-boolean, ie, the empty string is false.
+  equality. Return is string-boolean, i.e., the empty string is false.
  */
 static char *
 func_eq (char *o, char **argv, char *funcname UNUSED)

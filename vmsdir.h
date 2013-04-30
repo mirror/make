@@ -44,7 +44,7 @@ struct direct
      + ((dp)->d_namlen+1))	\
     + 3) & ~3)
 
-#define d_ino	d_fileno		/* compatability */
+#define d_ino	d_fileno		/* compatibility */
 
 
 /*

@@ -25,8 +25,8 @@ GNU make):
 	endif @@\
 	$(CC) Link Make.o To make
 
-    works. Note that the @@ must stand alone (ie. "make@@\" is illegal).
-    Also be carefull that there is a space after the "\" (ie, at the
+    works. Note that the @@ must stand alone (i.e., "make@@\" is illegal).
+    Also be careful that there is a space after the "\" (i.e., at the
     beginning of the next line).
 - Can be made resident to save space and time
 - Amiga specific wildcards can be used in $(wildcard ...)
@@ -36,17 +36,17 @@ BUGS:
 
     dummy.h : src/*.c
 
-tries to make dummy.h from "src/*.c" (ie. no wildcard-expansion takes
+tries to make dummy.h from "src/*.c" (i.e., no wildcard-expansion takes
 place). You have to use "$(wildcard src/*.c)" instead.
 
 COMPILING FROM SCRATCH
 ----------------------
 
-To recompile, you need SAS/C 6.51. make itself is not neccessary, there
+To recompile, you need SAS/C 6.51. make itself is not necessary, there
 is an smakefile.
 
 1. Copy config.ami to config.h
-2. If you use make to compie, copy Makefile.ami to Makefile and
+2. If you use make to compile, copy Makefile.ami to Makefile and
     glob/Makefile.ami to glob/Makefile. Copy make into the current
     directory.
 
@@ -54,7 +54,7 @@ is an smakefile.
 
 INSTALLATION
 
-Copy make somewhere in your search path (eg. sc:c or sc:bin).
+Copy make somewhere in your search path (e.g., sc:c or sc:bin).
 If you plan to use recursive makes, install make resident:
 
     Resident make Add

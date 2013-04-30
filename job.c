@@ -2182,7 +2182,7 @@ new_job (struct file *file)
         reap_children (0, 0);
 
         /* Kick off any jobs we have waiting for an opportunity that
-           can run now (ie waiting for load). */
+           can run now (i.e., waiting for load). */
         start_waiting_jobs ();
 
         /* If our "free" slot has become available, use it; we don't need an

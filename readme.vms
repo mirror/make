@@ -353,7 +353,7 @@ replaced it with a hack in vmsfunctions.c. I will provide a full rewrite
 somewhere in the future. Be warned, the time resolution inside make is
 less than what vms provides. This might be a problem on the faster Alphas.
 
-You can use a : in a filename only if you preceed it with a backslash ('\').
+You can use a : in a filename only if you precede it with a backslash ('\').
 E.g.- hobbes\:[bogas.files]
 
 Make ignores success, informational, or warning errors (-S-, -I-, or

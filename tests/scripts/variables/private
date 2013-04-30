@@ -75,7 +75,7 @@ a b: ; @echo $@=$(private)
 ',
                '', "b=a\na=a\n");
 
-# 9: make sure private suppresses inheritence
+# 9: make sure private suppresses inheritance
 run_make_test(q!
 DEFS = FOO
 all: bar1

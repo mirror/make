@@ -192,10 +192,10 @@ signame_init (void)
   init_sig (SIGURG, "URG", _("Urgent I/O condition"));
 #endif
 #if defined (SIGIO)
-  /* "I/O pending" has also been suggested.  A disadvantage is
-     that signal only happens when the process has
-     asked for it, not everytime I/O is pending.  Another disadvantage
-     is the confusion from giving it a different name than under Unix.  */
+  /* "I/O pending" has also been suggested.  A disadvantage is that signal
+     only happens when the process has asked for it, not every time I/O is
+     pending.  Another disadvantage is the confusion from giving it a
+     different name than under Unix.  */
   init_sig (SIGIO, "IO", _("I/O possible"));
 #endif
 #if defined (SIGWIND)

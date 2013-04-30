@@ -41,7 +41,7 @@ extern int try_implicit_rule (struct file *file, unsigned int depth);
 
 
 /* The test for circular dependencies is based on the 'updating' bit in
-   'struct file'.  However, double colon targets have seperate 'struct
+   'struct file'.  However, double colon targets have separate 'struct
    file's; make sure we always use the base of the double colon chain. */
 
 #define start_updating(_f)  (((_f)->double_colon ? (_f)->double_colon : (_f))\

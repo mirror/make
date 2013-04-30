@@ -825,7 +825,7 @@ handle_runtime_exceptions( struct _EXCEPTION_POINTERS *exinfo )
 /*
  * On WIN32 systems we don't have the luxury of a /bin directory that
  * is mapped globally to every drive mounted to the system. Since make could
- * be invoked from any drive, and we don't want to propogate /bin/sh
+ * be invoked from any drive, and we don't want to propagate /bin/sh
  * to every single drive. Allow ourselves a chance to search for
  * a value for default shell here (if the default path does not exist).
  */
@@ -1272,7 +1272,7 @@ main (int argc, char **argv, char **envp)
   }
 #ifdef WINDOWS32
     /* If we didn't find a correctly spelled PATH we define PATH as
-     * either the first mispelled value or an empty string
+     * either the first misspelled value or an empty string
      */
     if (!unix_path)
       define_variable_cname ("PATH", windows32_path ? windows32_path : "",
