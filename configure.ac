@@ -64,12 +64,6 @@ AC_HEADER_TIME
 AC_CHECK_HEADERS([stdlib.h locale.h unistd.h limits.h fcntl.h string.h \
 		  memory.h sys/param.h sys/resource.h sys/time.h sys/timeb.h])
 
-# Set a flag if we have an ANSI C compiler
-AS_IF([test "$ac_cv_prog_cc_stdc" != no],
-[ AC_DEFINE([HAVE_ANSI_COMPILER], [1],
-            [Define to 1 if your compiler conforms to the ANSI C standard.])
-])
-
 AM_PROG_CC_C_O
 AC_C_CONST
 AC_TYPE_SIGNAL

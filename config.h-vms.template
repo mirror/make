@@ -330,9 +330,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <ndir.h> header file.  */
 /* #undef HAVE_NDIR_H */
 
-/* Define to 1 if your compiler conforms to the ANSI C standard. */
-#define HAVE_ANSI_COMPILER 1
-
 /* Define to 1 if you have the <stdlib.h> header file.  */
 #define HAVE_STDLIB_H 1
 

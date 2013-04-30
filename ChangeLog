@@ -113,6 +113,19 @@
 	* job.c (start_job_command): Don't redirect output for recursive
 	make jobs, unless we're in makefile synchronization mode.
 
+2013-04-30  Stefano Lattarini <stefano.lattarini@gmail.com>  (tiny change)
+
+	build: get rid of 'HAVE_ANSI_COMPILER' C preprocessor conditional
+
+	GNU make already assume C89 or later throughout the codebase, and
+	that preprocessor conditional was no longer used anyway.
+
+	* configure.ac: Remove AC_DEFINE of HAVE_ANSI_COMPILER.
+	* config.ami.template: Remove #define of HAVE_ANSI_COMPILER.
+	* config.h-vms.template: Likewise.
+	* config.h.W32.template: Likewise.
+	* configh.dos.template: Likewise.
+
 2013-04-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32/include/dlfcn.h: New file.
