@@ -115,6 +115,20 @@
 
 2013-04-30  Stefano Lattarini <stefano.lattarini@gmail.com>  (tiny change)
 
+	build: require Autoconf >= 2.62 and Automake >= 1.11.1
+
+	Older versions of those tools should be considered fully obsolete.
+	Also, GNU make already requires Gettext >= 0.18.1, which has been
+	released six months after Automake 1.11.1 and two years after
+	Autoconf 2.62; so the new requirement shouldn't be problematic
+	for people already bootstrapping GNU make from the Git repository.
+
+	* configure.ac (AC_PREREQ): Require Autoconf 2.62 or later.
+	(AM_INIT_AUTOMAKE): Require Automake 1.11.1 or later (1.11 had
+	some serious bugs, and should not be used).
+
+2013-04-30  Stefano Lattarini <stefano.lattarini@gmail.com>  (tiny change)
+
 	build: get rid of 'HAVE_ANSI_COMPILER' C preprocessor conditional
 
 	GNU make already assume C89 or later throughout the codebase, and
