@@ -26,7 +26,7 @@ AC_CONFIG_SRCDIR([vpath.c])
 AC_CONFIG_HEADERS([config.h])
 
 # Automake setup
-AM_INIT_AUTOMAKE([1.11.1])
+AM_INIT_AUTOMAKE([1.11.1 silent-rules])
 
 # Checks for programs.
 AC_PROG_CC

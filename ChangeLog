@@ -115,6 +115,14 @@
 
 2013-04-30  Stefano Lattarini <stefano.lattarini@gmail.com>  (tiny change)
 
+	build: enable the 'silent-rules' automake options
+
+	* configure.ac (AM_INIT_AUTOMAKE): Here.  The future major Automake
+	version 2.0 (ETA about one, one and half year from now) will enable
+	it by default, so better prepare ourselves.
+
+2013-04-30  Stefano Lattarini <stefano.lattarini@gmail.com>  (tiny change)
+
 	build: require Autoconf >= 2.62 and Automake >= 1.11.1
 
 	Older versions of those tools should be considered fully obsolete.
