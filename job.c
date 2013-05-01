@@ -3076,6 +3076,15 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
                 if (ap == new_argv[i])
                   p = next_token (p + 1) - 1;
 	      }
+#ifdef WINDOWS32
+	    /* Backslash before whitespace is not special if our shell
+	       is not Unixy.  */
+	    else if (isspace (p[1]) && !unixy_shell)
+	      {
+		*ap++ = *p;
+		break;
+	      }
+#endif
 	    else if (p[1] != '\0')
               {
 #ifdef HAVE_DOS_PATHS
