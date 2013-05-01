@@ -1857,8 +1857,10 @@ start_job_command (struct child *child)
       sync_Path_environment();
 
 #ifdef OUTPUT_SYNC
-          /* Divert child output into tempfile(s) if output_sync in use. */
-          if (output_sync)
+          /* Divert child output if output_sync in use.  Don't capture
+             recursive make output unless we are synchronizing "make" mode.  */
+          if (output_sync && (output_sync == OUTPUT_SYNC_MAKE
+                              || !(flags & COMMANDS_RECURSE)))
 	    hPID = process_easy(argv, child->environment,
 				child->outfd, child->errfd);
 	  else

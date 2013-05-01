@@ -1,3 +1,8 @@
+2013-05-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* job.c (start_job_command) [WINDOWS32]: Make the same fix for
+	MS-Windows as the previous commit did for Posix platforms.
+
 2013-05-01  Paul Smith  <psmith@gnu.org>
 
 	* job.c (start_job_command): Don't redirect output for recursive
