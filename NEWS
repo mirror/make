@@ -76,6 +76,15 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
 * In -p output, .RECIPEPREFIX settings are shown and all target-specific
   variables are output as if in a makefile, instead of as comments.
 
+* On MS-Windows, recipes that use ".." quoting will no longer force
+  invocation of commands via temporary batch files and stock Windows
+  shells, they will be short-circuited and invoked directly.  (In
+  other words, " is no longer a special character for stock Windows
+  shells.)  This avoids hitting shell limits for command length when
+  quotes are used, but nothing else in the command requires the shell.
+  This change could potentially mean some minor incompatibilities in
+  behavior when the recipe uses quoted string on shell command lines.
+
 
 Version 3.82
 
