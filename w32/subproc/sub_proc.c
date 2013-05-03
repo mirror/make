@@ -23,17 +23,18 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #else
 # include <stdint.h>
 #endif
+#include <string.h>
 #include <process.h>  /* for msvc _beginthreadex, _endthreadex */
 #include <signal.h>
 #include <windows.h>
 
+#include "makeint.h"
 #include "sub_proc.h"
 #include "proc.h"
 #include "w32err.h"
 #include "debug.h"
 
 static char *make_command_line(char *shell_name, char *exec_path, char **argv);
-extern char *xmalloc (unsigned int);
 
 typedef struct sub_process_t {
 	intptr_t sv_stdin[2];
@@ -540,6 +541,26 @@ find_file(const char *exec_path, const char *path_var,
 	return INVALID_HANDLE_VALUE;
 }
 
+/*
+ * Return non-zero of FNAME specifies a batch file and its name
+ * includes embedded whitespace.
+ */
+
+static int
+batch_file_with_spaces(const char *fname)
+{
+	size_t fnlen = strlen(fname);
+
+	return (fnlen > 4
+		&& (_strnicmp(fname + fnlen - 4, ".bat", 4) == 0
+		    || _strnicmp(fname + fnlen - 4, ".cmd", 4) == 0)
+		/* The set of characters in the 2nd arg to strpbrk
+		   should be the same one used by make_command_line
+		   below to decide whether an argv[] element needs
+		   quoting.  */
+		&& strpbrk(fname, " \t") != NULL);
+}
+
 
 /*
  * Description:   Create the child process to be helped
@@ -570,6 +591,7 @@ process_begin(
 	STARTUPINFO startInfo;
 	PROCESS_INFORMATION procInfo;
 	char *envblk=NULL;
+	int pass_null_exec_path = 0;
 
 	/*
 	 *  Shell script detection...  if the exec_path starts with #! then
@@ -651,8 +673,28 @@ process_begin(
 
 	if (file_not_found)
 		command_line = make_command_line( shell_name, exec_path, argv);
-	else
+	else {
+		/* If exec_fname includes whitespace, CreateProcess
+		   behaves erratically and unreliably, and often fails
+		   if argv[0] also includes whitespace (and thus will
+		   be quoted by make_command_line below).  So in that
+		   case, we don't pass exec_fname as the 1st arg to
+		   CreateProcess, but instead replace argv[0] with
+		   exec_fname (to keep its leading directories and
+		   extension as found by find_file), and pass NULL to
+		   CreateProcess as its 1st arg.  This works around
+		   the bugs in CreateProcess, which are probably
+		   caused by its passing the command to cmd.exe with
+		   some incorrect quoting.  */
+		if (!shell_name
+		    && batch_file_with_spaces(exec_fname)
+		    && _stricmp(exec_path, argv[0]) == 0) {
+			pass_null_exec_path = 1;
+			free (argv[0]);
+			argv[0] = xstrdup(exec_fname);
+		}
 		command_line = make_command_line( shell_name, exec_fname, argv);
+	}
 
 	if ( command_line == NULL ) {
 		pproc->last_err = 0;
@@ -669,7 +711,7 @@ process_begin(
 		}
 	}
 
-	if ((shell_name) || (file_not_found)) {
+	if (shell_name || file_not_found || pass_null_exec_path) {
 		exec_path = 0;	/* Search for the program in %Path% */
 	} else {
 		exec_path = exec_fname;
