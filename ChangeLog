@@ -1,3 +1,38 @@
+2013-05-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* load.c (load_object, load_file): Accept an additional argument
+	DLP and return in it a pointer that can be used to unload the
+	dynamic object.
+
+	* read.c (eval): Call load_file with an additional argument, and
+	record the pointer returned there in the 'struct file' object of
+	dynamic objects in that object's 'struct file'.
+
+	* commands.c (execute_file_commands): Unload dynamic objects
+	before remaking them, to avoid failure to remake if the OS doesn't
+	allow overwriting objects that are in use.
+
+	* filedef.h (struct file): New member dlopen_ptr.
+
+	* gnumake.h (GMK_EXPORT): Define to dllexport/dllimport
+	decorations for Windows and to nothing on other platforms.
+	(gmk_eval, gmk_expand, gmk_add_function): Add GMK_EXPORT qualifier
+	to prototypes.
+
+	* makeint.h (MAIN): Define before including gnumake.h, to give
+	correct dllexport decorations to exported functions.
+	(load_file): Adjust prototype.
+
+	* loadapi.c: Don't include gnumake.h, since makeint.h already
+	includes it, and takes care of defining MAIN before doing so.
+
+	* build_w32.bat (LinkGCC): Produce an import library for functions
+	exported by Make for loadable dynamic objects.
+
+	* w32/compat/posixfcn.c (dlclose): New function.
+
+	* w32/include/dlfcn.h (dlclose): Add prototype.
+
 2013-05-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* job.c (start_job_command) [WINDOWS32]: Make the same fix for

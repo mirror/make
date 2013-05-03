@@ -9,5 +9,6 @@
 extern void *dlopen (const char *, int);
 extern void *dlsym (void *, const char *);
 extern char *dlerror (void);
+extern int   dlclose (void *);
 
 #endif	/* DLFCN_H */

@@ -21,14 +21,14 @@ print $F <<'EOF' ;
 #include "gnumake.h"
 
 int
-testload_gmk_setup ()
+testload_gmk_setup (gmk_floc *pos)
 {
     gmk_eval ("TESTLOAD = implicit", 0);
     return 1;
 }
 
 int
-explicit_setup ()
+explicit_setup (gmk_floc *pos)
 {
     gmk_eval ("TESTLOAD = explicit", 0);
     return 1;

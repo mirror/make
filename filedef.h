@@ -61,6 +61,8 @@ struct file
     int command_flags;		/* Flags OR'd in for cmds; see commands.h.  */
     char update_status;         /* Status of the last attempt to update,
 				   or -1 if none has been made.  */
+    void *dlopen_ptr;		/* For dynamic loaded objects: pointer to
+				   pass to dlclose to unload the object.  */
     enum cmd_state		/* State of the commands.  */
       {		/* Note: It is important that cs_not_started be zero.  */
 	cs_not_started,		/* Not yet started.  */

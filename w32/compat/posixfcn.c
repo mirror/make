@@ -338,6 +338,17 @@ dlsym (void *handle, const char *name)
   return (void *)addr;
 }
 
+int
+dlclose (void *handle)
+{
+  if (!handle || handle == INVALID_HANDLE_VALUE)
+    return -1;
+  if (!FreeLibrary (handle))
+    return -1;
+
+  return 0;
+}
+
 
 #endif	/* MAKE_LOAD */
 

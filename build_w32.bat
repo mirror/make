@@ -290,8 +290,10 @@ set GUILEOBJ=guile.o
 echo on
 gcc -mthreads -Wall -gdwarf-2 -g3 %OPT% %GUILECFLAGS% -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c guile.c
 :LinkGCC
+Rem The version NN of libgnumake-NN.dll.a should be bumped whenever
+Rem the API changes in binary-incompatible manner.
 @echo on
-gcc -mthreads -gdwarf-2 -g3 -o gnumake.exe variable.o rule.o remote-stub.o commands.o file.o getloadavg.o default.o signame.o expand.o dir.o main.o getopt1.o %GUILEOBJ% job.o read.o version.o getopt.o arscan.o remake.o misc.o hash.o strcache.o ar.o function.o vpath.o implicit.o loadapi.o load.o glob.o fnmatch.o pathstuff.o posixfcn.o w32_misc.o sub_proc.o w32err.o %GUILELIBS% -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32
+gcc -mthreads -gdwarf-2 -g3 -o gnumake.exe variable.o rule.o remote-stub.o commands.o file.o getloadavg.o default.o signame.o expand.o dir.o main.o getopt1.o %GUILEOBJ% job.o read.o version.o getopt.o arscan.o remake.o misc.o hash.o strcache.o ar.o function.o vpath.o implicit.o loadapi.o load.o glob.o fnmatch.o pathstuff.o posixfcn.o w32_misc.o sub_proc.o w32err.o %GUILELIBS% -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32 -Wl,--out-implib=libgnumake-1.dll.a
 @GoTo BuildEnd
 :Usage
 echo Usage: %0 [options] [gcc]

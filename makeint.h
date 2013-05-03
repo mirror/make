@@ -48,8 +48,12 @@ char *alloca ();
 #endif
 
 /* Include the externally-visible content.
-   Be sure to use the local one, and not one installed on the system.  */
+   Be sure to use the local one, and not one installed on the system.
+   Define MAIN for proper selection of dllexport/dllimport declarations
+   for MS-Windows.  */
+#define MAIN
 #include "gnumake.h"
+#undef MAIN
 
 #ifdef  CRAY
 /* This must happen before #include <signal.h> so
@@ -476,7 +480,8 @@ int guile_gmake_setup (const gmk_floc *flocp);
 
 /* Loadable object support.  Sets to the strcached name of the loaded file.  */
 typedef int (*load_func_t)(const gmk_floc *flocp);
-int load_file (const gmk_floc *flocp, const char **filename, int noerror);
+int load_file (const gmk_floc *flocp, const char **filename, int noerror,
+	       void **dlp);
 
 #ifdef  HAVE_VFORK_H
 # include <vfork.h>

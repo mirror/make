@@ -32,10 +32,12 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 static load_func_t
 load_object (const gmk_floc *flocp, int noerror,
-             const char *ldname, const char *symname)
+             const char *ldname, const char *symname, void **dlp)
 {
   static void *global_dl = NULL;
   load_func_t symp;
+
+  *dlp = NULL;
 
   if (! global_dl)
     {
@@ -46,7 +48,6 @@ load_object (const gmk_floc *flocp, int noerror,
 
   symp = (load_func_t) dlsym (global_dl, symname);
   if (! symp) {
-    void *dlp = NULL;
 
     /* If the path has no "/", try the current directory first.  */
     if (! strchr (ldname, '/')
@@ -54,14 +55,14 @@ load_object (const gmk_floc *flocp, int noerror,
 	&& ! strchr (ldname, '\\')
 #endif
 	)
-      dlp = dlopen (concat (2, "./", ldname), RTLD_LAZY|RTLD_GLOBAL);
+      *dlp = dlopen (concat (2, "./", ldname), RTLD_LAZY|RTLD_GLOBAL);
 
     /* If we haven't opened it yet, try the default search path.  */
-    if (! dlp)
-      dlp = dlopen (ldname, RTLD_LAZY|RTLD_GLOBAL);
+    if (! *dlp)
+      *dlp = dlopen (ldname, RTLD_LAZY|RTLD_GLOBAL);
 
     /* Still no?  Then fail.  */
-    if (! dlp)
+    if (! *dlp)
       {
         if (noerror)
           DB (DB_BASIC, ("%s", dlerror()));
@@ -70,7 +71,7 @@ load_object (const gmk_floc *flocp, int noerror,
         return NULL;
       }
 
-    symp = dlsym (dlp, symname);
+    symp = dlsym (*dlp, symname);
     if (! symp)
       fatal (flocp, _("Failed to load symbol %s from %s: %s"),
              symname, ldname, dlerror());
@@ -80,7 +81,7 @@ load_object (const gmk_floc *flocp, int noerror,
 }
 
 int
-load_file (const gmk_floc *flocp, const char **ldname, int noerror)
+load_file (const gmk_floc *flocp, const char **ldname, int noerror, void **dlp)
 {
   int nmlen = strlen (*ldname);
   char *new = alloca (nmlen + CSTRLEN (SYMBOL_EXTENSION) + 1);
@@ -89,6 +90,8 @@ load_file (const gmk_floc *flocp, const char **ldname, int noerror)
   const char *fp;
   int r;
   load_func_t symp;
+
+  *dlp = NULL;
 
   /* Break the input into an object file name and a symbol name.  If no symbol
      name was provided, compute one from the object file name.  */
@@ -165,7 +168,7 @@ load_file (const gmk_floc *flocp, const char **ldname, int noerror)
   DB (DB_VERBOSE, (_("Loading symbol %s from %s\n"), symname, *ldname));
 
   /* Load it!  */
-  symp = load_object(flocp, noerror, *ldname, symname);
+  symp = load_object(flocp, noerror, *ldname, symname, dlp);
   if (! symp)
     return 0;
 

@@ -1,3 +1,8 @@
+2013-05-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* scripts/features/load: Fix signatures of testload_gmk_setup and
+	explicit_setup, to bring them in line with the documentation.
+
 2013-04-28  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/output-sync (output_sync_set): Add tests for

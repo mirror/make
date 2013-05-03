@@ -14,6 +14,8 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#include <dlfcn.h>
+
 #include "makeint.h"
 #include "dep.h"
 #include "filedef.h"
@@ -467,6 +469,12 @@ execute_file_commands (struct file *file)
   initialize_file_variables (file, 0);
 
   set_file_variables (file);
+
+  /* If this is a loaded dynamic object, unload it before remaking.
+     Some systems don't allow to overwrite a loaded shared
+     library.  */
+  if (file->dlopen_ptr)
+    dlclose (file->dlopen_ptr);
 
   /* Start the commands running.  */
   new_job (file);
