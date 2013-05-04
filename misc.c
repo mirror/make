@@ -182,7 +182,8 @@ concat (unsigned int num, ...)
 /* If we had a standard-compliant vsnprintf() this would be a lot simpler.
    Maybe in the future we'll include gnulib's version.  */
 
-/* Return a formatted string buffer.  */
+/* Return a formatted string buffer.
+   LENGTH must be the maximum length of all format arguments, stringified.  */
 
 const char *
 message_s (unsigned int length, int prefix, const char *fmt, ...)
@@ -193,7 +194,7 @@ message_s (unsigned int length, int prefix, const char *fmt, ...)
   va_list args;
 
   /* Compute the maximum buffer size we'll need, and make sure we have it.  */
-  length += strlen (fmt) + strlen (program) + 4 + INTEGER_LENGTH + 1;
+  length += strlen (fmt) + strlen (program) + 4 + INTEGER_LENGTH + 2;
   if (length > bsize)
     {
       bsize = length * 2;
@@ -214,10 +215,13 @@ message_s (unsigned int length, int prefix, const char *fmt, ...)
   vsprintf (bp, fmt, args);
   va_end (args);
 
+  strcat (bp, "\n");
+
   return buffer;
 }
 
-/* Return a formatted error message in a buffer.  */
+/* Return a formatted error message in a buffer.
+   LENGTH must be the maximum length of all format arguments, stringified.  */
 
 const char *
 error_s (unsigned int length, const gmk_floc *flocp, const char *fmt, ...)
@@ -228,7 +232,7 @@ error_s (unsigned int length, const gmk_floc *flocp, const char *fmt, ...)
   va_list args;
 
   /* Compute the maximum buffer size we'll need, and make sure we have it.  */
-  length += (strlen (fmt) + strlen (program) + 4 + INTEGER_LENGTH + 1
+  length += (strlen (fmt) + strlen (program) + 4 + INTEGER_LENGTH + 2
              + (flocp && flocp->filenm ? strlen (flocp->filenm) : 0));
   if (length > bsize)
     {
@@ -249,10 +253,13 @@ error_s (unsigned int length, const gmk_floc *flocp, const char *fmt, ...)
   vsprintf (bp, fmt, args);
   va_end (args);
 
+  strcat (bp, "\n");
+
   return buffer;
 }
 
-/* Print a message on stdout.  */
+/* Print a message on stdout.  We could use message_s() to format it but then
+   we'd need a va_list version...  */
 
 void
 message (int prefix, const char *fmt, ...)
@@ -950,7 +957,7 @@ char *mktemp (char *template);
 # endif
 #endif
 
-/* This is only used by output-sync, and it may not be portable to Windows.  */
+/* This is only used by output-sync, and it may not be portable.  */
 #ifdef OUTPUT_SYNC
 
 /* Returns a file descriptor to a temporary file.  The file is automatically

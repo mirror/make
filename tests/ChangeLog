@@ -1,3 +1,8 @@
+2013-05-04  Paul Smith  <psmith@gnu.org>
+
+	* scripts/features/output-sync (output_sync_set): New test for
+	ordered recursive output for -Ojob / -Otarget.
+
 2013-05-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* scripts/features/load: Fix signatures of testload_gmk_setup and

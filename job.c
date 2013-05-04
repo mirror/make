@@ -244,9 +244,12 @@ unsigned long job_counter = 0;
 unsigned int jobserver_tokens = 0;
 
 #ifdef OUTPUT_SYNC
-/* Semaphore for use in -j mode with output_sync. */
 
-sync_handle_t sync_handle = -1;
+/* Semaphore for use in -j mode with output_sync. */
+static sync_handle_t sync_handle = -1;
+
+/* Is make's stdout going to the same place as stderr?  */
+static int combined_output = 0;
 
 #define STREAM_OK(_s)       ((fcntl (fileno (_s), F_GETFD) != -1) || (errno != EBADF))
 
@@ -467,7 +470,7 @@ is_bourne_compatible_shell (const char *path)
 }
 
 
-/* Write a message relating to a child.  Write it to the child's output
+/* Write a message in the child's context.  Write it to the child's output
    sync file if present, otherwise to the terminal.  */
 
 static void
@@ -477,16 +480,27 @@ child_out (const struct child *child, const char *msg, int out)
 
   if (outfd >= 0)
     {
+      int t = strlen (msg);
+      int l;
       lseek (outfd, 0, SEEK_END);
-      write (outfd, msg, strlen (msg));
-      write (outfd, "\n", 1);
+      while (t)
+        {
+          EINTRLOOP (l, write (outfd, msg, t));
+          if (l == t)
+            break;
+          if (l < 0)
+            {
+              perror ("write()");
+              break;
+            }
+          t -= l;
+          msg += l;
+        }
     }
   else
     {
       FILE *outf = out ? stdout : stderr;
-
       fputs (msg, outf);
-      putc ('\n', outf);
       fflush (outf);
     }
 }
@@ -503,7 +517,7 @@ child_error (const struct child *child,
   const char *post = "";
   const char *dump = "";
   const struct file *f = child->file;
-  gmk_floc *flocp = &f->cmds->fileinfo;
+  const gmk_floc *flocp = &f->cmds->fileinfo;
   const char *msg;
   const char *nm;
   unsigned int l;
@@ -529,8 +543,8 @@ child_error (const struct child *child,
       nm = a;
     }
 
-  msg = message_s (strlen (nm) + strlen (f->name),
-                   0, _("%s: recipe for target '%s' failed"), nm, f->name);
+  msg = message_s (strlen (nm) + strlen (f->name), 0,
+                   _("%s: recipe for target '%s' failed"), nm, f->name);
   child_out (child, msg, 1);
 
   l = strlen (pre) + strlen (f->name) + strlen (post);
@@ -539,17 +553,17 @@ child_error (const struct child *child,
   if (exit_code & 1 != 0)
     return;
 
-  msg = error_s (l + INTEGER_LENGTH, NILF, _("%s[%s] Error 0x%x%s"),
-                 pre, f->name, exit_code, post);
+  msg = error_s (l + INTEGER_LENGTH, NILF,
+                 _("%s[%s] Error 0x%x%s"), pre, f->name, exit_code, post);
 #else
   if (exit_sig == 0)
-    msg = error_s (l + INTEGER_LENGTH, NILF, _("%s[%s] Error %d%s"),
-                   pre, f->name, exit_code, post);
+    msg = error_s (l + INTEGER_LENGTH, NILF,
+                   _("%s[%s] Error %d%s"), pre, f->name, exit_code, post);
   else
     {
       const char *s = strsignal (exit_sig);
-      msg = error_s (l + strlen (s) + strlen (dump),
-                     NILF, _("%s[%s] %s%s%s"), pre, f->name, s, dump, post);
+      msg = error_s (l + strlen (s) + strlen (dump), NILF,
+                     _("%s[%s] %s%s%s"), pre, f->name, s, dump, post);
     }
 #endif /* VMS */
 
@@ -591,52 +605,85 @@ child_handler (int sig UNUSED)
 }
 
 #ifdef OUTPUT_SYNC
-/* Adds file descriptors to the child structure to support output_sync;
-   one for stdout and one for stderr as long as they are (a) open and
-   (b) separate. If stdout and stderr share a device they can share a
-   temp file too.  */
-static int
-assign_child_tempfiles (struct child *c, int combined)
+
+/* Set up the sync handle and configure combined_output.
+   Disables output_sync on error.  */
+static void
+sync_init ()
 {
-  /* If we don't have a temp file, get one.  */
-  if (c->outfd < 0 && c->errfd < 0)
+#ifdef WINDOWS32
+  if ((!STREAM_OK (stdout) && !STREAM_OK (stderr))
+      || (sync_handle = create_mutex ()) == -1)
     {
-      if (STREAM_OK (stdout))
-        {
-          c->outfd = open_tmpfd ();
-          CLOSE_ON_EXEC (c->outfd);
-        }
-
-      if (STREAM_OK (stderr))
-        {
-          if (c->outfd >= 0 && combined)
-            c->errfd = c->outfd;
-          else
-            {
-              c->errfd = open_tmpfd ();
-              CLOSE_ON_EXEC (c->errfd);
-            }
-        }
-
-      return 1;
+      perror_with_name ("output-sync suppressed: ", "stderr");
+      output_sync = 0;
+    }
+  else
+    {
+      combined_output = same_stream (stdout, stderr);
+      prepare_mutex_handle_string (sync_handle);
     }
 
-  /* We already have a temp file.  On per-job output, truncate and reset.  */
-  if (output_sync == OUTPUT_SYNC_JOB)
+#else
+  if (STREAM_OK (stdout))
     {
-      if (c->outfd >= 0)
+      struct stat stbuf_o, stbuf_e;
+
+      sync_handle = fileno (stdout);
+      combined_output =
+        fstat (fileno (stdout), &stbuf_o) == 0 &&
+        fstat (fileno (stderr), &stbuf_e) == 0 &&
+        stbuf_o.st_dev == stbuf_e.st_dev &&
+        stbuf_o.st_ino == stbuf_e.st_ino;
+    }
+  else if (STREAM_OK (stderr))
+    sync_handle = fileno (stderr);
+  else
+    {
+      perror_with_name ("output-sync suppressed: ", "stderr");
+      output_sync = 0;
+    }
+#endif
+}
+
+/* Adds file descriptors to the child structure to support output_sync; one
+   for stdout and one for stderr as long as they are open.  If stdout and
+   stderr share a device they can share a temp file too.
+   Will reset output_sync on error.  */
+static void
+assign_child_tempfiles (struct child *c)
+{
+  /* If we have a temp file, we're done.  */
+  if (c->outfd >= 0 || c->errfd >= 0)
+    return;
+
+  if (STREAM_OK (stdout))
+    {
+      c->outfd = open_tmpfd ();
+      if (c->outfd < 0)
+        goto error;
+      CLOSE_ON_EXEC (c->outfd);
+    }
+
+  if (STREAM_OK (stderr))
+    {
+      if (c->outfd >= 0 && combined_output)
+        c->errfd = c->outfd;
+      else
         {
-          lseek(c->outfd, 0, SEEK_SET);
-          ftruncate(c->outfd, 0);
-        }
-      if (c->errfd >= 0 && c->errfd != c->outfd)
-        {
-          lseek(c->errfd, 0, SEEK_SET);
-          ftruncate(c->outfd, 0);
+          c->errfd = open_tmpfd ();
+          if (c->errfd < 0)
+            goto error;
+          CLOSE_ON_EXEC (c->errfd);
         }
     }
 
-  return 1;
+  return;
+
+ error:
+  if (c->outfd >= 0)
+    close (c->outfd);
+  output_sync = 0;
 }
 
 /* Support routine for sync_output() */
@@ -750,6 +797,20 @@ sync_output (struct child *c)
       /* Exit the critical section.  */
       if (sem)
         release_semaphore (sem);
+
+      /* Truncate and reset the output, in case we use it again.  */
+      if (c->outfd >= 0)
+        {
+          int e;
+          lseek(c->outfd, 0, SEEK_SET);
+          EINTRLOOP (e, ftruncate(c->outfd, 0));
+        }
+      if (c->errfd >= 0 && c->errfd != c->outfd)
+        {
+          int e;
+          lseek(c->errfd, 0, SEEK_SET);
+          EINTRLOOP (e, ftruncate(c->errfd, 0));
+        }
     }
 }
 #endif /* OUTPUT_SYNC */
@@ -1095,7 +1156,8 @@ reap_children (int block, int err)
               else
                 {
 #ifdef OUTPUT_SYNC
-                  /* If we're sync'ing per job, write it now.  */
+                  /* If we're sync'ing per line, write the previous line's
+                     output before starting the next one.  */
                   if (output_sync == OUTPUT_SYNC_JOB)
                     sync_output (c);
 #endif
@@ -1130,9 +1192,8 @@ reap_children (int block, int err)
       /* When we get here, all the commands for c->file are finished.  */
 
 #ifdef OUTPUT_SYNC
-      /* Synchronize parallel output if requested */
-      if (output_sync)
-        sync_output (c);
+      /* Synchronize any remaining parallel output.  */
+      sync_output (c);
 #endif /* OUTPUT_SYNC */
 
       /* At this point c->file->update_status contains 0 or 2.  But
@@ -1334,6 +1395,7 @@ start_job_command (struct child *child)
 #if !defined(_AMIGA) && !defined(WINDOWS32)
   static int bad_stdin = -1;
 #endif
+  int sync_cmd = 0;
   char *p;
   /* Must be volatile to silence bogus GCC warning about longjmp/vfork.  */
   volatile int flags;
@@ -1521,6 +1583,11 @@ start_job_command (struct child *child)
   fflush (stdout);
   fflush (stderr);
 
+  /* Are we going to synchronize this command's output?  Do so if either we're
+     in SYNC_MAKE mode or this command is not recursive.  We'll also check
+     output_sync separately below in case it changes due to error.  */
+  sync_cmd = output_sync == OUTPUT_SYNC_MAKE || !(flags & COMMANDS_RECURSE);
+
 #ifndef VMS
 #if !defined(WINDOWS32) && !defined(_AMIGA) && !defined(__MSDOS__)
 
@@ -1646,42 +1713,16 @@ start_job_command (struct child *child)
 #else  /* !__EMX__ */
 
 #ifdef OUTPUT_SYNC
-      if (output_sync)
-        {
-          static int combined_output;
-          /* If output_sync is turned on, find a resource to
-              synchronize on. This block is traversed only once. */
-          if (sync_handle == -1)
-            {
-              if (STREAM_OK (stdout))
-                {
-                  struct stat stbuf_o, stbuf_e;
+      if (output_sync && sync_handle == -1)
+        sync_init();
 
-                  sync_handle = fileno (stdout);
-                  combined_output =
-                    fstat (fileno (stdout), &stbuf_o) == 0 &&
-                    fstat (fileno (stderr), &stbuf_e) == 0 &&
-                    stbuf_o.st_dev == stbuf_e.st_dev &&
-                    stbuf_o.st_ino == stbuf_e.st_ino;
-                }
-              else if (STREAM_OK (stderr))
-                sync_handle = fileno (stderr);
-              else
-                {
-                  perror_with_name ("output-sync suppressed: ", "stderr");
-                  output_sync = 0;
-                }
-            }
-
-          /* If it still looks like we can synchronize, create a temp
-              file to hold stdout (and one for stderr if separate). */
-          if (output_sync == OUTPUT_SYNC_MAKE
-              || (output_sync && !(flags & COMMANDS_RECURSE)))
-            {
-              if (!assign_child_tempfiles (child, combined_output))
-                output_sync = 0;
-            }
-        }
+      if (output_sync && sync_cmd)
+        /* If we still want to sync, make sure we have temp files. */
+        assign_child_tempfiles (child);
+      else
+        /* We don't want to sync this command: to avoid misordered
+           output ensure any already-synched content is written.  */
+        sync_output (child);
 #endif /* OUTPUT_SYNC */
 
       child->pid = vfork ();
@@ -1710,8 +1751,7 @@ start_job_command (struct child *child)
 #ifdef OUTPUT_SYNC
           /* Divert child output if output_sync in use.  Don't capture
              recursive make output unless we are synchronizing "make" mode.  */
-          if (output_sync && (output_sync == OUTPUT_SYNC_MAKE
-                              || !(flags & COMMANDS_RECURSE)))
+          if (output_sync && sync_cmd)
             {
               int outfd = fileno (stdout);
               int errfd = fileno (stderr);
@@ -1812,38 +1852,16 @@ start_job_command (struct child *child)
       char* arg0;
 
 #ifdef OUTPUT_SYNC
-      if (output_sync)
-        {
-          static int combined_output;
-          /* If output_sync is turned on, create a mutex to
-              synchronize on.  This is done only once.  */
-          if (sync_handle == -1)
-	    {
-	      if ((!STREAM_OK (stdout) && !STREAM_OK (stderr))
-		  || (sync_handle = create_mutex ()) == -1)
-                {
-                  perror_with_name ("output-sync suppressed: ", "stderr");
-                  output_sync = 0;
-                }
-	      else
-		{
-		  combined_output = same_stream (stdout, stderr);
-		  prepare_mutex_handle_string (sync_handle);
-		}
-	    }
-          /* If we can synchronize, create a temporary file to hold
-              child's stdout, and another one for its stderr, if they
-              are separate. */
-          if (output_sync == OUTPUT_SYNC_MAKE
-              || (output_sync && !(flags & COMMANDS_RECURSE)))
-            {
-              if (!assign_child_tempfiles (child, combined_output))
-		{
-                  perror_with_name ("output-sync suppressed: ", "stderr");
-		  output_sync = 0;
-		}
-            }
-        }
+      if (output_sync && sync_handle == -1)
+        sync_init();
+
+      if (output_sync && sync_cmd)
+        /* If we still want to sync, make sure we have temp files. */
+        assign_child_tempfiles (child);
+      else
+        /* We don't want to sync this command: to avoid misordered output
+           ensure any already-synched content is written.  */
+        sync_output (child);
 #endif /* OUTPUT_SYNC */
 
       /* make UNC paths safe for CreateProcess -- backslash format */
@@ -1859,8 +1877,7 @@ start_job_command (struct child *child)
 #ifdef OUTPUT_SYNC
           /* Divert child output if output_sync in use.  Don't capture
              recursive make output unless we are synchronizing "make" mode.  */
-          if (output_sync && (output_sync == OUTPUT_SYNC_MAKE
-                              || !(flags & COMMANDS_RECURSE)))
+          if (output_sync && sync_cmd)
 	    hPID = process_easy(argv, child->environment,
 				child->outfd, child->errfd);
 	  else

@@ -1,3 +1,16 @@
+2013-05-04  Paul Smith  <psmith@gnu.org>
+
+	* job.c (child_out): Handle EINTR and incomplete write scenarios.
+	(sync_init): New function: separate the initialization code.
+	(assign_child_tempfiles): Remove truncation from this function,
+	(sync_output): and add it here after output is generated.
+	(reap_children): Always call sync_output() in case output_sync was
+	reset after the child started, due to error.
+	(start_job_command): Create new sync_cmd variable.  Use new method
+	for initializing the handle.
+	If we're not syncing the output be sure any output we've saved is
+	dumped immediately before starting the child.
+
 2013-05-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* job.c (start_job_command): Make the condition for creating a

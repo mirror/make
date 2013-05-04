@@ -244,5 +244,15 @@ foo: end
 # Remove temporary directories and contents.
 output_sync_clean();
 
+# Ensure recursion doesn't mis-order or double-print output
+run_make_test(qq!
+all:
+\t\@echo foo
+\t\@+echo bar
+!,
+              '-j -Ojob', "foo\nbar\n");
+
+run_make_test(undef, '-j -Otarget', "foo\nbar\n");
+
 # This tells the test driver that the perl test script executed properly.
 1;
