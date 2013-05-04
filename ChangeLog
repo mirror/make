@@ -1,3 +1,9 @@
+2013-05-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* job.c (start_job_command): Make the condition for creating a
+	temporary output file be identical to the Posix code branch.
+	Suggested by Frank Heckenbach <f.heckenbach@fh-soft.de>.
+
 2013-05-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32/subproc/sub_proc.c: Include makeint.h.  Remove a private

@@ -1834,8 +1834,7 @@ start_job_command (struct child *child)
               child's stdout, and another one for its stderr, if they
               are separate. */
           if (output_sync == OUTPUT_SYNC_MAKE
-              || (output_sync == OUTPUT_SYNC_TARGET
-		  && !(flags & COMMANDS_RECURSE)))
+              || (output_sync && !(flags & COMMANDS_RECURSE)))
             {
               if (!assign_child_tempfiles (child, combined_output))
 		{
