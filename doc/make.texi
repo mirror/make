@@ -4135,7 +4135,7 @@ specified by giving an argument to the option (e.g.,  @samp{-Ojob} or
 
 @table @code
 @item none
-The is the default: all output is sent directly as it is generated and
+This is the default: all output is sent directly as it is generated and
 no synchronization is performed.
 
 @item job
