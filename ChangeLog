@@ -1,3 +1,8 @@
+2013-05-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* makeint.h (ftruncate) [_MSC_VER]: Redirect to _chsize.
+	(_S_ISDIR): If not defined (MinGW64), define to S_ISDIR.
+
 2013-05-04  Paul Smith  <psmith@gnu.org>
 
 	* job.c (child_out): Handle EINTR and incomplete write scenarios.

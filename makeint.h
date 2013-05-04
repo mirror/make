@@ -351,6 +351,14 @@ char *strsignal (int signum);
 # include <malloc.h>
 # define pipe(_p)        _pipe((_p), 512, O_BINARY)
 # define kill(_pid,_sig) w32_kill((_pid),(_sig))
+/* MSVC doesn't have ftruncate.  */
+# ifdef _MSC_VER
+#  define ftruncate(_fd,_len) _chsize(_fd,_len)
+# endif
+/* MinGW64 doesn't have _S_ISDIR.  */
+# ifndef _S_ISDIR
+#  define _S_ISDIR(m)  S_ISDIR(m)
+# endif
 
 void sync_Path_environment (void);
 int w32_kill (pid_t pid, int sig);
