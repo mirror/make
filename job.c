@@ -476,32 +476,30 @@ is_bourne_compatible_shell (const char *path)
 static void
 child_out (const struct child *child, const char *msg, int out)
 {
-  int outfd = out ? child->outfd : child->errfd;
+  int fd = out ? child->outfd : child->errfd;
 
-  if (outfd >= 0)
+  if (fd >= 0)
     {
-      int t = strlen (msg);
-      int l;
-      lseek (outfd, 0, SEEK_END);
-      while (t)
+      int len = strlen (msg);
+
+      lseek (fd, 0, SEEK_END);
+      while (1)
         {
-          EINTRLOOP (l, write (outfd, msg, t));
-          if (l == t)
+          int b;
+          EINTRLOOP (b, write (fd, msg, len));
+          if (b == len)
             break;
-          if (l < 0)
-            {
-              perror ("write()");
-              break;
-            }
-          t -= l;
-          msg += l;
+          if (b <= 0)
+            return;
+          len -= b;
+          msg += b;
         }
     }
   else
     {
-      FILE *outf = out ? stdout : stderr;
-      fputs (msg, outf);
-      fflush (outf);
+      FILE *f = out ? stdout : stderr;
+      fputs (msg, f);
+      fflush (f);
     }
 }
 
@@ -688,56 +686,38 @@ assign_child_tempfiles (struct child *c)
 
 /* Support routine for sync_output() */
 static void
-pump_from_tmp_fd (int from_fd, int to_fd)
+pump_from_tmp (int from, FILE *to)
 {
-  ssize_t nleft, nwrite;
-  char buffer[8192];
+  static char buffer[8192];
 
 #ifdef WINDOWS32
   int prev_mode;
 
   /* from_fd is opened by open_tmpfd, which does it in binary mode, so
      we need the mode of to_fd to match that.  */
-  prev_mode = _setmode (to_fd, _O_BINARY);
+  prev_mode = _setmode (fileno(to), _O_BINARY);
 #endif
 
-  if (lseek (from_fd, 0, SEEK_SET) == -1)
+  if (lseek (from, 0, SEEK_SET) == -1)
     perror ("lseek()");
 
   while (1)
     {
-      char *write_buf = buffer;
-      EINTRLOOP (nleft, read (from_fd, buffer, sizeof (buffer)));
-      if (nleft < 0)
+      int len;
+      EINTRLOOP (len, read (from, buffer, sizeof (buffer)));
+      if (len < 0)
         perror ("read()");
-      if (nleft <= 0)
+      if (len <= 0)
         break;
-      while (nleft > 0)
-      {
-        EINTRLOOP (nwrite, write (to_fd, write_buf, nleft));
-        if (nwrite < 0)
-          {
-            perror ("write()");
-            goto finished;
-          }
-
-        write_buf += nwrite;
-        nleft -= nwrite;
-      }
+      if (fwrite (buffer, len, 1, to) < 1)
+        perror ("fwrite()");
     }
-
- finished:
 
 #ifdef WINDOWS32
   /* Switch to_fd back to its original mode, so that log messages by
      Make have the same EOL format as without --output-sync.  */
-  _setmode (to_fd, prev_mode);
+  _setmode (fileno (to), prev_mode);
 #endif
-
-  /* This is needed to avoid the "label at end of compound statement"
-     diagnostics on Posix platforms, which don't see the above
-     ifdef'ed code.  */
-  return;
 }
 
 /* Support routine for sync_output() */
@@ -788,11 +768,11 @@ sync_output (struct child *c)
       if (outfd_not_empty)
         {
           log_working_directory (1, 1);
-          pump_from_tmp_fd (c->outfd, fileno (stdout));
+          pump_from_tmp (c->outfd, stdout);
           log_working_directory (0, 1);
         }
       if (errfd_not_empty && c->errfd != c->outfd)
-        pump_from_tmp_fd (c->errfd, fileno (stderr));
+        pump_from_tmp (c->errfd, stderr);
 
       /* Exit the critical section.  */
       if (sem)

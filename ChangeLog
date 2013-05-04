@@ -1,3 +1,8 @@
+2013-05-04  Paul Smith  <psmith@gnu.org>
+
+	* job.c (pump_from_tmp): (Rename) Write to stdout/stderr using
+	FILE* rather than fd.  It's not a good idea to mix and match.
+
 2013-05-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* makeint.h (ftruncate) [_MSC_VER]: Redirect to _chsize.
