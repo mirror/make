@@ -1,5 +1,7 @@
 2013-05-04  Paul Smith  <psmith@gnu.org>
 
+	* scripts/features/loadapi: Use the new alloc functions.
+
 	* scripts/features/output-sync (output_sync_set): New test for
 	ordered recursive output for -Ojob / -Otarget.
 

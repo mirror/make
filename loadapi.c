@@ -20,6 +20,20 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "variable.h"
 #include "dep.h"
 
+/* Allocate a buffer in our context, so we can free it.  */
+char *
+gmk_alloc (unsigned int len)
+{
+  return xmalloc (len);
+}
+
+/* Free a buffer returned by gmk_expand().  */
+void
+gmk_free (char *s)
+{
+  free (s);
+}
+
 /* Evaluate a buffer as make syntax.
    Ideally eval_buffer() will take const char *, but not yet.  */
 void
@@ -31,7 +45,7 @@ gmk_eval (const char *buffer, const gmk_floc *floc)
 }
 
 /* Expand a string and return an allocated buffer.
-   Caller must free() this buffer.  */
+   Caller must call gmk_free() with this buffer.  */
 char *
 gmk_expand (const char *ref)
 {

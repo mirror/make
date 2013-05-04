@@ -49,11 +49,12 @@ char *alloca ();
 
 /* Include the externally-visible content.
    Be sure to use the local one, and not one installed on the system.
-   Define MAIN for proper selection of dllexport/dllimport declarations
+   Define GMK_EXPORT for proper selection of dllexport/dllimport declarations
    for MS-Windows.  */
-#define MAIN
+#ifdef WINDOWS32
+# define GMK_EXPORT  __declspec(dllexport)
+#endif
 #include "gnumake.h"
-#undef MAIN
 
 #ifdef  CRAY
 /* This must happen before #include <signal.h> so

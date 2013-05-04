@@ -36,13 +36,17 @@ test_expand (const char *val)
 static char *
 func_test (const char *funcname, int argc, char **argv)
 {
+    char *mem;
+
     if (strcmp (funcname, "test-expand") == 0)
         return test_expand (argv[0]);
 
     if (strcmp (funcname, "test-eval") == 0)
         return test_eval (argv[0]);
 
-    return strdup ("unknown");
+    mem = gmk_alloc (strlen ("unknown") + 1);
+    strcpy (mem, "unknown");
+    return mem;
 }
 
 int

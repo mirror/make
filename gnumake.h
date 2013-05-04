@@ -26,22 +26,26 @@ typedef struct
     unsigned long lineno;
   } gmk_floc;
 
+
 #ifdef _WIN32
-# ifdef MAIN
-#  define GMK_EXPORT  __declspec(dllexport)
-# else
+# ifndef GMK_EXPORT
 #  define GMK_EXPORT  __declspec(dllimport)
 # endif
 #else
 # define GMK_EXPORT
 #endif
 
+/* Free memory returned by the gmk_expand() function.  */
+void GMK_EXPORT gmk_free (char *str);
+
+/* Allocate memory in GNU make's context.  */
+char * GMK_EXPORT gmk_alloc (unsigned int len);
 
 /* Run $(eval ...) on the provided string BUFFER.  */
 void GMK_EXPORT gmk_eval (const char *buffer, const gmk_floc *floc);
 
 /* Run GNU make expansion on the provided string STR.
-   Returns an allocated buffer that the caller must free.  */
+   Returns an allocated buffer that the caller must free with gmk_free().  */
 char * GMK_EXPORT gmk_expand (const char *str);
 
 /* Register a new GNU make function NAME (maximum of 255 chars long).
@@ -50,7 +54,7 @@ char * GMK_EXPORT gmk_expand (const char *str);
 
    The return value of FUNC must be either NULL, in which case it expands to
    the empty string, or a pointer to the result of the expansion in a string
-   created by malloc().  GNU make will free() the memory when it's done.
+   created by gmk_alloc().  GNU make will free the memory when it's done.
 
    MIN_ARGS is the minimum number of arguments the function requires.
    MAX_ARGS is the maximum number of arguments (or 0 if there's no maximum).
@@ -60,8 +64,8 @@ char * GMK_EXPORT gmk_expand (const char *str);
    before FUNC is called.  If EXPAND_ARGS is non-0, they will be expanded.
 */
 void GMK_EXPORT gmk_add_function (const char *name,
-				  char *(*func)(const char *nm,
-						int argc, char **argv),
-				  int min_args, int max_args, int expand_args);
+                                  char *(*func)(const char *nm,
+                                                int argc, char **argv),
+                                  int min_args, int max_args, int expand_args);
 
 #endif  /* _GNUMAKE_H_ */

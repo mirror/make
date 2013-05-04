@@ -1,5 +1,12 @@
 2013-05-04  Paul Smith  <psmith@gnu.org>
 
+	* loadapi.c (gmk_alloc): New function.
+	* gnumake.h: Add gmk_alloc().  Clean GMK_EXPORT a bit to avoid MAIN.
+	* makeint.h (GMK_EXPORT): New handling, vs. MAIN.
+	* doc/make.texi (Loaded Object API): Add information on the memory
+	handling functions.
+	(Loaded Object Example): Create an example.
+
 	* job.c (pump_from_tmp): (Rename) Write to stdout/stderr using
 	FILE* rather than fd.  It's not a good idea to mix and match.
 

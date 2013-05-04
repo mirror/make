@@ -354,6 +354,7 @@ Loading Dynamic Objects
 * load Directive::              Loading dynamic objects as extensions.
 * Remaking Loaded Objects::     How loaded objects get remade.
 * Loaded Object API::           Programmatic interface for loaded objects.
+* Loaded Object Example::       Example of a loaded object
 
 @end detailmenu
 @end menu
@@ -10892,6 +10893,7 @@ for example, and the ``setup'' function would register them with GNU
 * load Directive::              Loading dynamic objects as extensions.
 * Remaking Loaded Objects::     How loaded objects get remade.
 * Loaded Object API::           Programmatic interface for loaded objects.
+* Loaded Object Example::       Example of a loaded object
 @end menu
 
 @node load Directive, Remaking Loaded Objects, Loading Objects, Loading Objects
@@ -10992,7 +10994,7 @@ support this.@refill
 It's up to the makefile author to provide the rules needed for
 rebuilding the loaded object.
 
-@node Loaded Object API,  , Remaking Loaded Objects, Loading Objects
+@node Loaded Object API, Loaded Object Example, Remaking Loaded Objects, Loading Objects
 @subsection Loaded Object Interface
 @cindex loaded object API
 @cindex interface for loaded objects
@@ -11009,8 +11011,8 @@ implementations in future versions of GNU @code{make}.
 
 To be useful, loaded objects must be able to interact with GNU
 @code{make}.  This interaction includes both interfaces the loaded
-object provides to makefiles and also interfaces the loaded object can
-use to manipulate @code{make}'s operation.
+object provides to makefiles and also interfaces @code{make} provides
+to the loaded object to manipulate @code{make}'s operation.
 
 The interface between loaded objects and @code{make} is defined by the
 @file{gnumake.h} C header file.  All loaded objects written in C
@@ -11021,7 +11023,8 @@ Typically, a loaded object will register one or more new GNU
 @code{make} functions using the @code{gmk_add_function} routine from
 within its setup function.  The implementations of these @code{make}
 functions may make use of the @code{gmk_expand} and @code{gmk_eval}
-routines to perform their tasks.
+routines to perform their tasks, then optionally return a string as
+the result of the function expansion.
 
 @subsubheading Data Structures
 
@@ -11033,6 +11036,7 @@ where the definition occurred if necessary.
 @end table
 
 @subsubheading Registering Functions
+@findex gmk_add_function
 
 There is currently one way for makefiles to invoke operations provided
 by the loaded object: through the @code{make} function call
@@ -11087,15 +11091,18 @@ works with.
 
 @table @code
 @item gmk_expand
+@findex gmk_expand
 This function takes a string and expands it using @code{make}
-expansion rules.  The result of the expansion is returned in a string
-that has been allocated using @code{malloc}.  The caller is
-responsible for calling @code{free} on the string when done.
+expansion rules.  The result of the expansion is returned in a
+nil-terminated string buffer.  The caller is responsible for calling
+@code{gmk_free} with a pointer to the returned buffer when done.
 
 @item gmk_eval
+@findex gmk_eval
 This function takes a buffer and evaluates it as a segment of makefile
 syntax.  This function can be used to define new variables, new rules,
 etc.  It is equivalent to using the @code{eval} @code{make} function.
+@end table
 
 Note that there is a difference between @code{gmk_eval} and calling
 @code{gmk_expand} with a string using the @code{eval} function: in
@@ -11103,7 +11110,107 @@ the latter case the string will be expanded @emph{twice}; once by
 @code{gmk_expand} and then again by the @code{eval} function.  Using
 @code{gmk_eval} the buffer is only expanded once, at most (as it's
 read by the @code{make} parser).
+
+@subsubheading Memory Management
+
+Some systems allow for different memory management schemes.  Thus you
+should never pass memory that you've allocated directly to any
+@code{make} function, nor should you attempt to directly free any
+memory returned to you by any @code{make} function.  Instead, use the
+@code{gmk_alloc} and @code{gmk_free} functions.
+
+@table @code
+@item gmk_alloc
+@findex gmk_alloc
+Return a pointer to a newly-allocated buffer.  This function will
+always return a valid pointer; if not enough memory is available
+@code{make} will exit.
+
+@item gmk_free
+@findex gmk_free
+Free a buffer returned to you by @code{make}.  Once the
+@code{gmk_free} function returns the string will no longer be valid.
 @end table
+
+@node Loaded Object Example,  , Loaded Object API, Loading Objects
+@subsection Example Loaded Object
+@cindex loaded object example
+@cindex example of loaded objects
+
+Let's suppose we wanted to write a new GNU @code{make} function that
+would create a temporary file and return its name.  We would like our
+function to take a prefix as an argument.  First we can write the
+function in a file @file{mk_temp.c}:
+
+@example
+@group
+#include <stdlib.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+
+#include <gnumake.h>
+
+char *
+gen_tmpfile(const char *nm, int argc, char **argv)
+@{
+  int fd;
+
+  /* Compute the size of the filename and allocate space for it.  */
+  int len = strlen (argv[0]) + 6 + 1;
+  char *buf = gmk_alloc (len);
+
+  strcpy (buf, argv[0]);
+  strcat (buf, "XXXXXX");
+
+  fd = mkstemp(buf);
+  if (fd >= 0)
+    @{
+      /* Don't leak the file descriptor.  */
+      close (fd);
+      return buf;
+    @}
+
+  /* Failure.  */
+  fprintf (stderr, "mkstemp(%s) failed: %s\n", buf, strerror (errno));
+  gmk_free (buf);
+  return NULL;
+@}
+
+int
+mk_temp_gmk_setup ()
+@{
+  /* Register the function with make name "mk-temp".  */
+  gmk_add_function ("mk-temp", gen_tmpfile, 1, 1, 1);
+  return 1;
+@}
+@end group
+@end example
+
+Next, we will write a makefile that can build this shared object, load
+it, and use it:
+
+@example
+@group
+all:
+        @@echo Temporary file: $(mk-temp tmpfile.)
+
+load mk_temp.so
+
+mk_temp.so: mk_temp.c
+        $(CC) -shared -fPIC -o $@ $<
+@end group
+@end example
+
+Now when you run @code{make} you'll see something like:
+
+@example
+$ make
+cc -shared -fPIC -o mk_temp.so mk_temp.c
+Temporary filename: tmpfile.A7JEwd
+@end example
 
 @node Features, Missing, Extending make, Top
 @chapter Features of GNU @code{make}
