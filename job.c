@@ -688,7 +688,8 @@ pump_from_tmp_fd (int from_fd, int to_fd)
 #endif
 
   /* This is needed to avoid the "label at end of compound statement"
-     diagnostics on Posix platforms.  */
+     diagnostics on Posix platforms, which don't see the above
+     ifdef'ed code.  */
   return;
 }
 
