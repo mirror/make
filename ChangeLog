@@ -1,3 +1,15 @@
+2013-05-05  Paul Smith  <psmith@gnu.org>
+
+	* job.c (child_out): Write newlines explicitly, and don't do
+	anything if the message is empty.
+	(sync_output): Put working dir messages around stdout AND stderr.
+	(start_job_command): Move the tmp file assignment earlier.  After
+	we do it, write the command line to the temp file to get the order
+	correct.
+
+	* misc.c (message): Remove special handling for output_sync.
+	(error): Ditto.
+
 2013-05-04  Paul Smith  <psmith@gnu.org>
 
 	* loadapi.c (gmk_alloc): New function.

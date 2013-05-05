@@ -1,3 +1,9 @@
+2013-05-05  Paul Smith  <psmith@gnu.org>
+
+	* scripts/features/output-sync (output_sync_set): Remove
+	extraneous enter/leave lines, which are no longer printed.
+	Add tests for syncing command line printing.
+
 2013-05-04  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/loadapi: Use the new alloc functions.

@@ -179,11 +179,11 @@ concat (unsigned int num, ...)
   return result;
 }
 
-/* If we had a standard-compliant vsnprintf() this would be a lot simpler.
-   Maybe in the future we'll include gnulib's version.  */
 
 /* Return a formatted string buffer.
-   LENGTH must be the maximum length of all format arguments, stringified.  */
+   LENGTH must be the maximum length of all format arguments, stringified.
+   If we had a standard-compliant vsnprintf() this would be a lot simpler.
+   Maybe in the future we'll include gnulib's version.  */
 
 const char *
 message_s (unsigned int length, int prefix, const char *fmt, ...)
@@ -214,8 +214,6 @@ message_s (unsigned int length, int prefix, const char *fmt, ...)
   va_start (args, fmt);
   vsprintf (bp, fmt, args);
   va_end (args);
-
-  strcat (bp, "\n");
 
   return buffer;
 }
@@ -253,8 +251,6 @@ error_s (unsigned int length, const gmk_floc *flocp, const char *fmt, ...)
   vsprintf (bp, fmt, args);
   va_end (args);
 
-  strcat (bp, "\n");
-
   return buffer;
 }
 
@@ -270,9 +266,6 @@ message (int prefix, const char *fmt, ...)
 
   if (fmt != 0)
     {
-      if (output_sync)
-        log_working_directory (1, 1);
-
       if (prefix)
 	{
 	  if (makelevel == 0)
@@ -284,9 +277,6 @@ message (int prefix, const char *fmt, ...)
       vfprintf (stdout, fmt, args);
       va_end (args);
       putchar ('\n');
-
-      if (output_sync)
-        log_working_directory (0, 1);
     }
 
   fflush (stdout);
@@ -299,10 +289,7 @@ error (const gmk_floc *flocp, const char *fmt, ...)
 {
   va_list args;
 
-  if (output_sync)
-    log_working_directory (1, 1);
-  else
-    log_working_directory (1, 0);
+  log_working_directory (1, 0);
 
   if (flocp && flocp->filenm)
     fprintf (stderr, "%s:%lu: ", flocp->filenm, flocp->lineno);
@@ -317,9 +304,6 @@ error (const gmk_floc *flocp, const char *fmt, ...)
 
   putc ('\n', stderr);
   fflush (stderr);
-
-  if (output_sync)
-    log_working_directory (0, 1);
 }
 
 /* Print an error message and exit.  */

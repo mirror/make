@@ -127,14 +127,11 @@ make-foo: ; \$(MAKE) -C foo
 make-bar: ; \$(MAKE) -C bar!,
               '-j -Omake',
 "#MAKEPATH# -C foo
-#MAKEPATH# -C bar
-#MAKE#[1]: Entering directory '#PWD#/foo'
 #MAKE#[1]: Entering directory '#PWD#/foo'
 foo: start
 foo: end
 #MAKE#[1]: Leaving directory '#PWD#/foo'
-#MAKE#[1]: Leaving directory '#PWD#/foo'
-#MAKE#[1]: Entering directory '#PWD#/bar'
+#MAKEPATH# -C bar
 #MAKE#[1]: Entering directory '#PWD#/bar'
 bar: start
 bar: end
@@ -142,7 +139,6 @@ bar: end
 #MAKE#[1]: Entering directory '#PWD#/bar'
 baz: start
 baz: end
-#MAKE#[1]: Leaving directory '#PWD#/bar'
 #MAKE#[1]: Leaving directory '#PWD#/bar'\n", 0, 6);
 
 # Test per-target synchronization.
@@ -160,8 +156,6 @@ make-bar: ; $sleep_command 1 ; \$(MAKE) -C bar!,
               '-j --output-sync=target',
 "#MAKEPATH# -C foo
 $sleep_command 1 ; #MAKEPATH# -C bar
-#MAKE#[1]: Entering directory '#PWD#/foo'
-#MAKE#[1]: Entering directory '#PWD#/bar'
 #MAKE#[1]: Entering directory '#PWD#/bar'
 bar: start
 bar: end
@@ -170,11 +164,9 @@ bar: end
 foo: start
 foo: end
 #MAKE#[1]: Leaving directory '#PWD#/foo'
-#MAKE#[1]: Leaving directory '#PWD#/foo'
 #MAKE#[1]: Entering directory '#PWD#/bar'
 baz: start
 baz: end
-#MAKE#[1]: Leaving directory '#PWD#/bar'
 #MAKE#[1]: Leaving directory '#PWD#/bar'\n", 0, 6);
 
 # Test that messages from make itself are enclosed with
@@ -189,19 +181,15 @@ make-bar-bar: ; $sleep_command 1 ; \$(MAKE) -C bar bar!,
               '-j -O',
 "#MAKEPATH# -C foo foo-fail
 $sleep_command 1 ; #MAKEPATH# -C bar bar
-#MAKE#[1]: Entering directory '#PWD#/foo'
-#MAKE#[1]: Entering directory '#PWD#/bar'
 #MAKE#[1]: Entering directory '#PWD#/bar'
 bar: start
 bar: end
-#MAKE#[1]: Leaving directory '#PWD#/bar'
 #MAKE#[1]: Leaving directory '#PWD#/bar'
 #MAKE#[1]: Entering directory '#PWD#/foo'
 foo-fail: start
 foo-fail: end
 Makefile:20: recipe for target 'foo-fail' failed
 #MAKE#[1]: *** [foo-fail] Error 1
-#MAKE#[1]: Leaving directory '#PWD#/foo'
 #MAKE#[1]: Leaving directory '#PWD#/foo'
 #MAKEFILE#:4: recipe for target 'make-foo-fail' failed
 #MAKE#: *** [make-foo-fail] Error 2\n",
@@ -224,20 +212,16 @@ make-bar: ; $sleep_command 1 ; \$(MAKE) -C bar bar-job!,
 "#MAKEPATH# -C foo foo-job
 $sleep_command 1 ; #MAKEPATH# -C bar bar-job
 #MAKE#[1]: Entering directory '#PWD#/foo'
-#MAKE#[1]: Entering directory '#PWD#/foo'
 foo: start
 #MAKE#[1]: Leaving directory '#PWD#/foo'
-#MAKE#[1]: Entering directory '#PWD#/bar'
 #MAKE#[1]: Entering directory '#PWD#/bar'
 bar: start
 #MAKE#[1]: Leaving directory '#PWD#/bar'
 #MAKE#[1]: Entering directory '#PWD#/bar'
 bar: end
 #MAKE#[1]: Leaving directory '#PWD#/bar'
-#MAKE#[1]: Leaving directory '#PWD#/bar'
 #MAKE#[1]: Entering directory '#PWD#/foo'
 foo: end
-#MAKE#[1]: Leaving directory '#PWD#/foo'
 #MAKE#[1]: Leaving directory '#PWD#/foo'\n", 0, 6);
 
 
@@ -253,6 +237,16 @@ all:
               '-j -Ojob', "foo\nbar\n");
 
 run_make_test(undef, '-j -Otarget', "foo\nbar\n");
+
+# Ensure when make writes out command it's not misordered
+run_make_test(qq!
+all:
+\t\@echo foobar
+\ttrue
+!,
+              '-j -Ojob', "foobar\ntrue\n");
+
+run_make_test(undef, '-j -Otarget', "foobar\ntrue\n");
 
 # This tells the test driver that the perl test script executed properly.
 1;
