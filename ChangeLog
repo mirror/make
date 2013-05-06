@@ -1,5 +1,11 @@
 2013-05-06  Eli Zaretskii  <eliz@gnu.org>
 
+	* gnumake.h (GMK_EXPORT) [_WIN32]: Move the dllexport declaration
+	here from makeint.h.
+
+	* makeint.h (GMK_BUILDING_MAKE) [WINDOWS32]: Define before
+	including gnumake.h.
+
 	* doc/make.texi (Loaded Object Example): Add a note about building
 	shared objects on MS-Windows.
 

@@ -49,10 +49,10 @@ char *alloca ();
 
 /* Include the externally-visible content.
    Be sure to use the local one, and not one installed on the system.
-   Define GMK_EXPORT for proper selection of dllexport/dllimport declarations
-   for MS-Windows.  */
+   Define GMK_BUILDING_MAKE for proper selection of dllexport/dllimport
+   declarations for MS-Windows.  */
 #ifdef WINDOWS32
-# define GMK_EXPORT  __declspec(dllexport)
+# define GMK_BUILDING_MAKE
 #endif
 #include "gnumake.h"
 

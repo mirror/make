@@ -28,7 +28,9 @@ typedef struct
 
 
 #ifdef _WIN32
-# ifndef GMK_EXPORT
+# ifdef GMK_BUILDING_MAKE
+#  define GMK_EXPORT  __declspec(dllexport)
+# else
 #  define GMK_EXPORT  __declspec(dllimport)
 # endif
 #else
