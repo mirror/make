@@ -543,10 +543,10 @@ int strncasecmp (const char *s1, const char *s2, int n);
 # define OUTPUT_SYNC
 #endif
 
-#define OUTPUT_SYNC_NONE   0
-#define OUTPUT_SYNC_JOB    1
-#define OUTPUT_SYNC_TARGET 2
-#define OUTPUT_SYNC_MAKE   3
+#define OUTPUT_SYNC_NONE    0
+#define OUTPUT_SYNC_LINE    1
+#define OUTPUT_SYNC_TARGET  2
+#define OUTPUT_SYNC_RECURSE 3
 
 extern const gmk_floc *reading_file;
 extern const gmk_floc **expanding_var;

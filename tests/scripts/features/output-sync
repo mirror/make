@@ -125,7 +125,7 @@ all: make-foo make-bar
 make-foo: ; \$(MAKE) -C foo
 
 make-bar: ; \$(MAKE) -C bar!,
-              '-j -Omake',
+              '-j -Orecurse',
 "#MAKEPATH# -C foo
 #MAKE#[1]: Entering directory '#PWD#/foo'
 foo: start
@@ -208,7 +208,7 @@ all: make-foo make-bar
 make-foo: ; \$(MAKE) -C foo foo-job
 
 make-bar: ; $sleep_command 1 ; \$(MAKE) -C bar bar-job!,
-              '-j --output-sync=job',
+              '-j --output-sync=line',
 "#MAKEPATH# -C foo foo-job
 $sleep_command 1 ; #MAKEPATH# -C bar bar-job
 #MAKE#[1]: Entering directory '#PWD#/foo'
@@ -234,7 +234,7 @@ all:
 \t\@echo foo
 \t\@+echo bar
 !,
-              '-j -Ojob', "foo\nbar\n");
+              '-j -Oline', "foo\nbar\n");
 
 run_make_test(undef, '-j -Otarget', "foo\nbar\n");
 
@@ -244,7 +244,7 @@ all:
 \t\@echo foobar
 \ttrue
 !,
-              '-j -Ojob', "foobar\ntrue\n");
+              '-j -Oline', "foobar\ntrue\n");
 
 run_make_test(undef, '-j -Otarget', "foobar\ntrue\n");
 

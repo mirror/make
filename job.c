@@ -1141,7 +1141,7 @@ reap_children (int block, int err)
 #ifdef OUTPUT_SYNC
                   /* If we're sync'ing per line, write the previous line's
                      output before starting the next one.  */
-                  if (output_sync == OUTPUT_SYNC_JOB)
+                  if (output_sync == OUTPUT_SYNC_LINE)
                     sync_output (c);
 #endif
                   /* Check again whether to start remotely.
@@ -1518,7 +1518,7 @@ start_job_command (struct child *child)
   /* Are we going to synchronize this command's output?  Do so if either we're
      in SYNC_MAKE mode or this command is not recursive.  We'll also check
      output_sync separately below in case it changes due to error.  */
-  sync_cmd = output_sync && (output_sync == OUTPUT_SYNC_MAKE
+  sync_cmd = output_sync && (output_sync == OUTPUT_SYNC_RECURSE
                              || !(flags & COMMANDS_RECURSE));
 
 #ifdef OUTPUT_SYNC

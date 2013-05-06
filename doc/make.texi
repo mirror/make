@@ -4131,15 +4131,15 @@ running in parallel, they will communicate so that only one of them is
 generating output at a time.
 
 There are four levels of granularity when synchronizing output,
-specified by giving an argument to the option (e.g.,  @samp{-Ojob} or
-@samp{--output-sync=make}).
+specified by giving an argument to the option (e.g.,  @samp{-Oline} or
+@samp{--output-sync=recurse}).
 
 @table @code
 @item none
 This is the default: all output is sent directly as it is generated and
 no synchronization is performed.
 
-@item job
+@item line
 Output from each individual line of the recipe is grouped and printed
 as soon as that line is complete.  If a recipe consists of multiple
 lines, they may be interspersed with lines from other recipes.
@@ -4149,7 +4149,7 @@ Output from the entire recipe for each target is grouped and printed
 once the target is complete.  This is the default if the
 @code{--output-sync} or @code{-O} option is given with no argument.
 
-@item make
+@item recurse
 Output from each recursive invocation of @code{make} is grouped and
 printed once the recursive invocation is complete.
 
@@ -4158,25 +4158,50 @@ printed once the recursive invocation is complete.
 Regardless of the mode chosen, the total build time will be the same.
 The only difference is in how the output appears.
 
-The @samp{make} mode provides the most comprehensive grouping,
-allowing output from all targets built by a given makefile to appear
-together.  However, there will be long interludes during the build
-where no output appears while a recursive @code{make} is running,
-followed by a burst of output.  This mode is best for builds being
-performed in the background, where the output will be examined later.
+The @samp{target} and @samp{recurse} modes both collect the output of
+the entire recipe of a target and display it uninterrupted when the
+recipe completes.  The difference between them is in how recipes that
+contain recursive invocations of @code{make} are treated
+(@pxref{Recursion, ,Recursive Use of @code{make}}).  For all recipes
+which have no recursive lines, the @samp{target} and @samp{recurse}
+modes behave identically.
 
-The @samp{job} mode is mainly useful for front-ends that may be
-watching the output of @code{make} and looking for certain generated
-output to determine when recipes are started and completed.
+If the @samp{recurse} mode is chosen, recipes that contain recursive
+@code{make} invocations are treated the same as other targets: the
+output from the recipe, including the output from the recursive
+@code{make}, is saved and printed after the entire recipe is complete.
+This ensures output from all the targets built by a given recursive
+@code{make} instance are grouped together, which may make the output
+easier to understand.  However it also leads to long periods of time
+during the build where no output is seen, followed by large bursts of
+output.  If you are not watching the build as it proceeds, but instead
+viewing a log of the build after the fact, this may be the best option
+for you.
 
-You should be aware that some programs may act differently when they
-determine they're writing output to a terminal versus a file
-(typically described as ``interactive'' vs. ``non-interactive''
-modes).  If your makefile invokes a program like this then using the
-output synchronization options will cause the program to believe it's
-running in ``non-interactive'' mode even when it's writing to the
-terminal.  Of course, invoking @code{make} with output redirected to a
-file will elicit the same behavior.
+If you are watching the output, the long gaps of quiet during the
+build can be frustrating.  The @samp{target} output synchronization
+mode detects when @code{make} is going to be invoked recursively,
+using the standard methods, and it will not synchronize the output of
+those lines.  The recursive @code{make} will perform the
+synchronization for its targets and the output from each will be
+displayed immediately when it completes.  Be aware that output from
+recursive lines of the recipe are not synchronized (for example if
+the recursive line prints a message before running @code{make}, that
+message will not be synchronized).
+
+The @samp{line} mode can be useful for front-ends that are watching
+the output of @code{make} to track when recipes are started and
+completed.
+
+Some programs invoked by @code{make} may behave differently if they
+determine they're writing output to a terminal versus a file (often
+described as ``interactive'' vs. ``non-interactive'' modes).  For
+example, many programs that can display colorized output often will
+not do so if they determine they are not displaying on a terminal.  If
+your makefile invokes a program like this then using the output
+synchronization options will cause the program to believe it's running
+in ``non-interactive'' mode even when it's ultimately writing to the
+terminal.
 
 @node Parallel Input,  , Parallel Output, Parallel
 @subsection Input During Parallel Execution
@@ -8702,18 +8727,10 @@ uninterrupted sequence.  This option is only useful when using the
 will be displayed as it is generated by the recipes.@refill
 
 With no type or the type @samp{target}, output from the entire recipe
-of each target is grouped together.  With the type @samp{job}, output
-from each job in the recipe is grouped together.  With the type
-@samp{make}, the output from an entire recursive make is grouped
-together.  The latter achieves better grouping of output from related
-jobs, but causes longer delay since messages do not appear until the
-entire recursive make has completed (this does not increase the total
-build time, though).  In general @samp{target} mode is useful when
-watching the output while make runs, and @samp{make} mode is useful
-when running a complex parallel build in the background and checking
-its output afterwards.  The @samp{job} mode may be helpful for tools
-which watch the output to determine when recipes have started or
-stopped.
+of each target is grouped together.  With the type @samp{line}, output
+from each line in the recipe is grouped together.  With the type
+@samp{recurse}, the output from an entire recursive make is grouped
+together.  @xref{Parallel Output, ,Output During Parallel Execution}.
 
 @item -q
 @cindex @code{-q}

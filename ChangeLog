@@ -1,5 +1,13 @@
 2013-05-05  Paul Smith  <psmith@gnu.org>
 
+	* makeint.h (OUTPUT_SYNC_LINE, OUTPUT_SYNC_RECURSE): Rename
+	output-sync options "job" to "line" and "make" to "recurse".
+	* main.c (decode_output_sync_flags): Ditto.
+	* job.c (reap_children): Ditto.
+	(start_job_command): Ditto.
+	* make.1: Ditto.
+	* doc/make.texi (Parallel Output): Ditto.
+
 	* job.c (child_out): Write newlines explicitly, and don't do
 	anything if the message is empty.
 	(sync_output): Put working dir messages around stdout AND stderr.

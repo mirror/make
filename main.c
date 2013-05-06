@@ -517,9 +517,9 @@ int second_expansion;
 
 int one_shell;
 
-/* Either OUTPUT_SYNC_TARGET or OUTPUT_SYNC_MAKE if the "--output-sync" option
-   was given.  This attempts to synchronize the output of parallel jobs such
-   that the results of each job stay together.  */
+/* One of OUTPUT_SYNC_* if the "--output-sync" option was given.  This
+   attempts to synchronize the output of parallel jobs such that the results
+   of each job stay together.  */
 
 int output_sync;
 
@@ -697,12 +697,12 @@ decode_output_sync_flags (void)
 
       if (streq (p, "none"))
         output_sync = OUTPUT_SYNC_NONE;
-      else if (streq (p, "job"))
-        output_sync = OUTPUT_SYNC_JOB;
+      else if (streq (p, "line"))
+        output_sync = OUTPUT_SYNC_LINE;
       else if (streq (p, "target"))
         output_sync = OUTPUT_SYNC_TARGET;
-      else if (streq (p, "make"))
-        output_sync = OUTPUT_SYNC_MAKE;
+      else if (streq (p, "recurse"))
+        output_sync = OUTPUT_SYNC_RECURSE;
       else
         fatal (NILF, _("unknown output-sync type '%s'"), p);
     }
