@@ -153,7 +153,6 @@ AC_CHECK_FUNCS([strcasecmp strncasecmp strcmpi strncmpi stricmp strnicmp])
 AC_FUNC_STRCOLL
 
 AC_FUNC_ALLOCA
-AC_FUNC_FORK([])
 AC_FUNC_CLOSEDIR_VOID
 
 # See if the user wants to add (or not) GNU Guile support

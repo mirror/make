@@ -109,9 +109,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if utime(file, NULL) sets file's timestamp to the present.  */
 /* #undef HAVE_UTIME_NULL */
 
-/* Define if you have <vfork.h>.  */
-/* #undef HAVE_VFORK_H */
-
 /* Define if you have the wait3 system call.  */
 /* #undef HAVE_WAIT3 */
 
@@ -175,9 +172,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define for Encore UMAX 4.3 that has <inq_status/cpustats.h>
    instead of <sys/cpustats.h>.  */
 /* #undef UMAX4_3 */
-
-/* Define vfork as fork if vfork does not work.  */
-/* #undef vfork */
 
 /* Name of this package (needed by automake) */
 #define PACKAGE "%PACKAGE%"

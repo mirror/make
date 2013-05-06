@@ -123,9 +123,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the 'fileno' function. */
 #define HAVE_FILENO 1
 
-/* Define to 1 if you have the 'fork' function. */
-/* #undef HAVE_FORK */
-
 /* Define to 1 if you have the 'getcwd' function.  */
 #define HAVE_GETCWD 1
 
@@ -339,23 +336,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_UNISTD_H 1
 #endif
 
-/* Define to 1 if you have the 'vfork' function. */
-/* #undef HAVE_VFORK */
-
-/* Define to 1 if you have the <vfork.h> header file. */
-/* #undef HAVE_VFORK_H */
-
 /* Define to 1 if you have the 'wait3' function. */
 /* #undef HAVE_WAIT3 */
 
 /* Define to 1 if you have the 'waitpid' function. */
 /* #undef HAVE_WAITPID */
-
-/* Define to 1 if 'fork' works. */
-/* #undef HAVE_WORKING_FORK */
-
-/* Define to 1 if 'vfork' works. */
-/* #undef HAVE_WORKING_VFORK */
 
 /* Build host information. */
 #define MAKE_HOST "Windows32"
@@ -497,9 +482,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #if !HAVE_STDINT_H && !HAVE_INTTYPES_H
 #define uintmax_t unsigned long
 #endif
-
-/* Define as 'fork' if 'vfork' does not work. */
-/*#define vfork fork*/
 
 /* Define if you have <sys/wait.h> that is POSIX.1 compatible.  */
 /* #undef HAVE_SYS_WAIT_H */

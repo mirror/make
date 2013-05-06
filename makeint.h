@@ -492,10 +492,6 @@ typedef int (*load_func_t)(const gmk_floc *flocp);
 int load_file (const gmk_floc *flocp, const char **filename, int noerror,
 	       void **dlp);
 
-#ifdef  HAVE_VFORK_H
-# include <vfork.h>
-#endif
-
 /* We omit these declarations on non-POSIX systems which define _POSIX_VERSION,
    because such systems often declare them in header files anyway.  */
 

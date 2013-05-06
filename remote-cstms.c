@@ -221,11 +221,11 @@ start_remote_job (char **argv, char **envp, int stdin_fd,
   fflush (stdout);
   fflush (stderr);
 
-  pid = vfork ();
+  pid = fork ();
   if (pid < 0)
     {
       /* The fork failed!  */
-      perror_with_name ("vfork", "");
+      perror_with_name ("fork", "");
       return 1;
     }
   else if (pid == 0)

@@ -1380,9 +1380,8 @@ start_job_command (struct child *child)
 #endif
   int print_cmd;
   int sync_cmd;
+  int flags;
   char *p;
-  /* Must be volatile to silence bogus GCC warning about longjmp/vfork.  */
-  volatile int flags;
 #ifdef VMS
   char *argv;
 #else
@@ -1677,7 +1676,7 @@ start_job_command (struct child *child)
 #ifdef VMS
       if (!child_execute_job (argv, child)) {
         /* Fork failed!  */
-        perror_with_name ("vfork", "");
+        perror_with_name ("fork", "");
         goto error;
       }
 
@@ -1718,7 +1717,7 @@ start_job_command (struct child *child)
 
 #else  /* !__EMX__ */
 
-      child->pid = vfork ();
+      child->pid = fork ();
       environ = parent_environ;	/* Restore value child may have clobbered.  */
       if (child->pid == 0)
 	{
@@ -1764,7 +1763,7 @@ start_job_command (struct child *child)
 	{
 	  /* Fork failed!  */
 	  unblock_sigs ();
-	  perror_with_name ("vfork", "");
+	  perror_with_name ("fork", "");
 	  goto error;
 	}
 # endif  /* !__EMX__ */
