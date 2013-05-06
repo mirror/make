@@ -11221,6 +11221,20 @@ mk_temp.so: mk_temp.c
 @end group
 @end example
 
+On MS-Windows, due to peculiarities of how shared objects are
+produced, the compiler needs to scan the @dfn{import library} produced
+when building @code{make}, typically called
+@file{libgnumake-@var{version}.dll.a}, where @var{version} is the
+version of the load object API.  So the recipe to produce a shared
+object will look on Windows like this (assuming the API version is 1):
+
+@example
+@group
+mk_temp.dll: mk_temp.c
+        $(CC) -shared -o $@ $< -lgnumake-1
+@end group
+@end example
+
 Now when you run @code{make} you'll see something like:
 
 @example

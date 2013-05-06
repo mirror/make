@@ -1,3 +1,8 @@
+2013-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* doc/make.texi (Loaded Object Example): Add a note about building
+	shared objects on MS-Windows.
+
 2013-05-05  Paul Smith  <psmith@gnu.org>
 
 	* makeint.h (OUTPUT_SYNC_LINE, OUTPUT_SYNC_RECURSE): Rename
