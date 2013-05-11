@@ -503,8 +503,8 @@ child_out (const struct child *child, const char *msg, int out)
     {
       FILE *f = out ? stdout : stderr;
       fputs (msg, f);
-      fflush (f);
       putc ('\n', f);
+      fflush (f);
     }
 }
 
