@@ -525,6 +525,8 @@ static const char *default_variables[] =
 #endif
 
 #endif /* !VMS */
+    /* Make this assignment to avoid undefined variable warnings.  */
+    "GNUMAKEFLAGS", "",
     0, 0
   };
 

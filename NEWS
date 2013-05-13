@@ -23,18 +23,20 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
   * Each backslash/newline (plus subsequent whitespace) is converted to a
     single space
 
-* New command line option: --trace enables tracing of targets.  When enabled
-  the recipe to be invoked is printed even if it would otherwise be suppressed
-  by .SILENT or a "@" prefix character.  Also before each recipe is run the
-  makefile name and linenumber where it was defined are shown as well as the
-  prerequisites that caused the target to be considered out of date.
-
 * New command line option: --output-sync (-O) enables grouping of output by
   target or by recursive make.  This is useful during parallel builds to avoid
   mixing output from different jobs together giving hard-to-understand
   results.  Original implementation by David Boyce <dsb@boyski.com>.
   Reworked and enhanced by Frank Heckenbach <f.heckenbach@fh-soft.de>.
   Windows support by Eli Zaretskii <eliz@gnu.org>.
+
+* New command line option: --trace enables tracing of targets.  When enabled
+  the recipe to be invoked is printed even if it would otherwise be suppressed
+  by .SILENT or a "@" prefix character.  Also before each recipe is run the
+  makefile name and linenumber where it was defined are shown as well as the
+  prerequisites that caused the target to be considered out of date.  If the
+  "dir" option argument is given, it will display directory enter/leave
+  logging around each block of synchronized output.
 
 * New feature: The "job server" capability is now supported on Windows.
   Implementation contributed by Troy Runkel <Troy.Runkel@mathworks.com>
@@ -66,6 +68,11 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
   the user and can add extended functionality, usable by makefiles.
 
 * New function: $(file ...) writes to a file.
+
+* New variable: $(GNUMAKEFLAGS) will be parsed for make flags, just like
+  MAKEFLAGS is.  It can be set in the environment or the makefile, containing
+  GNU make-specific flags to allow your makefile to be portable to other
+  versions of make.  GNU make never sets or modifies GNUMAKEFLAGS.
 
 * On failure, the makefile name and linenumber of the recipe that failed are
   shown.

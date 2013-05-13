@@ -4798,6 +4798,16 @@ itself.  For instance, the @samp{-t}, @samp{-n}, and @samp{-q} options, if
 put in one of these variables, could have disastrous consequences and would
 certainly have at least surprising and probably annoying effects.@refill
 
+If you'd like to run other implementations of @code{make} in addition
+to GNU @code{make}, and hence do not want to add GNU
+@code{make}-specific flags to the @code{MAKEFLAGS} variable, you can
+add them to the @code{GNUMAKEFLAGS} variable instead.  This variable
+is parsed just before @code{MAKEFLAGS}, in the same way as
+@code{MAKEFLAGS}.  Note, however, that when @code{make} constructs
+@code{MAKEFLAGS} to pass to a recursive @code{make} it will include
+all flags.  GNU @code{make} never sets the @code{GNUMAKEFLAGS}
+variable itself.
+
 @node -w Option,  , Options/Recursion, Recursion
 @subsection The @samp{--print-directory} Option
 @cindex directories, printing them
@@ -11967,6 +11977,16 @@ It is @emph{never} appropriate to use @code{MAKEFLAGS} directly in a
 recipe line: its contents may not be quoted correctly for use in the
 shell.  Always allow recursive @code{make}'s to obtain these values
 through the environment from its parent.
+
+@item GNUMAKEFLAGS
+
+Other flags parsed by @code{make}.  You can set this in the environment or
+a makefile to set @code{make} command-line flags.  GNU @code{make}
+never sets this variable itself.  This variable is only needed if
+you'd like to set GNU @code{make}-specific flags in a POSIX-compliant
+makefile.  This variable will be seen by GNU @code{make} and ignored
+by other @code{make} implementations.  It's not needed if you only use
+GNU @code{make}; just use @code{MAKEFLAGS} directly.
 
 @item MAKECMDGOALS
 

@@ -1,0 +1,24 @@
+#                                                                    -*-perl-*-
+
+$description = "Test proper behavior of GNUMAKEFLAGS";
+
+# Accept flags from GNUMAKEFLAGS as well as MAKEFLAGS
+# Results always go in MAKEFLAGS
+
+$extraENV{'GNUMAKEFLAGS'} = '-e -r -R';
+
+run_make_test(q!
+all: ; @echo $(MAKEFLAGS)
+!,
+              '', 'Rre');
+
+# Long arguments mean everything is prefixed with "-"
+
+$extraENV{'GNUMAKEFLAGS'} = '--no-print-directory -e -r -R --trace=none --trace=dir';
+
+run_make_test(q!
+all: ; @echo $(MAKEFLAGS)
+!,
+              '', '--no-print-directory --trace=none --trace=dir --trace=none --trace=dir -Rre');
+
+1;
