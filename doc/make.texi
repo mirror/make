@@ -8730,7 +8730,8 @@ With no type or the type @samp{target}, output from the entire recipe
 of each target is grouped together.  With the type @samp{line}, output
 from each line in the recipe is grouped together.  With the type
 @samp{recurse}, the output from an entire recursive make is grouped
-together.  @xref{Parallel Output, ,Output During Parallel Execution}.
+together.  With the type @samp{none}, no output synchronization is
+performed.  @xref{Parallel Output, ,Output During Parallel Execution}.
 
 @item -q
 @cindex @code{-q}
@@ -8803,13 +8804,17 @@ instead of running their recipes.  This is used to pretend that the
 recipes were done, in order to fool future invocations of
 @code{make}.  @xref{Instead of Execution, ,Instead of Executing Recipes}.
 
-@item --trace
+@item --trace[=@var{mode}]
 @cindex @code{--trace}
-@c Extra blank line here makes the table look better.
-
-Print the entire recipe to be executed, even for recipes that are
-normally silent (due to @code{.SILENT} or @samp{@@}).  Also print the
-makefile name and line number where the recipe was defined.
+Show tracing information for @code{make} execution.  With no mode or
+the type @samp{rule}, print the entire recipe to be executed, even for
+recipes that are normally silent (due to @code{.SILENT} or @samp{@@}).
+Also print the makefile name and line number where the recipe was
+defined, and information on why the target is being rebuilt.  With the
+type @samp{dir}, directory enter/leave lines are shown around each
+synchronized output segment.  These modes are cumulative and can be
+set with multiple instances of the @code{--trace} flag.  With the type
+@samp{none}, all tracing is disabled.
 
 @item -v
 @cindex @code{-v}

@@ -157,7 +157,7 @@ static struct stringlist *output_sync_option = 0;
 
 /* Tracing (--trace).  */
 
-int trace_flag = 0;
+static struct stringlist *trace_option = 0;
 
 #ifdef WINDOWS32
 /* Suspend make in main for a short time to allow debugger to attach */
@@ -370,7 +370,7 @@ static const char *const usage[] =
     N_("\
   -t, --touch                 Touch targets instead of remaking them.\n"),
     N_("\
-  --trace                     Print tracing information.\n"),
+  --trace[=MODE]              Print tracing information.\n"),
     N_("\
   -v, --version               Print the version number of make and exit.\n"),
     N_("\
@@ -430,7 +430,7 @@ static const struct command_switch switches[] =
     { 'S', flag_off, &keep_going_flag, 1, 1, 0, 0, &default_keep_going_flag,
       "no-keep-going" },
     { 't', flag, &touch_flag, 1, 1, 1, 0, 0, "touch" },
-    { CHAR_MAX+3, flag, &trace_flag, 1, 1, 0, 0, 0, "trace" },
+    { CHAR_MAX+3, string, &trace_option, 1, 1, 0, "rule", 0, "trace" },
     { 'v', flag, &print_version_flag, 1, 1, 0, 0, 0, "version" },
     { 'w', flag, &print_directory_flag, 1, 1, 0, 0, 0, "print-directory" },
     { CHAR_MAX+4, flag, &inhibit_print_directory_flag, 1, 1, 0, 0, 0,
@@ -521,7 +521,12 @@ int one_shell;
    attempts to synchronize the output of parallel jobs such that the results
    of each job stay together.  */
 
-int output_sync;
+int output_sync = OUTPUT_SYNC_NONE;
+
+/* One of TRACE_* if the "--trace" option was given.  Enables various types of
+   tracing.  */
+
+int trace_flag = TRACE_NONE;
 
 /* Nonzero if we have seen the '.NOTPARALLEL' target.
    This turns off parallel builds for this invocation of make.  */
@@ -680,6 +685,29 @@ decode_debug_flags (void)
 
           ++p;
         }
+    }
+}
+
+static void
+decode_trace_flags (void)
+{
+  const char **pp;
+
+  if (!trace_option)
+    return;
+
+  for (pp=trace_option->list; *pp; ++pp)
+    {
+      const char *p = *pp;
+
+      if (streq (p, "none"))
+        trace_flag = TRACE_NONE;
+      else if (streq (p, "rule"))
+        trace_flag |= TRACE_RULE;
+      else if (streq (p, "dir"))
+        trace_flag |= TRACE_DIRECTORY;
+      else
+        fatal (NILF, _("unknown trace mode '%s'"), p);
     }
 }
 
@@ -2764,6 +2792,7 @@ decode_switches (int argc, char **argv, int env)
   /* If there are any options that need to be decoded do it now.  */
   decode_debug_flags ();
   decode_output_sync_flags ();
+  decode_trace_flags ();
 }
 
 /* Decode switches from environment variable ENVAR (which is LEN chars long).
@@ -3000,7 +3029,8 @@ define_makeflags (int all, int makefile)
         *p++ = flags->cs->c;
       else
         {
-          if (*p != '-')
+          /* If we don't have a dash, start a double-dash.  */
+          if (p[-1] != '-')
             {
               *p++ = ' ';
               *p++ = '-';

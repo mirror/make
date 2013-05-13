@@ -231,7 +231,7 @@ the output from the entire recipe for each target is grouped together.  If
 .I type
 is
 .B line
-the output from each line within a recipe is grouped together.
+the output from each command line within a recipe is grouped together.
 If
 .I type
 is
@@ -289,9 +289,25 @@ This is used to pretend that the commands were done, in order to fool
 future invocations of
 .BR make .
 .TP 0.5i
-.B \-\-trace
+.B \-\-trace\fR[=\fImode\fR]
 Print information about the commands invoked by
-.BR make.
+.BR make .
+If
+.I mode
+is not specified or is
+.B rule
+information about the disposition of each target is printed.  If
+.I mode
+is
+.B dir
+then directory enter/leave trace statements are shown for each synchronized
+output segment (see
+.BR \-O ).
+If
+.I mode
+is
+.B none
+then no tracing is performed.
 .TP 0.5i
 \fB\-v\fR, \fB\-\-version\fR
 Print the version of the

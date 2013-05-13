@@ -544,6 +544,10 @@ int strncasecmp (const char *s1, const char *s2, int n);
 #define OUTPUT_SYNC_TARGET  2
 #define OUTPUT_SYNC_RECURSE 3
 
+#define TRACE_NONE      0x0
+#define TRACE_RULE      0x1
+#define TRACE_DIRECTORY 0x2
+
 extern const gmk_floc *reading_file;
 extern const gmk_floc **expanding_var;
 

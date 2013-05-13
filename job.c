@@ -768,14 +768,20 @@ sync_output (struct child *c)
          unsynchronized; still better than silently discarding it.  */
       void *sem = acquire_semaphore ();
 
-      /* We've entered the "critical section" during which a lock is held.
-         We want to keep it as short as possible.  */
-      log_working_directory (1, 1);
+      /* We've entered the "critical section" during which a lock is held.  We
+         want to keep it as short as possible.  */
+
+      /* Log the working directory.  Force it if we're doing dir tracing.  */
+      log_working_directory (1, (trace_flag & TRACE_DIRECTORY));
+
       if (outfd_not_empty)
-          pump_from_tmp (c->outfd, stdout);
+        pump_from_tmp (c->outfd, stdout);
       if (errfd_not_empty && c->errfd != c->outfd)
         pump_from_tmp (c->errfd, stderr);
-      log_working_directory (0, 1);
+
+      /* If we're doing dir tracing, force the leave message.  */
+      if (trace_flag & TRACE_DIRECTORY)
+        log_working_directory (0, 1);
 
       /* Exit the critical section.  */
       if (sem)
@@ -1506,7 +1512,7 @@ start_job_command (struct child *child)
       return;
     }
 
-  print_cmd = (just_print_flag || trace_flag
+  print_cmd = (just_print_flag || (trace_flag & TRACE_RULE)
                || (!(flags & COMMANDS_SILENT) && !silent_flag));
 
 #ifdef OUTPUT_SYNC
@@ -2237,7 +2243,7 @@ new_job (struct file *file)
 
   /* Trace the build.
      Use message here so that changes to working directories are logged.  */
-  if (trace_flag)
+  if (trace_flag & TRACE_RULE)
     {
       char *newer = allocated_variable_expand_for_file ("$?", c->file);
       const char *nm;
