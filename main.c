@@ -3150,14 +3150,14 @@ define_makeflags (int all, int makefile)
   if (flagstring[0] == '-' && flagstring[1] != '-')
     ++flagstring;
 
+  /* This used to use o_env, but that lost when a makefile defined MAKEFLAGS.
+     Makefiles set MAKEFLAGS to add switches, but we still want to redefine
+     its value with the full set of switches.  Then we used o_file, but that
+     lost when users added -e, causing a previous MAKEFLAGS env. var. to take
+     precedence over the new one.  Of course, an override or command
+     definition will still take precedence.  */
   v = define_variable_cname ("MAKEFLAGS", flagstring,
-                             /* This used to use o_env, but that lost when a
-                                makefile defined MAKEFLAGS.  Makefiles set
-                                MAKEFLAGS to add switches, but we still want
-                                to redefine its value with the full set of
-                                switches.  Of course, an override or command
-                                definition will still take precedence.  */
-                             o_file, 1);
+                             env_overrides ? o_env_override : o_file, 1);
 
   if (! all)
     /* The first time we are called, set MAKEFLAGS to always be exported.

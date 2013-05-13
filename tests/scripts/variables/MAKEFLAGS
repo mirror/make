@@ -1,4 +1,4 @@
-#								     -*-perl-*-
+#                                                                    -*-perl-*-
 
 $description = "Test proper behavior of MAKEFLAGS";
 
@@ -14,30 +14,26 @@ all: ; @echo $(MAKEFLAGS)
 run_make_test(q!
 all: ; @echo $(MAKEFLAGS)
 !,
-              '--no-print-directory -e -r -R', '--no-print-directory -Rre');
+              '--no-print-directory -e -r -R --trace=none --trace=dir', '--no-print-directory --trace=none --trace=dir -Rre');
 
 
-if ($all_tests) {
-    # Recursive invocations of make should accumulate MAKEFLAGS values.
-    # Savannah bug #2216
-    run_make_test(q!
+# Recursive invocations of make should accumulate MAKEFLAGS values.
+# Savannah bug #2216
+run_make_test(q!
 MSG = Fails
 all:
 	@echo '$@: MAKEFLAGS=$(MAKEFLAGS)'
 	@MSG=Works $(MAKE) -e -f #MAKEFILE# jump
 jump:
-	@echo '$@: MAKEFLAGS=$(MAKEFLAGS)'
+	@echo '$@ $(MSG): MAKEFLAGS=$(MAKEFLAGS)'
 	@$(MAKE) -f #MAKEFILE# print
 print:
-	@echo '$@: MAKEFLAGS=$(MAKEFLAGS)'
-	@echo $(MSG)
+	@echo '$@ $(MSG): MAKEFLAGS=$(MAKEFLAGS)'
 .PHONY: all jump print
 !,
                   '--no-print-directory',
-                  'all: MAKEFLAGS= --no-print-directory
-jump: MAKEFLAGS= --no-print-directory -e
-print: MAKEFLAGS= --no-print-directory -e
-Works');
-}
+                  'all: MAKEFLAGS=--no-print-directory
+jump Works: MAKEFLAGS=--no-print-directory -e
+print Works: MAKEFLAGS=--no-print-directory -e');
 
 1;

@@ -1,5 +1,9 @@
 2013-05-13  Paul Smith  <psmith@gnu.org>
 
+	* main.c (define_makeflags): Assign o_env_override level to
+	MAKEFLAGS to ensure it's set even in the presence of -e.
+	Fixes Savannah bug #2216.
+
 	* makeint.h (TRACE_NONE, TRACE_RULE, TRACE_DIRECTORY): Define
 	constants for the trace mode.
 	* main.c: Add new --trace mode parsing.
