@@ -177,7 +177,10 @@ enter_file (const char *name)
   file_slot = (struct file **) hash_find_slot (&files, &file_key);
   f = *file_slot;
   if (! HASH_VACANT (f) && !f->double_colon)
-    return f;
+    {
+      f->builtin = 0;
+      return f;
+    }
 
   new = xcalloc (sizeof (struct file));
   new->name = new->hname = name;
@@ -213,6 +216,7 @@ rehash_file (struct file *from_file, const char *to_hname)
   struct file *f;
 
   /* If it's already that name, we're done.  */
+  from_file->builtin = 0;
   file_key.hname = to_hname;
   if (! file_hash_cmp (from_file, &file_key))
     return;
@@ -321,6 +325,7 @@ rehash_file (struct file *from_file, const char *to_hname)
   MERGE (ignore_vpath);
 #undef MERGE
 
+  to_file->builtin = 0;
   from_file->renamed = to_file;
 }
 
@@ -917,6 +922,13 @@ print_file (const void *item)
 {
   const struct file *f = item;
 
+  /* If we're not using builtin targets, don't show them.
+
+     Ideally we'd be able to delete them altogether but currently there's no
+     facility to ever delete a file once it's been added.  */
+  if (no_builtin_rules_flag && f->builtin)
+    return;
+
   putchar ('\n');
 
   if (f->cmds && f->cmds->recipe_prefix != cmd_prefix)
@@ -944,6 +956,8 @@ print_file (const void *item)
     puts (_("#  Command line target."));
   if (f->dontcare)
     puts (_("#  A default, MAKEFILES, or -include/sinclude makefile."));
+  if (f->builtin)
+    puts (_("#  Builtin rule"));
   puts (f->tried_implicit
         ? _("#  Implicit rule search has been done.")
         : _("#  Implicit rule search has not been done."));

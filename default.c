@@ -15,6 +15,9 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "makeint.h"
+
+#include <assert.h>
+
 #include "filedef.h"
 #include "variable.h"
 #include "rule.h"
@@ -536,15 +539,20 @@ void
 set_default_suffixes (void)
 {
   suffix_file = enter_file (strcache_add (".SUFFIXES"));
+  suffix_file->builtin = 1;
 
   if (no_builtin_rules_flag)
     define_variable_cname ("SUFFIXES", "", o_default, 0);
   else
     {
+      struct dep *d;
       char *p = default_suffixes;
       suffix_file->deps = enter_prereqs(PARSE_FILE_SEQ (&p, struct dep, '\0',
                                                         NULL, 0),
                                         NULL);
+      for (d = suffix_file->deps; d; d = d->next)
+        d->file->builtin = 1;
+
       define_variable_cname ("SUFFIXES", default_suffixes, o_default, 0);
     }
 }
@@ -565,15 +573,14 @@ install_default_suffix_rules (void)
   for (s = default_suffix_rules; *s != 0; s += 2)
     {
       struct file *f = enter_file (strcache_add (s[0]));
-      /* Don't clobber cmds given in a makefile if there were any.  */
-      if (f->cmds == 0)
-        {
-          f->cmds = xmalloc (sizeof (struct commands));
-          f->cmds->fileinfo.filenm = 0;
-          f->cmds->commands = s[1];
-          f->cmds->command_lines = 0;
-          f->cmds->recipe_prefix = RECIPEPREFIX_DEFAULT;
-        }
+      /* This function should run before any makefile is parsed.  */
+      assert (f->cmds == 0);
+      f->cmds = xmalloc (sizeof (struct commands));
+      f->cmds->fileinfo.filenm = 0;
+      f->cmds->commands = s[1];
+      f->cmds->command_lines = 0;
+      f->cmds->recipe_prefix = RECIPEPREFIX_DEFAULT;
+      f->builtin = 1;
     }
 }
 
@@ -605,4 +612,13 @@ define_default_variables (void)
 
   for (s = default_variables; *s != 0; s += 2)
     define_variable (s[0], strlen (s[0]), s[1], o_default, 1);
+}
+
+void
+undefine_default_variables (void)
+{
+  const char **s;
+
+  for (s = default_variables; *s != 0; s += 2)
+    undefine_variable_global (s[0], strlen (s[0]), o_default);
 }

@@ -280,7 +280,21 @@ define_variable_in_set (const char *name, unsigned int length,
    variable (makefile, command line or environment). */
 
 static void
-free_variable_name_and_value (const void *item);
+free_variable_name_and_value (const void *item)
+{
+  struct variable *v = (struct variable *) item;
+  free (v->name);
+  free (v->value);
+}
+
+void
+free_variable_set (struct variable_set_list *list)
+{
+  hash_map (&list->set->table, free_variable_name_and_value);
+  hash_free (&list->set->table, 1);
+  free (list->set);
+  free (list);
+}
 
 void
 undefine_variable_in_set (const char *name, unsigned int length,
@@ -305,17 +319,17 @@ undefine_variable_in_set (const char *name, unsigned int length,
   if (! HASH_VACANT (v))
     {
       if (env_overrides && v->origin == o_env)
-	/* V came from in the environment.  Since it was defined
-	   before the switches were parsed, it wasn't affected by -e.  */
-	v->origin = o_env_override;
+        /* V came from in the environment.  Since it was defined
+           before the switches were parsed, it wasn't affected by -e.  */
+        v->origin = o_env_override;
 
       /* If the definition is from a stronger source than this one, don't
          undefine it.  */
       if ((int) origin >= (int) v->origin)
-	{
+        {
           hash_delete_at (&set->table, var_slot);
           free_variable_name_and_value (v);
-	}
+        }
     }
 }
 
@@ -641,23 +655,6 @@ create_new_variable_set (void)
   setlist->next_is_parent = 0;
 
   return setlist;
-}
-
-static void
-free_variable_name_and_value (const void *item)
-{
-  struct variable *v = (struct variable *) item;
-  free (v->name);
-  free (v->value);
-}
-
-void
-free_variable_set (struct variable_set_list *list)
-{
-  hash_map (&list->set->table, free_variable_name_and_value);
-  hash_free (&list->set->table, 1);
-  free (list->set);
-  free (list);
 }
 
 /* Create a new variable set and push it on the current setlist.

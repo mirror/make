@@ -95,6 +95,7 @@ struct file
                                    considered on current scan of goal chain */
     unsigned int no_diag:1;     /* True if the file failed to update and no
                                    diagnostics has been issued (dontcare). */
+    unsigned int builtin:1;     /* True if the file is a builtin rule. */
   };
 
 

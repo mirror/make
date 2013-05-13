@@ -1,5 +1,16 @@
 2013-05-13  Paul Smith  <psmith@gnu.org>
 
+	* filedef.h (struct file): Add a builtin flag.
+	* file.c (enter_file): Unset the builtin flag.
+	(rehash_file): Ditto.
+	(print_file): Don't print builtin files if we've omitted them.
+	* default.c (undefine_default_variables): New function: go through
+	the default variables and undefine them.
+	(set_default_suffixes): Mark these suffix rules as builtin.
+	* makeint.h: Prototype.
+	* main.c (main): Handle addition of -r and -R to MAKEFLAGS in the
+	makefile.  Fixes Savannah bug #20501.
+
 	* main.c (define_makeflags): Assign o_env_override level to
 	MAKEFLAGS to ensure it's set even in the presence of -e.
 	Fixes Savannah bug #2216.
