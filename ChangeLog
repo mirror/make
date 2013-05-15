@@ -1,3 +1,9 @@
+2013-05-14  Paul Smith  <psmith@gnu.org>
+
+	* doc/make.texi (Loaded Object API): Document the requirement for
+	the plugin_is_GPL_compatible symbol.
+	* load.c (load_object): Check for plugin_is_GPL_compatible symbol.
+
 2013-05-13  Paul Smith  <psmith@gnu.org>
 
 	* filedef.h (struct file): Add a builtin flag.

@@ -20,6 +20,8 @@ print $F <<'EOF' ;
 
 #include "gnumake.h"
 
+int plugin_is_GPL_compatible;
+
 int
 testload_gmk_setup (gmk_floc *pos)
 {

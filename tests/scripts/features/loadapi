@@ -20,6 +20,8 @@ print $F <<'EOF' ;
 
 #include "gnumake.h"
 
+int plugin_is_GPL_compatible;
+
 static char *
 test_eval (const char *buf)
 {

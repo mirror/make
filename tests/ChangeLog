@@ -1,3 +1,8 @@
+2013-05-14  Paul Smith  <psmith@gnu.org>
+
+	* scripts/features/loadapi: Add plugin_is_GPL_compatible symbol.
+	* scripts/features/load: Ditto.
+
 2013-05-13  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/output-sync (output_sync_set): Update for new

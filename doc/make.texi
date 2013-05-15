@@ -11058,6 +11058,24 @@ functions may make use of the @code{gmk_expand} and @code{gmk_eval}
 routines to perform their tasks, then optionally return a string as
 the result of the function expansion.
 
+@subsubheading Loaded Object Licensing
+@cindex loaded object licensing
+@cindex plugin_is_GPL_compatible
+
+Every dynamic extension should define the global symbol
+@code{plugin_is_GPL_compatible} to assert that it has been licensed
+under a GPL-compatible license.  If this symbol does not exist,
+@code{make} emits a fatal error and exits when it tries to load your
+extension.
+
+The declared type of the symbol should be @code{int}. It does not need
+to be in any allocated section, though.  The code merely asserts that
+the symbol exists in the global scope. Something like this is enough:
+
+@example
+int plugin_is_GPL_compatible;
+@end example
+
 @subsubheading Data Structures
 
 @table @code
@@ -11184,6 +11202,8 @@ function in a file @file{mk_temp.c}:
 #include <errno.h>
 
 #include <gnumake.h>
+
+int plugin_is_GPL_compatible;
 
 char *
 gen_tmpfile(const char *nm, int argc, char **argv)
