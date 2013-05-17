@@ -21,11 +21,11 @@ if not exist config.h.W32.template GoTo NotSCM
 sed -n "s/^AC_INIT(\[GNU make\],\[\([^]]\+\)\].*/s,%%VERSION%%,\1,g/p" configure.ac > config.h.W32.sed
 echo s,%%PACKAGE%%,make,g >> config.h.W32.sed
 sed -f config.h.W32.sed config.h.W32.template > config.h.W32
-copy config.h.W32 config.h
 echo static const char *const GUILE_module_defn = ^" \> gmk-default.h
 sed -e "s/;.*//" -e "/^[ \t]*$/d" -e "s/\"/\\\\\"/g" -e "s/$/ \\/" gmk-default.scm >> gmk-default.h
 echo ^";>> gmk-default.h
 :NotSCM
+copy config.h.W32 config.h
 
 rem Guile configuration
 set GUILECFLAGS=
