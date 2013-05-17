@@ -752,6 +752,8 @@ decode_output_sync_flags (void)
 
 #ifdef WINDOWS32
 
+#ifdef OUTPUT_SYNC
+
 /* This is called from start_job_command when it detects that
    output_sync option is in effect.  The handle to the synchronization
    mutex is passed, as a string, to sub-makes via the --sync-mutex
@@ -774,6 +776,8 @@ prepare_mutex_handle_string (sync_handle_t handle)
       define_makeflags (1, 0);
     }
 }
+
+#endif	/* OUTPUT_SYNC */
 
 /*
  * HANDLE runtime exceptions by avoiding a requestor on the GUI. Capture

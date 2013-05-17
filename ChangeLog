@@ -1,5 +1,8 @@
 2013-05-17  Eli Zaretskii  <eliz@gnu.org>
 
+	* main.c (prepare_mutex_handle_string): Define conditioned on
+	OUTPUT_SYNC.
+
 	* build_w32.bat: Copy config.h.W32 to config.h regardless of
 	whether or not we are building from SCM.
 
