@@ -1,5 +1,7 @@
 2013-05-17  Paul Smith  <psmith@gnu.org>
 
+	* hash.c (CALLOC): Use xcalloc() to handle out of memory errors.
+
 	* makeint.h: Prototype new unload_file() function.
 	* load.c (unload_file): Create a function to unload a file.
 	(struct load_list): Type to remember loaded objects.
