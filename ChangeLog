@@ -1,5 +1,7 @@
 2013-05-17  Paul Smith  <psmith@gnu.org>
 
+	* ALL: Update copyright.
+
 	* hash.c (CALLOC): Use xcalloc() to handle out of memory errors.
 
 	* makeint.h: Prototype new unload_file() function.
@@ -5087,7 +5089,7 @@ See ChangeLog.2, available in the Git repository at:
 for earlier changes.
 
 
-Copyright (C) 2000-2012 Free Software Foundation, Inc.
+Copyright (C) 2000-2013 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the
