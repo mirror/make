@@ -490,8 +490,8 @@ int guile_gmake_setup (const gmk_floc *flocp);
 
 /* Loadable object support.  Sets to the strcached name of the loaded file.  */
 typedef int (*load_func_t)(const gmk_floc *flocp);
-int load_file (const gmk_floc *flocp, const char **filename, int noerror,
-	       void **dlp);
+int load_file (const gmk_floc *flocp, const char **filename, int noerror);
+void unload_file (const char *name);
 
 /* We omit these declarations on non-POSIX systems which define _POSIX_VERSION,
    because such systems often declare them in header files anyway.  */

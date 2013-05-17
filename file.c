@@ -322,6 +322,7 @@ rehash_file (struct file *from_file, const char *to_hname)
   MERGE (is_target);
   MERGE (cmd_target);
   MERGE (phony);
+  MERGE (loaded);
   MERGE (ignore_vpath);
 #undef MERGE
 

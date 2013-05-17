@@ -30,14 +30,21 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "filedef.h"
 #include "variable.h"
 
+struct load_list
+  {
+    struct load_list *next;
+    const char *name;
+    void *dlp;
+  };
+
+static struct load_list *loaded_syms = NULL;
+
 static load_func_t
 load_object (const gmk_floc *flocp, int noerror,
-             const char *ldname, const char *symname, void **dlp)
+             const char *ldname, const char *symname)
 {
   static void *global_dl = NULL;
   load_func_t symp;
-
-  *dlp = NULL;
 
   if (! global_dl)
     {
@@ -48,6 +55,8 @@ load_object (const gmk_floc *flocp, int noerror,
 
   symp = (load_func_t) dlsym (global_dl, symname);
   if (! symp) {
+    struct load_list *new;
+    void *dlp = NULL;
 
     /* If the path has no "/", try the current directory first.  */
     if (! strchr (ldname, '/')
@@ -55,14 +64,14 @@ load_object (const gmk_floc *flocp, int noerror,
 	&& ! strchr (ldname, '\\')
 #endif
 	)
-      *dlp = dlopen (concat (2, "./", ldname), RTLD_LAZY|RTLD_GLOBAL);
+      dlp = dlopen (concat (2, "./", ldname), RTLD_LAZY|RTLD_GLOBAL);
 
     /* If we haven't opened it yet, try the default search path.  */
-    if (! *dlp)
-      *dlp = dlopen (ldname, RTLD_LAZY|RTLD_GLOBAL);
+    if (! dlp)
+      dlp = dlopen (ldname, RTLD_LAZY|RTLD_GLOBAL);
 
     /* Still no?  Then fail.  */
-    if (! *dlp)
+    if (! dlp)
       {
         if (noerror)
           DB (DB_BASIC, ("%s", dlerror()));
@@ -72,22 +81,31 @@ load_object (const gmk_floc *flocp, int noerror,
       }
 
     /* Assert that the GPL license symbol is defined.  */
-    symp = dlsym (*dlp, "plugin_is_GPL_compatible");
+    symp = dlsym (dlp, "plugin_is_GPL_compatible");
     if (! symp)
       fatal (flocp, _("Loaded object %s is not declared to be GPL compatible"),
              ldname);
 
-    symp = dlsym (*dlp, symname);
+    symp = dlsym (dlp, symname);
     if (! symp)
       fatal (flocp, _("Failed to load symbol %s from %s: %s"),
              symname, ldname, dlerror());
+
+    /* Add this symbol to a trivial lookup table.  This is not efficient but
+       it's highly unlikely we'll be loading lots of objects, and we only need
+       it to look them up on unload, if we rebuild them.  */
+    new = xmalloc (sizeof (struct load_list));
+    new->name = xstrdup (ldname);
+    new->dlp = dlp;
+    new->next = loaded_syms;
+    loaded_syms = new;
   }
 
   return symp;
 }
 
 int
-load_file (const gmk_floc *flocp, const char **ldname, int noerror, void **dlp)
+load_file (const gmk_floc *flocp, const char **ldname, int noerror)
 {
   int nmlen = strlen (*ldname);
   char *new = alloca (nmlen + CSTRLEN (SYMBOL_EXTENSION) + 1);
@@ -96,8 +114,6 @@ load_file (const gmk_floc *flocp, const char **ldname, int noerror, void **dlp)
   const char *fp;
   int r;
   load_func_t symp;
-
-  *dlp = NULL;
 
   /* Break the input into an object file name and a symbol name.  If no symbol
      name was provided, compute one from the object file name.  */
@@ -174,7 +190,7 @@ load_file (const gmk_floc *flocp, const char **ldname, int noerror, void **dlp)
   DB (DB_VERBOSE, (_("Loading symbol %s from %s\n"), symname, *ldname));
 
   /* Load it!  */
-  symp = load_object(flocp, noerror, *ldname, symname, dlp);
+  symp = load_object(flocp, noerror, *ldname, symname);
   if (! symp)
     return 0;
 
@@ -188,6 +204,21 @@ load_file (const gmk_floc *flocp, const char **ldname, int noerror, void **dlp)
   return r;
 }
 
+void
+unload_file (const char *name)
+{
+  struct load_list *d;
+
+  for (d = loaded_syms; d != NULL; d = d->next)
+    if (streq (d->name, name) && d->dlp)
+      {
+        if (dlclose (d->dlp))
+          perror_with_name ("dlclose", d->name);
+        d->dlp = NULL;
+        break;
+      }
+}
+
 #else
 
 int
@@ -196,6 +227,13 @@ load_file (const gmk_floc *flocp, const char **ldname, int noerror)
   if (! noerror)
     fatal (flocp, _("The 'load' operation is not supported on this platform."));
 
+  return 0;
+}
+
+int
+unload_file (struct file *file)
+{
+  fatal (flocp, "INTERNAL: Cannot unload when load is not supported!");
   return 0;
 }
 

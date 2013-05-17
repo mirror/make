@@ -937,12 +937,11 @@ eval (struct ebuffer *ebuf, int set_default)
               struct nameseq *next = files->next;
               const char *name = files->name;
               struct dep *deps;
-              void *dlp;
 
               free_ns (files);
               files = next;
 
-              if (! load_file (&ebuf->floc, &name, noerror, &dlp) && ! noerror)
+              if (! load_file (&ebuf->floc, &name, noerror) && ! noerror)
                 fatal (&ebuf->floc, _("%s: failed to load"), name);
 
               deps = alloc_dep ();
@@ -951,7 +950,7 @@ eval (struct ebuffer *ebuf, int set_default)
               deps->file = lookup_file (name);
               if (deps->file == 0)
                 deps->file = enter_file (name);
-              deps->file->dlopen_ptr = dlp;
+              deps->file->loaded = 1;
             }
 
           continue;

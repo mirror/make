@@ -471,10 +471,9 @@ execute_file_commands (struct file *file)
   set_file_variables (file);
 
   /* If this is a loaded dynamic object, unload it before remaking.
-     Some systems don't allow to overwrite a loaded shared
-     library.  */
-  if (file->dlopen_ptr)
-    dlclose (file->dlopen_ptr);
+     Some systems don't support overwriting a loaded object.  */
+  if (file->loaded)
+    unload_file (file->name);
 
   /* Start the commands running.  */
   new_job (file);

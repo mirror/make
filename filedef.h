@@ -61,8 +61,6 @@ struct file
     int command_flags;		/* Flags OR'd in for cmds; see commands.h.  */
     char update_status;         /* Status of the last attempt to update,
 				   or -1 if none has been made.  */
-    void *dlopen_ptr;		/* For dynamic loaded objects: pointer to
-				   pass to dlclose to unload the object.  */
     enum cmd_state		/* State of the commands.  */
       {		/* Note: It is important that cs_not_started be zero.  */
 	cs_not_started,		/* Not yet started.  */
@@ -71,7 +69,9 @@ struct file
 	cs_finished		/* Commands finished.  */
       } command_state ENUM_BITFIELD (2);
 
+    unsigned int builtin:1;     /* True if the file is a builtin rule. */
     unsigned int precious:1;	/* Non-0 means don't delete file on quit */
+    unsigned int loaded:1;      /* True if the file is a loaded object. */
     unsigned int low_resolution_time:1;	/* Nonzero if this file's time stamp
 					   has only one-second resolution.  */
     unsigned int tried_implicit:1; /* Nonzero if have searched
@@ -95,7 +95,6 @@ struct file
                                    considered on current scan of goal chain */
     unsigned int no_diag:1;     /* True if the file failed to update and no
                                    diagnostics has been issued (dontcare). */
-    unsigned int builtin:1;     /* True if the file is a builtin rule. */
   };
 
 

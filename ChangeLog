@@ -1,3 +1,21 @@
+2013-05-17  Paul Smith  <psmith@gnu.org>
+
+	* makeint.h: Prototype new unload_file() function.
+	* load.c (unload_file): Create a function to unload a file.
+	(struct load_list): Type to remember loaded objects.
+	(loaded_syms): Global variable of remembered loaded objects so we
+	can unload them later.  We don't have to remove from the list
+	because the only time we unload is if we're about to re-exec.
+	(load_object): Remove unneeded extra DLP argument.
+	(load_file): Remove unneeded extra DLP argument.
+	* filedef.h (struct file): Remove the DLP pointer and add the
+	LOADED bit flag.  Saves 32/64 bytes per file, as this pointer is
+	almost never needed.
+	* read.c (eval): Set the new LOADED bit flag on the file.
+	* file.c (rehash_file): Merge the loaded bitfield.
+	* commands.c (execute_file_commands): Call unload_file() instead
+	of dlclose() directly.
+
 2013-05-14  Paul Smith  <psmith@gnu.org>
 
 	* doc/make.texi (Loaded Object API): Document the requirement for
