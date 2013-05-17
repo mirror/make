@@ -175,7 +175,8 @@ before making an official release:
   * Run "make distcheck" to be sure it all works.
   * git tag -u <GPGID> <VER> where GPGID is my GPG key fingerprint,
     and VER is the release version.
-  * Push everything.
+  * Push everything:
+    git push --tags origin master
   * Create the new release in the Savannah "Bugs" Administration for
     both the "Component Version" and "Fixed Release" fields.
   * Create the new release in the Savannah "Patches" Administration for
