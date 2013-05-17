@@ -785,11 +785,11 @@ prepare_mutex_handle_string (sync_handle_t handle)
  *   debuggers can attach.
  */
 LONG WINAPI
-handle_runtime_exceptions( struct _EXCEPTION_POINTERS *exinfo )
+handle_runtime_exceptions (struct _EXCEPTION_POINTERS *exinfo)
 {
   PEXCEPTION_RECORD exrec = exinfo->ExceptionRecord;
-  LPSTR cmdline = GetCommandLine();
-  LPSTR prg = strtok(cmdline, " ");
+  LPSTR cmdline = GetCommandLine ();
+  LPSTR prg = strtok (cmdline, " ");
   CHAR errmsg[1024];
 #ifdef USE_EVENT_LOG
   HANDLE hEventSource;
@@ -798,54 +798,54 @@ handle_runtime_exceptions( struct _EXCEPTION_POINTERS *exinfo )
 
   if (! ISDB (DB_VERBOSE))
     {
-      sprintf(errmsg,
-              _("%s: Interrupt/Exception caught (code = 0x%lx, addr = 0x%p)\n"),
-              prg, exrec->ExceptionCode, exrec->ExceptionAddress);
-      fprintf(stderr, errmsg);
-      exit(255);
+      sprintf (errmsg,
+               _("%s: Interrupt/Exception caught (code = 0x%lx, addr = 0x%p)\n"),
+               prg, exrec->ExceptionCode, exrec->ExceptionAddress);
+      fprintf (stderr, errmsg);
+      exit (255);
     }
 
-  sprintf(errmsg,
-          _("\nUnhandled exception filter called from program %s\nExceptionCode = %lx\nExceptionFlags = %lx\nExceptionAddress = 0x%p\n"),
-          prg, exrec->ExceptionCode, exrec->ExceptionFlags,
-          exrec->ExceptionAddress);
+  sprintf (errmsg,
+           _("\nUnhandled exception filter called from program %s\nExceptionCode = %lx\nExceptionFlags = %lx\nExceptionAddress = 0x%p\n"),
+           prg, exrec->ExceptionCode, exrec->ExceptionFlags,
+           exrec->ExceptionAddress);
 
   if (exrec->ExceptionCode == EXCEPTION_ACCESS_VIOLATION
       && exrec->NumberParameters >= 2)
-    sprintf(&errmsg[strlen(errmsg)],
-            (exrec->ExceptionInformation[0]
-             ? _("Access violation: write operation at address 0x%p\n")
-             : _("Access violation: read operation at address 0x%p\n")),
-            (PVOID)exrec->ExceptionInformation[1]);
+    sprintf (&errmsg[strlen(errmsg)],
+             (exrec->ExceptionInformation[0]
+              ? _("Access violation: write operation at address 0x%p\n")
+              : _("Access violation: read operation at address 0x%p\n")),
+             (PVOID)exrec->ExceptionInformation[1]);
 
   /* turn this on if we want to put stuff in the event log too */
 #ifdef USE_EVENT_LOG
-  hEventSource = RegisterEventSource(NULL, "GNU Make");
+  hEventSource = RegisterEventSource (NULL, "GNU Make");
   lpszStrings[0] = errmsg;
 
   if (hEventSource != NULL)
     {
-      ReportEvent(hEventSource,         /* handle of event source */
-                  EVENTLOG_ERROR_TYPE,  /* event type */
-                  0,                    /* event category */
-                  0,                    /* event ID */
-                  NULL,                 /* current user's SID */
-                  1,                    /* strings in lpszStrings */
-                  0,                    /* no bytes of raw data */
-                  lpszStrings,          /* array of error strings */
-                  NULL);                /* no raw data */
+      ReportEvent (hEventSource,         /* handle of event source */
+                   EVENTLOG_ERROR_TYPE,  /* event type */
+                   0,                    /* event category */
+                   0,                    /* event ID */
+                   NULL,                 /* current user's SID */
+                   1,                    /* strings in lpszStrings */
+                   0,                    /* no bytes of raw data */
+                   lpszStrings,          /* array of error strings */
+                   NULL);                /* no raw data */
 
-      (VOID) DeregisterEventSource(hEventSource);
+      (VOID) DeregisterEventSource (hEventSource);
     }
 #endif
 
   /* Write the error to stderr too */
-  fprintf(stderr, errmsg);
+  fprintf (stderr, errmsg);
 
 #ifdef DEBUG
   return EXCEPTION_CONTINUE_SEARCH;
 #else
-  exit(255);
+  exit (255);
   return (255); /* not reached */
 #endif
 }
@@ -885,75 +885,89 @@ find_and_set_default_shell (const char *token)
       || ((tokend - 4 == search_token
            || (tokend - 4 > search_token
                && (tokend[-5] == '/' || tokend[-5] == '\\')))
-          && !strcasecmp (tokend - 4, "cmd.exe"))) {
-    batch_mode_shell = 1;
-    unixy_shell = 0;
-    sprintf (sh_path, "%s", search_token);
-    default_shell = xstrdup (w32ify (sh_path, 0));
-    DB (DB_VERBOSE, (_("find_and_set_shell() setting default_shell = %s\n"),
-                     default_shell));
-    sh_found = 1;
-  } else if (!no_default_sh_exe &&
-             (token == NULL || !strcmp (search_token, default_shell))) {
-    /* no new information, path already set or known */
-    sh_found = 1;
-  } else if (file_exists_p (search_token)) {
-    /* search token path was found */
-    sprintf (sh_path, "%s", search_token);
-    default_shell = xstrdup (w32ify (sh_path, 0));
-    DB (DB_VERBOSE, (_("find_and_set_shell() setting default_shell = %s\n"),
-                     default_shell));
-    sh_found = 1;
-  } else {
-    char *p;
-    struct variable *v = lookup_variable (STRING_SIZE_TUPLE ("PATH"));
-
-    /* Search Path for shell */
-    if (v && v->value) {
-      char *ep;
-
-      p  = v->value;
-      ep = strchr (p, PATH_SEPARATOR_CHAR);
-
-      while (ep && *ep) {
-        *ep = '\0';
-
-        if (dir_file_exists_p (p, search_token)) {
-          sprintf (sh_path, "%s/%s", p, search_token);
-          default_shell = xstrdup (w32ify (sh_path, 0));
-          sh_found = 1;
-          *ep = PATH_SEPARATOR_CHAR;
-
-          /* terminate loop */
-          p += strlen (p);
-        } else {
-          *ep = PATH_SEPARATOR_CHAR;
-           p = ++ep;
-        }
-
-        ep = strchr (p, PATH_SEPARATOR_CHAR);
-      }
-
-      /* be sure to check last element of Path */
-      if (p && *p && dir_file_exists_p (p, search_token)) {
-          sprintf (sh_path, "%s/%s", p, search_token);
-          default_shell = xstrdup (w32ify (sh_path, 0));
-          sh_found = 1;
-      }
-
-      if (sh_found)
-        DB (DB_VERBOSE,
-            (_("find_and_set_shell() path search set default_shell = %s\n"),
-             default_shell));
+          && !strcasecmp (tokend - 4, "cmd.exe")))
+    {
+      batch_mode_shell = 1;
+      unixy_shell = 0;
+      sprintf (sh_path, "%s", search_token);
+      default_shell = xstrdup (w32ify (sh_path, 0));
+      DB (DB_VERBOSE, (_("find_and_set_shell() setting default_shell = %s\n"),
+                       default_shell));
+      sh_found = 1;
     }
-  }
+  else if (!no_default_sh_exe
+           && (token == NULL || !strcmp (search_token, default_shell)))
+    {
+      /* no new information, path already set or known */
+      sh_found = 1;
+    }
+  else if (file_exists_p (search_token))
+    {
+      /* search token path was found */
+      sprintf (sh_path, "%s", search_token);
+      default_shell = xstrdup (w32ify (sh_path, 0));
+      DB (DB_VERBOSE, (_("find_and_set_shell() setting default_shell = %s\n"),
+                       default_shell));
+      sh_found = 1;
+    }
+  else
+    {
+      char *p;
+      struct variable *v = lookup_variable (STRING_SIZE_TUPLE ("PATH"));
+
+      /* Search Path for shell */
+      if (v && v->value)
+        {
+          char *ep;
+
+          p  = v->value;
+          ep = strchr (p, PATH_SEPARATOR_CHAR);
+
+          while (ep && *ep)
+            {
+              *ep = '\0';
+
+              if (dir_file_exists_p (p, search_token))
+                {
+                  sprintf (sh_path, "%s/%s", p, search_token);
+                  default_shell = xstrdup (w32ify (sh_path, 0));
+                  sh_found = 1;
+                  *ep = PATH_SEPARATOR_CHAR;
+
+                  /* terminate loop */
+                  p += strlen (p);
+                }
+              else
+                {
+                  *ep = PATH_SEPARATOR_CHAR;
+                  p = ++ep;
+                }
+
+              ep = strchr (p, PATH_SEPARATOR_CHAR);
+            }
+
+          /* be sure to check last element of Path */
+          if (p && *p && dir_file_exists_p (p, search_token))
+            {
+              sprintf (sh_path, "%s/%s", p, search_token);
+              default_shell = xstrdup (w32ify (sh_path, 0));
+              sh_found = 1;
+            }
+
+          if (sh_found)
+            DB (DB_VERBOSE,
+                (_("find_and_set_shell() path search set default_shell = %s\n"),
+                 default_shell));
+        }
+    }
 
   /* naive test */
-  if (!unixy_shell && sh_found &&
-      (strstr (default_shell, "sh") || strstr (default_shell, "SH"))) {
-    unixy_shell = 1;
-    batch_mode_shell = 0;
-  }
+  if (!unixy_shell && sh_found
+      && (strstr (default_shell, "sh") || strstr (default_shell, "SH")))
+    {
+      unixy_shell = 1;
+      batch_mode_shell = 0;
+    }
 
 #ifdef BATCH_MODE_ONLY_SHELL
   batch_mode_shell = 1;
@@ -992,7 +1006,7 @@ main (int argc, char **argv, char **envp)
   char *unix_path = NULL;
   char *windows32_path = NULL;
 
-  SetUnhandledExceptionFilter(handle_runtime_exceptions);
+  SetUnhandledExceptionFilter (handle_runtime_exceptions);
 
   /* start off assuming we have no shell */
   unixy_shell = 0;
@@ -1253,11 +1267,12 @@ main (int argc, char **argv, char **envp)
 #ifdef WINDOWS32
         if (!unix_path && strneq (envp[i], "PATH=", 5))
           unix_path = ep+1;
-        else if (!strnicmp (envp[i], "Path=", 5)) {
-          do_not_define = 1; /* it gets defined after loop exits */
-          if (!windows32_path)
-            windows32_path = ep+1;
-        }
+        else if (!strnicmp (envp[i], "Path=", 5))
+          {
+            do_not_define = 1; /* it gets defined after loop exits */
+            if (!windows32_path)
+              windows32_path = ep+1;
+          }
 #endif
         /* The result of pointer arithmetic is cast to unsigned int for
            machines where ptrdiff_t is a different size that doesn't widen
@@ -1316,7 +1331,7 @@ main (int argc, char **argv, char **envp)
         env = Lock ("ENV:", ACCESS_READ);
         if (env)
         {
-            old = CurrentDir (DupLock(env));
+            old = CurrentDir (DupLock (env));
             Examine (env, &fib);
 
             while (ExNext (env, &fib))
@@ -1332,7 +1347,7 @@ main (int argc, char **argv, char **envp)
                 }
             }
             UnLock (env);
-            UnLock(CurrentDir(old));
+            UnLock (CurrentDir (old));
         }
     }
 #endif
@@ -1352,12 +1367,13 @@ main (int argc, char **argv, char **envp)
   decode_switches (argc, argv, 0);
 
 #ifdef WINDOWS32
-  if (suspend_flag) {
-        fprintf(stderr, "%s (pid = %ld)\n", argv[0], GetCurrentProcessId());
-        fprintf(stderr, _("%s is suspending for 30 seconds..."), argv[0]);
-        Sleep(30 * 1000);
-        fprintf(stderr, _("done sleep(30). Continuing.\n"));
-  }
+  if (suspend_flag)
+    {
+      fprintf (stderr, "%s (pid = %ld)\n", argv[0], GetCurrentProcessId ());
+      fprintf (stderr, _("%s is suspending for 30 seconds..."), argv[0]);
+      Sleep (30 * 1000);
+      fprintf (stderr, _("done sleep(30). Continuing.\n"));
+    }
 #endif
 
   /* Set always_make_flag if -B was given and we've not restarted already.  */
@@ -1386,10 +1402,9 @@ main (int argc, char **argv, char **envp)
    * matter if the path is one way or the other for
    * CreateProcess().
    */
-  if (strpbrk(argv[0], "/:\\") ||
-      strstr(argv[0], "..") ||
-      strneq(argv[0], "//", 2))
-    argv[0] = xstrdup(w32ify(argv[0],1));
+  if (strpbrk (argv[0], "/:\\") || strstr (argv[0], "..")
+      || strneq (argv[0], "//", 2))
+    argv[0] = xstrdup (w32ify (argv[0], 1));
 #else /* WINDOWS32 */
 #if defined (__MSDOS__) || defined (__EMX__)
   if (strchr (argv[0], '\\'))
@@ -1511,7 +1526,7 @@ main (int argc, char **argv, char **envp)
    * lookups to fail because the current directory (.) was pointing
    * at the wrong place when it was first evaluated.
    */
-   no_default_sh_exe = !find_and_set_default_shell(NULL);
+   no_default_sh_exe = !find_and_set_default_shell (NULL);
 
 #endif /* WINDOWS32 */
   /* Figure out the level of recursion.  */
@@ -1742,7 +1757,7 @@ main (int argc, char **argv, char **envp)
 #ifdef WINDOWS32
   /* look one last time after reading all Makefiles */
   if (no_default_sh_exe)
-    no_default_sh_exe = !find_and_set_default_shell(NULL);
+    no_default_sh_exe = !find_and_set_default_shell (NULL);
 #endif /* WINDOWS32 */
 
 #if defined (__MSDOS__) || defined (__EMX__)
@@ -1755,7 +1770,7 @@ main (int argc, char **argv, char **envp)
 
     if (shv && *shv->value)
       {
-        char *shell_path = recursively_expand(shv);
+        char *shell_path = recursively_expand (shv);
 
         if (shell_path && _is_unixy_shell (shell_path))
           unixy_shell = 1;
@@ -1825,11 +1840,11 @@ main (int argc, char **argv, char **envp)
       cp = jobserver_fds->list[0];
 
 #ifdef WINDOWS32
-      if (! open_jobserver_semaphore(cp))
+      if (! open_jobserver_semaphore (cp))
         {
-          DWORD err = GetLastError();
+          DWORD err = GetLastError ();
           fatal (NILF, _("internal error: unable to open jobserver semaphore '%s': (Error %ld: %s)"),
-                 cp, err, map_windows32_error_to_string(err));
+                 cp, err, map_windows32_error_to_string (err));
         }
       DB (DB_JOBS, (_("Jobserver client (semaphore %s)\n"), cp));
 #else
@@ -1900,11 +1915,11 @@ main (int argc, char **argv, char **envp)
           DB (DB_JOBS, (_("Jobserver slots limited to %d\n"), job_slots));
         }
 
-      if (! create_jobserver_semaphore(job_slots - 1))
+      if (! create_jobserver_semaphore (job_slots - 1))
         {
-          DWORD err = GetLastError();
+          DWORD err = GetLastError ();
           fatal (NILF, _("creating jobserver semaphore: (Error %ld: %s)"),
-                 err, map_windows32_error_to_string(err));
+                 err, map_windows32_error_to_string (err));
         }
 #else
       char c = '+';
@@ -1938,7 +1953,7 @@ main (int argc, char **argv, char **envp)
 
 #ifdef WINDOWS32
       cp = xmalloc (MAX_PATH + 1);
-      strcpy (cp, get_jobserver_semaphore_name());
+      strcpy (cp, get_jobserver_semaphore_name ());
 #else
       cp = xmalloc ((CSTRLEN ("1024") * 2) + 2);
       sprintf (cp, "%d,%d", job_fds[0], job_fds[1]);
@@ -2461,7 +2476,7 @@ main (int argc, char **argv, char **envp)
   }
 
   /* NOTREACHED */
-  exit(0);
+  exit (0);
 }
 
 /* Parsing of arguments, decoding of switches.  */
@@ -2553,12 +2568,13 @@ handle_non_switch_argument (char *arg, int env)
         if (cv->variable == v)
           break;
 
-      if (! cv) {
-        cv = xmalloc (sizeof (*cv));
-        cv->variable = v;
-        cv->next = command_variables;
-        command_variables = cv;
-      }
+      if (! cv)
+        {
+          cv = xmalloc (sizeof (*cv));
+          cv->variable = v;
+          cv->next = command_variables;
+          command_variables = cv;
+        }
     }
   else if (! env)
     {
@@ -3262,7 +3278,7 @@ clean_jobserver (int status)
      after any other error code, that's bad.  */
 
 #ifdef WINDOWS32
-  if (has_jobserver_semaphore() && jobserver_tokens)
+  if (has_jobserver_semaphore () && jobserver_tokens)
 #else
   char token = '+';
 
@@ -3278,7 +3294,7 @@ clean_jobserver (int status)
         while (--jobserver_tokens)
           {
 #ifdef WINDOWS32
-            if (! release_jobserver_semaphore())
+            if (! release_jobserver_semaphore ())
               perror_with_name ("release_jobserver_semaphore", "");
 #else
             int r;
@@ -3299,7 +3315,7 @@ clean_jobserver (int status)
       unsigned int tcnt = 1;
 
 #ifdef WINDOWS32
-      while (acquire_jobserver_semaphore())
+      while (acquire_jobserver_semaphore ())
           ++tcnt;
 #else
       /* Close the write side, so the read() won't hang.  */
@@ -3315,7 +3331,7 @@ clean_jobserver (int status)
                tcnt, master_job_slots);
 
 #ifdef WINDOWS32
-      free_jobserver_semaphore();
+      free_jobserver_semaphore ();
 #else
       close (job_fds[0]);
 #endif

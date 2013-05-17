@@ -57,7 +57,7 @@ static unsigned long total_size = 0;
    that this doesn't seem to be much of an issue in practice.
  */
 static struct strcache *
-new_cache()
+new_cache ()
 {
   struct strcache *new;
   new = xmalloc (bufsize + CACHE_BUFFER_OFFSET);
@@ -208,7 +208,7 @@ strcache_add_len (const char *str, unsigned int len)
 }
 
 int
-strcache_setbufsize(unsigned int size)
+strcache_setbufsize (unsigned int size)
 {
   if (size > bufsize)
     bufsize = size;
@@ -233,7 +233,7 @@ strcache_print_stats (const char *prefix)
 
   if (! strcache)
     {
-      printf(_("\n%s No strcache buffers\n"), prefix);
+      printf (_("\n%s No strcache buffers\n"), prefix);
       return;
     }
 

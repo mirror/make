@@ -18,11 +18,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
    These flags are saved in the 'changed' field of each
    'struct dep' in the chain returned by 'read_all_makefiles'.  */
 
-#define RM_NO_DEFAULT_GOAL	(1 << 0) /* Do not set default goal.  */
-#define RM_INCLUDED		(1 << 1) /* Search makefile search path.  */
-#define RM_DONTCARE		(1 << 2) /* No error if it doesn't exist.  */
-#define RM_NO_TILDE		(1 << 3) /* Don't expand ~ in file name.  */
-#define RM_NOFLAG		0
+#define RM_NO_DEFAULT_GOAL      (1 << 0) /* Do not set default goal.  */
+#define RM_INCLUDED             (1 << 1) /* Search makefile search path.  */
+#define RM_DONTCARE             (1 << 2) /* No error if it doesn't exist.  */
+#define RM_NO_TILDE             (1 << 3) /* Don't expand ~ in file name.  */
+#define RM_NOFLAG               0
 
 /* Structure representing one dependency of a file.
    Each struct file's 'deps' points to a chain of these,

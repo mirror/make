@@ -165,7 +165,7 @@ sub toplevel
         $dir = $1;
         push (@rmdirs, $dir);
         -d "$workpath/$dir"
-	   || mkdir ("$workpath/$dir", 0777)
+           || mkdir ("$workpath/$dir", 0777)
            || &error ("Couldn't mkdir $workpath/$dir: $!\n");
       }
     }
@@ -174,7 +174,7 @@ sub toplevel
   {
     print "Finding tests...\n";
     opendir (SCRIPTDIR, $scriptpath)
-	|| &error ("Couldn't opendir $scriptpath: $!\n");
+        || &error ("Couldn't opendir $scriptpath: $!\n");
     @dirs = grep (!/^(\..*|CVS|RCS)$/, readdir (SCRIPTDIR) );
     closedir (SCRIPTDIR);
     foreach $dir (@dirs)
@@ -184,13 +184,13 @@ sub toplevel
       mkdir ("$workpath/$dir", 0777)
            || &error ("Couldn't mkdir $workpath/$dir: $!\n");
       opendir (SCRIPTDIR, "$scriptpath/$dir")
-	  || &error ("Couldn't opendir $scriptpath/$dir: $!\n");
+          || &error ("Couldn't opendir $scriptpath/$dir: $!\n");
       @files = grep (!/^(\..*|CVS|RCS|.*~)$/, readdir (SCRIPTDIR) );
       closedir (SCRIPTDIR);
       foreach $test (@files)
       {
         -d $test and next;
-	push (@TESTS, "$dir/$test");
+        push (@TESTS, "$dir/$test");
       }
     }
   }
@@ -275,15 +275,15 @@ sub get_osname
     eval "chop (\$osname = `sh -c 'uname -nmsr 2>&1'`)";
     if ($osname =~ /not found/i)
     {
-	$osname = "(something posixy with no uname)";
+        $osname = "(something posixy with no uname)";
     }
     elsif ($@ ne "" || $?)
     {
         eval "chop (\$osname = `sh -c 'uname -a 2>&1'`)";
         if ($@ ne "" || $?)
         {
-	    $osname = "(something posixy)";
-	}
+            $osname = "(something posixy)";
+        }
     }
     $vos = 0;
     $pathsep = "/";
@@ -941,7 +941,7 @@ sub touch
 
   foreach $file (@_) {
     (open(T, ">> $file") && print(T "\n") && close(T))
-	|| &error("Couldn't touch $file: $!\n", 1);
+        || &error("Couldn't touch $file: $!\n", 1);
   }
 }
 

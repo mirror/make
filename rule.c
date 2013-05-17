@@ -87,10 +87,10 @@ count_implicit_rule_limits (void)
       ++num_pattern_rules;
 
       if (rule->num > max_pattern_targets)
-	max_pattern_targets = rule->num;
+        max_pattern_targets = rule->num;
 
       for (dep = rule->deps; dep != 0; dep = dep->next)
-	{
+        {
           const char *dname = dep_name (dep);
           unsigned int len = strlen (dname);
 
@@ -106,36 +106,36 @@ count_implicit_rule_limits (void)
 #endif
           ndeps++;
 
-	  if (len > max_pattern_dep_length)
-	    max_pattern_dep_length = len;
+          if (len > max_pattern_dep_length)
+            max_pattern_dep_length = len;
 
-	  if (p != 0 && p2 > p)
-	    {
-	      /* There is a slash before the % in the dep name.
-		 Extract the directory name.  */
-	      if (p == dname)
-		++p;
-	      if (p - dname > namelen)
-		{
-		  namelen = p - dname;
-		  name = xrealloc (name, namelen + 1);
-		}
-	      memcpy (name, dname, p - dname);
-	      name[p - dname] = '\0';
+          if (p != 0 && p2 > p)
+            {
+              /* There is a slash before the % in the dep name.
+                 Extract the directory name.  */
+              if (p == dname)
+                ++p;
+              if (p - dname > namelen)
+                {
+                  namelen = p - dname;
+                  name = xrealloc (name, namelen + 1);
+                }
+              memcpy (name, dname, p - dname);
+              name[p - dname] = '\0';
 
-	      /* In the deps of an implicit rule the 'changed' flag
-		 actually indicates that the dependency is in a
-		 nonexistent subdirectory.  */
+              /* In the deps of an implicit rule the 'changed' flag
+                 actually indicates that the dependency is in a
+                 nonexistent subdirectory.  */
 
-	      dep->changed = !dir_file_exists_p (name, "");
-	    }
-	  else
-	    /* This dependency does not reside in a subdirectory.  */
-	    dep->changed = 0;
-	}
+              dep->changed = !dir_file_exists_p (name, "");
+            }
+          else
+            /* This dependency does not reside in a subdirectory.  */
+            dep->changed = 0;
+        }
 
       if (ndeps > max_pattern_deps)
-	max_pattern_deps = ndeps;
+        max_pattern_deps = ndeps;
 
       rule = next;
     }
@@ -217,7 +217,7 @@ convert_to_pattern (void)
     {
       unsigned int l = strlen (dep_name (d));
       if (l > maxsuffix)
-	maxsuffix = l;
+        maxsuffix = l;
     }
 
   /* Space to construct the suffix rule target name.  */
@@ -228,12 +228,12 @@ convert_to_pattern (void)
       unsigned int slen;
 
       /* Make a rule that is just the suffix, with no deps or commands.
-	 This rule exists solely to disqualify match-anything rules.  */
+         This rule exists solely to disqualify match-anything rules.  */
       convert_suffix_rule (dep_name (d), 0, 0);
 
       if (d->file->cmds != 0)
-	/* Record a pattern for this suffix's null-suffix rule.  */
-	convert_suffix_rule ("", dep_name (d), d->file->cmds);
+        /* Record a pattern for this suffix's null-suffix rule.  */
+        convert_suffix_rule ("", dep_name (d), d->file->cmds);
 
       /* Add every other suffix to this one and see if it exists as a
          two-suffix rule.  */
@@ -241,32 +241,32 @@ convert_to_pattern (void)
       memcpy (rulename, dep_name (d), slen);
 
       for (d2 = suffix_file->deps; d2 != 0; d2 = d2->next)
-	{
+        {
           struct file *f;
           unsigned int s2len;
 
-	  s2len = strlen (dep_name (d2));
+          s2len = strlen (dep_name (d2));
 
           /* Can't build something from itself.  */
-	  if (slen == s2len && streq (dep_name (d), dep_name (d2)))
-	    continue;
+          if (slen == s2len && streq (dep_name (d), dep_name (d2)))
+            continue;
 
-	  memcpy (rulename + slen, dep_name (d2), s2len + 1);
-	  f = lookup_file (rulename);
-	  if (f == 0 || f->cmds == 0)
-	    continue;
+          memcpy (rulename + slen, dep_name (d2), s2len + 1);
+          f = lookup_file (rulename);
+          if (f == 0 || f->cmds == 0)
+            continue;
 
-	  if (s2len == 2 && rulename[slen] == '.' && rulename[slen + 1] == 'a')
-	    /* A suffix rule '.X.a:' generates the pattern rule '(%.o): %.X'.
-	       It also generates a normal '%.a: %.X' rule below.  */
-	    convert_suffix_rule (NULL, /* Indicates '(%.o)'.  */
-				 dep_name (d),
-				 f->cmds);
+          if (s2len == 2 && rulename[slen] == '.' && rulename[slen + 1] == 'a')
+            /* A suffix rule '.X.a:' generates the pattern rule '(%.o): %.X'.
+               It also generates a normal '%.a: %.X' rule below.  */
+            convert_suffix_rule (NULL, /* Indicates '(%.o)'.  */
+                                 dep_name (d),
+                                 f->cmds);
 
-	  /* The suffix rule '.X.Y:' is converted
-	     to the pattern rule '%.Y: %.X'.  */
-	  convert_suffix_rule (dep_name (d2), dep_name (d), f->cmds);
-	}
+          /* The suffix rule '.X.Y:' is converted
+             to the pattern rule '%.Y: %.X'.  */
+          convert_suffix_rule (dep_name (d2), dep_name (d), f->cmds);
+        }
     }
 }
 
@@ -294,42 +294,42 @@ new_pattern_rule (struct rule *rule, int override)
   for (r = pattern_rules; r != 0; lastrule = r, r = r->next)
     for (i = 0; i < rule->num; ++i)
       {
-	for (j = 0; j < r->num; ++j)
-	  if (!streq (rule->targets[i], r->targets[j]))
-	    break;
+        for (j = 0; j < r->num; ++j)
+          if (!streq (rule->targets[i], r->targets[j]))
+            break;
         /* If all the targets matched...  */
-	if (j == r->num)
-	  {
-	    struct dep *d, *d2;
-	    for (d = rule->deps, d2 = r->deps;
-		 d != 0 && d2 != 0; d = d->next, d2 = d2->next)
-	      if (!streq (dep_name (d), dep_name (d2)))
-		break;
-	    if (d == 0 && d2 == 0)
-	      {
-		/* All the dependencies matched.  */
-		if (override)
-		  {
-		    /* Remove the old rule.  */
-		    freerule (r, lastrule);
-		    /* Install the new one.  */
-		    if (pattern_rules == 0)
-		      pattern_rules = rule;
-		    else
-		      last_pattern_rule->next = rule;
-		    last_pattern_rule = rule;
+        if (j == r->num)
+          {
+            struct dep *d, *d2;
+            for (d = rule->deps, d2 = r->deps;
+                 d != 0 && d2 != 0; d = d->next, d2 = d2->next)
+              if (!streq (dep_name (d), dep_name (d2)))
+                break;
+            if (d == 0 && d2 == 0)
+              {
+                /* All the dependencies matched.  */
+                if (override)
+                  {
+                    /* Remove the old rule.  */
+                    freerule (r, lastrule);
+                    /* Install the new one.  */
+                    if (pattern_rules == 0)
+                      pattern_rules = rule;
+                    else
+                      last_pattern_rule->next = rule;
+                    last_pattern_rule = rule;
 
-		    /* We got one.  Stop looking.  */
-		    goto matched;
-		  }
-		else
-		  {
-		    /* The old rule stays intact.  Destroy the new one.  */
-		    freerule (rule, (struct rule *) 0);
-		    return 0;
-		  }
-	      }
-	  }
+                    /* We got one.  Stop looking.  */
+                    goto matched;
+                  }
+                else
+                  {
+                    /* The old rule stays intact.  Destroy the new one.  */
+                    freerule (rule, (struct rule *) 0);
+                    return 0;
+                  }
+              }
+          }
       }
 
  matched:;
@@ -338,9 +338,9 @@ new_pattern_rule (struct rule *rule, int override)
     {
       /* There was no rule to replace.  */
       if (pattern_rules == 0)
-	pattern_rules = rule;
+        pattern_rules = rule;
       else
-	last_pattern_rule->next = rule;
+        last_pattern_rule->next = rule;
       last_pattern_rule = rule;
     }
 
@@ -382,7 +382,7 @@ install_pattern_rule (struct pspec *p, int terminal)
       r->cmds->fileinfo.filenm = 0;
       r->cmds->fileinfo.lineno = 0;
       /* These will all be string literals, but we malloc space for them
-	 anyway because somebody might want to free them later.  */
+         anyway because somebody might want to free them later.  */
       r->cmds->commands = xstrdup (p->commands);
       r->cmds->command_lines = 0;
       r->cmds->recipe_prefix = RECIPEPREFIX_DEFAULT;
@@ -468,7 +468,7 @@ create_pattern_rule (const char **targets, const char **target_percents,
 
 /* Print the data base of rules.  */
 
-static void			/* Useful to call from gdb.  */
+static void                     /* Useful to call from gdb.  */
 print_rule (struct rule *r)
 {
   unsigned int i;
@@ -504,7 +504,7 @@ print_rule_data_base (void)
       print_rule (r);
 
       if (r->terminal)
-	++terminal;
+        ++terminal;
     }
 
   if (rules == 0)
@@ -512,12 +512,12 @@ print_rule_data_base (void)
   else
     {
       printf (_("\n# %u implicit rules, %u"), rules, terminal);
-#ifndef	NO_FLOAT
+#ifndef NO_FLOAT
       printf (" (%.1f%%)", (double) terminal / (double) rules * 100.0);
 #else
       {
-	int f = (terminal * 1000 + 5) / rules;
-	printf (" (%d.%d%%)", f/10, f%10);
+        int f = (terminal * 1000 + 5) / rules;
+        printf (" (%d.%d%%)", f/10, f%10);
       }
 #endif
       puts (_(" terminal."));

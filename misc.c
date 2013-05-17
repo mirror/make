@@ -60,64 +60,64 @@ collapse_continuations (char *line)
   while (*in != '\0')
     {
       /* BS_WRITE gets the number of quoted backslashes at
-	 the end just before IN, and BACKSLASH gets nonzero
-	 if the next character is quoted.  */
+         the end just before IN, and BACKSLASH gets nonzero
+         if the next character is quoted.  */
       backslash = 0;
       bs_write = 0;
       for (p = in - 1; p >= line && *p == '\\'; --p)
-	{
-	  if (backslash)
-	    ++bs_write;
-	  backslash = !backslash;
+        {
+          if (backslash)
+            ++bs_write;
+          backslash = !backslash;
 
-	  /* It should be impossible to go back this far without exiting,
-	     but if we do, we can't get the right answer.  */
-	  if (in == out - 1)
-	    abort ();
-	}
+          /* It should be impossible to go back this far without exiting,
+             but if we do, we can't get the right answer.  */
+          if (in == out - 1)
+            abort ();
+        }
 
       /* Output the appropriate number of backslashes.  */
       while (bs_write-- > 0)
-	*out++ = '\\';
+        *out++ = '\\';
 
       /* Skip the newline.  */
       ++in;
 
       if (backslash)
-	{
+        {
           /* Backslash/newline handling:
              In traditional GNU make all trailing whitespace, consecutive
              backslash/newlines, and any leading whitespace on the next line
              is reduced to a single space.
              In POSIX, each backslash/newline and is replaced by a space.  */
-	  in = next_token (in);
+          in = next_token (in);
           if (! posix_pedantic)
             while (out > line && isblank ((unsigned char)out[-1]))
               --out;
-	  *out++ = ' ';
-	}
+          *out++ = ' ';
+        }
       else
-	/* If the newline isn't quoted, put it in the output.  */
-	*out++ = '\n';
+        /* If the newline isn't quoted, put it in the output.  */
+        *out++ = '\n';
 
       /* Now copy the following line to the output.
-	 Stop when we find backslashes followed by a newline.  */
+         Stop when we find backslashes followed by a newline.  */
       while (*in != '\0')
-	if (*in == '\\')
-	  {
-	    p = in + 1;
-	    while (*p == '\\')
-	      ++p;
-	    if (*p == '\n')
-	      {
-		in = p;
-		break;
-	      }
-	    while (in < p)
-	      *out++ = *in++;
-	  }
-	else
-	  *out++ = *in++;
+        if (*in == '\\')
+          {
+            p = in + 1;
+            while (*p == '\\')
+              ++p;
+            if (*p == '\n')
+              {
+                in = p;
+                break;
+              }
+            while (in < p)
+              *out++ = *in++;
+          }
+        else
+          *out++ = *in++;
     }
 
   *out = '\0';
@@ -267,12 +267,12 @@ message (int prefix, const char *fmt, ...)
   if (fmt != 0)
     {
       if (prefix)
-	{
-	  if (makelevel == 0)
-	    printf ("%s: ", program);
-	  else
-	    printf ("%s[%u]: ", program, makelevel);
-	}
+        {
+          if (makelevel == 0)
+            printf ("%s: ", program);
+          else
+            printf ("%s[%u]: ", program, makelevel);
+        }
       va_start (args, fmt);
       vfprintf (stdout, fmt, args);
       va_end (args);
@@ -335,7 +335,7 @@ fatal (const gmk_floc *flocp, const char *fmt, ...)
 
 #ifndef HAVE_STRERROR
 
-#undef	strerror
+#undef  strerror
 
 char *
 strerror (int errnum)
@@ -499,7 +499,7 @@ end_of_token_w32 (const char *s, char stopchar)
   int backslash = 0;
 
   while (*p != '\0' && *p != stopchar
-	 && (backslash || !isblank ((unsigned char)*p)))
+         && (backslash || !isblank ((unsigned char)*p)))
     {
       if (*p++ == '\\')
         {
@@ -566,9 +566,9 @@ copy_dep_chain (const struct dep *d)
 
       c->next = 0;
       if (firstnew == 0)
-	firstnew = lastnew = c;
+        firstnew = lastnew = c;
       else
-	lastnew = lastnew->next = c;
+        lastnew = lastnew->next = c;
 
       d = d->next;
     }
@@ -658,7 +658,7 @@ strncasecmp (const char *s1, const char *s2, int n)
 }
 #endif
 
-#ifdef	GETLOADAVG_PRIVILEGED
+#ifdef  GETLOADAVG_PRIVILEGED
 
 #ifdef POSIX
 
@@ -671,7 +671,7 @@ strncasecmp (const char *s1, const char *s2, int n)
 #undef HAVE_SETREUID
 #undef HAVE_SETREGID
 
-#else	/* Not POSIX.  */
+#else   /* Not POSIX.  */
 
 /* Some POSIX.1 systems have the seteuid and setegid functions.  In a
    POSIX-like system, they are the best thing to use.  However, some
@@ -681,30 +681,30 @@ strncasecmp (const char *s1, const char *s2, int n)
 #undef HAVE_SETEUID
 #undef HAVE_SETEGID
 
-#endif	/* POSIX.  */
+#endif  /* POSIX.  */
 
-#ifndef	HAVE_UNISTD_H
+#ifndef HAVE_UNISTD_H
 extern int getuid (), getgid (), geteuid (), getegid ();
 extern int setuid (), setgid ();
 #ifdef HAVE_SETEUID
 extern int seteuid ();
 #else
-#ifdef	HAVE_SETREUID
+#ifdef  HAVE_SETREUID
 extern int setreuid ();
-#endif	/* Have setreuid.  */
-#endif	/* Have seteuid.  */
+#endif  /* Have setreuid.  */
+#endif  /* Have seteuid.  */
 #ifdef HAVE_SETEGID
 extern int setegid ();
 #else
-#ifdef	HAVE_SETREGID
+#ifdef  HAVE_SETREGID
 extern int setregid ();
-#endif	/* Have setregid.  */
-#endif	/* Have setegid.  */
-#endif	/* No <unistd.h>.  */
+#endif  /* Have setregid.  */
+#endif  /* Have setegid.  */
+#endif  /* No <unistd.h>.  */
 
 /* Keep track of the user and group IDs for user- and make- access.  */
 static int user_uid = -1, user_gid = -1, make_uid = -1, make_gid = -1;
-#define	access_inited	(user_uid != -1)
+#define access_inited   (user_uid != -1)
 static enum { make, user } current_access;
 
 
@@ -721,7 +721,7 @@ log_access (const char *flavor)
      run in a child fork whose stdout is piped.  */
 
   fprintf (stderr, _("%s: user %lu (real %lu), group %lu (real %lu)\n"),
-	   flavor, (unsigned long) geteuid (), (unsigned long) getuid (),
+           flavor, (unsigned long) geteuid (), (unsigned long) getuid (),
            (unsigned long) getegid (), (unsigned long) getgid ());
   fflush (stderr);
 }
@@ -747,14 +747,14 @@ init_access (void)
 #endif
 }
 
-#endif	/* GETLOADAVG_PRIVILEGED */
+#endif  /* GETLOADAVG_PRIVILEGED */
 
 /* Give the process appropriate permissions for access to
    user data (i.e., to stat files, or to spawn a child process).  */
 void
 user_access (void)
 {
-#ifdef	GETLOADAVG_PRIVILEGED
+#ifdef  GETLOADAVG_PRIVILEGED
 
   if (!access_inited)
     init_access ();
@@ -767,7 +767,7 @@ user_access (void)
      We now want to set the effective user and group IDs to the real IDs,
      which are the IDs of the process that exec'd make.  */
 
-#ifdef	HAVE_SETEUID
+#ifdef  HAVE_SETEUID
 
   /* Modern systems have the seteuid/setegid calls which set only the
      effective IDs, which is ideal.  */
@@ -775,9 +775,9 @@ user_access (void)
   if (seteuid (user_uid) < 0)
     pfatal_with_name ("user_access: seteuid");
 
-#else	/* Not HAVE_SETEUID.  */
+#else   /* Not HAVE_SETEUID.  */
 
-#ifndef	HAVE_SETREUID
+#ifndef HAVE_SETREUID
 
   /* System V has only the setuid/setgid calls to set user/group IDs.
      There is an effective ID, which can be set by setuid/setgid.
@@ -790,7 +790,7 @@ user_access (void)
   if (setuid (user_uid) < 0)
     pfatal_with_name ("user_access: setuid");
 
-#else	/* HAVE_SETREUID.  */
+#else   /* HAVE_SETREUID.  */
 
   /* In 4BSD, the setreuid/setregid calls set both the real and effective IDs.
      They may be set to themselves or each other.  So you have two alternatives
@@ -802,14 +802,14 @@ user_access (void)
   if (setreuid (make_uid, user_uid) < 0)
     pfatal_with_name ("user_access: setreuid");
 
-#endif	/* Not HAVE_SETREUID.  */
-#endif	/* HAVE_SETEUID.  */
+#endif  /* Not HAVE_SETREUID.  */
+#endif  /* HAVE_SETEUID.  */
 
-#ifdef	HAVE_SETEGID
+#ifdef  HAVE_SETEGID
   if (setegid (user_gid) < 0)
     pfatal_with_name ("user_access: setegid");
 #else
-#ifndef	HAVE_SETREGID
+#ifndef HAVE_SETREGID
   if (setgid (user_gid) < 0)
     pfatal_with_name ("user_access: setgid");
 #else
@@ -822,7 +822,7 @@ user_access (void)
 
   log_access (_("User access"));
 
-#endif	/* GETLOADAVG_PRIVILEGED */
+#endif  /* GETLOADAVG_PRIVILEGED */
 }
 
 /* Give the process appropriate permissions for access to
@@ -830,7 +830,7 @@ user_access (void)
 void
 make_access (void)
 {
-#ifdef	GETLOADAVG_PRIVILEGED
+#ifdef  GETLOADAVG_PRIVILEGED
 
   if (!access_inited)
     init_access ();
@@ -840,11 +840,11 @@ make_access (void)
 
   /* See comments in user_access, above.  */
 
-#ifdef	HAVE_SETEUID
+#ifdef  HAVE_SETEUID
   if (seteuid (make_uid) < 0)
     pfatal_with_name ("make_access: seteuid");
 #else
-#ifndef	HAVE_SETREUID
+#ifndef HAVE_SETREUID
   if (setuid (make_uid) < 0)
     pfatal_with_name ("make_access: setuid");
 #else
@@ -853,11 +853,11 @@ make_access (void)
 #endif
 #endif
 
-#ifdef	HAVE_SETEGID
+#ifdef  HAVE_SETEGID
   if (setegid (make_gid) < 0)
     pfatal_with_name ("make_access: setegid");
 #else
-#ifndef	HAVE_SETREGID
+#ifndef HAVE_SETREGID
   if (setgid (make_gid) < 0)
     pfatal_with_name ("make_access: setgid");
 #else
@@ -870,7 +870,7 @@ make_access (void)
 
   log_access (_("Make access"));
 
-#endif	/* GETLOADAVG_PRIVILEGED */
+#endif  /* GETLOADAVG_PRIVILEGED */
 }
 
 /* Give the process appropriate permissions for a child process.
@@ -878,7 +878,7 @@ make_access (void)
 void
 child_access (void)
 {
-#ifdef	GETLOADAVG_PRIVILEGED
+#ifdef  GETLOADAVG_PRIVILEGED
 
   if (!access_inited)
     abort ();
@@ -886,7 +886,7 @@ child_access (void)
   /* Set both the real and effective UID and GID to the user's.
      They cannot be changed back to make's.  */
 
-#ifndef	HAVE_SETREUID
+#ifndef HAVE_SETREUID
   if (setuid (user_uid) < 0)
     pfatal_with_name ("child_access: setuid");
 #else
@@ -894,7 +894,7 @@ child_access (void)
     pfatal_with_name ("child_access: setreuid");
 #endif
 
-#ifndef	HAVE_SETREGID
+#ifndef HAVE_SETREGID
   if (setgid (user_gid) < 0)
     pfatal_with_name ("child_access: setgid");
 #else
@@ -904,7 +904,7 @@ child_access (void)
 
   log_access (_("Child access"));
 
-#endif	/* GETLOADAVG_PRIVILEGED */
+#endif  /* GETLOADAVG_PRIVILEGED */
 }
 
 #ifdef NEED_GET_PATH_MAX
@@ -917,9 +917,9 @@ get_path_max (void)
     {
       long int x = pathconf ("/", _PC_PATH_MAX);
       if (x > 0)
-	value = x;
+        value = x;
       else
-	return MAXPATHLEN;
+        return MAXPATHLEN;
     }
 
   return value;
@@ -943,10 +943,10 @@ char *mktemp (char *template);
 /* Returns a file descriptor to a temporary file.  The file is automatically
    closed/deleted on exit.  Don't use a FILE* stream.  */
 int
-open_tmpfd()
+open_tmpfd ()
 {
   int fd = -1;
-  FILE *tfile = tmpfile();
+  FILE *tfile = tmpfile ();
 
   if (! tfile)
     pfatal_with_name ("tmpfile");
@@ -964,7 +964,7 @@ open_tmpfd()
 #endif
 
 FILE *
-open_tmpfile(char **name, const char *template)
+open_tmpfile (char **name, const char *template)
 {
 #ifdef HAVE_FDOPEN
   int fd;

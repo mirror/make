@@ -50,56 +50,57 @@ load_object (const gmk_floc *flocp, int noerror,
     {
       global_dl = dlopen (NULL, RTLD_NOW|RTLD_GLOBAL);
       if (! global_dl)
-        fatal (flocp, _("Failed to open global symbol table: %s"), dlerror());
+        fatal (flocp, _("Failed to open global symbol table: %s"), dlerror ());
     }
 
   symp = (load_func_t) dlsym (global_dl, symname);
-  if (! symp) {
-    struct load_list *new;
-    void *dlp = NULL;
+  if (! symp)
+    {
+      struct load_list *new;
+      void *dlp = NULL;
 
     /* If the path has no "/", try the current directory first.  */
-    if (! strchr (ldname, '/')
+      if (! strchr (ldname, '/')
 #ifdef HAVE_DOS_PATHS
-	&& ! strchr (ldname, '\\')
+          && ! strchr (ldname, '\\')
 #endif
-	)
-      dlp = dlopen (concat (2, "./", ldname), RTLD_LAZY|RTLD_GLOBAL);
+         )
+        dlp = dlopen (concat (2, "./", ldname), RTLD_LAZY|RTLD_GLOBAL);
 
-    /* If we haven't opened it yet, try the default search path.  */
-    if (! dlp)
-      dlp = dlopen (ldname, RTLD_LAZY|RTLD_GLOBAL);
+      /* If we haven't opened it yet, try the default search path.  */
+      if (! dlp)
+        dlp = dlopen (ldname, RTLD_LAZY|RTLD_GLOBAL);
 
-    /* Still no?  Then fail.  */
-    if (! dlp)
-      {
-        if (noerror)
-          DB (DB_BASIC, ("%s", dlerror()));
-        else
-          error (flocp, "%s", dlerror());
-        return NULL;
-      }
+      /* Still no?  Then fail.  */
+      if (! dlp)
+        {
+          if (noerror)
+            DB (DB_BASIC, ("%s", dlerror ()));
+          else
+            error (flocp, "%s", dlerror ());
+          return NULL;
+        }
 
-    /* Assert that the GPL license symbol is defined.  */
-    symp = dlsym (dlp, "plugin_is_GPL_compatible");
-    if (! symp)
-      fatal (flocp, _("Loaded object %s is not declared to be GPL compatible"),
-             ldname);
+      /* Assert that the GPL license symbol is defined.  */
+      symp = dlsym (dlp, "plugin_is_GPL_compatible");
+      if (! symp)
+        fatal (flocp, _("Loaded object %s is not declared to be GPL compatible"),
+               ldname);
 
-    symp = dlsym (dlp, symname);
-    if (! symp)
-      fatal (flocp, _("Failed to load symbol %s from %s: %s"),
-             symname, ldname, dlerror());
+      symp = dlsym (dlp, symname);
+      if (! symp)
+        fatal (flocp, _("Failed to load symbol %s from %s: %s"),
+               symname, ldname, dlerror ());
 
-    /* Add this symbol to a trivial lookup table.  This is not efficient but
-       it's highly unlikely we'll be loading lots of objects, and we only need
-       it to look them up on unload, if we rebuild them.  */
-    new = xmalloc (sizeof (struct load_list));
-    new->name = xstrdup (ldname);
-    new->dlp = dlp;
-    new->next = loaded_syms;
-    loaded_syms = new;
-  }
+      /* Add this symbol to a trivial lookup table.  This is not efficient but
+         it's highly unlikely we'll be loading lots of objects, and we only
+         need it to look them up on unload, if we rebuild them.  */
+      new = xmalloc (sizeof (struct load_list));
+      new->name = xstrdup (ldname);
+      new->dlp = dlp;
+      new->next = loaded_syms;
+      loaded_syms = new;
+    }
 
   return symp;
 }
@@ -150,7 +151,7 @@ load_file (const gmk_floc *flocp, const char **ldname, int noerror)
   *ldname = strcache_add (*ldname);
 
   /* If this object has been loaded, we're done.  */
-  loaded = allocated_variable_expand("$(.LOADED)");
+  loaded = allocated_variable_expand ("$(.LOADED)");
   fp = strstr (loaded, *ldname);
   r = fp && (fp==loaded || fp[-1]==' ') && (fp[nmlen]=='\0' || fp[nmlen]==' ');
   free (loaded);
@@ -165,17 +166,17 @@ load_file (const gmk_floc *flocp, const char **ldname, int noerror)
       fp = strrchr (*ldname, '/');
 #ifdef HAVE_DOS_PATHS
       if (fp)
-	{
-	  const char *fp2 = strchr (fp, '\\');
+        {
+          const char *fp2 = strchr (fp, '\\');
 
-	  if (fp2 > fp)
-	    fp = fp2;
-	}
+          if (fp2 > fp)
+            fp = fp2;
+        }
       else
-	fp = strrchr (*ldname, '\\');
+        fp = strrchr (*ldname, '\\');
       /* The (improbable) case of d:foo.  */
       if (fp && *fp && fp[1] == ':')
-	fp++;
+        fp++;
 #endif
       if (!fp)
         fp = *ldname;
@@ -190,7 +191,7 @@ load_file (const gmk_floc *flocp, const char **ldname, int noerror)
   DB (DB_VERBOSE, (_("Loading symbol %s from %s\n"), symname, *ldname));
 
   /* Load it!  */
-  symp = load_object(flocp, noerror, *ldname, symname);
+  symp = load_object (flocp, noerror, *ldname, symname);
   if (! symp)
     return 0;
 

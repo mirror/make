@@ -705,7 +705,7 @@ eval (struct ebuffer *ebuf, int set_default)
 
       /* See if this is a variable assignment.  We need to do this early, to
          allow variables with names like 'ifdef', 'export', 'private', etc.  */
-      p = parse_var_assignment(p, &vmod);
+      p = parse_var_assignment (p, &vmod);
       if (vmod.assign_v)
         {
           struct variable *v;
@@ -960,7 +960,7 @@ eval (struct ebuffer *ebuf, int set_default)
          was no preceding target, and the line might have been usable as a
          variable definition.  But now we know it is definitely lossage.  */
       if (line[0] == cmd_prefix)
-        fatal(fstart, _("recipe commences before first target"));
+        fatal (fstart, _("recipe commences before first target"));
 
       /* This line describes some target files.  This is complicated by
          the existence of target-specific variables, because we can't
@@ -1004,12 +1004,12 @@ eval (struct ebuffer *ebuf, int set_default)
            variable we don't want to expand it.  So, walk from the
            beginning, expanding as we go, and looking for "interesting"
            chars.  The first word is always expandable.  */
-        wtype = get_next_mword(line, NULL, &lb_next, &wlen);
+        wtype = get_next_mword (line, NULL, &lb_next, &wlen);
         switch (wtype)
           {
           case w_eol:
             if (cmdleft != 0)
-              fatal(fstart, _("missing rule before recipe"));
+              fatal (fstart, _("missing rule before recipe"));
             /* This line contained something but turned out to be nothing
                but whitespace (a comment?).  */
             continue;
@@ -1025,7 +1025,7 @@ eval (struct ebuffer *ebuf, int set_default)
             break;
           }
 
-        p2 = variable_expand_string(NULL, lb_next, wlen);
+        p2 = variable_expand_string (NULL, lb_next, wlen);
 
         while (1)
           {
@@ -1039,7 +1039,7 @@ eval (struct ebuffer *ebuf, int set_default)
                   {
                     unsigned long p2_off = p2 - variable_buffer;
                     unsigned long cmd_off = cmdleft - variable_buffer;
-                    char *pend = p2 + strlen(p2);
+                    char *pend = p2 + strlen (p2);
 
                     /* Append any remnants of lb, then cut the line short
                        at the semicolon.  */
@@ -1053,14 +1053,14 @@ eval (struct ebuffer *ebuf, int set_default)
                        entirely consistent, since we do an unconditional
                        expand below once we know we don't have a
                        target-specific variable. */
-                    (void)variable_expand_string(pend, lb_next, (long)-1);
-                    lb_next += strlen(lb_next);
+                    (void)variable_expand_string (pend, lb_next, (long)-1);
+                    lb_next += strlen (lb_next);
                     p2 = variable_buffer + p2_off;
                     cmdleft = variable_buffer + cmd_off + 1;
                   }
               }
 
-            colonp = find_char_unquote(p2, ':', 0, 0, 0);
+            colonp = find_char_unquote (p2, ':', 0, 0, 0);
 #ifdef HAVE_DOS_PATHS
             /* The drive spec brain-damage strikes again...  */
             /* Note that the only separators of targets in this context
@@ -1069,18 +1069,18 @@ eval (struct ebuffer *ebuf, int set_default)
             while (colonp && (colonp[1] == '/' || colonp[1] == '\\') &&
                    colonp > p2 && isalpha ((unsigned char)colonp[-1]) &&
                    (colonp == p2 + 1 || strchr (" \t(", colonp[-2]) != 0))
-              colonp = find_char_unquote(colonp + 1, ':', 0, 0, 0);
+              colonp = find_char_unquote (colonp + 1, ':', 0, 0, 0);
 #endif
             if (colonp != 0)
               break;
 
-            wtype = get_next_mword(lb_next, NULL, &lb_next, &wlen);
+            wtype = get_next_mword (lb_next, NULL, &lb_next, &wlen);
             if (wtype == w_eol)
               break;
 
-            p2 += strlen(p2);
+            p2 += strlen (p2);
             *(p2++) = ' ';
-            p2 = variable_expand_string(p2, lb_next, wlen);
+            p2 = variable_expand_string (p2, lb_next, wlen);
             /* We don't need to worry about cmdleft here, because if it was
                found in the variable_buffer the entire buffer has already
                been expanded... we'll never get here.  */
@@ -1880,7 +1880,7 @@ record_target_var (struct nameseq *filenames, char *defn,
       if (v->origin != o_override)
         {
           struct variable *gv;
-          int len = strlen(v->name);
+          int len = strlen (v->name);
 
           gv = lookup_variable (v->name, len);
           if (gv && v != gv

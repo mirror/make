@@ -82,8 +82,8 @@ update_goal_chain (struct dep *goals)
   int t = touch_flag, q = question_flag, n = just_print_flag;
   int status = -1;
 
-#define	MTIME(file) (rebuilding_makefiles ? file_mtime_no_search (file) \
-		     : file_mtime (file))
+#define MTIME(file) (rebuilding_makefiles ? file_mtime_no_search (file) \
+                     : file_mtime (file))
 
   /* Duplicate the chain so we can remove things from it.  */
 
@@ -120,44 +120,44 @@ update_goal_chain (struct dep *goals)
       lastgoal = 0;
       g = goals;
       while (g != 0)
-	{
-	  /* Iterate over all double-colon entries for this file.  */
-	  struct file *file;
-	  int stop = 0, any_not_updated = 0;
+        {
+          /* Iterate over all double-colon entries for this file.  */
+          struct file *file;
+          int stop = 0, any_not_updated = 0;
 
-	  for (file = g->file->double_colon ? g->file->double_colon : g->file;
-	       file != NULL;
-	       file = file->prev)
-	    {
-	      unsigned int ocommands_started;
-	      int x;
+          for (file = g->file->double_colon ? g->file->double_colon : g->file;
+               file != NULL;
+               file = file->prev)
+            {
+              unsigned int ocommands_started;
+              int x;
 
               file->dontcare = g->dontcare;
 
-	      check_renamed (file);
-	      if (rebuilding_makefiles)
-		{
-		  if (file->cmd_target)
-		    {
-		      touch_flag = t;
-		      question_flag = q;
-		      just_print_flag = n;
-		    }
-		  else
-		    touch_flag = question_flag = just_print_flag = 0;
-		}
+              check_renamed (file);
+              if (rebuilding_makefiles)
+                {
+                  if (file->cmd_target)
+                    {
+                      touch_flag = t;
+                      question_flag = q;
+                      just_print_flag = n;
+                    }
+                  else
+                    touch_flag = question_flag = just_print_flag = 0;
+                }
 
-	      /* Save the old value of 'commands_started' so we can compare
-		 later.  It will be incremented when any commands are
-		 actually run.  */
-	      ocommands_started = commands_started;
+              /* Save the old value of 'commands_started' so we can compare
+                 later.  It will be incremented when any commands are
+                 actually run.  */
+              ocommands_started = commands_started;
 
-	      x = update_file (file, rebuilding_makefiles ? 1 : 0);
-	      check_renamed (file);
+              x = update_file (file, rebuilding_makefiles ? 1 : 0);
+              check_renamed (file);
 
-	      /* Set the goal's 'changed' flag if any commands were started
-		 by calling update_file above.  We check this flag below to
-		 decide when to give an "up to date" diagnostic.  */
+              /* Set the goal's 'changed' flag if any commands were started
+                 by calling update_file above.  We check this flag below to
+                 decide when to give an "up to date" diagnostic.  */
               if (commands_started > ocommands_started)
                 g->changed = 1;
 
@@ -165,8 +165,8 @@ update_goal_chain (struct dep *goals)
                  1 if updating failed, or to 0 if updating succeeded.  Leave
                  STATUS as it is if no updating was done.  */
 
-	      stop = 0;
-	      if ((x != 0 || file->updated) && status < 1)
+              stop = 0;
+              if ((x != 0 || file->updated) && status < 1)
                 {
                   if (file->update_status != 0)
                     {
@@ -203,56 +203,56 @@ update_goal_chain (struct dep *goals)
                     }
                 }
 
-	      /* Keep track if any double-colon entry is not finished.
+              /* Keep track if any double-colon entry is not finished.
                  When they are all finished, the goal is finished.  */
-	      any_not_updated |= !file->updated;
+              any_not_updated |= !file->updated;
 
               file->dontcare = 0;
 
-	      if (stop)
-		break;
-	    }
+              if (stop)
+                break;
+            }
 
-	  /* Reset FILE since it is null at the end of the loop.  */
-	  file = g->file;
+          /* Reset FILE since it is null at the end of the loop.  */
+          file = g->file;
 
-	  if (stop || !any_not_updated)
-	    {
-	      /* If we have found nothing whatever to do for the goal,
-		 print a message saying nothing needs doing.  */
+          if (stop || !any_not_updated)
+            {
+              /* If we have found nothing whatever to do for the goal,
+                 print a message saying nothing needs doing.  */
 
-	      if (!rebuilding_makefiles
-		  /* If the update_status is zero, we updated successfully
-		     or not at all.  G->changed will have been set above if
-		     any commands were actually started for this goal.  */
-		  && file->update_status == 0 && !g->changed
-		  /* Never give a message under -s or -q.  */
-		  && !silent_flag && !question_flag)
-		message (1, ((file->phony || file->cmds == 0)
-			     ? _("Nothing to be done for '%s'.")
-			     : _("'%s' is up to date.")),
-			 file->name);
+              if (!rebuilding_makefiles
+                  /* If the update_status is zero, we updated successfully
+                     or not at all.  G->changed will have been set above if
+                     any commands were actually started for this goal.  */
+                  && file->update_status == 0 && !g->changed
+                  /* Never give a message under -s or -q.  */
+                  && !silent_flag && !question_flag)
+                message (1, ((file->phony || file->cmds == 0)
+                             ? _("Nothing to be done for '%s'.")
+                             : _("'%s' is up to date.")),
+                         file->name);
 
-	      /* This goal is finished.  Remove it from the chain.  */
-	      if (lastgoal == 0)
-		goals = g->next;
-	      else
-		lastgoal->next = g->next;
+              /* This goal is finished.  Remove it from the chain.  */
+              if (lastgoal == 0)
+                goals = g->next;
+              else
+                lastgoal->next = g->next;
 
-	      /* Free the storage.  */
-	      free (g);
+              /* Free the storage.  */
+              free (g);
 
-	      g = lastgoal == 0 ? goals : lastgoal->next;
+              g = lastgoal == 0 ? goals : lastgoal->next;
 
-	      if (stop)
-		break;
-	    }
-	  else
-	    {
-	      lastgoal = g;
-	      g = g->next;
-	    }
-	}
+              if (stop)
+                break;
+            }
+          else
+            {
+              lastgoal = g;
+              g = g->next;
+            }
+        }
 
       /* If we reached the end of the dependency graph toggle the considered
          flag for the next pass.  */
@@ -325,8 +325,8 @@ update_file (struct file *file, unsigned int depth)
       if (f->command_state == cs_running
           || f->command_state == cs_deps_running)
         {
-	  /* Don't run the other :: rules for this
-	     file until this rule is finished.  */
+          /* Don't run the other :: rules for this
+             file until this rule is finished.  */
           status = 0;
           break;
         }
@@ -413,8 +413,8 @@ update_file_1 (struct file *file, unsigned int depth)
   if (file->updated)
     {
       if (file->update_status > 0)
-	{
-	  DBF (DB_VERBOSE,
+        {
+          DBF (DB_VERBOSE,
                _("Recently tried and failed to update file '%s'.\n"));
 
           /* If the file we tried to make is marked no_diag then no message
@@ -424,8 +424,8 @@ update_file_1 (struct file *file, unsigned int depth)
           if (file->no_diag && !file->dontcare)
               complain (file);
 
-	  return file->update_status;
-	}
+          return file->update_status;
+        }
 
       DBF (DB_VERBOSE, _("File '%s' was considered already.\n"));
       return 0;
@@ -471,13 +471,13 @@ update_file_1 (struct file *file, unsigned int depth)
   if (noexist)
     DBF (DB_BASIC, _("File '%s' does not exist.\n"));
   else if (ORDINARY_MTIME_MIN <= this_mtime && this_mtime <= ORDINARY_MTIME_MAX
-	   && file->low_resolution_time)
+           && file->low_resolution_time)
     {
       /* Avoid spurious rebuilds due to low resolution time stamps.  */
       int ns = FILE_TIMESTAMP_NS (this_mtime);
       if (ns != 0)
-	error (NILF, _("*** Warning: .LOW_RESOLUTION_TIME file '%s' has a high resolution time stamp"),
-	       file->name);
+        error (NILF, _("*** Warning: .LOW_RESOLUTION_TIME file '%s' has a high resolution time stamp"),
+               file->name);
       this_mtime += FILE_TIMESTAMPS_PER_S - 1 - ns;
     }
 
@@ -489,9 +489,9 @@ update_file_1 (struct file *file, unsigned int depth)
   if (!file->phony && file->cmds == 0 && !file->tried_implicit)
     {
       if (try_implicit_rule (file, depth))
-	DBF (DB_IMPLICIT, _("Found an implicit rule for '%s'.\n"));
+        DBF (DB_IMPLICIT, _("Found an implicit rule for '%s'.\n"));
       else
-	DBF (DB_IMPLICIT, _("No implicit rule found for '%s'.\n"));
+        DBF (DB_IMPLICIT, _("No implicit rule found for '%s'.\n"));
       file->tried_implicit = 1;
     }
   if (file->cmds == 0 && !file->is_target
@@ -597,13 +597,13 @@ update_file_1 (struct file *file, unsigned int depth)
   if (must_make || always_make_flag)
     {
       for (d = file->deps; d != 0; d = d->next)
-	if (d->file->intermediate)
-	  {
+        if (d->file->intermediate)
+          {
             int dontcare = 0;
 
-	    FILE_TIMESTAMP mtime = file_mtime (d->file);
-	    check_renamed (d->file);
-	    d->file->parent = file;
+            FILE_TIMESTAMP mtime = file_mtime (d->file);
+            check_renamed (d->file);
+            d->file->parent = file;
 
             /* Inherit dontcare flag from our parent. */
             if (rebuilding_makefiles)
@@ -617,34 +617,34 @@ update_file_1 (struct file *file, unsigned int depth)
                not prune it.  */
             d->file->considered = !considered;
 
-	    dep_status |= update_file (d->file, depth);
+            dep_status |= update_file (d->file, depth);
 
             /* Restore original dontcare flag. */
             if (rebuilding_makefiles)
               d->file->dontcare = dontcare;
 
-	    check_renamed (d->file);
+            check_renamed (d->file);
 
-	    {
-	      register struct file *f = d->file;
-	      if (f->double_colon)
-		f = f->double_colon;
-	      do
-		{
-		  running |= (f->command_state == cs_running
-			      || f->command_state == cs_deps_running);
-		  f = f->prev;
-		}
-	      while (f != 0);
-	    }
+            {
+              register struct file *f = d->file;
+              if (f->double_colon)
+                f = f->double_colon;
+              do
+                {
+                  running |= (f->command_state == cs_running
+                              || f->command_state == cs_deps_running);
+                  f = f->prev;
+                }
+              while (f != 0);
+            }
 
-	    if (dep_status != 0 && !keep_going_flag)
-	      break;
+            if (dep_status != 0 && !keep_going_flag)
+              break;
 
-	    if (!running)
-	      d->changed = ((file->phony && file->cmds != 0)
-			    || file_mtime (d->file) != mtime);
-	  }
+            if (!running)
+              d->changed = ((file->phony && file->cmds != 0)
+                            || file_mtime (d->file) != mtime);
+          }
     }
 
   finish_updating (file);
@@ -672,8 +672,8 @@ update_file_1 (struct file *file, unsigned int depth)
       DBF (DB_VERBOSE, _("Giving up on target file '%s'.\n"));
 
       if (depth == 0 && keep_going_flag
-	  && !just_print_flag && !question_flag)
-	error (NILF,
+          && !just_print_flag && !question_flag)
+        error (NILF,
                _("Target '%s' not remade because of errors."), file->name);
 
       return dep_status;
@@ -703,8 +703,8 @@ update_file_1 (struct file *file, unsigned int depth)
         {
 #if 1
           /* %%% In version 4, remove this code completely to
-	   implement not remaking deps if their deps are newer
-	   than their parents.  */
+           implement not remaking deps if their deps are newer
+           than their parents.  */
           if (d_mtime == NONEXISTENT_MTIME && !d->file->intermediate)
             /* We must remake if this dep does not
                exist and is not intermediate.  */
@@ -716,11 +716,11 @@ update_file_1 (struct file *file, unsigned int depth)
         }
 
       /* Set D->changed if either this dep actually changed,
-	 or its dependent, FILE, is older or does not exist.  */
+         or its dependent, FILE, is older or does not exist.  */
       d->changed |= noexist || d_mtime > this_mtime;
 
       if (!noexist && ISDB (DB_BASIC|DB_VERBOSE))
-	{
+        {
           const char *fmt = 0;
 
           if (d->ignore_mtime)
@@ -733,7 +733,7 @@ update_file_1 (struct file *file, unsigned int depth)
               if (ISDB (DB_BASIC))
                 fmt = _("Prerequisite '%s' of target '%s' does not exist.\n");
             }
-	  else if (d->changed)
+          else if (d->changed)
             {
               if (ISDB (DB_BASIC))
                 fmt = _("Prerequisite '%s' is newer than target '%s'.\n");
@@ -747,7 +747,7 @@ update_file_1 (struct file *file, unsigned int depth)
               printf (fmt, dep_name (d), file->name);
               fflush (stdout);
             }
-	}
+        }
     }
 
   /* Here depth returns to the value it had when we were called.  */
@@ -803,7 +803,7 @@ update_file_1 (struct file *file, unsigned int depth)
 
   /* It needs to be remade.  If it's VPATH and not reset via GPATH, toss the
      VPATH.  */
-  if (!streq(file->name, file->hname))
+  if (!streq (file->name, file->hname))
     {
       DB (DB_BASIC, (_("  Ignoring VPATH name '%s'.\n"), file->hname));
       file->ignore_vpath = 1;
@@ -856,29 +856,29 @@ notice_finished_file (struct file *file)
 
   if (touch_flag
       /* The update status will be:
-		-1	if this target was not remade;
-		0	if 0 or more commands (+ or ${MAKE}) were run and won;
-		1	if some commands were run and lost.
-	 We touch the target if it has commands which either were not run
-	 or won when they ran (i.e. status is 0).  */
+                -1      if this target was not remade;
+                0       if 0 or more commands (+ or ${MAKE}) were run and won;
+                1       if some commands were run and lost.
+         We touch the target if it has commands which either were not run
+         or won when they ran (i.e. status is 0).  */
       && file->update_status == 0)
     {
       if (file->cmds != 0 && file->cmds->any_recurse)
-	{
-	  /* If all the command lines were recursive,
-	     we don't want to do the touching.  */
-	  unsigned int i;
-	  for (i = 0; i < file->cmds->ncommand_lines; ++i)
-	    if (!(file->cmds->lines_flags[i] & COMMANDS_RECURSE))
-	      goto have_nonrecursing;
-	}
+        {
+          /* If all the command lines were recursive,
+             we don't want to do the touching.  */
+          unsigned int i;
+          for (i = 0; i < file->cmds->ncommand_lines; ++i)
+            if (!(file->cmds->lines_flags[i] & COMMANDS_RECURSE))
+              goto have_nonrecursing;
+        }
       else
-	{
-	have_nonrecursing:
-	  if (file->phony)
-	    file->update_status = 0;
+        {
+        have_nonrecursing:
+          if (file->phony)
+            file->update_status = 0;
           /* According to POSIX, -t doesn't affect targets with no cmds.  */
-	  else if (file->cmds != 0)
+          else if (file->cmds != 0)
             {
               /* Should set file's modification date and do nothing else.  */
               file->update_status = touch_file (file);
@@ -893,7 +893,7 @@ notice_finished_file (struct file *file)
                  updating logic below.  */
               touched = 1;
             }
-	}
+        }
     }
 
   if (file->mtime_before_update == UNKNOWN_MTIME)
@@ -917,7 +917,7 @@ notice_finished_file (struct file *file)
       /* If there were no commands at all, it's always new. */
 
       else if (file->is_target && file->cmds == 0)
-	i = 1;
+        i = 1;
 
       file->last_mtime = i == 0 ? UNKNOWN_MTIME : NEW_MTIME;
     }
@@ -957,16 +957,16 @@ notice_finished_file (struct file *file)
        So mark them as updated with the same status.  */
     for (d = file->also_make; d != 0; d = d->next)
       {
-	d->file->command_state = cs_finished;
-	d->file->updated = 1;
-	d->file->update_status = file->update_status;
+        d->file->command_state = cs_finished;
+        d->file->updated = 1;
+        d->file->update_status = file->update_status;
 
-	if (ran && !d->file->phony)
-	  /* Fetch the new modification time.
-	     We do this instead of just invalidating the cached time
-	     so that a vpath_search can happen.  Otherwise, it would
-	     never be done because the target is already updated.  */
-	  f_mtime (d->file, 0);
+        if (ran && !d->file->phony)
+          /* Fetch the new modification time.
+             We do this instead of just invalidating the cached time
+             so that a vpath_search can happen.  Otherwise, it would
+             never be done because the target is already updated.  */
+          f_mtime (d->file, 0);
       }
   else if (file->update_status == -1)
     /* Nothing was done for FILE, but it needed nothing done.
@@ -1005,7 +1005,7 @@ check_dep (struct file *file, unsigned int depth,
       mtime = file_mtime (file);
       check_renamed (file);
       if (mtime == NONEXISTENT_MTIME || mtime > this_mtime)
-	*must_make_ptr = 1;
+        *must_make_ptr = 1;
     }
   else
     {
@@ -1013,19 +1013,19 @@ check_dep (struct file *file, unsigned int depth,
       FILE_TIMESTAMP mtime;
 
       if (!file->phony && file->cmds == 0 && !file->tried_implicit)
-	{
-	  if (try_implicit_rule (file, depth))
-	    DBF (DB_IMPLICIT, _("Found an implicit rule for '%s'.\n"));
-	  else
-	    DBF (DB_IMPLICIT, _("No implicit rule found for '%s'.\n"));
-	  file->tried_implicit = 1;
-	}
+        {
+          if (try_implicit_rule (file, depth))
+            DBF (DB_IMPLICIT, _("Found an implicit rule for '%s'.\n"));
+          else
+            DBF (DB_IMPLICIT, _("No implicit rule found for '%s'.\n"));
+          file->tried_implicit = 1;
+        }
       if (file->cmds == 0 && !file->is_target
-	  && default_file != 0 && default_file->cmds != 0)
-	{
-	  DBF (DB_IMPLICIT, _("Using default commands for '%s'.\n"));
-	  file->cmds = default_file->cmds;
-	}
+          && default_file != 0 && default_file->cmds != 0)
+        {
+          DBF (DB_IMPLICIT, _("Using default commands for '%s'.\n"));
+          file->cmds = default_file->cmds;
+        }
 
       check_renamed (file);
       mtime = file_mtime (file);
@@ -1033,13 +1033,13 @@ check_dep (struct file *file, unsigned int depth,
       if (mtime != NONEXISTENT_MTIME && mtime > this_mtime)
         /* If the intermediate file actually exists and is newer, then we
            should remake from it.  */
-	*must_make_ptr = 1;
+        *must_make_ptr = 1;
       else
-	{
+        {
           /* Otherwise, update all non-intermediate files we depend on, if
              necessary, and see whether any of them is more recent than the
              file on whose behalf we are checking.  */
-	  struct dep *ld;
+          struct dep *ld;
           int deps_running = 0;
 
           /* If this target is not running, set it's state so that we check it
@@ -1055,55 +1055,55 @@ check_dep (struct file *file, unsigned int depth,
               set_command_state (file, cs_not_started);
             }
 
-	  ld = 0;
-	  d = file->deps;
-	  while (d != 0)
-	    {
+          ld = 0;
+          d = file->deps;
+          while (d != 0)
+            {
               int maybe_make;
 
-	      if (is_updating (d->file))
-		{
-		  error (NILF, _("Circular %s <- %s dependency dropped."),
-			 file->name, d->file->name);
-		  if (ld == 0)
-		    {
-		      file->deps = d->next;
+              if (is_updating (d->file))
+                {
+                  error (NILF, _("Circular %s <- %s dependency dropped."),
+                         file->name, d->file->name);
+                  if (ld == 0)
+                    {
+                      file->deps = d->next;
                       free_dep (d);
-		      d = file->deps;
-		    }
-		  else
-		    {
-		      ld->next = d->next;
+                      d = file->deps;
+                    }
+                  else
+                    {
+                      ld->next = d->next;
                       free_dep (d);
-		      d = ld->next;
-		    }
-		  continue;
-		}
+                      d = ld->next;
+                    }
+                  continue;
+                }
 
-	      d->file->parent = file;
+              d->file->parent = file;
               maybe_make = *must_make_ptr;
-	      dep_status |= check_dep (d->file, depth, this_mtime,
+              dep_status |= check_dep (d->file, depth, this_mtime,
                                        &maybe_make);
               if (! d->ignore_mtime)
                 *must_make_ptr = maybe_make;
-	      check_renamed (d->file);
-	      if (dep_status != 0 && !keep_going_flag)
-		break;
+              check_renamed (d->file);
+              if (dep_status != 0 && !keep_going_flag)
+                break;
 
-	      if (d->file->command_state == cs_running
-		  || d->file->command_state == cs_deps_running)
-		deps_running = 1;
+              if (d->file->command_state == cs_running
+                  || d->file->command_state == cs_deps_running)
+                deps_running = 1;
 
-	      ld = d;
-	      d = d->next;
-	    }
+              ld = d;
+              d = d->next;
+            }
 
           if (deps_running)
             /* Record that some of FILE's deps are still being made.
                This tells the upper levels to wait on processing it until the
                commands are finished.  */
             set_command_state (file, cs_deps_running);
-	}
+        }
     }
 
   finish_updating (file);
@@ -1126,7 +1126,7 @@ touch_file (struct file *file)
   if (just_print_flag)
     return 0;
 
-#ifndef	NO_ARCHIVES
+#ifndef NO_ARCHIVES
   if (ar_name (file->name))
     return ar_touch (file->name);
   else
@@ -1135,34 +1135,34 @@ touch_file (struct file *file)
       int fd = open (file->name, O_RDWR | O_CREAT, 0666);
 
       if (fd < 0)
-	TOUCH_ERROR ("touch: open: ");
+        TOUCH_ERROR ("touch: open: ");
       else
-	{
-	  struct stat statbuf;
-	  char buf = 'x';
+        {
+          struct stat statbuf;
+          char buf = 'x';
           int e;
 
           EINTRLOOP (e, fstat (fd, &statbuf));
-	  if (e < 0)
-	    TOUCH_ERROR ("touch: fstat: ");
-	  /* Rewrite character 0 same as it already is.  */
-	  if (read (fd, &buf, 1) < 0)
-	    TOUCH_ERROR ("touch: read: ");
-	  if (lseek (fd, 0L, 0) < 0L)
-	    TOUCH_ERROR ("touch: lseek: ");
-	  if (write (fd, &buf, 1) < 0)
-	    TOUCH_ERROR ("touch: write: ");
-	  /* If file length was 0, we just
-	     changed it, so change it back.  */
-	  if (statbuf.st_size == 0)
-	    {
-	      (void) close (fd);
-	      fd = open (file->name, O_RDWR | O_TRUNC, 0666);
-	      if (fd < 0)
-		TOUCH_ERROR ("touch: open: ");
-	    }
-	  (void) close (fd);
-	}
+          if (e < 0)
+            TOUCH_ERROR ("touch: fstat: ");
+          /* Rewrite character 0 same as it already is.  */
+          if (read (fd, &buf, 1) < 0)
+            TOUCH_ERROR ("touch: read: ");
+          if (lseek (fd, 0L, 0) < 0L)
+            TOUCH_ERROR ("touch: lseek: ");
+          if (write (fd, &buf, 1) < 0)
+            TOUCH_ERROR ("touch: write: ");
+          /* If file length was 0, we just
+             changed it, so change it back.  */
+          if (statbuf.st_size == 0)
+            {
+              (void) close (fd);
+              fd = open (file->name, O_RDWR | O_TRUNC, 0666);
+              if (fd < 0)
+                TOUCH_ERROR ("touch: open: ");
+            }
+          (void) close (fd);
+        }
     }
 
   return 0;
@@ -1178,12 +1178,12 @@ remake_file (struct file *file)
   if (file->cmds == 0)
     {
       if (file->phony)
-	/* Phony target.  Pretend it succeeded.  */
-	file->update_status = 0;
+        /* Phony target.  Pretend it succeeded.  */
+        file->update_status = 0;
       else if (file->is_target)
-	/* This is a nonexistent target file we cannot make.
-	   Pretend it was successfully remade.  */
-	file->update_status = 0;
+        /* This is a nonexistent target file we cannot make.
+           Pretend it was successfully remade.  */
+        file->update_status = 0;
       else
         {
           /* This is a dependency file we cannot remake.  Fail.  */
@@ -1198,10 +1198,10 @@ remake_file (struct file *file)
 
       /* The normal case: start some commands.  */
       if (!touch_flag || file->cmds->any_recurse)
-	{
-	  execute_file_commands (file);
-	  return;
-	}
+        {
+          execute_file_commands (file);
+          return;
+        }
 
       /* This tells notice_finished_file it is ok to touch the file.  */
       file->update_status = 0;
@@ -1226,7 +1226,7 @@ f_mtime (struct file *file, int search)
 
   /* File's mtime is not known; must get it from the system.  */
 
-#ifndef	NO_ARCHIVES
+#ifndef NO_ARCHIVES
   if (ar_name (file->name))
     {
       /* This file is an archive-member reference.  */
@@ -1239,29 +1239,29 @@ f_mtime (struct file *file, int search)
       ar_parse_name (file->name, &arname, &memname);
 
       /* Find the modification time of the archive itself.
-	 Also allow for its name to be changed via VPATH search.  */
+         Also allow for its name to be changed via VPATH search.  */
       arfile = lookup_file (arname);
       if (arfile == 0)
         arfile = enter_file (strcache_add (arname));
       mtime = f_mtime (arfile, search);
       check_renamed (arfile);
       if (search && strcmp (arfile->hname, arname))
-	{
-	  /* The archive's name has changed.
-	     Change the archive-member reference accordingly.  */
+        {
+          /* The archive's name has changed.
+             Change the archive-member reference accordingly.  */
 
           char *name;
-	  unsigned int arlen, memlen;
+          unsigned int arlen, memlen;
 
-	  arlen = strlen (arfile->hname);
-	  memlen = strlen (memname);
+          arlen = strlen (arfile->hname);
+          memlen = strlen (memname);
 
-	  name = xmalloc (arlen + 1 + memlen + 2);
-	  memcpy (name, arfile->hname, arlen);
-	  name[arlen] = '(';
-	  memcpy (name + arlen + 1, memname, memlen);
-	  name[arlen + 1 + memlen] = ')';
-	  name[arlen + 1 + memlen + 1] = '\0';
+          name = xmalloc (arlen + 1 + memlen + 2);
+          memcpy (name, arfile->hname, arlen);
+          name[arlen] = '(';
+          memcpy (name + arlen + 1, memname, memlen);
+          name[arlen + 1 + memlen] = ')';
+          name[arlen + 1 + memlen + 1] = '\0';
 
           /* If the archive was found with GPATH, make the change permanent;
              otherwise defer it until later.  */
@@ -1270,15 +1270,15 @@ f_mtime (struct file *file, int search)
           else
             rehash_file (file, name);
           check_renamed (file);
-	}
+        }
 
       free (arname);
 
       file->low_resolution_time = 1;
 
       if (mtime == NONEXISTENT_MTIME)
-	/* The archive doesn't exist, so its members don't exist either.  */
-	return NONEXISTENT_MTIME;
+        /* The archive doesn't exist, so its members don't exist either.  */
+        return NONEXISTENT_MTIME;
 
       member_date = ar_member_date (file->hname);
       mtime = (member_date == (time_t) -1
@@ -1291,37 +1291,37 @@ f_mtime (struct file *file, int search)
       mtime = name_mtime (file->name);
 
       if (mtime == NONEXISTENT_MTIME && search && !file->ignore_vpath)
-	{
-	  /* If name_mtime failed, search VPATH.  */
-	  const char *name = vpath_search (file->name, &mtime, NULL, NULL);
-	  if (name
-	      /* Last resort, is it a library (-lxxx)?  */
-	      || (file->name[0] == '-' && file->name[1] == 'l'
-		  && (name = library_search (file->name, &mtime)) != 0))
-	    {
-	      if (mtime != UNKNOWN_MTIME)
-		/* vpath_search and library_search store UNKNOWN_MTIME
-		   if they didn't need to do a stat call for their work.  */
-		file->last_mtime = mtime;
+        {
+          /* If name_mtime failed, search VPATH.  */
+          const char *name = vpath_search (file->name, &mtime, NULL, NULL);
+          if (name
+              /* Last resort, is it a library (-lxxx)?  */
+              || (file->name[0] == '-' && file->name[1] == 'l'
+                  && (name = library_search (file->name, &mtime)) != 0))
+            {
+              if (mtime != UNKNOWN_MTIME)
+                /* vpath_search and library_search store UNKNOWN_MTIME
+                   if they didn't need to do a stat call for their work.  */
+                file->last_mtime = mtime;
 
               /* If we found it in VPATH, see if it's in GPATH too; if so,
                  change the name right now; if not, defer until after the
                  dependencies are updated. */
-              if (gpath_search (name, strlen(name) - strlen(file->name) - 1))
+              if (gpath_search (name, strlen (name) - strlen (file->name) - 1))
                 {
                   rename_file (file, name);
                   check_renamed (file);
                   return file_mtime (file);
                 }
 
-	      rehash_file (file, name);
-	      check_renamed (file);
+              rehash_file (file, name);
+              check_renamed (file);
               /* If the result of a vpath search is -o or -W, preserve it.
                  Otherwise, find the mtime of the resulting file.  */
               if (mtime != OLD_MTIME && mtime != NEW_MTIME)
                 mtime = name_mtime (name);
-	    }
-	}
+            }
+        }
     }
 
   /* Files can have bogus timestamps that nothing newly made will be
@@ -1395,14 +1395,14 @@ f_mtime (struct file *file, int search)
   do
     {
       /* If this file is not implicit but it is intermediate then it was
-	 made so by the .INTERMEDIATE target.  If this file has never
-	 been built by us but was found now, it existed before make
-	 started.  So, turn off the intermediate bit so make doesn't
-	 delete it, since it didn't create it.  */
+         made so by the .INTERMEDIATE target.  If this file has never
+         been built by us but was found now, it existed before make
+         started.  So, turn off the intermediate bit so make doesn't
+         delete it, since it didn't create it.  */
       if (mtime != NONEXISTENT_MTIME && file->command_state == cs_not_started
-	  && file->command_state == cs_not_started
-	  && !file->tried_implicit && file->intermediate)
-	file->intermediate = 0;
+          && file->command_state == cs_not_started
+          && !file->tried_implicit && file->intermediate)
+        file->intermediate = 0;
 
       file->last_mtime = mtime;
       file = file->prev;
@@ -1532,7 +1532,7 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
  */
 #define LIBDIR "."
 #endif
-      LIBDIR,			/* Defined by configuration.  */
+      LIBDIR,                   /* Defined by configuration.  */
       0
     };
 
@@ -1571,34 +1571,34 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
 
       /* Expand the pattern using LIB as a replacement.  */
       {
-	char c = p[len];
-	char *p3, *p4;
+        char c = p[len];
+        char *p3, *p4;
 
-	p[len] = '\0';
-	p3 = find_percent (p);
-	if (!p3)
-	  {
-	    /* Give a warning if there is no pattern.  */
-	    error (NILF, _(".LIBPATTERNS element '%s' is not a pattern"), p);
+        p[len] = '\0';
+        p3 = find_percent (p);
+        if (!p3)
+          {
+            /* Give a warning if there is no pattern.  */
+            error (NILF, _(".LIBPATTERNS element '%s' is not a pattern"), p);
             p[len] = c;
-	    continue;
-	  }
-	p4 = variable_buffer_output (libbuf, p, p3-p);
-	p4 = variable_buffer_output (p4, lib, liblen);
-	p4 = variable_buffer_output (p4, p3+1, len - (p3-p));
-	p[len] = c;
+            continue;
+          }
+        p4 = variable_buffer_output (libbuf, p, p3-p);
+        p4 = variable_buffer_output (p4, lib, liblen);
+        p4 = variable_buffer_output (p4, p3+1, len - (p3-p));
+        p[len] = c;
       }
 
       /* Look first for 'libNAME.a' in the current directory.  */
       mtime = name_mtime (libbuf);
       if (mtime != NONEXISTENT_MTIME)
-	{
-	  if (mtime_ptr != 0)
-	    *mtime_ptr = mtime;
-	  file = strcache_add (libbuf);
+        {
+          if (mtime_ptr != 0)
+            *mtime_ptr = mtime;
+          file = strcache_add (libbuf);
           /* This by definition will have the best index, so stop now.  */
           break;
-	}
+        }
 
       /* Now try VPATH search on that.  */
 
@@ -1635,7 +1635,7 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
               std_dirs++;
             }
           buflen = strlen (libbuf);
-          buf = xmalloc(libdir_maxlen + buflen + 2);
+          buf = xmalloc (libdir_maxlen + buflen + 2);
         }
       else if (buflen < strlen (libbuf))
         {
@@ -1649,11 +1649,11 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
         unsigned int vpath_index = ~((unsigned int)0) - std_dirs;
 
         for (dp = dirs; *dp != 0; ++dp)
-	  {
+          {
             sprintf (buf, "%s/%s", *dp, libbuf);
             mtime = name_mtime (buf);
             if (mtime != NONEXISTENT_MTIME)
-	      {
+              {
                 if (file == 0 || vpath_index < best_vpath)
                   {
                     file = strcache_add (buf);

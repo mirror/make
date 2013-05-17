@@ -1,5 +1,7 @@
 2013-05-17  Paul Smith  <psmith@gnu.org>
 
+	* Source (*.[ch]): Remove TABs, use GNU coding styles.
+
 	* ALL: Update copyright.
 
 	* hash.c (CALLOC): Use xcalloc() to handle out of memory errors.

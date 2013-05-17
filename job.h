@@ -49,13 +49,14 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #  define F_WRLCK 1
 #  define F_UNLCK 2
 
-struct flock {
-  short l_type;
-  short l_whence;
-  off_t l_start;
-  off_t l_len;
-  pid_t l_pid;
-};
+struct flock
+  {
+    short l_type;
+    short l_whence;
+    off_t l_start;
+    off_t l_len;
+    pid_t l_pid;
+  };
 
 /* This type is actually a HANDLE, but we want to avoid including
    windows.h as much as possible.  */
@@ -70,42 +71,42 @@ int same_stream (FILE *f1, FILE *f2);
 void record_sync_mutex (const char *str);
 void prepare_mutex_handle_string (intptr_t hdl);
 
-# else	/* !WINDOWS32 */
+# else  /* !WINDOWS32 */
 
-typedef int sync_handle_t;	/* file descriptor */
+typedef int sync_handle_t;      /* file descriptor */
 
 #  define RECORD_SYNC_MUTEX(m) (void)(m)
 
 # endif
-#endif	/* OUTPUT_SYNC */
+#endif  /* OUTPUT_SYNC */
 
 /* Structure describing a running or dead child process.  */
 
 struct child
   {
-    struct child *next;		/* Link in the chain.  */
+    struct child *next;         /* Link in the chain.  */
 
-    struct file *file;		/* File being remade.  */
+    struct file *file;          /* File being remade.  */
 
-    char **environment;		/* Environment for commands.  */
+    char **environment;         /* Environment for commands.  */
     char *sh_batch_file;        /* Script file for shell commands */
-    char **command_lines;	/* Array of variable-expanded cmd lines.  */
-    char *command_ptr;		/* Ptr into command_lines[command_line].  */
+    char **command_lines;       /* Array of variable-expanded cmd lines.  */
+    char *command_ptr;          /* Ptr into command_lines[command_line].  */
 
 #ifdef VMS
     char *comname;              /* Temporary command file name */
-    int efn;			/* Completion event flag number */
-    int cstatus;		/* Completion status */
+    int efn;                    /* Completion event flag number */
+    int cstatus;                /* Completion status */
 #endif
 
-    unsigned int command_line;	/* Index into command_lines.  */
-    int          outfd;		/* File descriptor for saving stdout */
-    int          errfd;		/* File descriptor for saving stderr */
-    pid_t        pid;		/* Child process's ID number.  */
-    unsigned int remote:1;	/* Nonzero if executing remotely.  */
-    unsigned int noerror:1;	/* Nonzero if commands contained a '-'.  */
-    unsigned int good_stdin:1;	/* Nonzero if this child has a good stdin.  */
-    unsigned int deleted:1;	/* Nonzero if targets have been deleted.  */
+    unsigned int command_line;  /* Index into command_lines.  */
+    int          outfd;         /* File descriptor for saving stdout */
+    int          errfd;         /* File descriptor for saving stderr */
+    pid_t        pid;           /* Child process's ID number.  */
+    unsigned int remote:1;      /* Nonzero if executing remotely.  */
+    unsigned int noerror:1;     /* Nonzero if commands contained a '-'.  */
+    unsigned int good_stdin:1;  /* Nonzero if this child has a good stdin.  */
+    unsigned int deleted:1;     /* Nonzero if targets have been deleted.  */
     unsigned int dontcare:1;    /* Saved dontcare flag.  */
   };
 
@@ -139,11 +140,11 @@ void block_sigs (void);
 #ifdef POSIX
 void unblock_sigs (void);
 #else
-#ifdef	HAVE_SIGSETMASK
+#ifdef  HAVE_SIGSETMASK
 extern int fatal_signal_mask;
-#define	unblock_sigs()	sigsetmask (0)
+#define unblock_sigs()  sigsetmask (0)
 #else
-#define	unblock_sigs()
+#define unblock_sigs()
 #endif
 #endif
 

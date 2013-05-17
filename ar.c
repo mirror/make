@@ -17,7 +17,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "makeint.h"
 
-#ifndef	NO_ARCHIVES
+#ifndef NO_ARCHIVES
 
 #include "filedef.h"
 #include "dep.h"
@@ -61,7 +61,7 @@ ar_parse_name (const char *name, char **arname_p, char **memname_p)
   *arname_p = xstrdup (name);
   p = strchr (*arname_p, '(');
   *(p++) = '\0';
-  p[strlen(p) - 1] = '\0';
+  p[strlen (p) - 1] = '\0';
   *memname_p = p;
 }
 
@@ -71,10 +71,10 @@ ar_parse_name (const char *name, char **arname_p, char **memname_p)
 /* ARGSUSED */
 static long int
 ar_member_date_1 (int desc UNUSED, const char *mem, int truncated,
-		  long int hdrpos UNUSED, long int datapos UNUSED,
+                  long int hdrpos UNUSED, long int datapos UNUSED,
                   long int size UNUSED, long int date,
                   int uid UNUSED, int gid UNUSED, int mode UNUSED,
-		  const void *name)
+                  const void *name)
 {
   return ar_name_equal (name, mem, truncated) ? date : 0;
 }
@@ -186,7 +186,7 @@ struct ar_glob_state
 
 static long int
 ar_glob_match (int desc UNUSED, const char *mem, int truncated UNUSED,
-	       long int hdrpos UNUSED, long int datapos UNUSED,
+               long int hdrpos UNUSED, long int datapos UNUSED,
                long int size UNUSED, long int date UNUSED, int uid UNUSED,
                int gid UNUSED, int mode UNUSED, const void *arg)
 {
@@ -218,21 +218,21 @@ glob_pattern_p (const char *pattern, int quote)
       {
       case '?':
       case '*':
-	return 1;
+        return 1;
 
       case '\\':
-	if (quote)
-	  ++p;
-	break;
+        if (quote)
+          ++p;
+        break;
 
       case '[':
-	opened = 1;
-	break;
+        opened = 1;
+        break;
 
       case ']':
-	if (opened)
-	  return 1;
-	break;
+        if (opened)
+          return 1;
+        break;
       }
 
   return 0;
@@ -282,4 +282,4 @@ ar_glob (const char *arname, const char *member_pattern, unsigned int size)
   return state.chain;
 }
 
-#endif	/* Not NO_ARCHIVES.  */
+#endif  /* Not NO_ARCHIVES.  */

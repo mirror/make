@@ -56,6 +56,17 @@ constructing multiple commits from various files and even from different
 diff chunks in the same file.  There is a video available which helps a lot.
 
 
+Coding Standards
+----------------
+
+GNU make code adheres to the GNU Coding Standards.  Additionally, GNU make is
+a foundational bootstrap package for the GNU project; as such it is very
+conservative about language features it expects.  It should build with any C
+compiler conforming to the ANSI C89 / ISO C90 standard.
+
+Please use only spaces and no TAB characters in source code.
+
+
 Building From Git
 -----------------
 

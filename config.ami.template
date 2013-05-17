@@ -16,7 +16,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if on AIX 3.
    System headers sometimes define this.
-   We just want to avoid a redefinition error message.	*/
+   We just want to avoid a redefinition error message.  */
 #ifndef _ALL_SOURCE
 /* #undef _ALL_SOURCE */
 #endif
@@ -68,7 +68,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if the 'long double' type works.  */
 /* #undef HAVE_LONG_DOUBLE */
 
-/* Define if you support file names longer than 14 characters.	*/
+/* Define if you support file names longer than 14 characters.  */
 #define HAVE_LONG_FILE_NAMES 1
 
 /* Define if you have a working 'mmap' system call.  */
@@ -84,7 +84,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if your struct stat has st_blocks.  */
 /* #undef HAVE_ST_BLOCKS */
 
-/* Define if you have the strcoll function and it is properly defined.	*/
+/* Define if you have the strcoll function and it is properly defined.  */
 #define HAVE_STRCOLL 1
 
 /* Define if your struct stat has st_rdev.  */
@@ -93,7 +93,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if you have the strftime function.  */
 #define HAVE_STRFTIME 1
 
-/* Define if you have <sys/wait.h> that is POSIX.1 compatible.	*/
+/* Define if you have <sys/wait.h> that is POSIX.1 compatible.  */
 /* #undef HAVE_SYS_WAIT_H */
 
 /* Define if your struct tm has tm_zone.  */
@@ -112,7 +112,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if you have the wait3 system call.  */
 /* #undef HAVE_WAIT3 */
 
-/* Define if on MINIX.	*/
+/* Define if on MINIX.  */
 /* #undef _MINIX */
 
 /* Define if your struct nlist has an n_un member.  */
@@ -145,16 +145,16 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-	STACK_DIRECTION > 0 => grows toward higher addresses
-	STACK_DIRECTION < 0 => grows toward lower addresses
-	STACK_DIRECTION = 0 => direction of growth unknown
+        STACK_DIRECTION > 0 => grows toward higher addresses
+        STACK_DIRECTION < 0 => grows toward lower addresses
+        STACK_DIRECTION = 0 => direction of growth unknown
  */
 #define STACK_DIRECTION -1
 
 /* Define if the 'S_IS*' macros in <sys/stat.h> do not work properly.  */
 /* #undef STAT_MACROS_BROKEN */
 
-/* Define if you have the ANSI C header files.	*/
+/* Define if you have the ANSI C header files.  */
 #define STDC_HEADERS
 
 /* Define on System V Release 4.  */
@@ -234,7 +234,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if you have the seteuid function.  */
 /* #undef HAVE_SETEUID */
 
-/* Define if you have the setlinebuf function.	*/
+/* Define if you have the setlinebuf function.  */
 /* #undef HAVE_SETLINEBUF */
 
 /* Define if you have the setregid function.  */
@@ -243,7 +243,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if you have the setreuid function.  */
 /* #undef HAVE_SETREUID */
 
-/* Define if you have the sigsetmask function.	*/
+/* Define if you have the sigsetmask function.  */
 /* #undef HAVE_SIGSETMASK */
 
 /* Define if you have the socket function.  */

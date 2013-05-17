@@ -27,11 +27,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #if !HAVE_DECL_SYS_SIGLIST
 
 /* Some systems do not define NSIG in <signal.h>.  */
-#ifndef	NSIG
-#ifdef	_NSIG
-#define	NSIG	_NSIG
+#ifndef NSIG
+#ifdef  _NSIG
+#define NSIG    _NSIG
 #else
-#define	NSIG	32
+#define NSIG    32
 #endif
 #endif
 

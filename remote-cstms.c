@@ -34,7 +34,7 @@ char *remote_description = "Customs";
 
 /* File name of the Customs 'export' client command.
    A full path name can be used to avoid some path-searching overhead.  */
-#define	EXPORT_COMMAND	"/usr/local/bin/export"
+#define EXPORT_COMMAND  "/usr/local/bin/export"
 
 /* ExportPermit gotten by start_remote_job_p, and used by start_remote_job.  */
 static ExportPermit permit;
@@ -76,11 +76,11 @@ start_remote_job_p (int first_p)
         }
 
       /* For secure Customs, make is installed setuid root and
-	 Customs requires a privileged source port be used.  */
+         Customs requires a privileged source port be used.  */
       make_access ();
 
       if (ISDB (DB_JOBS))
-        Rpc_Debug(1);
+        Rpc_Debug (1);
 
       /* Ping the daemon once to see if it is there.  */
       inited = Customs_Ping () == RPC_SUCCESS ? 1 : -1;
@@ -89,20 +89,20 @@ start_remote_job_p (int first_p)
       user_access ();
 
       if (starting_directory == 0)
-	/* main couldn't figure it out.  */
-	inited = -1;
+        /* main couldn't figure it out.  */
+        inited = -1;
       else
-	{
-	  /* Normalize the current directory path name to something
-	     that should work on all machines exported to.  */
+        {
+          /* Normalize the current directory path name to something
+             that should work on all machines exported to.  */
 
-	  normalized_cwd = xmalloc (GET_PATH_MAX);
-	  strcpy (normalized_cwd, starting_directory);
-	  if (Customs_NormPath (normalized_cwd, GET_PATH_MAX) < 0)
-	    /* Path normalization failure means using Customs
-	       won't work, but it's not really an error.  */
-	    inited = -1;
-	}
+          normalized_cwd = xmalloc (GET_PATH_MAX);
+          strcpy (normalized_cwd, starting_directory);
+          if (Customs_NormPath (normalized_cwd, GET_PATH_MAX) < 0)
+            /* Path normalization failure means using Customs
+               won't work, but it's not really an error.  */
+            inited = -1;
+        }
     }
 
   if (inited < 0)
@@ -110,7 +110,7 @@ start_remote_job_p (int first_p)
 
   njobs = job_slots_used;
   if (!first_p)
-    njobs -= 1;		/* correction for being called from reap_children() */
+    njobs -= 1;         /* correction for being called from reap_children() */
 
   /* the first job should run locally, or, if the -l flag is given, we use
      that as clue as to how many local jobs should be scheduled locally */
@@ -171,7 +171,7 @@ start_remote_job (char **argv, char **envp, int stdin_fd,
 
   /* Create a WayBill to give to the server.  */
   len = Customs_MakeWayBill (&permit, normalized_cwd, argv[0], argv,
-			     envp, retport, waybill);
+                             envp, retport, waybill);
 
   /* Modify the waybill as if the remote child had done 'child_access ()'.  */
   {
@@ -187,11 +187,11 @@ start_remote_job (char **argv, char **envp, int stdin_fd,
   sin.sin_port = htons (Customs_Port ());
   sin.sin_addr = permit.addr;
   status = Rpc_Call (sock, &sin, (Rpc_Proc) CUSTOMS_IMPORT,
-		     len, (Rpc_Opaque) waybill,
-		     sizeof(msg), (Rpc_Opaque) msg,
-		     1, &timeout);
+                     len, (Rpc_Opaque) waybill,
+                     sizeof (msg), (Rpc_Opaque) msg,
+                     1, &timeout);
 
-  host = gethostbyaddr((char *)&permit.addr, sizeof(permit.addr), AF_INET);
+  host = gethostbyaddr ((char *)&permit.addr, sizeof(permit.addr), AF_INET);
 
   if (status != RPC_SUCCESS)
     {
@@ -214,8 +214,8 @@ start_remote_job (char **argv, char **envp, int stdin_fd,
   else
     {
       error (NILF, "*** exported to %s (id %u)",
-	      host ? host->h_name : inet_ntoa (permit.addr),
-	      permit.id);
+              host ? host->h_name : inet_ntoa (permit.addr),
+              permit.id);
     }
 
   fflush (stdout);
@@ -233,7 +233,7 @@ start_remote_job (char **argv, char **envp, int stdin_fd,
       /* Child side.  Run 'export' to handle the connection.  */
       static char sock_buf[20], retsock_buf[20], id_buf[20];
       static char *new_argv[6] =
-	{ EXPORT_COMMAND, "-id", sock_buf, retsock_buf, id_buf, 0 };
+        { EXPORT_COMMAND, "-id", sock_buf, retsock_buf, id_buf, 0 };
 
       /* Set up the arguments.  */
       (void) sprintf (sock_buf, "%d", sock);
@@ -242,7 +242,7 @@ start_remote_job (char **argv, char **envp, int stdin_fd,
 
       /* Get the right stdin.  */
       if (stdin_fd != 0)
-	(void) dup2 (stdin_fd, 0);
+        (void) dup2 (stdin_fd, 0);
 
       /* Unblock signals in the child.  */
       unblock_sigs ();

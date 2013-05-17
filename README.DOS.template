@@ -62,7 +62,7 @@ To build from sources:
       [Enter].  Otherwise, you need to supply the path to the source
       directory as an argument to the batch file, like this:
 
-	c:\djgpp\gnu\make-%VERSION%\configure.bat c:/djgpp/gnu/make-%VERSION%
+        c:\djgpp\gnu\make-%VERSION%\configure.bat c:/djgpp/gnu/make-%VERSION%
 
       Note the forward slashes in the source path argument: you MUST
       use them here.
@@ -84,7 +84,7 @@ To build from sources:
       If you are building from outside of the source directory, you
       need to tell Make where the sources are, like this:
 
-	        make srcdir=c:/djgpp/gnu/make-%VERSION%
+                make srcdir=c:/djgpp/gnu/make-%VERSION%
 
       (configure.bat will tell you this when it finishes).  You MUST
       use a full, not relative, name of the source directory here, or
@@ -99,7 +99,7 @@ To build from sources:
       area.  If you wish to use a different directory, override the
       DESTDIR variable when invoking "make install", like this:
 
-		make install DESTDIR=c:/other/dir
+                make install DESTDIR=c:/other/dir
 
       This causes the make executable to be placed in c:/other/dir/bin,
       the man pages in c:/other/dir/man, etc.
@@ -110,12 +110,12 @@ To build from sources:
       file 'dir' in your Info directory by adding the following item
       to the main menu:
 
-	* Make: (make.info).           The GNU make utility.
+        * Make: (make.info).           The GNU make utility.
 
       If you have the 'install-info' program (from the GNU Texinfo
       package), it will do that for you if you invoke it like this:
 
-	install-info --info-dir=c:/djgpp/info c:/djgpp/info/make.info
+        install-info --info-dir=c:/djgpp/info c:/djgpp/info/make.info
 
       (If your Info directory is other than C:\DJGPP\INFO, change this
       command accordingly.)
@@ -320,7 +320,7 @@ Bug reports:
 
 
    Enjoy,
-			Eli Zaretskii <eliz@is.elta.co.il>
+                        Eli Zaretskii <eliz@is.elta.co.il>
 
 
 -------------------------------------------------------------------------------

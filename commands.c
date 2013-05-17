@@ -35,7 +35,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 int remote_kill (int id, int sig);
 
-#ifndef	HAVE_UNISTD_H
+#ifndef HAVE_UNISTD_H
 int getpid ();
 #endif
 
@@ -70,7 +70,7 @@ set_file_variables (struct file *file)
   struct dep *d;
   const char *at, *percent, *star, *less;
 
-#ifndef	NO_ARCHIVES
+#ifndef NO_ARCHIVES
   /* If the target is an archive member 'lib(member)',
      then $@ is 'lib' and $% is 'member'.  */
 
@@ -92,7 +92,7 @@ set_file_variables (struct file *file)
       percent = p;
     }
   else
-#endif	/* NO_ARCHIVES.  */
+#endif  /* NO_ARCHIVES.  */
     {
       at = file->name;
       percent = "";
@@ -102,35 +102,35 @@ set_file_variables (struct file *file)
   if (file->stem == 0)
     {
       /* In Unix make, $* is set to the target name with
-	 any suffix in the .SUFFIXES list stripped off for
-	 explicit rules.  We store this in the 'stem' member.  */
+         any suffix in the .SUFFIXES list stripped off for
+         explicit rules.  We store this in the 'stem' member.  */
       const char *name;
       unsigned int len;
 
-#ifndef	NO_ARCHIVES
+#ifndef NO_ARCHIVES
       if (ar_name (file->name))
-	{
-	  name = strchr (file->name, '(') + 1;
-	  len = strlen (name) - 1;
-	}
+        {
+          name = strchr (file->name, '(') + 1;
+          len = strlen (name) - 1;
+        }
       else
 #endif
-	{
-	  name = file->name;
-	  len = strlen (name);
-	}
+        {
+          name = file->name;
+          len = strlen (name);
+        }
 
       for (d = enter_file (strcache_add (".SUFFIXES"))->deps; d ; d = d->next)
-	{
-	  unsigned int slen = strlen (dep_name (d));
-	  if (len > slen && strneq (dep_name (d), name + (len - slen), slen))
-	    {
-	      file->stem = strcache_add_len (name, len - slen);
-	      break;
-	    }
-	}
+        {
+          unsigned int slen = strlen (dep_name (d));
+          if (len > slen && strneq (dep_name (d), name + (len - slen), slen))
+            {
+              file->stem = strcache_add_len (name, len - slen);
+              break;
+            }
+        }
       if (d == 0)
-	file->stem = "";
+        file->stem = "";
     }
   star = file->stem;
 
@@ -149,7 +149,7 @@ set_file_variables (struct file *file)
        In this case $< is the same as $@.  */
     less = at;
 
-#define	DEFINE_VARIABLE(name, len, value) \
+#define DEFINE_VARIABLE(name, len, value) \
   (void) define_variable_for_file (name,len,value,o_automatic,0,file)
 
   /* Define the variables.  */
@@ -202,13 +202,13 @@ set_file_variables (struct file *file)
 
     cp = plus_value;
 
-    qmark_len = plus_len + 1;	/* Will be this or less.  */
+    qmark_len = plus_len + 1;   /* Will be this or less.  */
     for (d = file->deps; d != 0; d = d->next)
       if (! d->ignore_mtime && ! d->need_2nd_expansion)
         {
           const char *c = dep_name (d);
 
-#ifndef	NO_ARCHIVES
+#ifndef NO_ARCHIVES
           if (ar_name (c))
             {
               c = strchr (c, '(') + 1;
@@ -222,7 +222,7 @@ set_file_variables (struct file *file)
           cp += len;
           *cp++ = FILE_LIST_SEPARATOR;
           if (! (d->changed || always_make_flag))
-            qmark_len -= len + 1;	/* Don't space in $? for this one.  */
+            qmark_len -= len + 1;       /* Don't space in $? for this one.  */
         }
 
     /* Kill the last space and define the variable.  */
@@ -277,23 +277,23 @@ set_file_variables (struct file *file)
           continue;
 
         c = dep_name (d);
-#ifndef	NO_ARCHIVES
+#ifndef NO_ARCHIVES
         if (ar_name (c))
-	  {
-	    c = strchr (c, '(') + 1;
-	    len = strlen (c) - 1;
-	  }
-	else
+          {
+            c = strchr (c, '(') + 1;
+            len = strlen (c) - 1;
+          }
+        else
 #endif
-	  len = strlen (c);
+          len = strlen (c);
 
         if (d->ignore_mtime)
           {
             memcpy (bp, c, len);
-	    bp += len;
-	    *bp++ = FILE_LIST_SEPARATOR;
-	  }
-	else
+            bp += len;
+            *bp++ = FILE_LIST_SEPARATOR;
+          }
+        else
           {
             memcpy (cp, c, len);
             cp += len;
@@ -321,7 +321,7 @@ set_file_variables (struct file *file)
     DEFINE_VARIABLE ("|", 1, bar_value);
   }
 
-#undef	DEFINE_VARIABLE
+#undef  DEFINE_VARIABLE
 }
 
 /* Chop CMDS up into individual command lines if necessary.
@@ -519,14 +519,14 @@ fatal_error_signal (int sig)
       DWORD susp_count = SuspendThread (main_thread);
 
       if (susp_count != 0)
-	fprintf (stderr, "SuspendThread: suspend count = %ld\n", susp_count);
+        fprintf (stderr, "SuspendThread: suspend count = %ld\n", susp_count);
       else if (susp_count == (DWORD)-1)
-	{
-	  DWORD ierr = GetLastError ();
+        {
+          DWORD ierr = GetLastError ();
 
-	  fprintf (stderr, "SuspendThread: error %ld: %s\n",
-		   ierr, map_windows32_error_to_string (ierr));
-	}
+          fprintf (stderr, "SuspendThread: error %ld: %s\n",
+                   ierr, map_windows32_error_to_string (ierr));
+        }
     }
 #endif
   handling_fatal_signal = 1;
@@ -542,8 +542,8 @@ fatal_error_signal (int sig)
     {
       struct child *c;
       for (c = children; c != 0; c = c->next)
-	if (!c->remote)
-	  (void) kill (c->pid, SIGTERM);
+        if (!c->remote)
+          (void) kill (c->pid, SIGTERM);
     }
 
   /* If we got a signal that means the user
@@ -561,18 +561,18 @@ fatal_error_signal (int sig)
       struct child *c;
 
       /* Remote children won't automatically get signals sent
-	 to the process group, so we must send them.  */
+         to the process group, so we must send them.  */
       for (c = children; c != 0; c = c->next)
-	if (c->remote)
-	  (void) remote_kill (c->pid, sig);
+        if (c->remote)
+          (void) remote_kill (c->pid, sig);
 
       for (c = children; c != 0; c = c->next)
-	delete_child_targets (c);
+        delete_child_targets (c);
 
       /* Clean up the children.  We don't just use the call below because
-	 we don't want to print the "Waiting for children" message.  */
+         we don't want to print the "Waiting for children" message.  */
       while (job_slots_used > 0)
-	reap_children (1, 0);
+        reap_children (1, 0);
     }
   else
     /* Wait for our children to die.  */
@@ -622,17 +622,17 @@ delete_target (struct file *file, const char *on_behalf_of)
   if (ar_name (file->name))
     {
       time_t file_date = (file->last_mtime == NONEXISTENT_MTIME
-			  ? (time_t) -1
-			  : (time_t) FILE_TIMESTAMP_S (file->last_mtime));
+                          ? (time_t) -1
+                          : (time_t) FILE_TIMESTAMP_S (file->last_mtime));
       if (ar_member_date (file->name) != file_date)
-	{
-	  if (on_behalf_of)
-	    error (NILF, _("*** [%s] Archive member '%s' may be bogus; not deleted"),
-		   on_behalf_of, file->name);
-	  else
-	    error (NILF, _("*** Archive member '%s' may be bogus; not deleted"),
-		   file->name);
-	}
+        {
+          if (on_behalf_of)
+            error (NILF, _("*** [%s] Archive member '%s' may be bogus; not deleted"),
+                   on_behalf_of, file->name);
+          else
+            error (NILF, _("*** Archive member '%s' may be bogus; not deleted"),
+                   file->name);
+        }
       return;
     }
 #endif
@@ -643,12 +643,12 @@ delete_target (struct file *file, const char *on_behalf_of)
       && FILE_TIMESTAMP_STAT_MODTIME (file->name, st) != file->last_mtime)
     {
       if (on_behalf_of)
-	error (NILF, _("*** [%s] Deleting file '%s'"), on_behalf_of, file->name);
+        error (NILF, _("*** [%s] Deleting file '%s'"), on_behalf_of, file->name);
       else
-	error (NILF, _("*** Deleting file '%s'"), file->name);
+        error (NILF, _("*** Deleting file '%s'"), file->name);
       if (unlink (file->name) < 0
-	  && errno != ENOENT)	/* It disappeared; so what.  */
-	perror_with_name ("unlink: ", file->name);
+          && errno != ENOENT)   /* It disappeared; so what.  */
+        perror_with_name ("unlink: ", file->name);
     }
 }
 

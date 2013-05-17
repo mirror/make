@@ -20,14 +20,14 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 struct rule
   {
     struct rule *next;
-    const char **targets;	/* Targets of the rule.  */
-    unsigned int *lens;		/* Lengths of each target.  */
-    const char **suffixes;	/* Suffixes (after '%') of each target.  */
-    struct dep *deps;		/* Dependencies of the rule.  */
-    struct commands *cmds;	/* Commands to execute.  */
+    const char **targets;       /* Targets of the rule.  */
+    unsigned int *lens;         /* Lengths of each target.  */
+    const char **suffixes;      /* Suffixes (after '%') of each target.  */
+    struct dep *deps;           /* Dependencies of the rule.  */
+    struct commands *cmds;      /* Commands to execute.  */
     unsigned short num;         /* Number of targets.  */
-    char terminal;		/* If terminal (double-colon).  */
-    char in_use;		/* If in use by a parent pattern_search.  */
+    char terminal;              /* If terminal (double-colon).  */
+    char in_use;                /* If in use by a parent pattern_search.  */
   };
 
 /* For calling install_pattern_rule.  */

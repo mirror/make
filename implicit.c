@@ -397,10 +397,10 @@ pattern_search (struct file *file, int archive,
              target in MATCHES.  If several targets of the same rule match,
              that rule will be in TRYRULES more than once.  */
           tryrules[nrules].rule = rule;
-	  tryrules[nrules].matches = ti;
+          tryrules[nrules].matches = ti;
           tryrules[nrules].stemlen = stemlen + (check_lastslash ? pathlen : 0);
           tryrules[nrules].order = nrules;
-	  tryrules[nrules].checked_lastslash = check_lastslash;
+          tryrules[nrules].checked_lastslash = check_lastslash;
           ++nrules;
         }
     }

@@ -26,14 +26,14 @@ struct file
     const char *name;
     const char *hname;          /* Hashed filename */
     const char *vpath;          /* VPATH/vpath pathname */
-    struct dep *deps;		/* all dependencies, including duplicates */
-    struct commands *cmds;	/* Commands to execute for this target.  */
-    const char *stem;		/* Implicit stem, if an implicit
+    struct dep *deps;           /* all dependencies, including duplicates */
+    struct commands *cmds;      /* Commands to execute for this target.  */
+    const char *stem;           /* Implicit stem, if an implicit
                                    rule has been used */
-    struct dep *also_make;	/* Targets that are made by making this.  */
-    struct file *prev;		/* Previous entry for same file name;
-				   used when there are multiple double-colon
-				   entries for the same file.  */
+    struct dep *also_make;      /* Targets that are made by making this.  */
+    struct file *prev;          /* Previous entry for same file name;
+                                   used when there are multiple double-colon
+                                   entries for the same file.  */
     struct file *last;          /* Last entry for the same file name.  */
 
     /* File that this file was renamed to.  After any time that a
@@ -55,39 +55,39 @@ struct file
        the same file.  Otherwise this is null.  */
     struct file *double_colon;
 
-    FILE_TIMESTAMP last_mtime;	/* File's modtime, if already known.  */
-    FILE_TIMESTAMP mtime_before_update;	/* File's modtime before any updating
+    FILE_TIMESTAMP last_mtime;  /* File's modtime, if already known.  */
+    FILE_TIMESTAMP mtime_before_update; /* File's modtime before any updating
                                            has been performed.  */
-    int command_flags;		/* Flags OR'd in for cmds; see commands.h.  */
+    int command_flags;          /* Flags OR'd in for cmds; see commands.h.  */
     char update_status;         /* Status of the last attempt to update,
-				   or -1 if none has been made.  */
-    enum cmd_state		/* State of the commands.  */
-      {		/* Note: It is important that cs_not_started be zero.  */
-	cs_not_started,		/* Not yet started.  */
-	cs_deps_running,	/* Dep commands running.  */
-	cs_running,		/* Commands running.  */
-	cs_finished		/* Commands finished.  */
+                                   or -1 if none has been made.  */
+    enum cmd_state              /* State of the commands.  */
+      {         /* Note: It is important that cs_not_started be zero.  */
+        cs_not_started,         /* Not yet started.  */
+        cs_deps_running,        /* Dep commands running.  */
+        cs_running,             /* Commands running.  */
+        cs_finished             /* Commands finished.  */
       } command_state ENUM_BITFIELD (2);
 
     unsigned int builtin:1;     /* True if the file is a builtin rule. */
-    unsigned int precious:1;	/* Non-0 means don't delete file on quit */
+    unsigned int precious:1;    /* Non-0 means don't delete file on quit */
     unsigned int loaded:1;      /* True if the file is a loaded object. */
-    unsigned int low_resolution_time:1;	/* Nonzero if this file's time stamp
-					   has only one-second resolution.  */
+    unsigned int low_resolution_time:1; /* Nonzero if this file's time stamp
+                                           has only one-second resolution.  */
     unsigned int tried_implicit:1; /* Nonzero if have searched
-				      for implicit rule for making
-				      this file; don't search again.  */
-    unsigned int updating:1;	/* Nonzero while updating deps of this file */
-    unsigned int updated:1;	/* Nonzero if this file has been remade.  */
-    unsigned int is_target:1;	/* Nonzero if file is described as target.  */
-    unsigned int cmd_target:1;	/* Nonzero if file was given on cmd line.  */
-    unsigned int phony:1;	/* Nonzero if this is a phony file
-				   i.e., a prerequisite of .PHONY.  */
+                                      for implicit rule for making
+                                      this file; don't search again.  */
+    unsigned int updating:1;    /* Nonzero while updating deps of this file */
+    unsigned int updated:1;     /* Nonzero if this file has been remade.  */
+    unsigned int is_target:1;   /* Nonzero if file is described as target.  */
+    unsigned int cmd_target:1;  /* Nonzero if file was given on cmd line.  */
+    unsigned int phony:1;       /* Nonzero if this is a phony file
+                                   i.e., a prerequisite of .PHONY.  */
     unsigned int intermediate:1;/* Nonzero if this is an intermediate file.  */
     unsigned int secondary:1;   /* Nonzero means remove_intermediates should
                                    not delete it.  */
-    unsigned int dontcare:1;	/* Nonzero if no complaint is to be made if
-				   this target cannot be remade.  */
+    unsigned int dontcare:1;    /* Nonzero if no complaint is to be made if
+                                   this target cannot be remade.  */
     unsigned int ignore_vpath:1;/* Nonzero if we threw out VPATH name.  */
     unsigned int pat_searched:1;/* Nonzero if we already searched for
                                    pattern-specific variables.  */
@@ -133,9 +133,9 @@ void print_file_data_base (void);
 #define FILE_TIMESTAMP_LO_BITS (FILE_TIMESTAMP_HI_RES ? 30 : 0)
 
 #define FILE_TIMESTAMP_S(ts) (((ts) - ORDINARY_MTIME_MIN) \
-			      >> FILE_TIMESTAMP_LO_BITS)
+                              >> FILE_TIMESTAMP_LO_BITS)
 #define FILE_TIMESTAMP_NS(ts) ((int) (((ts) - ORDINARY_MTIME_MIN) \
-				      & ((1 << FILE_TIMESTAMP_LO_BITS) - 1)))
+                                      & ((1 << FILE_TIMESTAMP_LO_BITS) - 1)))
 
 /* Upper bound on length of string "YYYY-MM-DD HH:MM:SS.NNNNNNNNN"
    representing a file timestamp.  The upper bound is not necessarily 19,
@@ -186,8 +186,8 @@ FILE_TIMESTAMP f_mtime (struct file *file, int search);
 /* The smallest and largest ordinary timestamps.  */
 #define ORDINARY_MTIME_MIN (OLD_MTIME + 1)
 #define ORDINARY_MTIME_MAX ((FILE_TIMESTAMP_S (NEW_MTIME) \
-			     << FILE_TIMESTAMP_LO_BITS) \
-			    + ORDINARY_MTIME_MIN + FILE_TIMESTAMPS_PER_S - 1)
+                             << FILE_TIMESTAMP_LO_BITS) \
+                            + ORDINARY_MTIME_MIN + FILE_TIMESTAMPS_PER_S - 1)
 
 /* Modtime value to use for 'infinitely new'.  We used to get the current time
    from the system and use that whenever we wanted 'new'.  But that causes
