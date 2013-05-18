@@ -428,6 +428,7 @@ AS_CASE([$host],
    [AM_CONDITIONAL([WINDOWSENV], [true])
     w32_target_env=yes
     AC_DEFINE([WINDOWS32], [1], [Use platform specific coding])
+    AC_DEFINE([OUTPUT_SYNC], [1], [Support synchronized output])
     AC_DEFINE([HAVE_DOS_PATHS], [1], [Use platform specific coding])
   ])
 
