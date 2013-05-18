@@ -1,3 +1,11 @@
+2013-05-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* guile.c: Move inclusion of makeint.h before gnumake.h.  This
+	order must be observed when building Make, because gnumake.h must
+	be included with GMK_BUILDING_MAKE defined, which makeint.h
+	already does.  Otherwise, the linker will look for, and fail to
+	find, gmk_* functions in some external dynamic library.
+
 2013-05-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* main.c (prepare_mutex_handle_string): Define conditioned on
