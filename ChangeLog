@@ -1,5 +1,8 @@
 2013-05-18  Eli Zaretskii  <eliz@gnu.org>
 
+	* job.c (construct_command_argv_internal) <sh_cmds_dos>
+	[WINDOWS32]: Add "move".  Fixes Savannah bug #30714.
+
 	* guile.c: Move inclusion of makeint.h before gnumake.h.  This
 	order must be observed when building Make, because gnumake.h must
 	be included with GMK_BUILDING_MAKE defined, which makeint.h
