@@ -456,7 +456,10 @@ eval_buffer (char *buffer, const gmk_floc *floc)
   else if (reading_file)
     ebuf.floc = *reading_file;
   else
-    ebuf.floc.filenm = NULL;
+    {
+      ebuf.floc.filenm = NULL;
+      ebuf.floc.lineno = 1;
+    }
 
   curfile = reading_file;
   reading_file = &ebuf.floc;

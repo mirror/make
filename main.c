@@ -385,42 +385,26 @@ static const char *const usage[] =
     NULL
   };
 
-/* The table of command switches.  */
+/* The table of command switches.
+   Order matters here: this is the order MAKEFLAGS will be constructed.
+   So be sure all simple flags (single char, no argument) come first.  */
 
 static const struct command_switch switches[] =
   {
     { 'b', ignore, 0, 0, 0, 0, 0, 0, 0 },
     { 'B', flag, &always_make_set, 1, 1, 0, 0, 0, "always-make" },
-    { 'C', filename, &directories, 0, 0, 0, 0, 0, "directory" },
     { 'd', flag, &debug_flag, 1, 1, 0, 0, 0, 0 },
-    { CHAR_MAX+1, string, &db_flags, 1, 1, 0, "basic", 0, "debug" },
 #ifdef WINDOWS32
     { 'D', flag, &suspend_flag, 1, 1, 0, 0, 0, "suspend-for-debug" },
 #endif
     { 'e', flag, &env_overrides, 1, 1, 0, 0, 0, "environment-overrides", },
-    { 'f', filename, &makefiles, 0, 0, 0, 0, 0, "file" },
     { 'h', flag, &print_usage_flag, 0, 0, 0, 0, 0, "help" },
     { 'i', flag, &ignore_errors_flag, 1, 1, 0, 0, 0, "ignore-errors" },
-    { 'I', filename, &include_directories, 1, 1, 0, 0, 0,
-      "include-dir" },
-    { 'j', positive_int, &job_slots, 1, 1, 0, &inf_jobs, &default_job_slots,
-      "jobs" },
-    { CHAR_MAX+2, string, &jobserver_fds, 1, 1, 0, 0, 0, "jobserver-fds" },
     { 'k', flag, &keep_going_flag, 1, 1, 0, 0, &default_keep_going_flag,
       "keep-going" },
-#ifndef NO_FLOAT
-    { 'l', floating, &max_load_average, 1, 1, 0, &default_load_average,
-      &default_load_average, "load-average" },
-#else
-    { 'l', positive_int, &max_load_average, 1, 1, 0, &default_load_average,
-      &default_load_average, "load-average" },
-#endif
     { 'L', flag, &check_symlink_flag, 1, 1, 0, 0, 0, "check-symlink-times" },
     { 'm', ignore, 0, 0, 0, 0, 0, 0, 0 },
     { 'n', flag, &just_print_flag, 1, 1, 1, 0, 0, "just-print" },
-    { 'o', filename, &old_files, 0, 0, 0, 0, 0, "old-file" },
-    { 'O', string, &output_sync_option, 1, 1, 0, "target", 0, "output-sync" },
-    { CHAR_MAX+7, string, &sync_mutex, 1, 1, 0, 0, 0, "sync-mutex" },
     { 'p', flag, &print_data_base_flag, 1, 1, 0, 0, 0, "print-data-base" },
     { 'q', flag, &question_flag, 1, 1, 1, 0, 0, "question" },
     { 'r', flag, &no_builtin_rules_flag, 1, 1, 0, 0, 0, "no-builtin-rules" },
@@ -430,15 +414,37 @@ static const struct command_switch switches[] =
     { 'S', flag_off, &keep_going_flag, 1, 1, 0, 0, &default_keep_going_flag,
       "no-keep-going" },
     { 't', flag, &touch_flag, 1, 1, 1, 0, 0, "touch" },
-    { CHAR_MAX+3, string, &trace_option, 1, 1, 0, "rule", 0, "trace" },
     { 'v', flag, &print_version_flag, 1, 1, 0, 0, 0, "version" },
     { 'w', flag, &print_directory_flag, 1, 1, 0, 0, 0, "print-directory" },
+
+    /* These options take arguments.  */
+    { 'C', filename, &directories, 0, 0, 0, 0, 0, "directory" },
+    { 'f', filename, &makefiles, 0, 0, 0, 0, 0, "file" },
+    { 'I', filename, &include_directories, 1, 1, 0, 0, 0,
+      "include-dir" },
+    { 'j', positive_int, &job_slots, 1, 1, 0, &inf_jobs, &default_job_slots,
+      "jobs" },
+#ifndef NO_FLOAT
+    { 'l', floating, &max_load_average, 1, 1, 0, &default_load_average,
+      &default_load_average, "load-average" },
+#else
+    { 'l', positive_int, &max_load_average, 1, 1, 0, &default_load_average,
+      &default_load_average, "load-average" },
+#endif
+    { 'o', filename, &old_files, 0, 0, 0, 0, 0, "old-file" },
+    { 'O', string, &output_sync_option, 1, 1, 0, "target", 0, "output-sync" },
+    { 'W', filename, &new_files, 0, 0, 0, 0, 0, "what-if" },
+
+    /* These are long-style options.  */
+    { CHAR_MAX+1, string, &db_flags, 1, 1, 0, "basic", 0, "debug" },
+    { CHAR_MAX+2, string, &jobserver_fds, 1, 1, 0, 0, 0, "jobserver-fds" },
+    { CHAR_MAX+3, string, &trace_option, 1, 1, 0, "rule", 0, "trace" },
     { CHAR_MAX+4, flag, &inhibit_print_directory_flag, 1, 1, 0, 0, 0,
       "no-print-directory" },
-    { 'W', filename, &new_files, 0, 0, 0, 0, 0, "what-if" },
     { CHAR_MAX+5, flag, &warn_undefined_variables_flag, 1, 1, 0, 0, 0,
       "warn-undefined-variables" },
     { CHAR_MAX+6, string, &eval_strings, 1, 0, 0, 0, 0, "eval" },
+    { CHAR_MAX+7, string, &sync_mutex, 1, 1, 0, 0, 0, "sync-mutex" },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
   };
 
@@ -2942,7 +2948,6 @@ define_makeflags (int all, int makefile)
   const struct command_switch *cs;
   char *flagstring;
   register char *p;
-  unsigned int words;
   struct variable *v;
 
   /* We will construct a linked list of 'struct flag's describing
@@ -2957,18 +2962,24 @@ define_makeflags (int all, int makefile)
       const char *arg;
     };
   struct flag *flags = 0;
+  struct flag *last = 0;
   unsigned int flagslen = 0;
 #define ADD_FLAG(ARG, LEN) \
   do {                                                                        \
     struct flag *new = alloca (sizeof (struct flag));                         \
     new->cs = cs;                                                             \
     new->arg = (ARG);                                                         \
-    new->next = flags;                                                        \
-    flags = new;                                                              \
-    if (new->arg == 0)                                                        \
-      ++flagslen;               /* Just a single flag letter.  */             \
+    new->next = 0;                                                            \
+    if (! flags)                                                              \
+      flags = new;                                                            \
     else                                                                      \
-      /* " -xfoo", plus space to expand "foo".  */                            \
+      last->next = new;                                                       \
+    last = new;                                                               \
+    if (new->arg == 0)                                                        \
+      /* Just a single flag letter: " -x"  */                                 \
+      flagslen += 3;                                                          \
+    else                                                                      \
+      /* " -xfoo", plus space to escape "foo".  */                            \
       flagslen += 1 + 1 + 1 + (3 * (LEN));                                    \
     if (!short_option (cs->c))                                                \
       /* This switch has no single-letter version, so we use the long.  */    \
@@ -3039,11 +3050,8 @@ define_makeflags (int all, int makefile)
               struct stringlist *sl = *(struct stringlist **) cs->value_ptr;
               if (sl != 0)
                 {
-                  /* Add the elements in reverse order, because all the flags
-                     get reversed below; and the order matters for some
-                     switches (like -I).  */
-                  unsigned int i = sl->idx;
-                  while (i-- > 0)
+                  unsigned int i;
+                  for (i = 0; i < sl->idx; ++i)
                     ADD_FLAG (sl->list[i], strlen (sl->list[i]));
                 }
             }
@@ -3053,117 +3061,85 @@ define_makeflags (int all, int makefile)
           abort ();
         }
 
-  /* Four more for the possible " -- ".  */
-  flagslen += 4 + CSTRLEN (posixref) + 1 + CSTRLEN (evalref) + 1;
-
 #undef  ADD_FLAG
+
+  /* Four more for the possible " -- ", plus variable references.  */
+  flagslen += 4 + CSTRLEN (posixref) + 1 + CSTRLEN (evalref) + 1;
 
   /* Construct the value in FLAGSTRING.
      We allocate enough space for a preceding dash and trailing null.  */
   flagstring = alloca (1 + flagslen + 1);
   memset (flagstring, '\0', 1 + flagslen + 1);
   p = flagstring;
-  words = 1;
+
+  /* Start with a dash, for MFLAGS.  */
   *p++ = '-';
-  while (flags != 0)
+
+  /* Add simple options as a group.  */
+  while (flags != 0 && !flags->arg && short_option (flags->cs->c))
     {
+      *p++ = flags->cs->c;
+      flags = flags->next;
+    }
+
+  /* Now add more complex flags: ones with options and/or long names.  */
+  while (flags)
+    {
+      *p++ = ' ';
+      *p++ = '-';
+
       /* Add the flag letter or name to the string.  */
       if (short_option (flags->cs->c))
         *p++ = flags->cs->c;
       else
         {
-          /* If we don't have a dash, start a double-dash.  */
-          if (p[-1] != '-')
-            {
-              *p++ = ' ';
-              *p++ = '-';
-            }
+          /* Long options require a double-dash.  */
           *p++ = '-';
           strcpy (p, flags->cs->long_name);
           p += strlen (p);
         }
-      if (flags->arg != 0)
+      /* An omitted optional argument has an ARG of "".  */
+      if (flags->arg && flags->arg[0] != '\0')
         {
-          /* A flag that takes an optional argument which in this case is
-             omitted is specified by ARG being "".  We must distinguish
-             because a following flag appended without an intervening " -"
-             is considered the arg for the first.  */
-          if (flags->arg[0] != '\0')
-            {
-              /* Add its argument too.  Long options require '='.  */
-              if (!short_option (flags->cs->c))
-                *p++ = '=';
-              p = quote_for_env (p, flags->arg);
-            }
-          ++words;
-          /* Write a following space and dash, for the next flag.  */
-          *p++ = ' ';
-          *p++ = '-';
-        }
-      else if (!short_option (flags->cs->c))
-        {
-          ++words;
-          /* Long options must each go in their own word,
-             so we write the following space and dash.  */
-          *p++ = ' ';
-          *p++ = '-';
+          if (!short_option (flags->cs->c))
+            /* Long options require '='.  */
+            *p++ = '=';
+          p = quote_for_env (p, flags->arg);
         }
       flags = flags->next;
     }
 
-  /* Define MFLAGS before appending variable definitions.  */
-
+  /* If no flags at all, get rid of the initial dash.  */
   if (p == &flagstring[1])
-    /* No flags.  */
-    flagstring[0] = '\0';
-  else if (p[-1] == '-')
     {
-      /* Kill the final space and dash.  */
-      p -= 2;
-      *p = '\0';
+      flagstring[0] = '\0';
+      p = flagstring;
     }
-  else
-    /* Terminate the string.  */
-    *p = '\0';
 
-  /* Since MFLAGS is not parsed for flags, there is no reason to
+  /* Define MFLAGS before appending variable definitions.  Omit an initial
+     empty dash.  Since MFLAGS is not parsed for flags, there is no reason to
      override any makefile redefinition.  */
-  define_variable_cname ("MFLAGS", flagstring, o_env, 1);
+  define_variable_cname ("MFLAGS",
+                         flagstring + (flagstring[0] == '-' && flagstring[1] == ' ' ? 2 : 0),
+                         o_env, 1);
 
   /* Write a reference to -*-eval-flags-*-, which contains all the --eval
      flag options.  */
   if (eval_strings)
     {
-      if (p == &flagstring[1])
-        /* No flags written, so elide the leading dash already written.  */
-        p = flagstring;
-      else
-        *p++ = ' ';
+      *p++ = ' ';
       memcpy (p, evalref, CSTRLEN (evalref));
       p += CSTRLEN (evalref);
     }
 
   if (all && command_variables != 0)
     {
-      /* Now write a reference to $(MAKEOVERRIDES), which contains all the
-         command-line variable definitions.  */
+      /* Write a reference to $(MAKEOVERRIDES), which contains all the
+         command-line variable definitions.  Separate the variables from the
+         switches with a "--" arg.  */
 
-      if (p == &flagstring[1])
-        /* No flags written, so elide the leading dash already written.  */
-        p = flagstring;
-      else
-        {
-          /* Separate the variables from the switches with a "--" arg.  */
-          if (p[-1] != '-')
-            {
-              /* We did not already write a trailing " -".  */
-              *p++ = ' ';
-              *p++ = '-';
-            }
-          /* There is a trailing " -"; fill it out to " -- ".  */
-          *p++ = '-';
-          *p++ = ' ';
-        }
+      strcpy (p, " -- ");
+      p += 4;
 
       /* Copy in the string.  */
       if (posix_pedantic)
@@ -3177,20 +3153,9 @@ define_makeflags (int all, int makefile)
           p += CSTRLEN (ref);
         }
     }
-  else if (p == &flagstring[1])
-    {
-      words = 0;
-      --p;
-    }
-  else if (p[-1] == '-')
-    /* Kill the final space and dash.  */
-    p -= 2;
-  /* Terminate the string.  */
-  *p = '\0';
 
-  /* If there are switches, omit the leading dash unless it is a single long
-     option with two leading dashes.  */
-  if (flagstring[0] == '-' && flagstring[1] != '-')
+  /* If there is a leading dash, omit it.  */
+  if (flagstring[0] == '-')
     ++flagstring;
 
   /* This used to use o_env, but that lost when a makefile defined MAKEFLAGS.

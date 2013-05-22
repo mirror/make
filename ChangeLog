@@ -1,3 +1,14 @@
+2013-05-22  Paul Smith  <psmith@gnu.org>
+
+	* main.c (switches[]): Order switches so simple flags all come first.
+	(define_makeflags): Rework to make option passing more
+	reliable and the code less tricksy.  Ensure simple flags are kept
+	in the initial batch of flags.  Do not allow any flags with
+	options in that batch.  If there are only non-simple flags MAKEFLAGS
+	begins with ' '.
+
+	* read.c (eval_buffer): Initialize lineno.
+
 2013-05-18  Alexey Pavlov  <alexpux@gmail.com>  (tiny change)
 
 	* w32/Makefile.am (libw32_a_SOURCES): Add compat/posixfcn.c.
