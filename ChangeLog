@@ -6,6 +6,7 @@
 	in the initial batch of flags.  Do not allow any flags with
 	options in that batch.  If there are only non-simple flags MAKEFLAGS
 	begins with ' '.
+	(print_data_base): Print the version.  Fixes part of Savannah #35336.
 
 	* read.c (eval_buffer): Initialize lineno.
 

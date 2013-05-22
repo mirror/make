@@ -1390,7 +1390,7 @@ main (int argc, char **argv, char **envp)
   always_make_flag = always_make_set && (restarts == 0);
 
   /* Print version information.  */
-  if (print_version_flag || print_data_base_flag || ISDB (DB_BASIC))
+  if (print_version_flag || ISDB (DB_BASIC))
     {
       print_version ();
 
@@ -3222,9 +3222,10 @@ print_version (void)
 static void
 print_data_base ()
 {
-  time_t when;
+  time_t when = time ((time_t *) 0);
 
-  when = time ((time_t *) 0);
+  print_version ();
+
   printf (_("\n# Make data base, printed on %s"), ctime (&when));
 
   print_variable_data_base ();

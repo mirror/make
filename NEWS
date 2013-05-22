@@ -74,6 +74,14 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
   GNU make-specific flags to allow your makefile to be portable to other
   versions of make.  GNU make never sets or modifies GNUMAKEFLAGS.
 
+* Behavior of MAKEFLAGS and MFLAGS is more rigorously defined.  All simple
+  flags are grouped together in the first word of MAKEFLAGS.  No options that
+  accept arguments appear there.  If no simple flags are present MAKEFLAGS
+  begins with a space.  MFLAGS never begins with "- ".
+
+* Setting the -r and -R options in MAKEFLAGS inside a makefile now works as
+  expected, removing all built-in rules and variables, respectively.
+
 * On failure, the makefile name and linenumber of the recipe that failed are
   shown.
 
