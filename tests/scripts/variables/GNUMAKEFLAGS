@@ -10,7 +10,7 @@ $extraENV{'GNUMAKEFLAGS'} = '-e -r -R';
 run_make_test(q!
 all: ; @echo $(MAKEFLAGS)
 !,
-              '', 'Rre');
+              '', 'erR');
 
 # Long arguments mean everything is prefixed with "-"
 
@@ -19,6 +19,6 @@ $extraENV{'GNUMAKEFLAGS'} = '--no-print-directory -e -r -R --trace=none --trace=
 run_make_test(q!
 all: ; @echo $(MAKEFLAGS)
 !,
-              '', '--no-print-directory --trace=none --trace=dir --trace=none --trace=dir -Rre');
+              '', 'erR --trace=none --trace=dir --trace=none --trace=dir --no-print-directory');
 
 1;

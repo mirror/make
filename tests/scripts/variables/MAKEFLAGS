@@ -8,13 +8,13 @@ $details = "DETAILS";
 run_make_test(q!
 all: ; @echo $(MAKEFLAGS)
 !,
-              '-e -r -R', 'Rre');
+              '-e -r -R', 'erR');
 
 # Long arguments mean everything is prefixed with "-"
 run_make_test(q!
 all: ; @echo $(MAKEFLAGS)
 !,
-              '--no-print-directory -e -r -R --trace=none --trace=dir', '--no-print-directory --trace=none --trace=dir -Rre');
+              '--no-print-directory -e -r -R --trace=none --trace=dir', 'erR --trace=none --trace=dir --no-print-directory');
 
 
 # Recursive invocations of make should accumulate MAKEFLAGS values.
@@ -32,8 +32,8 @@ print:
 .PHONY: all jump print
 !,
                   '--no-print-directory',
-                  'all: MAKEFLAGS=--no-print-directory
-jump Works: MAKEFLAGS=--no-print-directory -e
-print Works: MAKEFLAGS=--no-print-directory -e');
+                  'all: MAKEFLAGS= --no-print-directory
+jump Works: MAKEFLAGS=e --no-print-directory
+print Works: MAKEFLAGS=e --no-print-directory');
 
 1;

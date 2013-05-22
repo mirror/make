@@ -1,3 +1,9 @@
+2013-05-22  Paul Smith  <psmith@gnu.org>
+
+	* scripts/options/dash-n: Fix results after MAKEFLAGS fixes.
+	* scripts/variables/MAKEFLAGS: Ditto.
+	* scripts/variables/GNUMAKEFLAGS: Ditto.
+
 2013-05-14  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/loadapi: Add plugin_is_GPL_compatible symbol.
