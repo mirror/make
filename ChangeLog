@@ -30,6 +30,13 @@
 	already does.  Otherwise, the linker will look for, and fail to
 	find, gmk_* functions in some external dynamic library.
 
+2013-05-17  Benno Schulenberg  <bensberg@justemail.net>
+
+	* main.c (decode_output_sync_flags): Fix output message.
+	* read.c (EXTRANEOUS): Ditto.
+	(record_files): Ditto.
+	* remake.c (update_file_1): Ditto.
+
 2013-05-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* main.c (prepare_mutex_handle_string): Define conditioned on

@@ -827,7 +827,7 @@ update_file_1 (struct file *file, unsigned int depth)
       DBF (DB_BASIC, _("Successfully remade target file '%s'.\n"));
       break;
     case 1:
-      DBF (DB_BASIC, _("Target file '%s' needs remade under -q.\n"));
+      DBF (DB_BASIC, _("Target file '%s' needs to be remade under -q.\n"));
       break;
     default:
       assert (file->update_status >= 0 && file->update_status <= 2);
