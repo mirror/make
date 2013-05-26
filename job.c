@@ -2036,10 +2036,12 @@ new_job (struct file *file)
             {
               char openparen = *ref;
               char closeparen = openparen == '(' ? ')' : '}';
+              char *outref;
               int count;
               char *p;
 
               *out++ = *in++;   /* Copy OPENPAREN.  */
+              outref = out;
               /* IN now points past the opening paren or brace.
                  Count parens or braces until it is matched.  */
               count = 0;
@@ -2072,7 +2074,7 @@ new_job (struct file *file)
 
                           /* Discard any preceding whitespace that has
                              already been written to the output.  */
-                          while (out > ref
+                          while (out > outref
                                  && isblank ((unsigned char)out[-1]))
                             --out;
 

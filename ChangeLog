@@ -1,3 +1,8 @@
+2013-05-26  Paul Smith  <psmith@gnu.org>
+
+	* job.c (new_job): Compare OUT to the beginning of the OUT
+	var/function, not IN.  Fixes Savannah bug #39035.
+
 2013-05-22  Paul Smith  <psmith@gnu.org>
 
 	* main.c (switches[]): Order switches so simple flags all come first.

@@ -99,4 +99,26 @@ var = he\
 var:;@echo '|$(var)|'!,
               '', "|he   llo|");
 
+# Savannah #39035: handle whitespace in call
+run_make_test(q!
+f = echo $(1)
+t:; @$(call f,"a \
+            b"); \
+        $(call f,"a \
+            b")
+!,
+              '', "a b\na b\n");
+
+# Savannah #38945: handle backslash CRLF
+# We need our own makefile so we can set binmode
+my $m1 = get_tmpfile();
+open(MAKEFILE, "> $m1");
+binmode(MAKEFILE);
+print MAKEFILE "FOO = foo \\\r\nbar\nall: ; \@echo \$(FOO)\n";
+close(MAKEFILE);
+
+run_make_with_options($m1, '', get_logfile());
+compare_output("foo bar\n", get_logfile(1));
+
+
 1;
