@@ -1,5 +1,8 @@
 2013-05-26  Paul Smith  <psmith@gnu.org>
 
+	* read.c (readline): To be safe, move the entire buffer if we
+	detect a CR.  Fixes Savannah bug #38945.
+
 	* job.c (new_job): Compare OUT to the beginning of the OUT
 	var/function, not IN.  Fixes Savannah bug #39035.
 

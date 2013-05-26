@@ -114,10 +114,15 @@ t:; @$(call f,"a \
 my $m1 = get_tmpfile();
 open(MAKEFILE, "> $m1");
 binmode(MAKEFILE);
-print MAKEFILE "FOO = foo \\\r\nbar\nall: ; \@echo \$(FOO)\n";
+print MAKEFILE "FOO = foo \\\r\n";
 close(MAKEFILE);
 
-run_make_with_options($m1, '', get_logfile());
+my $m2 = get_tmpfile();
+open(MAKEFILE, "> $m2");
+print MAKEFILE "include $m1\ndefine BAR\nall: ; \@echo \$(FOO) bar\nendef\n\$(eval \$(BAR))\n";
+close(MAKEFILE);
+
+run_make_with_options($m2, '', get_logfile());
 compare_output("foo bar\n", get_logfile(1));
 
 

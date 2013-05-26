@@ -2542,7 +2542,7 @@ readline (struct ebuffer *ebuf)
       if ((p - start) > 1 && p[-2] == '\r')
         {
           --p;
-          p[-1] = '\n';
+          memmove (p-1, p, strlen (p) + 1);
         }
 #endif
 
