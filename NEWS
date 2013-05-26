@@ -101,7 +101,7 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
   behavior when the recipe uses quoted string on shell command lines.
 
 
-Version 3.82
+Version 3.82 (28 Jul 2010)
 
 A complete list of bugs fixed in this version is available here:
 
@@ -214,7 +214,7 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=104&set
   multi-line variable assignment.
 
 
-Version 3.81
+Version 3.81 (01 Apr 2006)
 
 * GNU make is ported to OS/2.
 
@@ -355,7 +355,7 @@ A complete list of bugs fixed in this version is available here:
   http://savannah.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=103
 
 
-Version 3.80
+Version 3.80 (03 Oct 2002)
 
 * A new feature exists: order-only prerequisites.  These prerequisites
   affect the order in which targets are built, but they do not impact
@@ -437,7 +437,7 @@ A complete list of bugs fixed in this version is available here:
   http://savannah.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=102
 
 
-Version 3.79.1
+Version 3.79.1 (23 Jun 2000)
 
 * .SECONDARY with no prerequisites now prevents any target from being
   removed because make thinks it's an intermediate file, not just those
@@ -446,7 +446,7 @@ Version 3.79.1
 * New configure option --disable-nsec-timestamps, but this was
   superseded in later versions by the .LOW_RESOLUTION_TIME pseudo-target.
 
-Version 3.79
+Version 3.79 (04 Apr 2000)
 
 * GNU make optionally supports internationalization and locales via the
   GNU gettext (or local gettext if suitable) package.  See the ABOUT-NLS
@@ -489,7 +489,7 @@ Version 3.79
 * Hartmut Becker provided many updates for the VMS port of GNU make.
   See the readme.vms file for more details.
 
-Version 3.78
+Version 3.78 (22 Sep 1999)
 
 * Two new functions, $(error ...) and $(warning ...) are available.  The
   former will cause make to fail and exit immediately upon expansion of
@@ -545,7 +545,7 @@ Version 3.78
   by running "make check" in the distribution.  Note that it requires
   Perl (either Perl 4 or Perl 5) to run.
 
-Version 3.77
+Version 3.77 (28 Jul 1998)
 
 * Implement BSD make's "?=" variable assignment operator.  The variable
   is assigned the specified value only if that variable is not already
@@ -591,11 +591,11 @@ Version 3.77
 * Updates to the Windows 95/NT port from Rob Tulloh (see README.W32),
   and to the DOS port from Eli Zaretski (see README.DOS).
 
-Version 3.76.1
+Version 3.76.1 (19 Sep 1997)
 
 * Small (but serious) bug fix.  Quick rollout to get into the GNU source CD.
 
-Version 3.76
+Version 3.76 (16 Sep 1997)
 
 * GNU make now uses automake to control Makefile.in generation.  This
   should make it more consistent with the GNU standards.
@@ -640,7 +640,7 @@ Version 3.76
 
 * John W. Eaton has updated the VMS port to support libraries and VPATH.
 
-Version 3.75
+Version 3.75 (27 Aug 1996)
 
 * The directory messages printed by `-w' and implicitly in sub-makes,
   are now omitted if Make runs no commands and has no other messages to print.
@@ -661,7 +661,7 @@ Version 3.75
   See README.W32 for details, and direct all Windows-related questions to
   <rob_tulloh@tivoli.com>.
 
-Version 3.73
+Version 3.73 (05 Apr 1995)
 
 * Converted to use Autoconf version 2, so `configure' has some new options.
   See INSTALL for details.
@@ -669,7 +669,7 @@ Version 3.73
 * You can now send a SIGUSR1 signal to Make to toggle printing of debugging
   output enabled by -d, at any time during the run.
 
-Version 3.72
+Version 3.72 (04 Nov 1994)
 
 * DJ Delorie has ported Make to MS-DOS using the GO32 extender.
   He is maintaining the DOS port, not the GNU Make maintainer;
@@ -703,7 +703,7 @@ Version 3.72
   of `.SILENT', then the recipe to update that file will not be printed
   before it is run.  (This change was made to conform to POSIX.2.)
 
-Version 3.71
+Version 3.71 (21 May 1994)
 
 * The automatic variables `$(@D)', `$(%D)', `$(*D)', `$(<D)', `$(?D)', and
   `$(^D)' now omit the trailing slash from the directory name.  (This change
@@ -725,7 +725,7 @@ Version 3.71
   The exit status is 1 only when using -q and some target is not up to date.
   (This change was made to comply with POSIX.2.)
 
-Version 3.70
+Version 3.70 (03 Jan 1994)
 
 * It is no longer a fatal error to have a NUL character in a makefile.
   You should never put a NUL in a makefile because it can have strange
@@ -736,7 +736,7 @@ Version 3.70
   makefile name and line number where the `include' appeared, so Emacs's
   C-x ` command takes you there (in case it's a typo you need to fix).
 
-Version 3.69
+Version 3.69 (07 Nov 1993)
 
 * Implicit rule search for archive member references is now done in the
   opposite order from previous versions: the whole target name `LIB(MEM)'
@@ -766,7 +766,7 @@ Version 3.69
 * The recipe given for `.DEFAULT' is now used for phony targets with no
   recipe.
 
-Version 3.68
+Version 3.68 (28 Jul 1993)
 
 * You can list several archive member names inside parenthesis:
   `lib(mem1 mem2 mem3)' is equivalent to `lib(mem1) lib(mem2) lib(mem3)'.
@@ -792,16 +792,16 @@ Version 3.68
   to set up variables for them.  They used to run with the environment
   that `make' started with.
 
-Version 3.66
+Version 3.66 (21 May 1993)
 
 * `make --version' (or `make -v') now exits immediately after printing
   the version number.
 
-Version 3.65
+Version 3.65 (09 May 1993)
 
 * Make now supports long-named members in `ar' archive files.
 
-Version 3.64
+Version 3.64 (21 Apr 1993)
 
 * Make now supports the `+=' syntax for a variable definition which appends
   to the variable's previous value.  See the section `Appending More Text
@@ -815,7 +815,7 @@ Version 3.64
 * The built-in implicit rules now support the alternative extension
   `.txinfo' for Texinfo files, just like `.texinfo' and `.texi'.
 
-Version 3.63
+Version 3.63 (22 Jan 1993)
 
 * Make now uses a standard GNU `configure' script.  See the new file
   INSTALL for the new (and much simpler) installation procedure.
