@@ -1,5 +1,7 @@
 2013-05-26  Paul Smith  <psmith@gnu.org>
 
+	* scripts/features/archives: Test for Savannah bug #38442.
+
 	* scripts/misc/bs-nl: Test for Savannah bug #39035.
 	Add a test for Savannah bug #38945.
 

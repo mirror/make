@@ -1256,7 +1256,7 @@ f_mtime (struct file *file, int search)
           arlen = strlen (arfile->hname);
           memlen = strlen (memname);
 
-          name = xmalloc (arlen + 1 + memlen + 2);
+          name = alloca (arlen + 1 + memlen + 2);
           memcpy (name, arfile->hname, arlen);
           name[arlen] = '(';
           memcpy (name + arlen + 1, memname, memlen);
@@ -1266,9 +1266,9 @@ f_mtime (struct file *file, int search)
           /* If the archive was found with GPATH, make the change permanent;
              otherwise defer it until later.  */
           if (arfile->name == arfile->hname)
-            rename_file (file, name);
+            rename_file (file, strcache_add (name));
           else
-            rehash_file (file, name);
+            rehash_file (file, strcache_add (name));
           check_renamed (file);
         }
 

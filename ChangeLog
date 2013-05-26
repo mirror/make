@@ -1,5 +1,8 @@
 2013-05-26  Paul Smith  <psmith@gnu.org>
 
+	* remake.c (f_mtime): Ensure that archive file names are in the
+	string cache.  Fixes Savannah bug #38442.
+
 	* read.c (readline): To be safe, move the entire buffer if we
 	detect a CR.  Fixes Savannah bug #38945.
 

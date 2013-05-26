@@ -51,5 +51,25 @@ foo(bar).baz: ; @echo '$@'
 !,
               '', "foo(bar).baz\n");
 
+# Check renaming of archive targets.
+# See Savannah bug #38442
+
+mkdir('artest', 0777);
+touch('foo.vhd');
+
+run_make_test(q!
+DIR = artest
+vpath % $(DIR)
+default: lib(foo)
+(%): %.vhd ; @cd $(DIR) && touch $(*F) && $(AR) $(ARFLAGS) $@ $(*F) >/dev/null 2>&1 && rm $(*F)
+.PHONY: default
+!,
+              '', "");
+
+run_make_test(undef, '', "#MAKE#: Nothing to be done for 'default'.\n");
+
+unlink('foo.vhd');
+remove_directory_tree('artest');
+
 # This tells the test driver that the perl test script executed properly.
 1;
