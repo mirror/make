@@ -1,3 +1,8 @@
+2013-05-27  Paul Smith  <psmith@gnu.org>
+
+	* variable.c (define_automatic_variables): Create a new variable
+	MAKE_HOST.
+
 2013-05-27  Hartmut Becker  <becker.ismaning@freenet.de>
 
 	* function.c (func_shell_base) [VMS]: Support VMS.

@@ -74,6 +74,10 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
   GNU make-specific flags to allow your makefile to be portable to other
   versions of make.  GNU make never sets or modifies GNUMAKEFLAGS.
 
+* New variable: `MAKE_HOST' gives the name of the host architecture
+  make was compiled for.  This is the same value you see after 'Built for'
+  when running 'make --version'.
+
 * Behavior of MAKEFLAGS and MFLAGS is more rigorously defined.  All simple
   flags are grouped together in the first word of MAKEFLAGS.  No options that
   accept arguments appear there.  If no simple flags are present MAKEFLAGS
