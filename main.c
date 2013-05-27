@@ -1340,25 +1340,24 @@ main (int argc, char **argv, char **envp)
 
         env = Lock ("ENV:", ACCESS_READ);
         if (env)
-        {
+          {
             old = CurrentDir (DupLock (env));
             Examine (env, &fib);
 
             while (ExNext (env, &fib))
-            {
+              {
                 if (fib.fib_DirEntryType < 0) /* File */
-                {
+                  {
                     /* Define an empty variable. It will be filled in
-                        variable_lookup(). Makes startup quite a bit
-                        faster. */
-                        define_variable (fib.fib_FileName,
-                            strlen (fib.fib_FileName),
-                        "", o_env, 1)->export = v_export;
-                }
-            }
+                       variable_lookup(). Makes startup quite a bit faster. */
+                    define_variable (fib.fib_FileName,
+                                     strlen (fib.fib_FileName),
+                                     "", o_env, 1)->export = v_export;
+                  }
+              }
             UnLock (env);
             UnLock (CurrentDir (old));
-        }
+          }
     }
 #endif
 
