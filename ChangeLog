@@ -1,3 +1,13 @@
+2013-05-27  Hartmut Becker  <becker.ismaning@freenet.de>
+
+	* function.c (func_shell_base) [VMS]: Support VMS.
+	* makefile.com [VMS]: Ditto.
+	* makefile.vms [VMS]: Ditto.
+	* makeint.h [VMS]: Ditto.
+	* vmsjobs.c [VMS]: Ditto.
+	* job.h: Define RECORD_SYNC_MUTEX() when OUTPUT_SYNC is not set.
+	* load.c (unload_file): Fix signature if MAKE_LOAD is not set.
+
 2013-05-26  Paul Smith  <psmith@gnu.org>
 
 	* remake.c (f_mtime): Ensure that archive file names are in the

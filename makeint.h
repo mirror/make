@@ -197,6 +197,7 @@ unsigned int get_path_max (void);
 #endif
 
 #ifdef VMS
+# include <fcntl.h>
 # include <types.h>
 # include <unixlib.h>
 # include <unixio.h>

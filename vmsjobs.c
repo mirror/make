@@ -149,7 +149,7 @@ vmsHandleChildTerm(struct child *child)
       {
 	/* The commands failed.  Write an error message,
 	   delete non-precious targets, and abort.  */
-	child_error (c->file->name, c->cstatus, 0, 0, 0);
+	child_error (c, c->cstatus, 0, 0, 0);
 	c->file->update_status = 1;
 	delete_child_targets (c);
       }
@@ -158,7 +158,7 @@ vmsHandleChildTerm(struct child *child)
 	if (child_failed)
 	  {
 	    /* The commands failed, but we don't care.  */
-	    child_error (c->file->name, c->cstatus, 0, 0, 1);
+	    child_error (c, c->cstatus, 0, 0, 1);
 	    child_failed = 0;
 	  }
 
