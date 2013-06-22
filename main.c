@@ -956,7 +956,7 @@ find_and_set_default_shell (const char *token)
       /* no new information, path already set or known */
       sh_found = 1;
     }
-  else if (file_exists_p (search_token))
+  else if (_access (search_token, 0) == 0)
     {
       /* search token path was found */
       sprintf (sh_path, "%s", search_token);
@@ -982,9 +982,9 @@ find_and_set_default_shell (const char *token)
             {
               *ep = '\0';
 
-              if (dir_file_exists_p (p, search_token))
+	      sprintf (sh_path, "%s/%s", p, search_token);
+              if (_access (sh_path, 0) == 0)
                 {
-                  sprintf (sh_path, "%s/%s", p, search_token);
                   default_shell = xstrdup (w32ify (sh_path, 0));
                   sh_found = 1;
                   *ep = PATH_SEPARATOR_CHAR;
@@ -1002,12 +1002,15 @@ find_and_set_default_shell (const char *token)
             }
 
           /* be sure to check last element of Path */
-          if (p && *p && dir_file_exists_p (p, search_token))
-            {
-              sprintf (sh_path, "%s/%s", p, search_token);
-              default_shell = xstrdup (w32ify (sh_path, 0));
-              sh_found = 1;
-            }
+	  if (p && *p)
+	    {
+	      sprintf (sh_path, "%s/%s", p, search_token);
+	      if (_access (sh_path, 0) == 0)
+		{
+		  default_shell = xstrdup (w32ify (sh_path, 0));
+		  sh_found = 1;
+		}
+	    }
 
           if (sh_found)
             DB (DB_VERBOSE,

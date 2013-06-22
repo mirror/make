@@ -1,3 +1,12 @@
+2013-06-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* main.c (find_and_set_default_shell): Don't use file_exists_p or
+	dir_file_exists_p, as those call readdir, which can fail if PATH
+	includes directories with non-ASCII characters, and that would
+	cause Make to fail at startup with confusing diagnostics.  See
+	https://sourceforge.net/mailarchive/message.php?msg_id=30846737
+	for the details.
+
 2013-06-22  Paul Smith  <psmith@gnu.org>
 
 	Improve performance by using a character map to determine where we
