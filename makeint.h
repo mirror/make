@@ -364,7 +364,6 @@ char *strsignal (int signum);
 
 void sync_Path_environment (void);
 int w32_kill (pid_t pid, int sig);
-char *end_of_token_w32 (const char *s, char stopchar);
 int find_and_set_default_shell (const char *token);
 
 /* indicates whether or not we have Bourne shell */
@@ -381,6 +380,34 @@ extern int unixy_shell;
 /* Include only the minimal stuff from windows.h.   */
 #define WIN32_LEAN_AND_MEAN
 #endif  /* WINDOWS32 */
+
+#define ANY_SET(_v,_m)  (((_v)&(_m)) != 0)
+#define NONE_SET(_v,_m) (! ANY_SET ((_v),(_m)))
+
+#define MAP_NUL         0x0001
+#define MAP_BLANK       0x0002
+#define MAP_SPACE       0x0004
+#define MAP_COMMENT     0x0008
+#define MAP_SEMI        0x0010
+#define MAP_EQUALS      0x0020
+#define MAP_COLON       0x0040
+#define MAP_PERCENT     0x0080
+#define MAP_PIPE        0x0100
+#define MAP_DOT         0x0200
+#define MAP_COMMA       0x0400
+
+/* This means not only a '$', but skip the variable reference.  */
+#define MAP_VARIABLE    0x4000
+/* The set of characters which are path separators is OS-specific.  */
+#define MAP_PATHSEP     0x8000
+
+#ifdef VMS
+# define MAP_VMSCOMMA   MAP_COMMA
+#else
+# define MAP_VMSCOMMA   0x0000
+#endif
+
+#define STOP_SET(_v,_m) ANY_SET (stopchar_map[(int)(_v)],(_m))
 
 #if defined(HAVE_SYS_RESOURCE_H) && defined(HAVE_GETRLIMIT) && defined(HAVE_SETRLIMIT)
 # define SET_STACK_SIZE
@@ -554,6 +581,8 @@ extern const gmk_floc *reading_file;
 extern const gmk_floc **expanding_var;
 
 extern char **environ;
+
+extern unsigned short stopchar_map[];
 
 extern int just_print_flag, silent_flag, ignore_errors_flag, keep_going_flag;
 extern int print_data_base_flag, question_flag, touch_flag, always_make_flag;

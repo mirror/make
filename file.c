@@ -430,7 +430,7 @@ remove_intermediates (int sig)
 struct dep *
 split_prereqs (char *p)
 {
-  struct dep *new = PARSE_FILE_SEQ (&p, struct dep, '|', NULL, 0);
+  struct dep *new = PARSE_FILE_SEQ (&p, struct dep, MAP_PIPE, NULL, 0);
 
   if (*p)
     {
@@ -439,7 +439,7 @@ split_prereqs (char *p)
       struct dep *ood;
 
       ++p;
-      ood = PARSE_FILE_SEQ (&p, struct dep, '\0', NULL, 0);
+      ood = PARSE_FILE_SEQ (&p, struct dep, MAP_NUL, NULL, 0);
 
       if (! new)
         new = ood;

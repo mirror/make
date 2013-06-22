@@ -483,40 +483,10 @@ lindex (const char *s, const char *limit, int c)
 char *
 end_of_token (const char *s)
 {
-  while (*s != '\0' && !isblank ((unsigned char)*s))
+  while (! STOP_SET (*s, MAP_BLANK|MAP_NUL))
     ++s;
   return (char *)s;
 }
-
-#ifdef WINDOWS32
-/*
- * Same as end_of_token, but take into account a stop character
- */
-char *
-end_of_token_w32 (const char *s, char stopchar)
-{
-  const char *p = s;
-  int backslash = 0;
-
-  while (*p != '\0' && *p != stopchar
-         && (backslash || !isblank ((unsigned char)*p)))
-    {
-      if (*p++ == '\\')
-        {
-          backslash = !backslash;
-          while (*p == '\\')
-            {
-              backslash = !backslash;
-              ++p;
-            }
-        }
-      else
-        backslash = 0;
-    }
-
-  return (char *)p;
-}
-#endif
 
 /* Return the address of the first nonwhitespace or null in the string S.  */
 

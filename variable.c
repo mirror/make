@@ -1419,7 +1419,7 @@ parse_variable_definition (const char *p, struct variable *var)
       int c = *p++;
 
       /* If we find a comment or EOS, it's not a variable definition.  */
-      if (c == '\0' || c == '#')
+      if (STOP_SET (c, MAP_COMMENT|MAP_NUL))
         return NULL;
 
       if (c == '$')

@@ -548,6 +548,13 @@ int not_parallel;
    warning at the end of the run. */
 
 int clock_skew_detected;
+
+/* Map of possible stop characters for searching strings.  */
+#ifndef UCHAR_MAX
+# define UCHAR_MAX 255
+#endif
+unsigned short stopchar_map[UCHAR_MAX + 1] = {0};
+
 
 /* Mask of signals that are being caught with fatal_error_signal.  */
 
@@ -588,6 +595,41 @@ initialize_global_hash_tables (void)
   init_hash_files ();
   hash_init_directories ();
   hash_init_function_table ();
+}
+
+/* This character map locate stop chars when parsing GNU makefiles.
+   Each element is true if we should stop parsing on that character.  */
+
+static void
+initialize_stopchar_map ()
+{
+  int i;
+
+  stopchar_map[(int)'\0'] = MAP_NUL;
+  stopchar_map[(int)'#'] = MAP_COMMENT;
+  stopchar_map[(int)';'] = MAP_SEMI;
+  stopchar_map[(int)'='] = MAP_EQUALS;
+  stopchar_map[(int)':'] = MAP_COLON;
+  stopchar_map[(int)'%'] = MAP_PERCENT;
+  stopchar_map[(int)'|'] = MAP_PIPE;
+  stopchar_map[(int)'.'] = MAP_DOT;
+  stopchar_map[(int)','] = MAP_COMMA;
+  stopchar_map[(int)'$'] = MAP_VARIABLE;
+
+  stopchar_map[(int)'/'] = MAP_PATHSEP;
+#if defined(VMS)
+  stopchar_map[(int)']'] = MAP_PATHSEP;
+#elif defined(HAVE_DOS_PATHS)
+  stopchar_map[(int)'\\'] = MAP_PATHSEP;
+#endif
+
+  for (i = 1; i <= UCHAR_MAX; ++i)
+    {
+      if (isblank(i))
+        stopchar_map[i] = MAP_BLANK;
+      if (isspace(i))
+        stopchar_map[i] |= MAP_SPACE;
+    }
 }
 
 static const char *
@@ -1026,6 +1068,8 @@ main (int argc, char **argv, char **envp)
   no_default_sh_exe = 1;
 #endif
 
+  initialize_stopchar_map();
+
 #ifdef SET_STACK_SIZE
  /* Get rid of any avoidable limit on stack size.  */
   {
@@ -1278,7 +1322,7 @@ main (int argc, char **argv, char **envp)
         int do_not_define = 0;
         char *ep = envp[i];
 
-        while (*ep != '\0' && *ep != '=')
+        while (! STOP_SET (*ep, MAP_EQUALS))
           ++ep;
 #ifdef WINDOWS32
         if (!unix_path && strneq (envp[i], "PATH=", 5))
@@ -2420,7 +2464,7 @@ main (int argc, char **argv, char **envp)
             {
               struct nameseq *ns;
 
-              ns = PARSE_FILE_SEQ (&p, struct nameseq, '\0', NULL, 0);
+              ns = PARSE_FILE_SEQ (&p, struct nameseq, MAP_NUL, NULL, 0);
               if (ns)
                 {
                   /* .DEFAULT_GOAL should contain one target. */

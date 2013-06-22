@@ -373,7 +373,7 @@ install_pattern_rule (struct pspec *p, int terminal)
   ++r->suffixes[0];
 
   ptr = p->dep;
-  r->deps = PARSE_FILE_SEQ (&ptr, struct dep, '\0', NULL, 0);
+  r->deps = PARSE_FILE_SEQ (&ptr, struct dep, MAP_NUL, NULL, 0);
 
   if (new_pattern_rule (r, 0))
     {

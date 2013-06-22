@@ -116,7 +116,7 @@ subst_expand (char *o, const char *text, const char *subst, const char *replace,
          or only at the ends of words, check that this case qualifies.  */
       if (by_word
           && ((p > text && !isblank ((unsigned char)p[-1]))
-              || (p[slen] != '\0' && !isblank ((unsigned char)p[slen]))))
+              || ! STOP_SET (p[slen], MAP_BLANK|MAP_NUL)))
         /* Struck out.  Output the rest of the string that is
            no longer to be replaced.  */
         o = variable_buffer_output (o, subst, slen);
@@ -357,7 +357,7 @@ string_glob (char *line)
   struct nameseq *chain;
   unsigned int idx;
 
-  chain = PARSE_FILE_SEQ (&line, struct nameseq, '\0', NULL,
+  chain = PARSE_FILE_SEQ (&line, struct nameseq, MAP_NUL, NULL,
                           /* We do not want parse_file_seq to strip './'s.
                              That would break examples like:
                              $(patsubst ./%.c,obj/%.o,$(wildcard ./?*.c)).  */
@@ -507,16 +507,6 @@ func_flavor (char *o, char **argv, const char *funcname UNUSED)
   return o;
 }
 
-#ifdef VMS
-# define IS_PATHSEP(c) ((c) == ']')
-#else
-# ifdef HAVE_DOS_PATHS
-#  define IS_PATHSEP(c) ((c) == '/' || (c) == '\\')
-# else
-#  define IS_PATHSEP(c) ((c) == '/')
-# endif
-#endif
-
 
 static char *
 func_notdir_suffix (char *o, char **argv, const char *funcname)
@@ -529,17 +519,13 @@ func_notdir_suffix (char *o, char **argv, const char *funcname)
 
   int is_suffix = funcname[0] == 's';
   int is_notdir = !is_suffix;
+  int stop = MAP_PATHSEP | (is_suffix ? MAP_DOT : 0);
   while ((p2 = find_next_token (&list_iterator, &len)) != 0)
     {
-      const char *p = p2 + len;
+      const char *p = p2 + len - 1;
 
-
-      while (p >= p2 && (!is_suffix || *p != '.'))
-        {
-          if (IS_PATHSEP (*p))
-            break;
-          --p;
-        }
+      while (p >= p2 && ! STOP_SET (*p, stop))
+        --p;
 
       if (p >= p2)
         {
@@ -586,16 +572,12 @@ func_basename_dir (char *o, char **argv, const char *funcname)
 
   int is_basename = funcname[0] == 'b';
   int is_dir = !is_basename;
-
+  int stop = MAP_PATHSEP | (is_basename ? MAP_DOT : 0) | MAP_NUL;
   while ((p2 = find_next_token (&p3, &len)) != 0)
     {
-      const char *p = p2 + len;
-      while (p >= p2 && (!is_basename  || *p != '.'))
-        {
-          if (IS_PATHSEP (*p))
-            break;
-          --p;
-        }
+      const char *p = p2 + len - 1;
+      while (p >= p2 && ! STOP_SET (*p, stop))
+        --p;
 
       if (p >= p2 && (is_dir))
         o = variable_buffer_output (o, p2, ++p - p2);
@@ -1984,9 +1966,9 @@ abspath (const char *name, char *apath)
       strcpy (apath, starting_directory);
 
 #ifdef HAVE_DOS_PATHS
-      if (IS_PATHSEP(name[0]))
+      if (STOP_SET (name[0], MAP_PATHSEP))
         {
-          if (IS_PATHSEP(name[1]))
+          if (STOP_SET (name[1], MAP_PATHSEP))
             {
               /* A UNC.  Don't prepend a drive letter.  */
               apath[0] = name[0];
@@ -2011,7 +1993,7 @@ abspath (const char *name, char *apath)
       /* Get past the root, since we already copied it.  */
       name += root_len;
 #ifdef HAVE_DOS_PATHS
-      if (!IS_PATHSEP(apath[2]))
+      if (! STOP_SET (apath[2], MAP_PATHSEP))
         {
           /* Convert d:foo into d:./foo and increase root_len.  */
           apath[2] = '.';
@@ -2031,11 +2013,11 @@ abspath (const char *name, char *apath)
       unsigned long len;
 
       /* Skip sequence of multiple path-separators.  */
-      while (IS_PATHSEP(*start))
+      while (STOP_SET (*start, MAP_PATHSEP))
         ++start;
 
       /* Find end of path component.  */
-      for (end = start; *end != '\0' && !IS_PATHSEP(*end); ++end)
+      for (end = start; ! STOP_SET (*end, MAP_PATHSEP|MAP_NUL); ++end)
         ;
 
       len = end - start;
@@ -2048,11 +2030,12 @@ abspath (const char *name, char *apath)
         {
           /* Back up to previous component, ignore if at root already.  */
           if (dest > apath + root_len)
-            for (--dest; !IS_PATHSEP(dest[-1]); --dest);
+            for (--dest; ! STOP_SET (dest[-1], MAP_PATHSEP); --dest)
+              ;
         }
       else
         {
-          if (!IS_PATHSEP(dest[-1]))
+          if (! STOP_SET (dest[-1], MAP_PATHSEP))
             *dest++ = '/';
 
           if (dest + len >= apath_limit)
@@ -2065,7 +2048,7 @@ abspath (const char *name, char *apath)
     }
 
   /* Unless it is root strip trailing separator.  */
-  if (dest > apath + root_len && IS_PATHSEP(dest[-1]))
+  if (dest > apath + root_len && STOP_SET (dest[-1], MAP_PATHSEP))
     --dest;
 
   *dest = '\0';

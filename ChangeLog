@@ -1,3 +1,39 @@
+2013-06-22  Paul Smith  <psmith@gnu.org>
+
+	Improve performance by using a character map to determine where we
+	want to stop searching strings, rather than discrete comparisons.
+
+	* read.c (find_char_unquote): Pass a stop map instead of various
+	flags and use that to check when to stop parsing the string.
+	(eval): Use the new find_char_unquote() calling signature.
+	(remove_comments): Ditto.
+	(unescape_char): Ditto.
+	(find_percent_cached): Ditto.
+	(parse_file_seq): Use a stop-map flag.
+	* main.c (stopchar_map): Character map definition.
+	(initialize_stopchar_map): Initialize the map definition.
+	(main): Invoke the map initialization function.
+	* misc.c (end_of_token_w32): Remove unused function.
+	* dir.c (dosify): Use STOP_SET to check for stop chars.
+	* main.c (main): Ditto.
+	* misc.c (end_of_token): Ditto.
+	* function.c (subst_expand): Ditto.
+	(func_notdir_suffix): Ditto.
+	(func_basename_dir): Ditto.
+	(abspath): Ditto.
+	* job.c (is_bourne_compatible_shell): Ditto.
+	* variable.c (parse_variable_definition): Ditto.
+	* read.c (eval): Ditto.
+	(conditional_line): Ditto.
+	(find_percent_cached): Ditto.
+	* dep.h (PARSE_FILE_SEQ): Update function declaration.
+	* default.c (set_default_suffixes): Update PARSE_FILE_SEQ() call.
+	* file.c (split_prereqs): Ditto.
+	* function.c (string_glob): Ditto.
+	* implicit.c (pattern_search): Ditto.
+	* rule.c (install_pattern_rule): Ditto.
+	* main.c (main): Ditto.
+
 2013-06-21  Paul Smith  <psmith@gnu.org>
 
 	* main.c (verify_flag): Global variable to determine whether to

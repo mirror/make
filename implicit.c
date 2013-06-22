@@ -634,7 +634,7 @@ pattern_search (struct file *file, int archive,
                   p = variable_expand_for_file (depname, file);
 
                   /* Parse the expanded string. */
-                  dl = PARSE_FILE_SEQ (&p, struct dep, order_only ? '\0' : '|',
+                  dl = PARSE_FILE_SEQ (&p, struct dep, order_only ? MAP_NUL : MAP_PIPE,
                                        add_dir ? dir : NULL, 0);
 
                   for (d = dl; d != NULL; d = d->next)

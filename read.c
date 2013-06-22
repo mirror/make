@@ -155,8 +155,7 @@ static void record_target_var (struct nameseq *filenames, char *defn,
 static enum make_word_type get_next_mword (char *buffer, char *delim,
                                            char **startp, unsigned int *length);
 static void remove_comments (char *line);
-static char *find_char_unquote (char *string, int stop1, int stop2,
-                                int blank, int ignorevars);
+static char *find_char_unquote (char *string, int map);
 static char *unescape_char (char *string, int c);
 
 
@@ -758,7 +757,7 @@ eval (struct ebuffer *ebuf, int set_default)
       if (in_ignored_define)
         {
           /* See if this is an endef line (plus optional comment).  */
-          if (word1eq ("endef") && (*p2 == '\0' || *p2 == '#'))
+          if (word1eq ("endef") && STOP_SET (*p2, MAP_COMMENT|MAP_NUL))
             in_ignored_define = 0;
 
           continue;
@@ -872,7 +871,7 @@ eval (struct ebuffer *ebuf, int set_default)
 
           /* Parse the list of file names.  Don't expand archive references!  */
           p2 = p;
-          files = PARSE_FILE_SEQ (&p2, struct nameseq, '\0', NULL,
+          files = PARSE_FILE_SEQ (&p2, struct nameseq, MAP_NUL, NULL,
                                   PARSEFS_NOAR);
           free (p);
 
@@ -930,7 +929,7 @@ eval (struct ebuffer *ebuf, int set_default)
           /* Parse the list of file names.
              Don't expand archive references or strip "./"  */
           p2 = p;
-          files = PARSE_FILE_SEQ (&p2, struct nameseq, '\0', NULL,
+          files = PARSE_FILE_SEQ (&p2, struct nameseq, MAP_NUL, NULL,
                                   PARSEFS_NOAR);
           free (p);
 
@@ -989,7 +988,7 @@ eval (struct ebuffer *ebuf, int set_default)
 
         /* Search the line for an unquoted ; that is not after an
            unquoted #.  */
-        cmdleft = find_char_unquote (line, ';', '#', 0, 1);
+        cmdleft = find_char_unquote (line, MAP_SEMI|MAP_COMMENT|MAP_VARIABLE);
         if (cmdleft != 0 && *cmdleft == '#')
           {
             /* We found a comment before a semicolon.  */
@@ -1036,7 +1035,7 @@ eval (struct ebuffer *ebuf, int set_default)
             if (cmdleft == 0)
               {
                 /* Look for a semicolon in the expanded line.  */
-                cmdleft = find_char_unquote (p2, ';', 0, 0, 0);
+                cmdleft = find_char_unquote (p2, MAP_SEMI);
 
                 if (cmdleft != 0)
                   {
@@ -1063,7 +1062,7 @@ eval (struct ebuffer *ebuf, int set_default)
                   }
               }
 
-            colonp = find_char_unquote (p2, ':', 0, 0, 0);
+            colonp = find_char_unquote (p2, MAP_COLON);
 #ifdef HAVE_DOS_PATHS
             /* The drive spec brain-damage strikes again...  */
             /* Note that the only separators of targets in this context
@@ -1072,7 +1071,7 @@ eval (struct ebuffer *ebuf, int set_default)
             while (colonp && (colonp[1] == '/' || colonp[1] == '\\') &&
                    colonp > p2 && isalpha ((unsigned char)colonp[-1]) &&
                    (colonp == p2 + 1 || strchr (" \t(", colonp[-2]) != 0))
-              colonp = find_char_unquote (colonp + 1, ':', 0, 0, 0);
+              colonp = find_char_unquote (colonp + 1, MAP_COLON);
 #endif
             if (colonp != 0)
               break;
@@ -1108,7 +1107,7 @@ eval (struct ebuffer *ebuf, int set_default)
         /* Make the colon the end-of-string so we know where to stop
            looking for targets.  Start there again once we're done.  */
         *colonp = '\0';
-        filenames = PARSE_FILE_SEQ (&p2, struct nameseq, '\0', NULL, 0);
+        filenames = PARSE_FILE_SEQ (&p2, struct nameseq, MAP_NUL, NULL, 0);
         *colonp = ':';
         p2 = colonp;
 
@@ -1163,7 +1162,7 @@ eval (struct ebuffer *ebuf, int set_default)
 
         /* This is a normal target, _not_ a target-specific variable.
            Unquote any = in the dependency list.  */
-        find_char_unquote (lb_next, '=', 0, 0, 0);
+        find_char_unquote (lb_next, MAP_EQUALS);
 
         /* Remember the command prefix for this target.  */
         prefix = cmd_prefix;
@@ -1181,7 +1180,7 @@ eval (struct ebuffer *ebuf, int set_default)
             /* Look for a semicolon in the expanded line.  */
             if (cmdleft == 0)
               {
-                cmdleft = find_char_unquote (p2, ';', 0, 0, 0);
+                cmdleft = find_char_unquote (p2, MAP_SEMI);
                 if (cmdleft != 0)
                   *(cmdleft++) = '\0';
               }
@@ -1235,7 +1234,7 @@ eval (struct ebuffer *ebuf, int set_default)
         if (p != 0)
           {
             struct nameseq *target;
-            target = PARSE_FILE_SEQ (&p2, struct nameseq, ':', NULL,
+            target = PARSE_FILE_SEQ (&p2, struct nameseq, MAP_COLON, NULL,
                                      PARSEFS_NOGLOB);
             ++p2;
             if (target == 0)
@@ -1387,7 +1386,7 @@ remove_comments (char *line)
 {
   char *comment;
 
-  comment = find_char_unquote (line, '#', 0, 0, 0);
+  comment = find_char_unquote (line, MAP_COMMENT);
 
   if (comment != 0)
     /* Cut off the line at the #.  */
@@ -1620,7 +1619,7 @@ conditional_line (char *line, int len, const gmk_floc *flocp)
          and cannot be an 'else' or 'endif'.  */
 
       /* Find the length of the next word.  */
-      for (p = line+1; *p != '\0' && !isspace ((unsigned char)*p); ++p)
+      for (p = line+1; ! STOP_SET (*p, MAP_SPACE|MAP_NUL); ++p)
         ;
       len = p - line;
 
@@ -2211,37 +2210,24 @@ record_files (struct nameseq *filenames, const char *pattern,
    STOPCHAR _cannot_ be '$' if IGNOREVARS is true.  */
 
 static char *
-find_char_unquote (char *string, int stop1, int stop2, int blank,
-                   int ignorevars)
+find_char_unquote (char *string, int map)
 {
   unsigned int string_len = 0;
   char *p = string;
 
-  if (ignorevars)
-    ignorevars = '$';
+  /* Always stop on NUL.  */
+  map |= MAP_NUL;
 
   while (1)
     {
-      if (stop2 && blank)
-        while (*p != '\0' && *p != ignorevars && *p != stop1 && *p != stop2
-               && ! isblank ((unsigned char) *p))
-          ++p;
-      else if (stop2)
-        while (*p != '\0' && *p != ignorevars && *p != stop1 && *p != stop2)
-          ++p;
-      else if (blank)
-        while (*p != '\0' && *p != ignorevars && *p != stop1
-               && ! isblank ((unsigned char) *p))
-          ++p;
-      else
-        while (*p != '\0' && *p != ignorevars && *p != stop1)
-          ++p;
+      while (! STOP_SET (*p, map))
+        ++p;
 
       if (*p == '\0')
         break;
 
       /* If we stopped due to a variable reference, skip over its contents.  */
-      if (*p == ignorevars)
+      if (STOP_SET (*p, MAP_VARIABLE))
         {
           char openparen = p[1];
 
@@ -2349,7 +2335,7 @@ unescape_char (char *string, int c)
 char *
 find_percent (char *pattern)
 {
-  return find_char_unquote (pattern, '%', 0, 0, 0);
+  return find_char_unquote (pattern, MAP_PERCENT);
 }
 
 /* Search STRING for an unquoted % and handle quoting.  Returns a pointer to
@@ -2372,7 +2358,7 @@ find_percent_cached (const char **string)
 
   while (1)
     {
-      while (*p != '\0' && *p != '%')
+      while (! STOP_SET (*p, MAP_PERCENT|MAP_NUL))
         ++p;
 
       if (*p == '\0')
@@ -2987,7 +2973,7 @@ tilde_expand (const char *name)
   */
 
 void *
-parse_file_seq (char **stringp, unsigned int size, int stopchar,
+parse_file_seq (char **stringp, unsigned int size, int stopmap,
                 const char *prefix, int flags)
 {
   extern void dir_setup_glob (glob_t *glob);
@@ -2997,7 +2983,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopchar,
   static char *tmpbuf = NULL;
   static int tmpbuf_len = 0;
 
-  int cachep = (! (flags & PARSEFS_NOCACHE));
+  int cachep = NONE_SET (flags, PARSEFS_NOCACHE);
 
   struct nameseq *new = 0;
   struct nameseq **newp = &new;
@@ -3012,16 +2998,13 @@ parse_file_seq (char **stringp, unsigned int size, int stopchar,
   glob_t gl;
   char *tp;
 
-#ifdef VMS
-# define VMS_COMMA ','
-#else
-# define VMS_COMMA 0
-#endif
+  /* Always stop on NUL.  */
+  stopmap |= MAP_NUL;
 
   if (size < sizeof (struct nameseq))
     size = sizeof (struct nameseq);
 
-  if (! (flags & PARSEFS_NOGLOB))
+  if (NONE_SET (flags, PARSEFS_NOGLOB))
     dir_setup_glob (&gl);
 
   /* Get enough temporary space to construct the largest possible target.  */
@@ -3053,39 +3036,39 @@ parse_file_seq (char **stringp, unsigned int size, int stopchar,
 
       /* Skip whitespace; at the end of the string or STOPCHAR we're done.  */
       p = next_token (p);
-      if (*p == '\0' || *p == stopchar)
+      if (STOP_SET (*p, stopmap))
         break;
 
       /* There are names left, so find the end of the next name.
          Throughout this iteration S points to the start.  */
       s = p;
-      p = find_char_unquote (p, stopchar, VMS_COMMA, 1, 0);
+      p = find_char_unquote (p, stopmap|MAP_VMSCOMMA|MAP_BLANK);
 #ifdef VMS
         /* convert comma separated list to space separated */
       if (p && *p == ',')
         *p =' ';
 #endif
 #ifdef _AMIGA
-      if (stopchar == ':' && p && *p == ':'
+      if (p && STOP_SET (*p, stopmap & MAP_COLON)
           && !(isspace ((unsigned char)p[1]) || !p[1]
                || isspace ((unsigned char)p[-1])))
-        p = find_char_unquote (p+1, stopchar, VMS_COMMA, 1, 0);
+        p = find_char_unquote (p+1, stopmap|MAP_VMSCOMMA|MAP_BLANK);
 #endif
 #ifdef HAVE_DOS_PATHS
     /* For DOS paths, skip a "C:\..." or a "C:/..." until we find the
        first colon which isn't followed by a slash or a backslash.
        Note that tokens separated by spaces should be treated as separate
        tokens since make doesn't allow path names with spaces */
-    if (stopchar == ':')
+    if (stopmap | MAP_COLON)
       while (p != 0 && !isspace ((unsigned char)*p) &&
              (p[1] == '\\' || p[1] == '/') && isalpha ((unsigned char)p[-1]))
-        p = find_char_unquote (p + 1, stopchar, VMS_COMMA, 1, 0);
+        p = find_char_unquote (p + 1, stopmap|MAP_VMSCOMMA|MAP_BLANK);
 #endif
       if (p == 0)
         p = s + strlen (s);
 
       /* Strip leading "this directory" references.  */
-      if (! (flags & PARSEFS_NOSTRIP))
+      if (NONE_SET (flags, PARSEFS_NOSTRIP))
 #ifdef VMS
         /* Skip leading '[]'s.  */
         while (p - s > 2 && s[0] == '[' && s[1] == ']')
@@ -3159,7 +3142,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopchar,
          Finally, note that archive groups must end with ')' as the last
          character, so ensure there's some word ending like that before
          considering this an archive group.  */
-      if (! (flags & PARSEFS_NOAR)
+      if (NONE_SET (flags, PARSEFS_NOAR)
           && tp == tmpbuf && tp[0] != '(' && tp[nlen-1] != ')')
         {
           char *n = strchr (tp, '(');
@@ -3175,8 +3158,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopchar,
                   /* Find the end of this word.  We don't want to unquote and
                      we don't care about quoting since we're looking for the
                      last char in the word. */
-                  while (*e != '\0' && *e != stopchar && *e != VMS_COMMA
-                         && ! isblank ((unsigned char) *e))
+                  while (! STOP_SET (*e, stopmap|MAP_BLANK|MAP_VMSCOMMA))
                     ++e;
                   /* If we didn't move, we're done now.  */
                   if (e == o)
@@ -3225,7 +3207,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopchar,
 
       /* If we're not globbing we're done: add it to the end of the chain.
          Go to the next item in the string.  */
-      if (flags & PARSEFS_NOGLOB)
+      if (ANY_SET (flags, PARSEFS_NOGLOB))
         {
           NEWELT (concat (2, prefix, tmpbuf));
           continue;
@@ -3248,7 +3230,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopchar,
       /* If NAME is an archive member reference replace it with the archive
          file name, and save the member name in MEMNAME.  We will glob on the
          archive name and then reattach MEMNAME later.  */
-      if (! (flags & PARSEFS_NOAR) && ar_name (name))
+      if (NONE_SET (flags, PARSEFS_NOAR) && ar_name (name))
         {
           ar_parse_name (name, &arname, &memname);
           name = arname;
@@ -3256,7 +3238,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopchar,
 #endif /* !NO_ARCHIVES */
 
       /* glob() is expensive: don't call it unless we need to.  */
-      if (!(flags & PARSEFS_EXISTS) && strpbrk (name, "?*[") == NULL)
+      if (NONE_SET (flags, PARSEFS_EXISTS) && strpbrk (name, "?*[") == NULL)
         {
           globme = 0;
           i = 1;
@@ -3276,7 +3258,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopchar,
 
           case GLOB_NOMATCH:
             /* If we want only existing items, skip this one.  */
-            if (flags & PARSEFS_EXISTS)
+            if (ANY_SET (flags, PARSEFS_EXISTS))
               {
                 i = 0;
                 break;

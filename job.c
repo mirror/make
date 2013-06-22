@@ -459,7 +459,7 @@ is_bourne_compatible_shell (const char *path)
       len = strlen (unix_shells[i]);
 #if defined(WINDOWS32) || defined(__MSDOS__)
       if ((strncasecmp (name, unix_shells[i], len) == 0) &&
-          (strlen (name) >= len && (name[len] == '\0' || name[len] == '.')))
+          (strlen (name) >= len && STOP_SET (name[len], MAP_DOT|MAP_NUL)))
 #else
       if ((strncmp (name, unix_shells[i], len) == 0) &&
           (strlen (name) >= len && name[len] == '\0'))

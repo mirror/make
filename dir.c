@@ -16,6 +16,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "makeint.h"
 #include "hash.h"
+#include "dep.h"
 
 #ifdef  HAVE_DIRENT_H
 # include <dirent.h>
@@ -84,21 +85,21 @@ dosify (const char *filename)
   df = dos_filename;
 
   /* First, transform the name part.  */
-  for (i = 0; *filename != '\0' && i < 8 && *filename != '.'; ++i)
+  for (i = 0; i < 8 && ! STOP_SET (*filename, MAP_DOT|MAP_NUL); ++i)
     *df++ = tolower ((unsigned char)*filename++);
 
   /* Now skip to the next dot.  */
-  while (*filename != '\0' && *filename != '.')
+  while (! STOP_SET (*filename, MAP_DOT|MAP_NUL))
     ++filename;
   if (*filename != '\0')
     {
       *df++ = *filename++;
-      for (i = 0; *filename != '\0' && i < 3 && *filename != '.'; ++i)
+      for (i = 0; i < 3 && ! STOP_SET (*filename, MAP_DOT|MAP_NUL); ++i)
         *df++ = tolower ((unsigned char)*filename++);
     }
 
   /* Look for more dots.  */
-  while (*filename != '\0' && *filename != '.')
+  while (! STOP_SET (*filename, MAP_DOT|MAP_NUL))
     ++filename;
   if (*filename == '.')
     return filename;
