@@ -1,5 +1,8 @@
 2013-06-22  Eli Zaretskii  <eliz@gnu.org>
 
+	* build_w32.bat (LinkGCC): Prevent a comment from being displayed
+	at build time.
+
 	* job.c (construct_command_argv_internal) [WINDOWS32]: Use
 	case-insensitive comparison with internal commands of non-Unix
 	shells.

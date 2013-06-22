@@ -290,6 +290,7 @@ set GUILEOBJ=guile.o
 echo on
 gcc -mthreads -Wall -gdwarf-2 -g3 %OPT% %GUILECFLAGS% -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c guile.c
 :LinkGCC
+@echo off
 Rem The version NN of libgnumake-NN.dll.a should be bumped whenever
 Rem the API changes in binary-incompatible manner.
 @echo on
