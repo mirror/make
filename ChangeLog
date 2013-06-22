@@ -1,3 +1,13 @@
+2013-06-21  Paul Smith  <psmith@gnu.org>
+
+	* main.c (verify_flag): Global variable to determine whether to
+	verify the database or not.
+	(decode_debug_flags): If debug mode, enable verify_flag.
+	(main): If MAKE_MAINTAINTER_MODE, enable verify_flag, otherwise not.
+	(die): Only verify the database if verify_flag is set.
+	* file.c (enter_file): Don't check caching unless verify_flag.
+	* makeint.h: Export verify_flag.
+
 2013-05-27  Paul Smith  <psmith@gnu.org>
 
 	* variable.c (define_automatic_variables): Create a new variable

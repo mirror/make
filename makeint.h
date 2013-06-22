@@ -561,7 +561,7 @@ extern int env_overrides, no_builtin_rules_flag, no_builtin_variables_flag;
 extern int print_version_flag, print_directory_flag, check_symlink_flag;
 extern int warn_undefined_variables_flag, trace_flag, posix_pedantic;
 extern int not_parallel, second_expansion, clock_skew_detected;
-extern int rebuilding_makefiles, one_shell, output_sync;
+extern int rebuilding_makefiles, one_shell, output_sync, verify_flag;
 
 /* can we run commands via 'sh -c xxx' or must we use batch files? */
 extern int batch_mode_shell;

@@ -153,7 +153,7 @@ enter_file (const char *name)
   struct file file_key;
 
   assert (*name != '\0');
-  assert (strcache_iscached (name));
+  assert (! verify_flag || strcache_iscached (name));
 
 #if defined(VMS) && !defined(WANT_CASE_SENSITIVE_TARGETS)
   if (*name != '.')

@@ -130,6 +130,10 @@ struct stringlist
 
 /* The recognized command switches.  */
 
+/* Nonzero means do extra verification (that may slow things down).  */
+
+int verify_flag;
+
 /* Nonzero means do not print commands to be executed (-s).  */
 
 int silent_flag;
@@ -649,49 +653,48 @@ decode_debug_flags (void)
   if (debug_flag)
     db_level = DB_ALL;
 
-  if (!db_flags)
-    return;
+  if (db_flags)
+    for (pp=db_flags->list; *pp; ++pp)
+      {
+        const char *p = *pp;
 
-  for (pp=db_flags->list; *pp; ++pp)
-    {
-      const char *p = *pp;
+        while (1)
+          {
+            switch (tolower (p[0]))
+              {
+              case 'a':
+                db_level |= DB_ALL;
+                break;
+              case 'b':
+                db_level |= DB_BASIC;
+                break;
+              case 'i':
+                db_level |= DB_BASIC | DB_IMPLICIT;
+                break;
+              case 'j':
+                db_level |= DB_JOBS;
+                break;
+              case 'm':
+                db_level |= DB_BASIC | DB_MAKEFILES;
+                break;
+              case 'v':
+                db_level |= DB_BASIC | DB_VERBOSE;
+                break;
+              default:
+                fatal (NILF, _("unknown debug level specification '%s'"), p);
+              }
 
-      while (1)
-        {
-          switch (tolower (p[0]))
-            {
-            case 'a':
-              db_level |= DB_ALL;
-              break;
-            case 'b':
-              db_level |= DB_BASIC;
-              break;
-            case 'i':
-              db_level |= DB_BASIC | DB_IMPLICIT;
-              break;
-            case 'j':
-              db_level |= DB_JOBS;
-              break;
-            case 'm':
-              db_level |= DB_BASIC | DB_MAKEFILES;
-              break;
-            case 'v':
-              db_level |= DB_BASIC | DB_VERBOSE;
-              break;
-            default:
-              fatal (NILF, _("unknown debug level specification '%s'"), p);
-            }
+            while (*(++p) != '\0')
+              if (*p == ',' || *p == ' ')
+                break;
 
-          while (*(++p) != '\0')
-            if (*p == ',' || *p == ' ')
+            if (*p == '\0')
               break;
+          }
+      }
 
-          if (*p == '\0')
-            break;
-
-          ++p;
-        }
-    }
+  if (db_level)
+    verify_flag = 1;
 }
 
 static void
@@ -1048,7 +1051,10 @@ main (int argc, char **argv, char **envp)
   /* Needed for OS/2 */
   initialize_main (&argc, &argv);
 
-  reading_file = 0;
+#ifdef MAKE_MAINTAINER_MODE
+  /* In maintainer mode we always enable verification.  */
+  verify_flag = 1;
+#endif
 
 #if defined (__MSDOS__) && !defined (_POSIX_SOURCE)
   /* Request the most powerful version of 'system', to
@@ -3349,7 +3355,8 @@ die (int status)
       if (print_data_base_flag)
         print_data_base ();
 
-      verify_file_data_base ();
+      if (verify_flag)
+        verify_file_data_base ();
 
       clean_jobserver (status);
 
