@@ -1,5 +1,9 @@
 2013-06-22  Eli Zaretskii  <eliz@gnu.org>
 
+	* job.c (construct_command_argv_internal) [WINDOWS32]: Use
+	case-insensitive comparison with internal commands of non-Unix
+	shells.
+
 	* main.c (find_and_set_default_shell): Don't use file_exists_p or
 	dir_file_exists_p, as those call readdir, which can fail if PATH
 	includes directories with non-ASCII characters, and that would

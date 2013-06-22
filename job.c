@@ -3172,12 +3172,12 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
                   {
                     if (streq (sh_cmds[j], new_argv[0]))
                       goto slow;
-# ifdef __EMX__
+#if defined(__EMX__) || defined(WINDOWS32)
                     /* Non-Unix shells are case insensitive.  */
                     if (!unixy_shell
                         && strcasecmp (sh_cmds[j], new_argv[0]) == 0)
                       goto slow;
-# endif
+#endif
                   }
               }
 
