@@ -1,3 +1,10 @@
+2013-06-28  Paul Smith  <psmith@gnu.org>
+
+	* misc.c (set_append_mode): Set the O_APPEND flag on a file descriptor.
+	(open_tmpfd): Set append mode on the temporary file descriptor.
+	* main.c (main): Set append mode on stdout and stderr.
+	* makeint.h (set_append_mode): Declare it.
+
 2013-06-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* build_w32.bat (LinkGCC): Prevent a comment from being displayed
@@ -55,7 +62,7 @@
 	* main.c (verify_flag): Global variable to determine whether to
 	verify the database or not.
 	(decode_debug_flags): If debug mode, enable verify_flag.
-	(main): If MAKE_MAINTAINTER_MODE, enable verify_flag, otherwise not.
+	(main): If MAKE_MAINTAINER_MODE, enable verify_flag, otherwise not.
 	(die): Only verify the database if verify_flag is set.
 	* file.c (enter_file): Don't check caching unless verify_flag.
 	* makeint.h: Export verify_flag.

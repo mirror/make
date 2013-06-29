@@ -1195,6 +1195,12 @@ main (int argc, char **argv, char **envp)
   setlinebuf (stdout);
 #endif  /* setlinebuf missing.  */
 
+  /* Configure stdout/stderr to be in append mode.
+     This keeps parallel jobs from losing output due to overlapping writes.  */
+
+  set_append_mode (fileno (stdout));
+  set_append_mode (fileno (stderr));
+
   /* Figure out where this program lives.  */
 
   if (argv[0] == 0)

@@ -22,6 +22,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdarg.h>
 
+#ifdef HAVE_FCNTL_H
+# include <fcntl.h>
+#else
+# include <sys/file.h>
+#endif
 
 /* Compare strings *S1 and *S2.
    Return negative if the first is less, positive if it is greater,
@@ -897,6 +902,19 @@ get_path_max (void)
 #endif
 
 
+/* Set a file descriptor to be in O_APPEND mode.
+   If it fails, just ignore it.  */
+
+void
+set_append_mode (int fd)
+{
+#if defined(F_GETFL) && defined(F_SETFL) && defined(O_APPEND)
+  int flags = fcntl (fd, F_GETFL, 0);
+  if (flags >= 0)
+    fcntl (fd, F_SETFL, flags | O_APPEND);
+#endif
+}
+
 /* Provide support for temporary files.  */
 
 #ifndef HAVE_STDLIB_H
@@ -927,6 +945,8 @@ open_tmpfd ()
     pfatal_with_name ("dup");
 
   fclose (tfile);
+
+  set_append_mode (fd);
 
   return fd;
 }
