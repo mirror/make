@@ -1,3 +1,9 @@
+2013-07-09  Paul Smith  <psmith@gnu.org>
+
+	* implicit.c (pattern_search): Keep a local copy of the number of
+	deps in deplist: the global max might change due to recursion.
+	Fixes a bug reported by Martin d'Anjou <martin.danjou14@gmail.com>.
+
 2013-06-28  Paul Smith  <psmith@gnu.org>
 
 	* misc.c (set_append_mode): Set the O_APPEND flag on a file descriptor.

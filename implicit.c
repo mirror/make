@@ -217,8 +217,8 @@ pattern_search (struct file *file, int archive,
   struct file *int_file = 0;
 
   /* List of dependencies found recursively.  */
-  struct patdeps *deplist
-    = xmalloc (max_pattern_deps * sizeof (struct patdeps));
+  unsigned int max_deps = max_pattern_deps;
+  struct patdeps *deplist = xmalloc (max_deps * sizeof (struct patdeps));
   struct patdeps *pat = deplist;
 
   /* Names of possible dependencies are constructed in this buffer.  */
@@ -651,13 +651,15 @@ pattern_search (struct file *file, int archive,
               /* If there are more than max_pattern_deps prerequisites (due to
                  2nd expansion), reset it and realloc the arrays.  */
 
-              if (deps_found > max_pattern_deps)
+              if (deps_found > max_deps)
                 {
                   unsigned int l = pat - deplist;
+                  /* This might have changed due to recursion.  */
+                  max_pattern_deps = MAX(max_pattern_deps, deps_found);
+                  max_deps = max_pattern_deps;
                   deplist = xrealloc (deplist,
-                                      deps_found * sizeof (struct patdeps));
+                                      max_deps * sizeof (struct patdeps));
                   pat = deplist + l;
-                  max_pattern_deps = deps_found;
                 }
 
               /* Go through the nameseq and handle each as a prereq name.  */
@@ -757,8 +759,8 @@ pattern_search (struct file *file, int archive,
                           pat->pattern = int_file->name;
                           int_file->name = d->name;
                           pat->file = int_file;
-                          (pat++)->name = d->name;
                           int_file = 0;
+                          (pat++)->name = d->name;
                           continue;
                         }
 

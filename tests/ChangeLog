@@ -1,3 +1,8 @@
+2013-07-09  Paul Smith  <psmith@gnu.org>
+
+	* scripts/features/se_implicit: Add a test for SE rules depending
+	on other SE rules to be built.
+
 2013-05-26  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/archives: Test for Savannah bug #38442.
