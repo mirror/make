@@ -131,11 +131,11 @@ int child_execute_job (int stdin_fd, int stdout_fd, char **argv, char **envp);
 void child_execute_job (int stdin_fd, int stdout_fd, char **argv, char **envp);
 #endif
 #ifdef _AMIGA
-void exec_command (char **argv);
+void exec_command (char **argv) __attribute__ ((noreturn));
 #elif defined(__EMX__)
 int exec_command (char **argv, char **envp);
 #else
-void exec_command (char **argv, char **envp);
+void exec_command (char **argv, char **envp) __attribute__ ((noreturn));
 #endif
 
 extern unsigned int job_slots_used;
