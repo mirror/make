@@ -59,11 +59,16 @@ struct file
     FILE_TIMESTAMP mtime_before_update; /* File's modtime before any updating
                                            has been performed.  */
     int command_flags;          /* Flags OR'd in for cmds; see commands.h.  */
-    char update_status;         /* Status of the last attempt to update,
-                                   or -1 if none has been made.  */
+    enum update_status          /* Status of the last attempt to update.  */
+      {
+        us_success = 0,         /* Successfully updated.  Must be 0!  */
+        us_none,                /* No attempt to update has been made.  */
+        us_question,            /* Needs to be updated (-q is is set).  */
+        us_failed               /* Update failed.  */
+      } update_status ENUM_BITFIELD (2);
     enum cmd_state              /* State of the commands.  */
-      {         /* Note: It is important that cs_not_started be zero.  */
-        cs_not_started,         /* Not yet started.  */
+      {
+        cs_not_started = 0,     /* Not yet started.  Must be 0!  */
         cs_deps_running,        /* Dep commands running.  */
         cs_running,             /* Commands running.  */
         cs_finished             /* Commands finished.  */

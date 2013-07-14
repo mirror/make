@@ -1719,7 +1719,7 @@ main (int argc, char **argv, char **envp)
             {
               struct file *f = enter_file (strcache_add (stdin_nm));
               f->updated = 1;
-              f->update_status = 0;
+              f->update_status = us_success;
               f->command_state = cs_finished;
               /* Can't be intermediate, or it'll be removed too early for
                  make re-exec.  */
@@ -2086,7 +2086,7 @@ main (int argc, char **argv, char **envp)
           struct file *f = enter_file (*p);
           f->last_mtime = f->mtime_before_update = OLD_MTIME;
           f->updated = 1;
-          f->update_status = 0;
+          f->update_status = us_success;
           f->command_state = cs_finished;
         }
     }
@@ -2113,7 +2113,7 @@ main (int argc, char **argv, char **envp)
       char **nargv;
       int nargc;
       int orig_db_level = db_level;
-      int status;
+      enum update_status status;
 
       if (! ISDB (DB_MAKEFILES))
         db_level = DB_NONE;
@@ -2180,18 +2180,18 @@ main (int argc, char **argv, char **envp)
 
       switch (status)
         {
-        case 1:
+        case us_question:
           /* The only way this can happen is if the user specified -q and asked
            * for one of the makefiles to be remade as a target on the command
            * line.  Since we're not actually updating anything with -q we can
            * treat this as "did nothing".
            */
 
-        case -1:
+        case us_none:
           /* Did nothing.  */
           break;
 
-        case 2:
+        case us_failed:
           /* Failed to update.  Figure out if we care.  */
           {
             /* Nonzero if any makefile was successfully remade.  */
@@ -2211,7 +2211,7 @@ main (int argc, char **argv, char **envp)
                 if (d->file->updated)
                   {
                     /* This makefile was updated.  */
-                    if (d->file->update_status == 0)
+                    if (d->file->update_status == us_success)
                       {
                         /* It was successfully updated.  */
                         any_remade |= (file_mtime_no_search (d->file)
@@ -2260,7 +2260,7 @@ main (int argc, char **argv, char **envp)
             break;
           }
 
-        case 0:
+        case us_success:
         re_exec:
           /* Updated successfully.  Re-exec ourselves.  */
 
@@ -2398,25 +2398,19 @@ main (int argc, char **argv, char **envp)
                child process including all file handles and to wait for its
                termination. */
             int pid;
-            int status;
+            int r;
             pid = child_execute_job (0, 1, nargv, environ);
 
             /* is this loop really necessary? */
             do {
-              pid = wait (&status);
+              pid = wait (&r);
             } while (pid <= 0);
             /* use the exit code of the child process */
-            exit (WIFEXITED(status) ? WEXITSTATUS(status) : EXIT_FAILURE);
+            exit (WIFEXITED(r) ? WEXITSTATUS(r) : EXIT_FAILURE);
           }
 #else
           exec_command (nargv, environ);
 #endif
-          /* NOTREACHED */
-
-        default:
-#define BOGUS_UPDATE_STATUS 0
-          assert (BOGUS_UPDATE_STATUS);
-          break;
         }
 
       db_level = orig_db_level;
@@ -2511,27 +2505,23 @@ main (int argc, char **argv, char **envp)
   DB (DB_BASIC, (_("Updating goal targets....\n")));
 
   {
-    int status;
-
     switch (update_goal_chain (goals))
     {
-      case -1:
+      case us_none:
         /* Nothing happened.  */
-      case 0:
-        /* Updated successfully.  */
-        status = makefile_status;
+        /* FALLTHROUGH */
+      case us_success:
+        /* Keep the previous result.  */
         break;
-      case 1:
+      case us_question:
         /* We are under -q and would run some commands.  */
-        status = MAKE_TROUBLE;
+        makefile_status = MAKE_TROUBLE;
         break;
-      case 2:
+      case us_failed:
         /* Updating failed.  POSIX.2 specifies exit status >1 for this;
            but in VMS, there is only success and failure.  */
-        status = MAKE_FAILURE;
+        makefile_status = MAKE_FAILURE;
         break;
-      default:
-        abort ();
     }
 
     /* If we detected some clock skew, generate one last warning */
@@ -2540,7 +2530,7 @@ main (int argc, char **argv, char **envp)
              _("warning:  Clock skew detected.  Your build may be incomplete."));
 
     /* Exit.  */
-    die (status);
+    die (makefile_status);
   }
 
   /* NOTREACHED */

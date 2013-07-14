@@ -1116,7 +1116,7 @@ reap_children (int block, int err)
           if (!dontcare)
             child_error (c, exit_code, exit_sig, coredump, 0);
 
-          c->file->update_status = 2;
+          c->file->update_status = us_failed;
           if (delete_on_error == -1)
             {
               struct file *f = lookup_file (".DELETE_ON_ERROR");
@@ -1143,7 +1143,7 @@ reap_children (int block, int err)
                      Since there are more commands that wanted to be run,
                      the target was not completely remade.  So we treat
                      this as if a command had failed.  */
-                  c->file->update_status = 2;
+                  c->file->update_status = us_failed;
                 }
               else
                 {
@@ -1170,7 +1170,7 @@ reap_children (int block, int err)
                     continue;
                 }
 
-              if (c->file->update_status != 0)
+              if (c->file->update_status != us_success)
                 /* We failed to start the commands.  */
                 delete_child_targets (c);
             }
@@ -1178,7 +1178,7 @@ reap_children (int block, int err)
             /* There are no more commands.  We got through them all
                without an unignored error.  Now the target has been
                successfully updated.  */
-            c->file->update_status = 0;
+            c->file->update_status = us_success;
         }
 
       /* When we get here, all the commands for c->file are finished.  */
@@ -1188,7 +1188,7 @@ reap_children (int block, int err)
       sync_output (c);
 #endif /* OUTPUT_SYNC */
 
-      /* At this point c->file->update_status contains 0 or 2.  But
+      /* At this point c->file->update_status is success or failed.  But
          c->file->command_state is still cs_running if all the commands
          ran; notice_finish_file looks for cs_running to tell it that
          it's interesting to check the file's modtime again now.  */
@@ -1476,7 +1476,7 @@ start_job_command (struct child *child)
       free (argv[0]);
       free (argv);
 #endif
-      child->file->update_status = 1;
+      child->file->update_status = us_question;
       notice_finished_file (child->file);
       return;
     }
@@ -1509,7 +1509,7 @@ start_job_command (struct child *child)
           /* No more commands.  Make sure we're "running"; we might not be if
              (e.g.) all commands were skipped due to -n.  */
           set_command_state (child->file, cs_running);
-          child->file->update_status = 0;
+          child->file->update_status = us_success;
           notice_finished_file (child->file);
         }
       return;
@@ -1908,7 +1908,7 @@ start_job_command (struct child *child)
   return;
 
  error:
-  child->file->update_status = 2;
+  child->file->update_status = us_failed;
   notice_finished_file (child->file);
   return;
 }
@@ -1963,7 +1963,7 @@ start_waiting_job (struct child *c)
 
     case cs_not_started:
       /* All the command lines turned out to be empty.  */
-      f->update_status = 0;
+      f->update_status = us_success;
       /* FALLTHROUGH */
 
     case cs_finished:

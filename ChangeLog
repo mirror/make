@@ -1,3 +1,30 @@
+2013-07-14  Paul Smith  <psmith@gnu.org>
+
+	* filedef.h (update_status): Convert UPDATE_STATUS from a char to
+	an enumeration.  Some systems declare "char" to be "unsigned"
+	which broke the code (which expected to be able to use -1 as a
+	flag).  Using magic values was unpleasant, so rather than just
+	force "signed char" I reworked it to use an enum.
+
+	* dep.h (update_goal_chain): Return an update_status value not int.
+	* remake.c (touch_file): Ditto.
+	(update_goal_chain): Track the update_status enum.
+
+	* file.c (enter_file): Use new enumeration values with update_status.
+	(remove_intermediates): Ditto.
+	(print_file): Ditto.
+	* commands.c (execute_file_commands): Ditto.
+	* job.c (reap_children): Ditto.
+	(start_job_command): Ditto.
+	(start_waiting_job): Ditto.
+	* main.c (main): Ditto.
+	* remake.c (update_file): Ditto.
+	(complain): Ditto.
+	(update_file_1): Ditto.
+	(notice_finished_file): Ditto.
+	(remake_file): Ditto.
+	* vmsjobs.c (vmsHandleChildTerm): Ditto.
+
 2013-07-09  Paul Smith  <psmith@gnu.org>
 
 	* implicit.c (pattern_search): Keep a local copy of the number of

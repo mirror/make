@@ -459,7 +459,7 @@ execute_file_commands (struct file *file)
     {
       /* If there are no commands, assume everything worked.  */
       set_command_state (file, cs_running);
-      file->update_status = 0;
+      file->update_status = us_success;
       notice_finished_file (file);
       return;
     }

@@ -62,7 +62,7 @@ static int update_file (struct file *file, unsigned int depth);
 static int update_file_1 (struct file *file, unsigned int depth);
 static int check_dep (struct file *file, unsigned int depth,
                       FILE_TIMESTAMP this_mtime, int *must_make_ptr);
-static int touch_file (struct file *file);
+static enum update_status touch_file (struct file *file);
 static void remake_file (struct file *file);
 static FILE_TIMESTAMP name_mtime (const char *name);
 static const char *library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr);
@@ -76,11 +76,11 @@ static const char *library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr);
    targets, and we should only make one goal at a time and return as soon as
    one goal whose 'changed' member is nonzero is successfully made.  */
 
-int
+enum update_status
 update_goal_chain (struct dep *goals)
 {
   int t = touch_flag, q = question_flag, n = just_print_flag;
-  int status = -1;
+  enum update_status status = us_none;
 
 #define MTIME(file) (rebuilding_makefiles ? file_mtime_no_search (file) \
                      : file_mtime (file))
@@ -130,7 +130,7 @@ update_goal_chain (struct dep *goals)
                file = file->prev)
             {
               unsigned int ocommands_started;
-              int x;
+              int fail;
 
               file->dontcare = g->dontcare;
 
@@ -152,7 +152,7 @@ update_goal_chain (struct dep *goals)
                  actually run.  */
               ocommands_started = commands_started;
 
-              x = update_file (file, rebuilding_makefiles ? 1 : 0);
+              fail = update_file (file, rebuilding_makefiles ? 1 : 0);
               check_renamed (file);
 
               /* Set the goal's 'changed' flag if any commands were started
@@ -166,9 +166,9 @@ update_goal_chain (struct dep *goals)
                  STATUS as it is if no updating was done.  */
 
               stop = 0;
-              if ((x != 0 || file->updated) && status < 1)
+              if ((fail || file->updated) && status < us_question)
                 {
-                  if (file->update_status != 0)
+                  if (file->update_status != us_success)
                     {
                       /* Updating failed, or -q triggered.  The STATUS value
                          tells our caller which.  */
@@ -195,7 +195,7 @@ update_goal_chain (struct dep *goals)
                              enter an infinite loop.  */
                           if (!rebuilding_makefiles
                               || (!just_print_flag && !question_flag))
-                            status = 0;
+                            status = us_success;
                           if (rebuilding_makefiles && file->dontcare)
                             /* This is a default makefile; stop remaking.  */
                             stop = 1;
@@ -222,10 +222,10 @@ update_goal_chain (struct dep *goals)
                  print a message saying nothing needs doing.  */
 
               if (!rebuilding_makefiles
-                  /* If the update_status is zero, we updated successfully
+                  /* If the update_status is success, we updated successfully
                      or not at all.  G->changed will have been set above if
                      any commands were actually started for this goal.  */
-                  && file->update_status == 0 && !g->changed
+                  && file->update_status == us_success && !g->changed
                   /* Never give a message under -s or -q.  */
                   && !silent_flag && !question_flag)
                 message (1, ((file->phony || file->cmds == 0)
@@ -271,7 +271,7 @@ update_goal_chain (struct dep *goals)
 }
 
 /* If FILE is not up to date, execute the commands for it.
-   Return 0 if successful, 1 if unsuccessful;
+   Return 0 if successful, non-0 if unsuccessful;
    but with some flag settings, just call 'exit' if unsuccessful.
 
    DEPTH is the depth in recursions of this function.
@@ -285,7 +285,7 @@ update_goal_chain (struct dep *goals)
 static int
 update_file (struct file *file, unsigned int depth)
 {
-  register int status = 0;
+  int status = 0;
   register struct file *f;
 
   f = file->double_colon ? file->double_colon : file;
@@ -297,9 +297,10 @@ update_file (struct file *file, unsigned int depth)
   if (f->considered == considered)
     {
       /* Check for the case where a target has been tried and failed but
-         the diagnostics hasn't been issued. If we need the diagnostics
+         the diagnostics haven't been issued. If we need the diagnostics
          then we will have to continue. */
-      if (!(f->updated && f->update_status > 0 && !f->dontcare && f->no_diag))
+      if (!(f->updated && f->update_status > us_none
+            && !f->dontcare && f->no_diag))
         {
           DBF (DB_VERBOSE, _("Pruning file '%s'.\n"));
           return f->command_state == cs_finished ? f->update_status : 0;
@@ -363,7 +364,7 @@ complain (struct file *file)
 
   for (d = file->deps; d != 0; d = d->next)
     {
-      if (d->file->updated && d->file->update_status > 0 && file->no_diag)
+      if (d->file->updated && d->file->update_status > us_none && file->no_diag)
         {
           complain (d->file);
           break;
@@ -395,7 +396,8 @@ complain (struct file *file)
     }
 }
 
-/* Consider a single 'struct file' and update it as appropriate.  */
+/* Consider a single 'struct file' and update it as appropriate.
+   Return 0 on success, or non-0 on failure.  */
 
 static int
 update_file_1 (struct file *file, unsigned int depth)
@@ -412,7 +414,7 @@ update_file_1 (struct file *file, unsigned int depth)
 
   if (file->updated)
     {
-      if (file->update_status > 0)
+      if (file->update_status > us_none)
         {
           DBF (DB_VERBOSE,
                _("Recently tried and failed to update file '%s'.\n"));
@@ -577,7 +579,7 @@ update_file_1 (struct file *file, unsigned int depth)
             while (f != 0);
           }
 
-          if (dep_status != 0 && !keep_going_flag)
+          if (dep_status && !keep_going_flag)
             break;
 
           if (!running)
@@ -638,7 +640,7 @@ update_file_1 (struct file *file, unsigned int depth)
               while (f != 0);
             }
 
-            if (dep_status != 0 && !keep_going_flag)
+            if (dep_status && !keep_going_flag)
               break;
 
             if (!running)
@@ -664,7 +666,7 @@ update_file_1 (struct file *file, unsigned int depth)
 
   if (dep_status != 0)
     {
-      file->update_status = dep_status;
+      file->update_status = us_failed;
       notice_finished_file (file);
 
       --depth;
@@ -820,17 +822,16 @@ update_file_1 (struct file *file, unsigned int depth)
 
   switch (file->update_status)
     {
-    case 2:
+    case us_failed:
       DBF (DB_BASIC, _("Failed to remake target file '%s'.\n"));
       break;
-    case 0:
+    case us_success:
       DBF (DB_BASIC, _("Successfully remade target file '%s'.\n"));
       break;
-    case 1:
+    case us_question:
       DBF (DB_BASIC, _("Target file '%s' needs to be remade under -q.\n"));
       break;
-    default:
-      assert (file->update_status >= 0 && file->update_status <= 2);
+    case us_none:
       break;
     }
 
@@ -842,7 +843,7 @@ update_file_1 (struct file *file, unsigned int depth)
    files listed in its 'also_make' member.  Under -t, this function also
    touches FILE.
 
-   On return, FILE->update_status will no longer be -1 if it was.  */
+   On return, FILE->update_status will no longer be us_none if it was.  */
 
 void
 notice_finished_file (struct file *file)
@@ -856,12 +857,12 @@ notice_finished_file (struct file *file)
 
   if (touch_flag
       /* The update status will be:
-                -1      if this target was not remade;
-                0       if 0 or more commands (+ or ${MAKE}) were run and won;
-                1       if some commands were run and lost.
+           us_success   if 0 or more commands (+ or ${MAKE}) were run and won;
+           us_none      if this target was not remade;
+           >us_none     if some commands were run and lost.
          We touch the target if it has commands which either were not run
          or won when they ran (i.e. status is 0).  */
-      && file->update_status == 0)
+      && file->update_status == us_success)
     {
       if (file->cmds != 0 && file->cmds->any_recurse)
         {
@@ -876,7 +877,7 @@ notice_finished_file (struct file *file)
         {
         have_nonrecursing:
           if (file->phony)
-            file->update_status = 0;
+            file->update_status = us_success;
           /* According to POSIX, -t doesn't affect targets with no cmds.  */
           else if (file->cmds != 0)
             {
@@ -950,7 +951,7 @@ notice_finished_file (struct file *file)
           f->last_mtime = max_mtime;
     }
 
-  if (ran && file->update_status != -1)
+  if (ran && file->update_status != us_none)
     /* We actually tried to update FILE, which has
        updated its also_make's as well (if it worked).
        If it didn't work, it wouldn't work again for them.
@@ -968,10 +969,10 @@ notice_finished_file (struct file *file)
              never be done because the target is already updated.  */
           f_mtime (d->file, 0);
       }
-  else if (file->update_status == -1)
+  else if (file->update_status == us_none)
     /* Nothing was done for FILE, but it needed nothing done.
        So mark it now as "succeeded".  */
-    file->update_status = 0;
+    file->update_status = us_success;
 }
 
 /* Check whether another file (whose mtime is THIS_MTIME) needs updating on
@@ -1112,11 +1113,12 @@ check_dep (struct file *file, unsigned int depth,
   return dep_status;
 }
 
-/* Touch FILE.  Return zero if successful, one if not.  */
+/* Touch FILE.  Return us_success if successful, us_failed if not.  */
 
-#define TOUCH_ERROR(call) return (perror_with_name (call, file->name), 1)
+#define TOUCH_ERROR(call) do{ perror_with_name ((call), file->name);    \
+                              return us_failed; }while(0)
 
-static int
+static enum update_status
 touch_file (struct file *file)
 {
   if (!silent_flag)
@@ -1124,11 +1126,11 @@ touch_file (struct file *file)
 
   /* Print-only (-n) takes precedence over touch (-t).  */
   if (just_print_flag)
-    return 0;
+    return us_success;
 
 #ifndef NO_ARCHIVES
   if (ar_name (file->name))
-    return ar_touch (file->name);
+    return ar_touch (file->name) ? us_failed : us_success;
   else
 #endif
     {
@@ -1165,7 +1167,7 @@ touch_file (struct file *file)
         }
     }
 
-  return 0;
+  return us_success;
 }
 
 /* Having checked and updated the dependencies of FILE,
@@ -1179,17 +1181,17 @@ remake_file (struct file *file)
     {
       if (file->phony)
         /* Phony target.  Pretend it succeeded.  */
-        file->update_status = 0;
+        file->update_status = us_success;
       else if (file->is_target)
         /* This is a nonexistent target file we cannot make.
            Pretend it was successfully remade.  */
-        file->update_status = 0;
+        file->update_status = us_success;
       else
         {
           /* This is a dependency file we cannot remake.  Fail.  */
           if (!rebuilding_makefiles || !file->dontcare)
             complain (file);
-          file->update_status = 2;
+          file->update_status = us_failed;
         }
     }
   else
@@ -1204,7 +1206,7 @@ remake_file (struct file *file)
         }
 
       /* This tells notice_finished_file it is ok to touch the file.  */
-      file->update_status = 0;
+      file->update_status = us_success;
     }
 
   /* This does the touching under -t.  */
