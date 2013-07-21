@@ -50,9 +50,7 @@ alpha_compare (const void *v1, const void *v2)
 void
 collapse_continuations (char *line)
 {
-  register char *in, *out, *p;
-  register int backslash;
-  register unsigned int bs_write;
+  char *in, *out, *p;
 
   in = strchr (line, '\n');
   if (in == 0)
@@ -67,8 +65,8 @@ collapse_continuations (char *line)
       /* BS_WRITE gets the number of quoted backslashes at
          the end just before IN, and BACKSLASH gets nonzero
          if the next character is quoted.  */
-      backslash = 0;
-      bs_write = 0;
+      unsigned int backslash = 0;
+      unsigned int bs_write = 0;
       for (p = in - 1; p >= line && *p == '\\'; --p)
         {
           if (backslash)

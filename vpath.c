@@ -306,12 +306,13 @@ construct_vpath_list (char *pattern, char *dirpath)
 int
 gpath_search (const char *file, unsigned int len)
 {
-  const char **gp;
-
   if (gpaths && (len <= gpaths->maxlen))
-    for (gp = gpaths->searchpath; *gp != NULL; ++gp)
-      if (strneq (*gp, file, len) && (*gp)[len] == '\0')
-        return 1;
+    {
+      const char **gp;
+      for (gp = gpaths->searchpath; *gp != NULL; ++gp)
+        if (strneq (*gp, file, len) && (*gp)[len] == '\0')
+          return 1;
+    }
 
   return 0;
 }
@@ -334,7 +335,7 @@ selective_vpath_search (struct vpath *path, const char *file,
   const char **vpath = path->searchpath;
   unsigned int maxvpath = path->maxlen;
   unsigned int i;
-  unsigned int flen, vlen, name_dplen;
+  unsigned int flen, name_dplen;
   int exists = 0;
 
   /* Find out if *FILE is a target.
@@ -374,12 +375,10 @@ selective_vpath_search (struct vpath *path, const char *file,
   for (i = 0; vpath[i] != 0; ++i)
     {
       int exists_in_cache = 0;
-      char *p;
-
-      p = name;
+      char *p = name;
+      unsigned int vlen = strlen (vpath[i]);
 
       /* Put the next VPATH entry into NAME at P and increment P past it.  */
-      vlen = strlen (vpath[i]);
       memcpy (p, vpath[i], vlen);
       p += vlen;
 

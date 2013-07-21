@@ -1113,7 +1113,6 @@ func_sort (char *o, char **argv, const char *funcname UNUSED)
   int wordi;
   char *p;
   unsigned int len;
-  int i;
 
   /* Find the maximum number of words we'll have.  */
   t = argv[0];
@@ -1138,6 +1137,8 @@ func_sort (char *o, char **argv, const char *funcname UNUSED)
 
   if (wordi)
     {
+      int i;
+
       /* Now sort the list of words.  */
       qsort (words, wordi, sizeof (char *), alpha_compare);
 
@@ -1281,12 +1282,12 @@ static char *
 func_and (char *o, char **argv, const char *funcname UNUSED)
 {
   char *expansion;
-  int result;
 
   while (1)
     {
       const char *begp = *argv;
       const char *endp = begp + strlen (*argv) - 1;
+      int result;
 
       /* An empty condition is always false.  */
       strip_whitespace (&begp, &endp);

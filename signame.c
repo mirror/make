@@ -244,7 +244,7 @@ strsignal (int sig)
 # endif
 #endif
 
-  if (sig > 0 || sig < NSIG)
+  if (sig > 0 && sig < NSIG)
     return (char *) sys_siglist[sig];
 
   sprintf (buf, "Signal %d", sig);

@@ -328,12 +328,10 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
 {
 #ifdef AIAMAG
   FL_HDR fl_header;
-#ifdef AIAMAGBIG
+# ifdef AIAMAGBIG
   int big_archive = 0;
   FL_HDR_BIG fl_header_big;
-#endif
-#else
-  int long_name = 0;
+# endif
 #endif
   char *namemap = 0;
   int desc = open (archive, O_RDONLY, 0);
@@ -461,6 +459,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
         char namebuf[sizeof member_header.ar_name + 1];
         char *name;
         int is_namemap;         /* Nonzero if this entry maps long names.  */
+        int long_name = 0;
 #endif
         long int eltsize;
         int eltmode;

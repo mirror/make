@@ -427,8 +427,8 @@ _is_unixy_shell (const char *path)
 int
 is_bourne_compatible_shell (const char *path)
 {
-  /* list of known unix (Bourne-like) shells */
-  const char *unix_shells[] = {
+  /* List of known POSIX (or POSIX-ish) shells.  */
+  static const char *unix_shells[] = {
     "sh",
     "bash",
     "ksh",
@@ -438,7 +438,7 @@ is_bourne_compatible_shell (const char *path)
     "dash",
     NULL
   };
-  unsigned i, len;
+  const char **s;
 
   /* find the rightmost '/' or '\\' */
   const char *name = strrchr (path, '/');
@@ -451,18 +451,18 @@ is_bourne_compatible_shell (const char *path)
   else if (!name)   /* name and p must be 0 */
     name = path;
 
-  if (*name == '/' || *name == '\\') name++;
+  if (*name == '/' || *name == '\\')
+    ++name;
 
   /* this should be able to deal with extensions on Windows-like systems */
-  for (i = 0; unix_shells[i] != NULL; i++)
+  for (s = unix_shells; *s != NULL; ++s)
     {
-      len = strlen (unix_shells[i]);
 #if defined(WINDOWS32) || defined(__MSDOS__)
-      if ((strncasecmp (name, unix_shells[i], len) == 0) &&
-          (strlen (name) >= len && STOP_SET (name[len], MAP_DOT|MAP_NUL)))
+      unsigned int len = strlen (*s);
+      if ((strlen (name) >= len && STOP_SET (name[len], MAP_DOT|MAP_NUL))
+          && strncasecmp (name, *s, len) == 0)
 #else
-      if ((strncmp (name, unix_shells[i], len) == 0) &&
-          (strlen (name) >= len && name[len] == '\0'))
+      if (strcmp (name, *s) == 0)
 #endif
         return 1; /* a known unix-style shell */
     }
@@ -992,7 +992,6 @@ reap_children (int block, int err)
 #ifdef WINDOWS32
           {
             HANDLE hPID;
-            int werr;
             HANDLE hcTID, hcPID;
             DWORD dwWaitStatus = 0;
             exit_code = 0;
@@ -1021,9 +1020,8 @@ reap_children (int block, int err)
             hPID = process_wait_for_any (block, &dwWaitStatus);
             if (hPID)
               {
-
                 /* was an error found on this process? */
-                werr = process_last_err (hPID);
+                int werr = process_last_err (hPID);
 
                 /* get exit data */
                 exit_code = process_exit_code (hPID);
@@ -2553,7 +2551,6 @@ exec_command (char **argv, char **envp)
 #ifdef WINDOWS32
   HANDLE hPID;
   HANDLE hWaitPID;
-  int err = 0;
   int exit_code = EXIT_FAILURE;
 
   /* make sure CreateProcess() has Path it needs */
@@ -2579,7 +2576,7 @@ exec_command (char **argv, char **envp)
   while (hWaitPID)
     {
       /* was an error found on this process? */
-      err = process_last_err (hWaitPID);
+      int err = process_last_err (hWaitPID);
 
       /* get exit data */
       exit_code = process_exit_code (hWaitPID);
@@ -2618,10 +2615,8 @@ exec_command (char **argv, char **envp)
   child_access ();
 
 # ifdef __EMX__
-
   /* Run the program.  */
   pid = spawnvpe (P_NOWAIT, argv[0], argv, envp);
-
   if (pid >= 0)
     return pid;
 
@@ -2630,7 +2625,6 @@ exec_command (char **argv, char **envp)
     errno = ENOEXEC;
 
 # else
-
   /* Run the program.  */
   environ = envp;
   execvp (argv[0], argv);

@@ -1402,7 +1402,6 @@ f_mtime (struct file *file, int search)
          started.  So, turn off the intermediate bit so make doesn't
          delete it, since it didn't create it.  */
       if (mtime != NONEXISTENT_MTIME && file->command_state == cs_not_started
-          && file->command_state == cs_not_started
           && !file->tried_implicit && file->intermediate)
         file->intermediate = 0;
 

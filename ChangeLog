@@ -1,5 +1,25 @@
 2013-07-21  Paul Smith  <psmith@gnu.org>
 
+	Cleanups detected by cppcheck.  Fixes Savannah bug #39158.
+	* arscan.c (ar_scan): Reduce the scope of local variables.
+	* dir.c (vms_hash): Ditto.
+	(find_directory): Ditto.
+	(file_impossible_p): Ditto.
+	* expand.c (variable_expand_string): Ditto.
+	* function.c (func_sort): Ditto.
+	(func_and): Ditto.
+	* job.c (reap_children): Ditto.
+	(exec_command): Ditto.
+	* main.c (main): Ditto.
+	* misc.c (collapse_continuations): Ditto.
+	* read.c (eval): Ditto.
+	(parse_file_seq): Ditto.
+	* vpath.c (gpath_search): Ditto.
+	(selective_vpath_search): Ditto.
+	* job.c (is_bourne_compatible_shell): Simplify for non-Windows systems.
+	* remake.c (f_mtime): Remove duplicate test.
+	* signame.c (strsignal): Fix bogus conditional.
+
 	* job.c (assign_child_tempfiles): Assign OUTFD to -1 for safety.
 	(start_job_command): Don't test output_sync and sync_cmd: redundant.
 	Changes suggested by Frank Heckenbach <f.heckenbach@fh-soft.de>.

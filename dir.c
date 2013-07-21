@@ -145,11 +145,11 @@ static int
 vms_hash (const char *name)
 {
   int h = 0;
-  int g;
 
   while (*name)
     {
       unsigned char uc = *name;
+      int g;
 #ifdef HAVE_CASE_INSENSITIVE_FS
       h = (h << 4) + (isupper (uc) ? tolower (uc) : uc);
 #else
@@ -414,19 +414,10 @@ static struct directory *find_directory (const char *name);
 static struct directory *
 find_directory (const char *name)
 {
-  const char *p;
   struct directory *dir;
   struct directory **dir_slot;
   struct directory dir_key;
-  int r;
-#ifdef WINDOWS32
-  char* w32_path;
-  char  fs_label[BUFSIZ];
-  char  fs_type[BUFSIZ];
-  unsigned long  fs_serno;
-  unsigned long  fs_flags;
-  unsigned long  fs_len;
-#endif
+
 #ifdef VMS
   if ((*name == '.') && (*(name+1) == 0))
     name = "[]";
@@ -440,11 +431,11 @@ find_directory (const char *name)
 
   if (HASH_VACANT (dir))
     {
-      struct stat st;
-
       /* The directory was not found.  Create a new entry for it.  */
+      const char *p = name + strlen (name);
+      struct stat st;
+      int r;
 
-      p = name + strlen (name);
       dir = xmalloc (sizeof (struct directory));
 #if defined(HAVE_CASE_INSENSITIVE_FS) && defined(VMS)
       dir->name = strcache_add_len (downcase (name), p - name);
@@ -488,6 +479,9 @@ find_directory (const char *name)
         {
           /* Search the contents hash table; device and inode are the key.  */
 
+#ifdef WINDOWS32
+          char *w32_path;
+#endif
           struct directory_contents *dc;
           struct directory_contents **dc_slot;
           struct directory_contents dc_key;
@@ -511,7 +505,13 @@ find_directory (const char *name)
           if (HASH_VACANT (dc))
             {
               /* Nope; this really is a directory we haven't seen before.  */
-
+#ifdef WINDOWS32
+              char  fs_label[BUFSIZ];
+              char  fs_type[BUFSIZ];
+              unsigned long  fs_serno;
+              unsigned long  fs_flags;
+              unsigned long  fs_len;
+#endif
               dc = (struct directory_contents *)
                 xmalloc (sizeof (struct directory_contents));
 
@@ -522,11 +522,8 @@ find_directory (const char *name)
               dc->ctime = st.st_ctime;
               dc->mtime = st.st_mtime;
 
-              /*
-               * NTFS is the only WINDOWS32 filesystem that bumps mtime
-               * on a directory when files are added/deleted from
-               * a directory.
-               */
+              /* NTFS is the only WINDOWS32 filesystem that bumps mtime on a
+                 directory when files are added/deleted from a directory.  */
               w32_path[3] = '\0';
               if (GetVolumeInformation (w32_path, fs_label, sizeof (fs_label),
                                         &fs_serno, &fs_len, &fs_flags, fs_type,
@@ -894,7 +891,6 @@ int
 file_impossible_p (const char *filename)
 {
   const char *dirend;
-  const char *p = filename;
   struct directory_contents *dir;
   struct dirfile *dirfile;
   struct dirfile dirfile_key;
@@ -939,12 +935,12 @@ file_impossible_p (const char *filename)
             dirend++;
 #endif
           cp = alloca (dirend - filename + 1);
-          memcpy (cp, p, dirend - p);
-          cp[dirend - p] = '\0';
+          memcpy (cp, filename, dirend - filename);
+          cp[dirend - filename] = '\0';
           dirname = cp;
         }
       dir = find_directory (dirname)->contents;
-      p = filename = slash + 1;
+      filename = slash + 1;
     }
 
   if (dir == 0 || dir->dirfiles.ht_vec == 0)
@@ -952,13 +948,13 @@ file_impossible_p (const char *filename)
     return 0;
 
 #ifdef __MSDOS__
-  filename = dosify (p);
+  filename = dosify (filename);
 #endif
 #ifdef HAVE_CASE_INSENSITIVE_FS
-  filename = downcase (p);
+  filename = downcase (filename);
 #endif
 #ifdef VMS
-  filename = vmsify (p, 1);
+  filename = vmsify (filename, 1);
 #endif
 
   dirfile_key.name = filename;

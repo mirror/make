@@ -1297,14 +1297,13 @@ eval (struct ebuffer *ebuf, int set_default)
 
         if (set_default && default_goal_var->value[0] == '\0')
           {
-            const char *name;
             struct dep *d;
             struct nameseq *t = filenames;
 
             for (; t != 0; t = t->next)
               {
                 int reject = 0;
-                name = t->name;
+                const char *name = t->name;
 
                 /* We have nothing to do if this is an implicit rule. */
                 if (strchr (name, '%') != 0)
@@ -2981,7 +2980,6 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
   /* tmp points to tmpbuf after the prefix, if any.
      tp is the end of the buffer. */
   static char *tmpbuf = NULL;
-  static int tmpbuf_len = 0;
 
   int cachep = NONE_SET (flags, PARSEFS_NOCACHE);
 
@@ -3009,6 +3007,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
 
   /* Get enough temporary space to construct the largest possible target.  */
   {
+    static int tmpbuf_len = 0;
     int l = strlen (*stringp) + 1;
     if (l > tmpbuf_len)
       {

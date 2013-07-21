@@ -304,10 +304,8 @@ variable_expand_string (char *line, const char *string, long length)
             if (colon)
               {
                 /* This looks like a substitution reference: $(FOO:A=B).  */
-                const char *subst_beg, *subst_end, *replace_beg, *replace_end;
-
-                subst_beg = colon + 1;
-                subst_end = lindex (subst_beg, end, '=');
+                const char *subst_beg = colon + 1;
+                const char *subst_end = lindex (subst_beg, end, '=');
                 if (subst_end == 0)
                   /* There is no = in sight.  Punt on the substitution
                      reference and treat this as a variable name containing
@@ -315,8 +313,8 @@ variable_expand_string (char *line, const char *string, long length)
                   colon = 0;
                 else
                   {
-                    replace_beg = subst_end + 1;
-                    replace_end = end;
+                    const char *replace_beg = subst_end + 1;
+                    const char *replace_end = end;
 
                     /* Extract the variable name before the colon
                        and look up that variable.  */

@@ -1232,11 +1232,10 @@ main (int argc, char **argv, char **envp)
       if (program == 0)
         {
           /* Extract program from full path */
-          int argv0_len;
           program = strrchr (argv[0], '\\');
           if (program)
             {
-              argv0_len = strlen (program);
+              int argv0_len = strlen (program);
               if (argv0_len > 4 && streq (&program[argv0_len - 4], ".exe"))
                 /* Remove .exe extension */
                 program[argv0_len - 4] = '\0';
