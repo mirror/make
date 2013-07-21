@@ -687,7 +687,10 @@ assign_child_tempfiles (struct child *c)
 
  error:
   if (c->outfd >= 0)
-    close (c->outfd);
+    {
+      close (c->outfd);
+      c->outfd = -1;
+    }
   output_sync = 0;
 }
 
@@ -700,8 +703,8 @@ pump_from_tmp (int from, FILE *to)
 #ifdef WINDOWS32
   int prev_mode;
 
-  /* from_fd is opened by open_tmpfd, which does it in binary mode, so
-     we need the mode of to_fd to match that.  */
+  /* "from" is opened by open_tmpfd, which does it in binary mode, so
+     we need the mode of "to" to match that.  */
   prev_mode = _setmode (fileno (to), _O_BINARY);
 #endif
 
@@ -721,7 +724,7 @@ pump_from_tmp (int from, FILE *to)
     }
 
 #ifdef WINDOWS32
-  /* Switch to_fd back to its original mode, so that log messages by
+  /* Switch "to" back to its original mode, so that log messages by
      Make have the same EOL format as without --output-sync.  */
   _setmode (fileno (to), prev_mode);
 #endif
@@ -1753,7 +1756,7 @@ start_job_command (struct child *child)
 #ifdef OUTPUT_SYNC
           /* Divert child output if output_sync in use.  Don't capture
              recursive make output unless we are synchronizing "make" mode.  */
-          if (output_sync && sync_cmd)
+          if (sync_cmd)
             {
               int outfd = fileno (stdout);
               int errfd = fileno (stderr);
@@ -1866,7 +1869,7 @@ start_job_command (struct child *child)
 #ifdef OUTPUT_SYNC
           /* Divert child output if output_sync in use.  Don't capture
              recursive make output unless we are synchronizing "make" mode.  */
-          if (output_sync && sync_cmd)
+          if (sync_cmd)
             hPID = process_easy (argv, child->environment,
                                  child->outfd, child->errfd);
           else

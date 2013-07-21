@@ -1,3 +1,9 @@
+2013-07-21  Paul Smith  <psmith@gnu.org>
+
+	* job.c (assign_child_tempfiles): Assign OUTFD to -1 for safety.
+	(start_job_command): Don't test output_sync and sync_cmd: redundant.
+	Changes suggested by Frank Heckenbach <f.heckenbach@fh-soft.de>.
+
 2013-07-14  Paul Smith  <psmith@gnu.org>
 
 	* filedef.h (update_status): Convert UPDATE_STATUS from a char to
