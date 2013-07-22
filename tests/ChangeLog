@@ -1,3 +1,8 @@
+2013-07-22  Paul Smith  <psmith@gnu.org>
+
+	* scripts/features/rule_glob: Add tests for wildcards in rules.
+	Test for Savannah bug #39310.
+
 2013-07-09  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/se_implicit: Add a test for SE rules depending

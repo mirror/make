@@ -2466,7 +2466,7 @@ main (int argc, char **argv, char **envp)
             {
               struct nameseq *ns;
 
-              ns = PARSE_FILE_SEQ (&p, struct nameseq, MAP_NUL, NULL, 0);
+              ns = PARSE_SIMPLE_SEQ (&p, struct nameseq);
               if (ns)
                 {
                   /* .DEFAULT_GOAL should contain one target. */

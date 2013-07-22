@@ -1107,7 +1107,7 @@ eval (struct ebuffer *ebuf, int set_default)
         /* Make the colon the end-of-string so we know where to stop
            looking for targets.  Start there again once we're done.  */
         *colonp = '\0';
-        filenames = PARSE_FILE_SEQ (&p2, struct nameseq, MAP_NUL, NULL, 0);
+        filenames = PARSE_SIMPLE_SEQ (&p2, struct nameseq);
         *colonp = ':';
         p2 = colonp;
 

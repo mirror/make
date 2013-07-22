@@ -1,3 +1,17 @@
+2013-07-22  Paul Smith  <psmith@gnu.org>
+
+	* implicit.c (pattern_search): Use PARSE_SIMPLE_SEQ() even for
+	non-second expansion prerequisites, to handle globbing in patterns.
+	Fixes Savannah bug #39310.
+
+	* dep.h (PARSE_SIMPLE_SEQ): Macro for simple file sequence parsing.
+	* default.c (set_default_suffixes): Use it.
+	* file.c (split_prereqs): Ditto.
+	* main.c (main): Ditto.
+	* read.c (eval): Ditto.
+	* rule.c (install_pattern_rule): Ditto.
+	* file.c (split_prereqs): Use PARSEFS_NONE instead of 0.
+
 2013-07-21  Paul Smith  <psmith@gnu.org>
 
 	Cleanups detected by cppcheck.  Fixes Savannah bug #39158.

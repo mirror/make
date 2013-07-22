@@ -249,8 +249,6 @@ pattern_search (struct file *file, int archive,
      that is not just '%'.  */
   int specific_rule_matched = 0;
 
-  struct dep dep_simple;
-
   unsigned int ri;  /* uninit checks OK */
   struct rule *rule;
 
@@ -532,11 +530,9 @@ pattern_search (struct file *file, int archive,
               /* If we don't need a second expansion, just replace the %.  */
               if (! dep->need_2nd_expansion)
                 {
-                  dep_simple = *dep;
-                  dep_simple.next = 0;
                   p = strchr (nptr, '%');
                   if (p == 0)
-                    dep_simple.name = nptr;
+                    strcpy (depname, nptr);
                   else
                     {
                       char *o = depname;
@@ -550,13 +546,19 @@ pattern_search (struct file *file, int archive,
                       memcpy (o, stem_str, stemlen);
                       o += stemlen;
                       strcpy (o, p + 1);
-                      dep_simple.name = strcache_add (depname);
                     }
-                  dl = &dep_simple;
+
+                  /* Parse the expanded string.  It might have wildcards.  */
+                  p = depname;
+                  dl = PARSE_SIMPLE_SEQ (&p, struct dep);
+                  for (d = dl; d != NULL; d = d->next)
+                    {
+                      ++deps_found;
+                      d->ignore_mtime = dep->ignore_mtime;
+                    }
 
                   /* We've used up this dep, so next time get a new one.  */
                   nptr = 0;
-                  ++deps_found;
                 }
 
               /* We have to perform second expansion on this prereq.  In an
@@ -635,7 +637,7 @@ pattern_search (struct file *file, int archive,
 
                   /* Parse the expanded string. */
                   dl = PARSE_FILE_SEQ (&p, struct dep, order_only ? MAP_NUL : MAP_PIPE,
-                                       add_dir ? dir : NULL, 0);
+                                       add_dir ? dir : NULL, PARSEFS_NONE);
 
                   for (d = dl; d != NULL; d = d->next)
                     {
@@ -781,8 +783,7 @@ pattern_search (struct file *file, int archive,
                 }
 
               /* Free the ns chain.  */
-              if (dl != &dep_simple)
-                free_dep_chain (dl);
+              free_dep_chain (dl);
 
               if (failed)
                 break;
