@@ -55,6 +55,11 @@
 	* makefile.vms: Ditto.
 	* po/POTFILES.in: Ditto.
 
+2013-08-22  Petr Machata  <pmachata@redhat.com>
+
+	* function.c (func_shell_base): Get rid of any avoidable limit on
+	stack size for processes spawned via $(shell).
+
 2013-07-22  Paul Smith  <psmith@gnu.org>
 
 	* implicit.c (pattern_search): Use PARSE_SIMPLE_SEQ() even for

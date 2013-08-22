@@ -1718,7 +1718,14 @@ func_shell_base (char *o, char **argv, int trim_newlines)
   if (pid < 0)
     perror_with_name (error_prefix, "fork");
   else if (pid == 0)
-    child_execute_job (0, pipedes[1], command_argv, envp);
+    {
+#ifdef SET_STACK_SIZE
+      /* Reset limits, if necessary.  */
+      if (stack_limit.rlim_cur)
+       setrlimit (RLIMIT_STACK, &stack_limit);
+#endif
+      child_execute_job (0, pipedes[1], command_argv, envp);
+    }
   else
 # endif
 #endif
