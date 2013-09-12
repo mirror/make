@@ -90,17 +90,17 @@ manext = 1
 
 #guile = ,guile.obj
 
-objs = commands.obj,job.obj,dir.obj,file.obj,misc.obj,hash.obj,\
+objs = commands.obj,job.obj,output.obj,dir.obj,file.obj,misc.obj,hash.obj,\
        load.obj,main.obj,read.obj,remake.obj,rule.obj,implicit.obj,\
        default.obj,variable.obj,expand.obj,function.obj,strcache.obj,\
        vpath.obj,version.obj\
        $(ARCHIVES)$(ALLOCA)$(extras)$(getopt)$(glob)$(guile)
 
-srcs = commands.c job.c dir.c file.c misc.c guile.c hash.c \
+srcs = commands.c job.c output.c dir.c file.c misc.c guile.c hash.c \
 	load.c main.c read.c remake.c rule.c implicit.c \
 	default.c variable.c expand.c function.c strcache.c \
 	vpath.c version.c vmsfunctions.c vmsify.c $(ARCHIVES_SRC) $(ALLOCASRC) \
-	commands.h dep.h filedef.h job.h makeint.h rule.h variable.h
+	commands.h dep.h filedef.h job.h output.h makeint.h rule.h variable.h
 
 
 .PHONY: all doc
@@ -135,6 +135,7 @@ guile.obj: guile.c makeint.h debug.h dep.h gmk-default.h
 hash.obj: hash.c makeint.h hash.h
 implicit.obj: implicit.c makeint.h rule.h dep.h filedef.h debug.h variable.h job.h commands.h
 job.obj: job.c vmsjobs.c makeint.h commands.h job.h filedef.h variable.h debug.h
+output.obj: output.c vmsjobs.c makeint.h output.h filedef.h debug.h
 load.obj: load.c makeint.h debug.h filedef.h variable.h
 main.obj: main.c makeint.h commands.h dep.h filedef.h variable.h job.h rule.h debug.h getopt.h
 misc.obj: misc.c makeint.h dep.h debug.h

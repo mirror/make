@@ -31,6 +31,7 @@ job.h
 load.c
 main.c
 misc.c
+output.c
 read.c
 remake.c
 remote-cstms.c

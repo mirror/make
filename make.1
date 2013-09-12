@@ -289,25 +289,9 @@ This is used to pretend that the commands were done, in order to fool
 future invocations of
 .BR make .
 .TP 0.5i
-.B \-\-trace\fR[=\fImode\fR]
-Print information about the commands invoked by
-.BR make .
-If
-.I mode
-is not specified or is
-.B rule
-information about the disposition of each target is printed.  If
-.I mode
-is
-.B dir
-then directory enter/leave trace statements are shown for each synchronized
-output segment (see
-.BR \-O ).
-If
-.I mode
-is
-.B none
-then no tracing is performed.
+.B \-\-trace
+Information about the disposition of each target is printed (why the target is
+being rebuilt and what commands are run to rebuild it).
 .TP 0.5i
 \fB\-v\fR, \fB\-\-version\fR
 Print the version of the

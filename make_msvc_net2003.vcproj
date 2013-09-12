@@ -172,6 +172,9 @@
 				RelativePath=".\job.c">
 			</File>
 			<File
+				RelativePath=".\output.c">
+			</File>
+			<File
 				RelativePath=".\main.c">
 			</File>
 			<File
@@ -276,6 +279,9 @@
 			</File>
 			<File
 				RelativePath=".\job.h">
+			</File>
+			<File
+				RelativePath=".\output.h">
 			</File>
 			<File
 				RelativePath=".\makeint.h">

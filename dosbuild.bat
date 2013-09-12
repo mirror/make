@@ -20,6 +20,7 @@ echo Building Make for MSDOS
 rem Echo ON so they will see what is going on.
 @echo on
 gcc  -c -I. -I./glob -DHAVE_CONFIG_H -O2 -g commands.c -o commands.o
+gcc  -c -I. -I./glob -DHAVE_CONFIG_H -O2 -g output.c -o output.o
 gcc  -c -I. -I./glob -DHAVE_CONFIG_H -O2 -g job.c -o job.o
 gcc  -c -I. -I./glob -DHAVE_CONFIG_H -O2 -g dir.c -o dir.o
 gcc  -c -I. -I./glob -DHAVE_CONFIG_H -O2 -g file.c -o file.o
@@ -51,7 +52,7 @@ ar rv libglob.a glob.o fnmatch.o
 @echo off
 cd ..
 echo commands.o > respf.$$$
-for %%f in (job dir file misc main read remake rule implicit default variable) do echo %%f.o >> respf.$$$
+for %%f in (job output dir file misc main read remake rule implicit default variable) do echo %%f.o >> respf.$$$
 for %%f in (expand function vpath hash strcache version ar arscan signame remote-stub getopt getopt1) do echo %%f.o >> respf.$$$
 echo glob/libglob.a >> respf.$$$
 rem gcc  -c -I. -I./glob -DHAVE_CONFIG_H -O2 -g guile.c -o guile.o

@@ -14,8 +14,7 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef SEEN_JOB_H
-#define SEEN_JOB_H
+#include "output.h"
 
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
@@ -103,15 +102,14 @@ struct child
     int cstatus;                /* Completion status */
 #endif
 
-    unsigned int command_line;  /* Index into command_lines.  */
-    int          outfd;         /* File descriptor for saving stdout */
-    int          errfd;         /* File descriptor for saving stderr */
-    pid_t        pid;           /* Child process's ID number.  */
-    unsigned int remote:1;      /* Nonzero if executing remotely.  */
-    unsigned int noerror:1;     /* Nonzero if commands contained a '-'.  */
-    unsigned int good_stdin:1;  /* Nonzero if this child has a good stdin.  */
-    unsigned int deleted:1;     /* Nonzero if targets have been deleted.  */
-    unsigned int dontcare:1;    /* Saved dontcare flag.  */
+    unsigned int  command_line; /* Index into command_lines.  */
+    struct output output;       /* Output for this child.  */
+    pid_t         pid;          /* Child process's ID number.  */
+    unsigned int  remote:1;     /* Nonzero if executing remotely.  */
+    unsigned int  noerror:1;    /* Nonzero if commands contained a '-'.  */
+    unsigned int  good_stdin:1; /* Nonzero if this child has a good stdin.  */
+    unsigned int  deleted:1;    /* Nonzero if targets have been deleted.  */
+    unsigned int  dontcare:1;   /* Saved dontcare flag.  */
   };
 
 extern struct child *children;
@@ -153,5 +151,3 @@ extern int fatal_signal_mask;
 #endif
 
 extern unsigned int jobserver_tokens;
-
-#endif /* SEEN_JOB_H */

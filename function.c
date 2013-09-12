@@ -1089,8 +1089,8 @@ func_error (char *o, char **argv, const char *funcname)
       break;
 
     case 'i':
-      printf ("%s\n", msg);
-      fflush (stdout);
+      outputs (0, msg);
+      outputs (0, "\n");
       break;
 
     default:
@@ -1674,6 +1674,9 @@ func_shell_base (char *o, char **argv, int trim_newlines)
     }
   else
     error_prefix = "";
+
+  /* Set up the output in case the shell writes something.  */
+  output_start ();
 
 #if defined(__MSDOS__)
   fpipe = msdos_openpipe (pipedes, &pid, argv[0]);

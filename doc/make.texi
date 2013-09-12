@@ -4130,6 +4130,11 @@ Additionally, if there are multiple recursive @code{make} invocations
 running in parallel, they will communicate so that only one of them is
 generating output at a time.
 
+If working directory printing is enabled (@pxref{-w Option, ,The
+@samp{--print-directory} Option}), the enter/leave messages are
+printed around each output grouping.  If you prefer not to see these
+messages add the @samp{--no-print-directory} option to @code{MAKEFLAGS}.
+
 There are four levels of granularity when synchronizing output,
 specified by giving an argument to the option (e.g.,  @samp{-Oline} or
 @samp{--output-sync=recurse}).
@@ -4196,12 +4201,12 @@ completed.
 Some programs invoked by @code{make} may behave differently if they
 determine they're writing output to a terminal versus a file (often
 described as ``interactive'' vs. ``non-interactive'' modes).  For
-example, many programs that can display colorized output often will
-not do so if they determine they are not displaying on a terminal.  If
-your makefile invokes a program like this then using the output
+example, many programs that can display colorized output will not do
+so if they determine they are not writing to a terminal.  If your
+makefile invokes a program like this then using the output
 synchronization options will cause the program to believe it's running
-in ``non-interactive'' mode even when it's ultimately writing to the
-terminal.
+in ``non-interactive'' mode even though the output will ultimately go
+to the terminal.
 
 @node Parallel Input,  , Parallel Output, Parallel
 @subsection Input During Parallel Execution
@@ -8708,22 +8713,6 @@ prerequisites, and do not remake anything on account of changes in
 are ignored.  @xref{Avoiding Compilation, ,Avoiding Recompilation of
 Some Files}.@refill
 
-@item -p
-@cindex @code{-p}
-@itemx --print-data-base
-@cindex @code{--print-data-base}
-@cindex data base of @code{make} rules
-@cindex predefined rules and variables, printing
-Print the data base (rules and variable values) that results from
-reading the makefiles; then execute as usual or as otherwise
-specified.  This also prints the version information given by the
-@samp{-v} switch (see below).  To print the data base without trying
-to remake any files, use @w{@samp{make -qp}}.  To print the data base
-of predefined rules and variables, use @w{@samp{make -p -f /dev/null}}.
-The data base output contains file name and line number information for
-recipe and variable definitions, so it can be a useful debugging tool
-in complex environments.
-
 @item -O[@var{type}]
 @cindex @code{-O}
 @itemx --output-sync[=@var{type}]
@@ -8742,6 +8731,22 @@ from each line in the recipe is grouped together.  With the type
 @samp{recurse}, the output from an entire recursive make is grouped
 together.  With the type @samp{none}, no output synchronization is
 performed.  @xref{Parallel Output, ,Output During Parallel Execution}.
+
+@item -p
+@cindex @code{-p}
+@itemx --print-data-base
+@cindex @code{--print-data-base}
+@cindex data base of @code{make} rules
+@cindex predefined rules and variables, printing
+Print the data base (rules and variable values) that results from
+reading the makefiles; then execute as usual or as otherwise
+specified.  This also prints the version information given by the
+@samp{-v} switch (see below).  To print the data base without trying
+to remake any files, use @w{@samp{make -qp}}.  To print the data base
+of predefined rules and variables, use @w{@samp{make -p -f /dev/null}}.
+The data base output contains file name and line number information for
+recipe and variable definitions, so it can be a useful debugging tool
+in complex environments.
 
 @item -q
 @cindex @code{-q}
@@ -8814,17 +8819,13 @@ instead of running their recipes.  This is used to pretend that the
 recipes were done, in order to fool future invocations of
 @code{make}.  @xref{Instead of Execution, ,Instead of Executing Recipes}.
 
-@item --trace[=@var{mode}]
+@item --trace
 @cindex @code{--trace}
-Show tracing information for @code{make} execution.  With no mode or
-the type @samp{rule}, print the entire recipe to be executed, even for
-recipes that are normally silent (due to @code{.SILENT} or @samp{@@}).
-Also print the makefile name and line number where the recipe was
-defined, and information on why the target is being rebuilt.  With the
-type @samp{dir}, directory enter/leave lines are shown around each
-synchronized output segment.  These modes are cumulative and can be
-set with multiple instances of the @code{--trace} flag.  With the type
-@samp{none}, all tracing is disabled.
+Show tracing information for @code{make} execution.  Prints the entire
+recipe to be executed, even for recipes that are normally silent (due
+to @code{.SILENT} or @samp{@@}).  Also prints the makefile name and
+line number where the recipe was defined, and information on why the
+target is being rebuilt.
 
 @item -v
 @cindex @code{-v}
@@ -11388,6 +11389,11 @@ many incarnations of @code{make} and similar programs, though not in the
 System V or BSD implementations.  @xref{Execution, ,Recipe Execution}.
 
 @item
+A number of different build tools that support parallelism also
+support collecting output and displaying as a single block.
+@xref{Parallel Output, ,Output During Parallel Execution}.
+
+@item
 Modified variable references using pattern substitution come from
 SunOS 4.  @xref{Reference, ,Basics of Variable References}.
 This functionality was provided in GNU @code{make} by the
@@ -11531,11 +11537,6 @@ functionality in that it will check out SCCS files for makefiles.
 @item
 Various new built-in implicit rules.
 @xref{Catalogue of Rules, ,Catalogue of Implicit Rules}.
-
-@item
-The built-in variable @samp{MAKE_VERSION} gives the version number of
-@code{make}.
-@vindex MAKE_VERSION
 
 @item
 Load dynamic objects which can modify the behavior of @code{make}.
@@ -11883,6 +11884,11 @@ Evaluate @var{text} then read the results as makefile commands.
 Expands to the empty string.@*
 @xref{Eval Function, ,The @code{eval} Function}.
 
+@item $(file @var{op} @var{filename},@var{text})
+Expand the arguments, then open the file @var{filename} using mode
+@var{op} and write @var{text} to that file.@*
+@xref{File Function, ,The @code{file} Function}.
+
 @item $(value @var{var})
 Evaluates to the contents of the variable @var{var}, with no expansion
 performed on it.@*
@@ -11982,6 +11988,18 @@ The name with which @code{make} was invoked.  Using this variable in
 recipes has special meaning.  @xref{MAKE Variable, ,How the
 @code{MAKE} Variable Works}.
 
+@item MAKE_VERSION
+
+The built-in variable @samp{MAKE_VERSION} expands to the version
+number of the GNU @code{make} program.
+@vindex MAKE_VERSION
+
+@item MAKE_HOST
+
+The built-in variable @samp{MAKE_HOST} expands to a string
+representing the host that GNU @code{make} was built to run on.
+@vindex MAKE_HOST
+
 @item MAKELEVEL
 
 The number of levels of recursion (sub-@code{make}s).@*
@@ -12007,6 +12025,7 @@ you'd like to set GNU @code{make}-specific flags in a POSIX-compliant
 makefile.  This variable will be seen by GNU @code{make} and ignored
 by other @code{make} implementations.  It's not needed if you only use
 GNU @code{make}; just use @code{MAKEFLAGS} directly.
+@xref{Options/Recursion, ,Communicating Options to a Sub-@code{make}}.
 
 @item MAKECMDGOALS
 

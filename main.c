@@ -159,10 +159,6 @@ int db_level = 0;
 
 static struct stringlist *output_sync_option = 0;
 
-/* Tracing (--trace).  */
-
-static struct stringlist *trace_option = 0;
-
 #ifdef WINDOWS32
 /* Suspend make in main for a short time to allow debugger to attach */
 
@@ -374,7 +370,7 @@ static const char *const usage[] =
     N_("\
   -t, --touch                 Touch targets instead of remaking them.\n"),
     N_("\
-  --trace[=MODE]              Print tracing information.\n"),
+  --trace                     Print tracing information.\n"),
     N_("\
   -v, --version               Print the version number of make and exit.\n"),
     N_("\
@@ -442,7 +438,7 @@ static const struct command_switch switches[] =
     /* These are long-style options.  */
     { CHAR_MAX+1, string, &db_flags, 1, 1, 0, "basic", 0, "debug" },
     { CHAR_MAX+2, string, &jobserver_fds, 1, 1, 0, 0, 0, "jobserver-fds" },
-    { CHAR_MAX+3, string, &trace_option, 1, 1, 0, "rule", 0, "trace" },
+    { CHAR_MAX+3, flag, &trace_flag, 1, 1, 0, 0, 0, "trace" },
     { CHAR_MAX+4, flag, &inhibit_print_directory_flag, 1, 1, 0, 0, 0,
       "no-print-directory" },
     { CHAR_MAX+5, flag, &warn_undefined_variables_flag, 1, 1, 0, 0, 0,
@@ -533,10 +529,9 @@ int one_shell;
 
 int output_sync = OUTPUT_SYNC_NONE;
 
-/* One of TRACE_* if the "--trace" option was given.  Enables various types of
-   tracing.  */
+/* Nonzero if the "--trace" option was given.  */
 
-int trace_flag = TRACE_NONE;
+int trace_flag = 0;
 
 /* Nonzero if we have seen the '.NOTPARALLEL' target.
    This turns off parallel builds for this invocation of make.  */
@@ -737,29 +732,6 @@ decode_debug_flags (void)
 
   if (db_level)
     verify_flag = 1;
-}
-
-static void
-decode_trace_flags (void)
-{
-  const char **pp;
-
-  if (!trace_option)
-    return;
-
-  for (pp=trace_option->list; *pp; ++pp)
-    {
-      const char *p = *pp;
-
-      if (streq (p, "none"))
-        trace_flag = TRACE_NONE;
-      else if (streq (p, "rule"))
-        trace_flag |= TRACE_RULE;
-      else if (streq (p, "dir"))
-        trace_flag |= TRACE_DIRECTORY;
-      else
-        fatal (NILF, _("unknown trace mode '%s'"), p);
-    }
 }
 
 static void
@@ -2268,8 +2240,6 @@ main (int argc, char **argv, char **envp)
           if (print_data_base_flag)
             print_data_base ();
 
-          log_working_directory (0, 0);
-
           clean_jobserver (0);
 
           if (makefiles != 0)
@@ -2888,7 +2858,6 @@ decode_switches (int argc, char **argv, int env)
   /* If there are any options that need to be decoded do it now.  */
   decode_debug_flags ();
   decode_output_sync_flags ();
-  decode_trace_flags ();
 }
 
 /* Decode switches from environment variable ENVAR (which is LEN chars long).
@@ -3249,7 +3218,7 @@ print_version (void)
      year, and none of the rest of it should be translated (including the
      word "Copyright"), so it hardly seems worth it.  */
 
-  printf ("%sCopyright (C) 1988-2012 Free Software Foundation, Inc.\n",
+  printf ("%sCopyright (C) 1988-2013 Free Software Foundation, Inc.\n",
           precede);
 
   printf (_("%sLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\
@@ -3402,6 +3371,8 @@ die (int status)
 
       clean_jobserver (status);
 
+      output_close (NULL);
+
       /* Try to move back to the original directory.  This is essential on
          MS-DOS (where there is really only one process), and on Unix it
          puts core files in the original directory instead of the -C
@@ -3413,64 +3384,7 @@ die (int status)
           int _x UNUSED;
           _x = chdir (directory_before_chdir);
         }
-
-      log_working_directory (0, 0);
     }
 
   exit (status);
-}
-
-/* Write a message indicating that we've just entered or
-   left (according to ENTERING) the current directory.  */
-
-void
-log_working_directory (int entering, int force)
-{
-  static int entered = 0;
-
-  /* Print nothing without the flag.  Don't print the entering message
-     again if we already have.  Don't print the leaving message if we
-     haven't printed the entering message.  */
-  if (! print_directory_flag || (!force && entering == entered))
-    return;
-
-  if (!force)
-    entered = entering;
-
-  if (print_data_base_flag)
-    fputs ("# ", stdout);
-
-  /* Use entire sentences to give the translators a fighting chance.  */
-
-  if (makelevel == 0)
-    if (starting_directory == 0)
-      if (entering)
-        printf (_("%s: Entering an unknown directory\n"), program);
-      else
-        printf (_("%s: Leaving an unknown directory\n"), program);
-    else
-      if (entering)
-        printf (_("%s: Entering directory '%s'\n"),
-                program, starting_directory);
-      else
-        printf (_("%s: Leaving directory '%s'\n"),
-                program, starting_directory);
-  else
-    if (starting_directory == 0)
-      if (entering)
-        printf (_("%s[%u]: Entering an unknown directory\n"),
-                program, makelevel);
-      else
-        printf (_("%s[%u]: Leaving an unknown directory\n"),
-                program, makelevel);
-    else
-      if (entering)
-        printf (_("%s[%u]: Entering directory '%s'\n"),
-                program, makelevel, starting_directory);
-      else
-        printf (_("%s[%u]: Leaving directory '%s'\n"),
-                program, makelevel, starting_directory);
-
-  /* Flush stdout to be sure this comes before any stderr output.  */
-  fflush (stdout);
 }

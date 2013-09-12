@@ -86,8 +86,7 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
 * Setting the -r and -R options in MAKEFLAGS inside a makefile now works as
   expected, removing all built-in rules and variables, respectively.
 
-* On failure, the makefile name and linenumber of the recipe that failed are
-  shown.
+* If a recipe fails, the makefile name and linenumber of the recipe are shown.
 
 * A .RECIPEPREFIX setting is remembered per-recipe and variables expanded
   in that recipe also use that recipe prefix setting.

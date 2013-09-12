@@ -14,11 +14,13 @@ all: ; @echo $(MAKEFLAGS)
 
 # Long arguments mean everything is prefixed with "-"
 
-$extraENV{'GNUMAKEFLAGS'} = '--no-print-directory -e -r -R --trace=none --trace=dir';
+$extraENV{'GNUMAKEFLAGS'} = '--no-print-directory -e -r -R --trace';
 
 run_make_test(q!
 all: ; @echo $(MAKEFLAGS)
 !,
-              '', 'erR --trace=none --trace=dir --trace=none --trace=dir --no-print-directory');
+              '', "#MAKEFILE#:2: target 'all' does not exist
+echo erR --trace --no-print-directory
+erR --trace --no-print-directory");
 
 1;

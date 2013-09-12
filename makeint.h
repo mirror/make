@@ -424,10 +424,6 @@ extern struct rlimit stack_limit;
 
 
 const char *concat (unsigned int, ...);
-const char *message_s (unsigned int length, int prefix, const char *fmt, ...)
-              __attribute__ ((__format__ (__printf__, 3, 4)));
-const char *error_s (unsigned int length, const gmk_floc *flocp, const char *fmt, ...)
-              __attribute__ ((__format__ (__printf__, 3, 4)));
 void message (int prefix, const char *fmt, ...)
               __attribute__ ((__format__ (__printf__, 2, 3)));
 void error (const gmk_floc *flocp, const char *fmt, ...)
@@ -436,9 +432,9 @@ void fatal (const gmk_floc *flocp, const char *fmt, ...)
                    __attribute__ ((noreturn, __format__ (__printf__, 2, 3)));
 
 void die (int) __attribute__ ((noreturn));
-void log_working_directory (int, int);
 void pfatal_with_name (const char *) __attribute__ ((noreturn));
 void perror_with_name (const char *, const char *);
+#define xstrlen(_s) ((_s)==NULL ? 0 : strlen (_s))
 void *xmalloc (unsigned int);
 void *xcalloc (unsigned int);
 void *xrealloc (void *, unsigned int);
@@ -573,10 +569,6 @@ int strncasecmp (const char *s1, const char *s2, int n);
 #define OUTPUT_SYNC_LINE    1
 #define OUTPUT_SYNC_TARGET  2
 #define OUTPUT_SYNC_RECURSE 3
-
-#define TRACE_NONE      0x0
-#define TRACE_RULE      0x1
-#define TRACE_DIRECTORY 0x2
 
 extern const gmk_floc *reading_file;
 extern const gmk_floc **expanding_var;

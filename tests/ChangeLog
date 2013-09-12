@@ -1,3 +1,10 @@
+2013-09-12  Paul Smith  <psmith@gnu.org>
+
+	* scripts/features/output-sync: Modify for output sync behavior.
+	* scripts/variables/MAKE_RESTARTS: Ditto.
+	* scripts/variables/MAKEFLAGS: Remove mode for --trace.
+	* scripts/variables/GNUMAKEFLAGS: Ditto.
+
 2013-07-22  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/rule_glob: Add tests for wildcards in rules.

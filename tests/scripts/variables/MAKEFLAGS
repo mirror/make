@@ -14,7 +14,9 @@ all: ; @echo $(MAKEFLAGS)
 run_make_test(q!
 all: ; @echo $(MAKEFLAGS)
 !,
-              '--no-print-directory -e -r -R --trace=none --trace=dir', 'erR --trace=none --trace=dir --no-print-directory');
+              '--no-print-directory -e -r -R --trace', "#MAKEFILE#:2: target 'all' does not exist
+echo erR --trace --no-print-directory
+erR --trace --no-print-directory");
 
 
 # Recursive invocations of make should accumulate MAKEFLAGS values.

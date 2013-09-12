@@ -152,7 +152,7 @@ concat (unsigned int num, ...)
   while (num-- > 0)
     {
       const char *s = va_arg (args, const char *);
-      unsigned int l = s ? strlen (s) : 0;
+      unsigned int l = xstrlen (s);
 
       if (l == 0)
         continue;
@@ -183,163 +183,8 @@ concat (unsigned int num, ...)
 }
 
 
-/* Return a formatted string buffer.
-   LENGTH must be the maximum length of all format arguments, stringified.
-   If we had a standard-compliant vsnprintf() this would be a lot simpler.
-   Maybe in the future we'll include gnulib's version.  */
-
-const char *
-message_s (unsigned int length, int prefix, const char *fmt, ...)
-{
-  static char *buffer = NULL;
-  static unsigned int bsize = 0;
-  char *bp;
-  va_list args;
-
-  /* Compute the maximum buffer size we'll need, and make sure we have it.  */
-  length += strlen (fmt) + strlen (program) + 4 + INTEGER_LENGTH + 2;
-  if (length > bsize)
-    {
-      bsize = length * 2;
-      buffer = xrealloc (buffer, bsize);
-    }
-
-  bp = buffer;
-  if (prefix)
-    {
-      if (makelevel == 0)
-        sprintf (bp, "%s: ", program);
-      else
-        sprintf (bp, "%s[%u]: ", program, makelevel);
-      bp += strlen (buffer);
-    }
-
-  va_start (args, fmt);
-  vsprintf (bp, fmt, args);
-  va_end (args);
-
-  return buffer;
-}
-
-/* Return a formatted error message in a buffer.
-   LENGTH must be the maximum length of all format arguments, stringified.  */
-
-const char *
-error_s (unsigned int length, const gmk_floc *flocp, const char *fmt, ...)
-{
-  static char *buffer = NULL;
-  static unsigned int bsize = 0;
-  char *bp;
-  va_list args;
-
-  /* Compute the maximum buffer size we'll need, and make sure we have it.  */
-  length += (strlen (fmt) + strlen (program) + 4 + INTEGER_LENGTH + 2
-             + (flocp && flocp->filenm ? strlen (flocp->filenm) : 0));
-  if (length > bsize)
-    {
-      bsize = length * 2;
-      buffer = xrealloc (buffer, bsize);
-    }
-
-  bp = buffer;
-  if (flocp && flocp->filenm)
-    sprintf (bp, "%s:%lu: ", flocp->filenm, flocp->lineno);
-  else if (makelevel == 0)
-    sprintf (bp, "%s: ", program);
-  else
-    sprintf (bp, "%s[%u]: ", program, makelevel);
-  bp += strlen (bp);
-
-  va_start (args, fmt);
-  vsprintf (bp, fmt, args);
-  va_end (args);
-
-  return buffer;
-}
-
-/* Print a message on stdout.  We could use message_s() to format it but then
-   we'd need a va_list version...  */
-
-void
-message (int prefix, const char *fmt, ...)
-{
-  va_list args;
-
-  log_working_directory (1, 0);
-
-  if (fmt != 0)
-    {
-      if (prefix)
-        {
-          if (makelevel == 0)
-            printf ("%s: ", program);
-          else
-            printf ("%s[%u]: ", program, makelevel);
-        }
-      va_start (args, fmt);
-      vfprintf (stdout, fmt, args);
-      va_end (args);
-      putchar ('\n');
-    }
-
-  fflush (stdout);
-}
-
-/* Print an error message.  */
-
-void
-error (const gmk_floc *flocp, const char *fmt, ...)
-{
-  va_list args;
-
-  log_working_directory (1, 0);
-
-  if (flocp && flocp->filenm)
-    fprintf (stderr, "%s:%lu: ", flocp->filenm, flocp->lineno);
-  else if (makelevel == 0)
-    fprintf (stderr, "%s: ", program);
-  else
-    fprintf (stderr, "%s[%u]: ", program, makelevel);
-
-  va_start (args, fmt);
-  vfprintf (stderr, fmt, args);
-  va_end (args);
-
-  putc ('\n', stderr);
-  fflush (stderr);
-}
-
-/* Print an error message and exit.  */
-
-void
-fatal (const gmk_floc *flocp, const char *fmt, ...)
-{
-  va_list args;
-
-  log_working_directory (1, 0);
-
-  if (flocp && flocp->filenm)
-    fprintf (stderr, "%s:%lu: *** ", flocp->filenm, flocp->lineno);
-  else if (makelevel == 0)
-    fprintf (stderr, "%s: *** ", program);
-  else
-    fprintf (stderr, "%s[%u]: *** ", program, makelevel);
-
-  va_start (args, fmt);
-  vfprintf (stderr, fmt, args);
-  va_end (args);
-
-  fputs (_(".  Stop.\n"), stderr);
-
-  log_working_directory (0, 1);
-
-  die (2);
-}
-
 #ifndef HAVE_STRERROR
-
 #undef  strerror
-
 char *
 strerror (int errnum)
 {
@@ -356,24 +201,6 @@ strerror (int errnum)
   return buf;
 }
 #endif
-
-/* Print an error message from errno.  */
-
-void
-perror_with_name (const char *str, const char *name)
-{
-  error (NILF, _("%s%s: %s"), str, name, strerror (errno));
-}
-
-/* Print an error message from errno and exit.  */
-
-void
-pfatal_with_name (const char *name)
-{
-  fatal (NILF, _("%s: %s"), name, strerror (errno));
-
-  /* NOTREACHED */
-}
 
 /* Like malloc but get fatal error if memory is exhausted.  */
 /* Don't bother if we're using dmalloc; it provides these for us.  */
@@ -578,7 +405,6 @@ free_ns_chain (struct nameseq *ns)
 
 
 #if !HAVE_STRCASECMP && !HAVE_STRICMP && !HAVE_STRCMPI
-
 /* If we don't have strcasecmp() (from POSIX), or anything that can substitute
    for it, define our own version.  */
 
@@ -604,7 +430,6 @@ strcasecmp (const char *s1, const char *s2)
 #endif
 
 #if !HAVE_STRNCASECMP && !HAVE_STRNICMP && !HAVE_STRNCMPI
-
 /* If we don't have strncasecmp() (from POSIX), or anything that can
    substitute for it, define our own version.  */
 

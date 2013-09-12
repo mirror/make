@@ -91,6 +91,7 @@ OBJS = \
 	$(OUTDIR)/job.obj \
 	$(OUTDIR)/main.obj \
 	$(OUTDIR)/misc.obj \
+	$(OUTDIR)/output.obj \
 	$(OUTDIR)/read.obj \
 	$(OUTDIR)/remake.obj \
 	$(OUTDIR)/remote-stub.obj \

@@ -128,7 +128,8 @@ CTAGS = ctags -w
 objs = commands.o job.o dir.o file.o misc.o main.o read.o remake.o   \
        rule.o implicit.o default.o variable.o expand.o function.o    \
        vpath.o version.o ar.o arscan.o signame.o strcache.o hash.o   \
-       remote-$(REMOTE).o $(GLOB) $(GETOPT) $(ALLOCA) $(extras) $(guile)
+       output.o remote-$(REMOTE).o $(GLOB) $(GETOPT) $(ALLOCA)       \
+       $(extras) $(guile)
 
 srcs = $(srcdir)commands.c $(srcdir)job.c $(srcdir)dir.c             \
        $(srcdir)file.c $(srcdir)getloadavg.c $(srcdir)misc.c         \
@@ -141,6 +142,7 @@ srcs = $(srcdir)commands.c $(srcdir)job.c $(srcdir)dir.c             \
        $(srcdir)signame.c $(srcdir)signame.h $(GETOPT_SRC)           \
        $(srcdir)commands.h $(srcdir)dep.h $(srcdir)file.h            \
        $(srcdir)job.h $(srcdir)makeint.h $(srcdir)rule.h             \
+       $(srcdir)output.c $(srcdir)output.h                           \
        $(srcdir)variable.h $(ALLOCA_SRC) $(srcdir)config.h.in
 
 

@@ -242,20 +242,8 @@ unsigned long job_counter = 0;
 /* Number of jobserver tokens this instance is currently using.  */
 
 unsigned int jobserver_tokens = 0;
-
-#ifdef OUTPUT_SYNC
-
-/* Semaphore for use in -j mode with output_sync. */
-static sync_handle_t sync_handle = -1;
-
-/* Is make's stdout going to the same place as stderr?  */
-static int combined_output = 0;
-
-#define STREAM_OK(_s)       ((fcntl (fileno (_s), F_GETFD) != -1) || (errno != EBADF))
-
-#define FD_NOT_EMPTY(_f)    ((_f) >= 0 && lseek ((_f), 0, SEEK_END) > 0)
-#endif /* OUTPUT_SYNC */
 
+
 #ifdef WINDOWS32
 /*
  * The macro which references this function is defined in makeint.h.
@@ -472,50 +460,12 @@ is_bourne_compatible_shell (const char *path)
 }
 
 
-/* Write a message in the child's context.  Write it to the child's output
-   sync file if present, otherwise to the terminal.  */
-
-static void
-child_out (const struct child *child, const char *msg, int out)
-{
-  int fd = out ? child->outfd : child->errfd;
-
-  if (!msg || msg[0] == '\0')
-    return;
-
-  if (fd >= 0)
-    {
-      int len = strlen (msg);
-      int b;
-
-      lseek (fd, 0, SEEK_END);
-      while (1)
-        {
-          EINTRLOOP (b, write (fd, msg, len));
-          if (b == len)
-            break;
-          if (b <= 0)
-            return;
-          len -= b;
-          msg += b;
-        }
-      EINTRLOOP (b, write (fd, "\n", 1));
-    }
-  else
-    {
-      FILE *f = out ? stdout : stderr;
-      fputs (msg, f);
-      putc ('\n', f);
-      fflush (f);
-    }
-}
-
 /* Write an error message describing the exit status given in
    EXIT_CODE, EXIT_SIG, and COREDUMP, for the target TARGET_NAME.
    Append "(ignored)" if IGNORED is nonzero.  */
 
 static void
-child_error (const struct child *child,
+child_error (struct child *child,
              int exit_code, int exit_sig, int coredump, int ignored)
 {
   const char *pre = "*** ";
@@ -523,9 +473,7 @@ child_error (const struct child *child,
   const char *dump = "";
   const struct file *f = child->file;
   const gmk_floc *flocp = &f->cmds->fileinfo;
-  const char *msg;
   const char *nm;
-  unsigned int l;
 
   if (ignored && silent_flag)
     return;
@@ -548,31 +496,29 @@ child_error (const struct child *child,
       nm = a;
     }
 
-  msg = message_s (strlen (nm) + strlen (f->name), 0,
-                   _("%s: recipe for target '%s' failed"), nm, f->name);
-  child_out (child, msg, 1);
+  OUTPUT_SET (&child->output);
 
-  l = strlen (pre) + strlen (f->name) + strlen (post);
+  message (0, _("%s: recipe for target '%s' failed"), nm, f->name);
 
 #ifdef VMS
   if ((exit_code & 1) != 0)
-    return;
+    {
+      OUTPUT_UNSET ();
+      return;
+    }
 
-  msg = error_s (l + INTEGER_LENGTH, NILF,
-                 _("%s[%s] Error 0x%x%s"), pre, f->name, exit_code, post);
+  error (NILF, _("%s[%s] Error 0x%x%s"), pre, f->name, exit_code, post);
 #else
   if (exit_sig == 0)
-    msg = error_s (l + INTEGER_LENGTH, NILF,
-                   _("%s[%s] Error %d%s"), pre, f->name, exit_code, post);
+    error (NILF, _("%s[%s] Error %d%s"), pre, f->name, exit_code, post);
   else
     {
       const char *s = strsignal (exit_sig);
-      msg = error_s (l + strlen (s) + strlen (dump), NILF,
-                     _("%s[%s] %s%s%s"), pre, f->name, s, dump, post);
+      error (NILF, _("%s[%s] %s%s%s"), pre, f->name, s, dump, post);
     }
 #endif /* VMS */
 
-  child_out (child, msg, 0);
+  OUTPUT_UNSET ();
 }
 
 
@@ -608,206 +554,6 @@ child_handler (int sig UNUSED)
   DB (DB_JOBS, (_("Got a SIGCHLD; %u unreaped children.\n"), dead_children));
   */
 }
-
-#ifdef OUTPUT_SYNC
-
-/* Set up the sync handle and configure combined_output.
-   Disables output_sync on error.  */
-static void
-sync_init ()
-{
-#ifdef WINDOWS32
-  if ((!STREAM_OK (stdout) && !STREAM_OK (stderr))
-      || (sync_handle = create_mutex ()) == -1)
-    {
-      perror_with_name ("output-sync suppressed: ", "stderr");
-      output_sync = 0;
-    }
-  else
-    {
-      combined_output = same_stream (stdout, stderr);
-      prepare_mutex_handle_string (sync_handle);
-    }
-
-#else
-  if (STREAM_OK (stdout))
-    {
-      struct stat stbuf_o, stbuf_e;
-
-      sync_handle = fileno (stdout);
-      combined_output =
-        fstat (fileno (stdout), &stbuf_o) == 0 &&
-        fstat (fileno (stderr), &stbuf_e) == 0 &&
-        stbuf_o.st_dev == stbuf_e.st_dev &&
-        stbuf_o.st_ino == stbuf_e.st_ino;
-    }
-  else if (STREAM_OK (stderr))
-    sync_handle = fileno (stderr);
-  else
-    {
-      perror_with_name ("output-sync suppressed: ", "stderr");
-      output_sync = 0;
-    }
-#endif
-}
-
-/* Adds file descriptors to the child structure to support output_sync; one
-   for stdout and one for stderr as long as they are open.  If stdout and
-   stderr share a device they can share a temp file too.
-   Will reset output_sync on error.  */
-static void
-assign_child_tempfiles (struct child *c)
-{
-  /* If we don't have a temp file, get one.  */
-  if (c->outfd < 0 && c->errfd < 0)
-    {
-      if (STREAM_OK (stdout))
-        {
-          c->outfd = open_tmpfd ();
-          if (c->outfd < 0)
-            goto error;
-          CLOSE_ON_EXEC (c->outfd);
-        }
-
-      if (STREAM_OK (stderr))
-        {
-          if (c->outfd >= 0 && combined_output)
-            c->errfd = c->outfd;
-          else
-            {
-              c->errfd = open_tmpfd ();
-              if (c->errfd < 0)
-                goto error;
-              CLOSE_ON_EXEC (c->errfd);
-            }
-        }
-    }
-
-  return;
-
- error:
-  if (c->outfd >= 0)
-    {
-      close (c->outfd);
-      c->outfd = -1;
-    }
-  output_sync = 0;
-}
-
-/* Support routine for sync_output() */
-static void
-pump_from_tmp (int from, FILE *to)
-{
-  static char buffer[8192];
-
-#ifdef WINDOWS32
-  int prev_mode;
-
-  /* "from" is opened by open_tmpfd, which does it in binary mode, so
-     we need the mode of "to" to match that.  */
-  prev_mode = _setmode (fileno (to), _O_BINARY);
-#endif
-
-  if (lseek (from, 0, SEEK_SET) == -1)
-    perror ("lseek()");
-
-  while (1)
-    {
-      int len;
-      EINTRLOOP (len, read (from, buffer, sizeof (buffer)));
-      if (len < 0)
-        perror ("read()");
-      if (len <= 0)
-        break;
-      if (fwrite (buffer, len, 1, to) < 1)
-        perror ("fwrite()");
-    }
-
-#ifdef WINDOWS32
-  /* Switch "to" back to its original mode, so that log messages by
-     Make have the same EOL format as without --output-sync.  */
-  _setmode (fileno (to), prev_mode);
-#endif
-}
-
-/* Support routine for sync_output() */
-static void *
-acquire_semaphore (void)
-{
-  static struct flock fl;
-
-  fl.l_type = F_WRLCK;
-  fl.l_whence = SEEK_SET;
-  fl.l_start = 0;
-  fl.l_len = 1;
-  if (fcntl (sync_handle, F_SETLKW, &fl) != -1)
-    return &fl;
-  perror ("fcntl()");
-  return NULL;
-}
-
-/* Support routine for sync_output() */
-static void
-release_semaphore (void *sem)
-{
-  struct flock *flp = (struct flock *)sem;
-  flp->l_type = F_UNLCK;
-  if (fcntl (sync_handle, F_SETLKW, flp) == -1)
-    perror ("fcntl()");
-}
-
-/* Synchronize the output of jobs in -j mode to keep the results of
-   each job together. This is done by holding the results in temp files,
-   one for stdout and potentially another for stderr, and only releasing
-   them to "real" stdout/stderr when a semaphore can be obtained. */
-
-static void
-sync_output (struct child *c)
-{
-  int outfd_not_empty = FD_NOT_EMPTY (c->outfd);
-  int errfd_not_empty = FD_NOT_EMPTY (c->errfd);
-
-  if (outfd_not_empty || errfd_not_empty)
-    {
-      /* Try to acquire the semaphore.  If it fails, dump the output
-         unsynchronized; still better than silently discarding it.  */
-      void *sem = acquire_semaphore ();
-
-      /* We've entered the "critical section" during which a lock is held.  We
-         want to keep it as short as possible.  */
-
-      /* Log the working directory.  Force it if we're doing dir tracing.  */
-      log_working_directory (1, (trace_flag & TRACE_DIRECTORY));
-
-      if (outfd_not_empty)
-        pump_from_tmp (c->outfd, stdout);
-      if (errfd_not_empty && c->errfd != c->outfd)
-        pump_from_tmp (c->errfd, stderr);
-
-      /* If we're doing dir tracing, force the leave message.  */
-      if (trace_flag & TRACE_DIRECTORY)
-        log_working_directory (0, 1);
-
-      /* Exit the critical section.  */
-      if (sem)
-        release_semaphore (sem);
-
-      /* Truncate and reset the output, in case we use it again.  */
-      if (c->outfd >= 0)
-        {
-          int e;
-          lseek (c->outfd, 0, SEEK_SET);
-          EINTRLOOP (e, ftruncate (c->outfd, 0));
-        }
-      if (c->errfd >= 0 && c->errfd != c->outfd)
-        {
-          int e;
-          lseek (c->errfd, 0, SEEK_SET);
-          EINTRLOOP (e, ftruncate (c->errfd, 0));
-        }
-    }
-}
-#endif /* OUTPUT_SYNC */
 
 extern int shell_function_pid, shell_function_completed;
 
@@ -1152,7 +898,7 @@ reap_children (int block, int err)
                   /* If we're sync'ing per line, write the previous line's
                      output before starting the next one.  */
                   if (output_sync == OUTPUT_SYNC_LINE)
-                    sync_output (c);
+                    output_dump (&c->output);
 #endif
                   /* Check again whether to start remotely.
                      Whether or not we want to changes over time.
@@ -1186,7 +932,7 @@ reap_children (int block, int err)
 
 #ifdef OUTPUT_SYNC
       /* Synchronize any remaining parallel output.  */
-      sync_output (c);
+      output_dump (&c->output);
 #endif /* OUTPUT_SYNC */
 
       /* At this point c->file->update_status is success or failed.  But
@@ -1243,10 +989,7 @@ reap_children (int block, int err)
 static void
 free_child (struct child *child)
 {
-  if (child->outfd >= 0)
-    close (child->outfd);
-  if (child->errfd >= 0 && child->errfd != child->outfd)
-    close (child->errfd);
+  output_close (&child->output);
 
   if (!jobserver_tokens)
     fatal (NILF, "INTERNAL: Freeing child %p (%s) but no tokens left!\n",
@@ -1388,8 +1131,6 @@ start_job_command (struct child *child)
 #if !defined(_AMIGA) && !defined(WINDOWS32)
   static int bad_stdin = -1;
 #endif
-  int print_cmd;
-  int sync_cmd;
   int flags;
   char *p;
 #ifdef VMS
@@ -1513,43 +1254,30 @@ start_job_command (struct child *child)
           child->file->update_status = us_success;
           notice_finished_file (child->file);
         }
+
+      OUTPUT_UNSET();
       return;
     }
 
-  print_cmd = (just_print_flag || (trace_flag & TRACE_RULE)
-               || (!(flags & COMMANDS_SILENT) && !silent_flag));
-
-#ifdef OUTPUT_SYNC
-  if (output_sync && sync_handle == -1)
-    sync_init ();
-#endif
-
   /* Are we going to synchronize this command's output?  Do so if either we're
-     in SYNC_MAKE mode or this command is not recursive.  We'll also check
+     in SYNC_RECURSE mode or this command is not recursive.  We'll also check
      output_sync separately below in case it changes due to error.  */
-  sync_cmd = output_sync && (output_sync == OUTPUT_SYNC_RECURSE
-                             || !(flags & COMMANDS_RECURSE));
+  child->output.syncout = output_sync && (output_sync == OUTPUT_SYNC_RECURSE
+                                          || !(flags & COMMANDS_RECURSE));
+
+  OUTPUT_SET (&child->output);
 
 #ifdef OUTPUT_SYNC
-  if (sync_cmd)
-    {
-      /* If syncing, make sure we have temp files.
-         Write the command to the temp file so it's output in order.  */
-      assign_child_tempfiles (child);
-      if (print_cmd)
-        child_out (child, p, 1);
-    }
-  else
+  if (! child->output.syncout)
     /* We don't want to sync this command: to avoid misordered
        output ensure any already-synced content is written.  */
-    sync_output (child);
+    output_dump (&child->output);
 #endif /* OUTPUT_SYNC */
 
-  /* If we're not syncing, print out the command.  If silent, we call
-     'message' with null so it can log the working directory before the
-     command's own error messages appear.  */
-  if (! sync_cmd)
-    message (0, print_cmd ? "%s" : NULL, p);
+  /* Print the command if appropriate.  */
+  if (just_print_flag || trace_flag
+      || (!(flags & COMMANDS_SILENT) && !silent_flag))
+    message (0, "%s", p);
 
   /* Tell update_goal_chain that a command has been started on behalf of
      this target.  It is important that this happens here and not in
@@ -1597,6 +1325,9 @@ start_job_command (struct child *child)
 #endif
       goto next_command;
     }
+
+  /* We're sure we're going to invoke a command: set up the output.  */
+  output_start ();
 
   /* Flush the output streams so they won't have things written twice.  */
 
@@ -1754,15 +1485,17 @@ start_job_command (struct child *child)
 #ifdef OUTPUT_SYNC
           /* Divert child output if output_sync in use.  Don't capture
              recursive make output unless we are synchronizing "make" mode.  */
-          if (sync_cmd)
+          if (child->output.syncout)
             {
               int outfd = fileno (stdout);
               int errfd = fileno (stderr);
 
-              if ((child->outfd >= 0 && (close (outfd) == -1
-                                         || dup2 (child->outfd, outfd) == -1))
-                  || (child->errfd >= 0 && (close (errfd) == -1
-                                            || dup2 (child->errfd, errfd) == -1)))
+              if ((child->output.out >= 0
+                   && (close (outfd) == -1
+                       || dup2 (child->output.out, outfd) == -1))
+                  || (child->output.err >= 0
+                      && (close (errfd) == -1
+                          || dup2 (child->output.err, errfd) == -1)))
                 perror_with_name ("output-sync: ", "dup2()");
             }
 #endif /* OUTPUT_SYNC */
@@ -1867,9 +1600,9 @@ start_job_command (struct child *child)
 #ifdef OUTPUT_SYNC
           /* Divert child output if output_sync in use.  Don't capture
              recursive make output unless we are synchronizing "make" mode.  */
-          if (sync_cmd)
+          if (child->output.syncout)
             hPID = process_easy (argv, child->environment,
-                                 child->outfd, child->errfd);
+                                 child->output.out, child->output.err);
           else
 #endif
             hPID = process_easy (argv, child->environment, -1, -1);
@@ -1906,12 +1639,13 @@ start_job_command (struct child *child)
   free (argv);
 #endif
 
+  OUTPUT_UNSET();
   return;
 
  error:
   child->file->update_status = us_failed;
   notice_finished_file (child->file);
-  return;
+  OUTPUT_UNSET();
 }
 
 /* Try to start a child running.
@@ -1999,6 +1733,22 @@ new_job (struct file *file)
 
   /* Chop the commands up into lines if they aren't already.  */
   chop_commands (cmds);
+
+  /* Start the command sequence, record it in a new
+     'struct child', and add that to the chain.  */
+
+  c = xcalloc (sizeof (struct child));
+  output_init (&c->output, output_sync);
+
+  c->file = file;
+  c->sh_batch_file = NULL;
+
+  /* Cache dontcare flag because file->dontcare can be changed once we
+     return. Check dontcare inheritance mechanism for details.  */
+  c->dontcare = file->dontcare;
+
+  /* Start saving output in case the expansion uses $(info ...) etc.  */
+  OUTPUT_SET (&c->output);
 
   /* Expand the command lines and store the results in LINES.  */
   lines = xmalloc (cmds->ncommand_lines * sizeof (char *));
@@ -2104,18 +1854,7 @@ new_job (struct file *file)
                                                      file);
     }
 
-  /* Start the command sequence, record it in a new
-     'struct child', and add that to the chain.  */
-
-  c = xcalloc (sizeof (struct child));
-  c->file = file;
   c->command_lines = lines;
-  c->sh_batch_file = NULL;
-  c->outfd = c->errfd = -1;
-
-  /* Cache dontcare flag because file->dontcare can be changed once we
-     return. Check dontcare inheritance mechanism for details.  */
-  c->dontcare = file->dontcare;
 
   /* Fetch the first command line to be run.  */
   job_next_command (c);
@@ -2251,7 +1990,7 @@ new_job (struct file *file)
 
   /* Trace the build.
      Use message here so that changes to working directories are logged.  */
-  if (trace_flag & TRACE_RULE)
+  if (trace_flag)
     {
       char *newer = allocated_variable_expand_for_file ("$?", c->file);
       const char *nm;
@@ -2274,7 +2013,6 @@ new_job (struct file *file)
       free (newer);
     }
 
-
   /* The job is now primed.  Start it running.
      (This will notice if there is in fact no recipe.)  */
   start_waiting_job (c);
@@ -2285,6 +2023,7 @@ new_job (struct file *file)
     while (file->command_state == cs_running)
       reap_children (1, 0);
 
+  OUTPUT_UNSET ();
   return;
 }
 
@@ -3284,11 +3023,13 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
        Then recurse, expanding this command line to get the final
        argument list.  */
 
+    char *new_line;
     unsigned int shell_len = strlen (shell);
     unsigned int line_len = strlen (line);
     unsigned int sflags_len = shellflags ? strlen (shellflags) : 0;
+#ifdef WINDOWS32
     char *command_ptr = NULL; /* used for batch_mode_shell mode */
-    char *new_line;
+#endif
 
 # ifdef __EMX__ /* is this necessary? */
     if (!unixy_shell && shellflags)
@@ -3472,7 +3213,9 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
       memcpy (ap, shellflags, sflags_len);
     ap += sflags_len;
     *(ap++) = ' ';
+#ifdef WINDOWS32
     command_ptr = ap;
+#endif
     for (p = line; *p != '\0'; ++p)
       {
         if (restp != NULL && *p == '\n')
