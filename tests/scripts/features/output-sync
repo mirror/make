@@ -135,8 +135,6 @@ foo: end
 #MAKE#[1]: Entering directory '#PWD#/bar'
 bar: start
 bar: end
-#MAKE#[1]: Leaving directory '#PWD#/bar'
-#MAKE#[1]: Entering directory '#PWD#/bar'
 baz: start
 baz: end
 #MAKE#[1]: Leaving directory '#PWD#/bar'\n", 0, 6);

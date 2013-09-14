@@ -449,9 +449,6 @@ int alpha_compare (const void *, const void *);
 void print_spaces (unsigned int);
 char *find_percent (char *);
 const char *find_percent_cached (const char **);
-void set_append_mode (int);
-int open_tmpfd (void);
-FILE *open_tmpfile (char **, const char *);
 
 #ifndef NO_ARCHIVES
 int ar_name (const char *);

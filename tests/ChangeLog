@@ -1,3 +1,7 @@
+2013-09-14  Paul Smith  <psmith@gnu.org>
+
+	* scripts/features/output-sync: Verify -Orecurse properly.
+
 2013-09-12  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/output-sync: Modify for output sync behavior.

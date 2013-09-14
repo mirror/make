@@ -26,12 +26,22 @@ extern struct output *output_context;
 #define OUTPUT_SET(_new)    do{ if ((_new)->syncout) output_context = (_new); }while(0)
 #define OUTPUT_UNSET()      do{ output_context = NULL; }while(0)
 
-void output_init (struct output *out, unsigned int syncout);
+FILE *output_tmpfile (char **, const char *);
+
+/* Initialize and close a child output structure: if NULL do this program's
+   output (this should only be done once).  */
+void output_init (struct output *out);
 void output_close (struct output *out);
 
+/* In situations where output may be about to be displayed but we're not
+   sure if we've set it up yet, call this.  */
 void output_start (void);
+
+/* Show a message on stdout or stderr.  Will start the output if needed.  */
 void outputs (int is_err, const char *msg);
 
 #ifdef OUTPUT_SYNC
+int output_tmpfd (void);
+/* Dump any child output content to stdout, and reset it.  */
 void output_dump (struct output *out);
 #endif

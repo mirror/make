@@ -954,7 +954,7 @@ find_and_set_default_shell (const char *token)
             {
               *ep = '\0';
 
-	      sprintf (sh_path, "%s/%s", p, search_token);
+              sprintf (sh_path, "%s/%s", p, search_token);
               if (_access (sh_path, 0) == 0)
                 {
                   default_shell = xstrdup (w32ify (sh_path, 0));
@@ -974,15 +974,15 @@ find_and_set_default_shell (const char *token)
             }
 
           /* be sure to check last element of Path */
-	  if (p && *p)
-	    {
-	      sprintf (sh_path, "%s/%s", p, search_token);
-	      if (_access (sh_path, 0) == 0)
-		{
-		  default_shell = xstrdup (w32ify (sh_path, 0));
-		  sh_found = 1;
-		}
-	    }
+          if (p && *p)
+            {
+              sprintf (sh_path, "%s/%s", p, search_token);
+              if (_access (sh_path, 0) == 0)
+                {
+                  default_shell = xstrdup (w32ify (sh_path, 0));
+                  sh_found = 1;
+                }
+            }
 
           if (sh_found)
             DB (DB_VERBOSE,
@@ -1154,24 +1154,7 @@ main (int argc, char **argv, char **envp)
 # endif
 #endif
 
-  /* Make sure stdout is line-buffered.  */
-
-#ifdef HAVE_SETVBUF
-# ifdef SETVBUF_REVERSED
-  setvbuf (stdout, _IOLBF, xmalloc (BUFSIZ), BUFSIZ);
-# else  /* setvbuf not reversed.  */
-  /* Some buggy systems lose if we pass 0 instead of allocating ourselves.  */
-  setvbuf (stdout, 0, _IOLBF, BUFSIZ);
-# endif /* setvbuf reversed.  */
-#elif HAVE_SETLINEBUF
-  setlinebuf (stdout);
-#endif  /* setlinebuf missing.  */
-
-  /* Configure stdout/stderr to be in append mode.
-     This keeps parallel jobs from losing output due to overlapping writes.  */
-
-  set_append_mode (fileno (stdout));
-  set_append_mode (fileno (stderr));
+  output_init (NULL);
 
   /* Figure out where this program lives.  */
 
@@ -1418,15 +1401,15 @@ main (int argc, char **argv, char **envp)
   /* Set always_make_flag if -B was given and we've not restarted already.  */
   always_make_flag = always_make_set && (restarts == 0);
 
-  /* Print version information.  */
-  if (print_version_flag || ISDB (DB_BASIC))
+  /* Print version information, and exit.  */
+  if (print_version_flag)
     {
       print_version ();
-
-      /* 'make --version' is supposed to just print the version and exit.  */
-      if (print_version_flag)
-        die (0);
+      die (0);
     }
+
+  if (ISDB (DB_BASIC))
+    print_version ();
 
 #ifndef VMS
   /* Set the "MAKE_COMMAND" variable to the name we were invoked with.
@@ -1670,7 +1653,7 @@ main (int argc, char **argv, char **envp)
 #endif /* !HAVE_DOS_PATHS */
 
             strcat (template, DEFAULT_TMPFILE);
-            outfile = open_tmpfile (&stdin_nm, template);
+            outfile = output_tmpfile (&stdin_nm, template);
             if (outfile == 0)
               pfatal_with_name (_("fopen (temporary file)"));
             while (!feof (stdin) && ! ferror (stdin))
@@ -1945,7 +1928,7 @@ main (int argc, char **argv, char **envp)
 
 #ifdef WINDOWS32
       /* sub_proc.c cannot wait for more than MAXIMUM_WAIT_OBJECTS objects
-       * and one of them is the job-server semaphore object.  Limit the 
+       * and one of them is the job-server semaphore object.  Limit the
        * number of available job slots to (MAXIMUM_WAIT_OBJECTS - 1). */
 
       if (job_slots >= MAXIMUM_WAIT_OBJECTS)

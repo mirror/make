@@ -1,3 +1,19 @@
+2013-09-14  Paul Smith  <psmith@gnu.org>
+
+	* misc.c (set_append_mode, open_tmpfd, open_tmpfile): Move to output.c.
+	* misc.h: Ditto.
+	* output.h: Ditto.
+	* main.c (main): Move stdio init into output.c:output_init().
+	Change open_tmpfile() to output_tmpfile().
+	* output.c: Rename open_*() to output_*().  set_append_mode() and
+	open_tmpfd() are static.
+	(_outputs, log_working_directory): Accept a struct output and
+	print to that rather than the global context.
+	(output_dump): In recurse mode print enter/leave once for the
+	whole makefile.
+	(output_init): Initialize this processes stdio as well as child's.
+	* vmsjobs.c: Reformat to be closer to convention.
+
 2013-09-12  Paul Smith  <psmith@gnu.org>
 
 	Rework output to handle synchronization and directory logging more

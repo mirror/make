@@ -1846,7 +1846,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
     return o;
 
   /* Note the mktemp() is a security hole, but this only runs on Amiga.
-     Ideally we would use main.c:open_tmpfile(), but this uses a special
+     Ideally we would use output_tmpfile(), but this uses a special
      Open(), not fopen(), and I'm not familiar enough with the code to mess
      with it.  */
   strcpy (tmp_output, "t:MakeshXXXXXXXX");

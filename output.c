@@ -45,7 +45,7 @@ static unsigned int stdio_traced = 0;
 #define va_copy(_d, _s) ((_d) = (_s))
 #define snprintf msc_vsnprintf
 static int
-msc_vsnprintf(char *str, size_t size, const char *format, va_list ap)
+msc_vsnprintf (char *str, size_t size, const char *format, va_list ap)
 {
   int len = -1;
 
@@ -60,9 +60,9 @@ msc_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 
 /* Write a string to the current STDOUT or STDERR.  */
 static void
-_outputs (int is_err, const char *msg)
+_outputs (struct output *out, int is_err, const char *msg)
 {
-  if (! output_context || ! output_context->syncout)
+  if (! out || ! out->syncout)
     {
       FILE *f = is_err ? stderr : stdout;
       fputs (msg, f);
@@ -70,7 +70,7 @@ _outputs (int is_err, const char *msg)
     }
   else
     {
-      int fd = is_err ? output_context->err : output_context->out;
+      int fd = is_err ? out->err : out->out;
       int len = strlen (msg);
       int r;
 
@@ -92,17 +92,13 @@ _outputs (int is_err, const char *msg)
    left (according to ENTERING) the current directory.  */
 
 static int
-log_working_directory (int entering)
+log_working_directory (struct output *out, int entering)
 {
   static char *buf = NULL;
   static unsigned int len = 0;
   unsigned int need;
   const char *fmt;
   char *p;
-
-  /* Only print if directory logging is enabled.  */
-  if (entering && ! print_directory_flag)
-    return 0;
 
   /* Get enough space for the longest possible output.  */
   need = strlen (program) + INTEGER_LENGTH + 2 + 1;
@@ -158,9 +154,22 @@ log_working_directory (int entering)
   else
     sprintf (p, fmt, program, makelevel, starting_directory);
 
-  _outputs (0, buf);
+  _outputs (out, 0, buf);
 
   return 1;
+}
+
+/* Set a file descriptor to be in O_APPEND mode.
+   If it fails, just ignore it.  */
+
+static void
+set_append_mode (int fd)
+{
+#if defined(F_GETFL) && defined(F_SETFL) && defined(O_APPEND)
+  int flags = fcntl (fd, F_GETFL, 0);
+  if (flags >= 0)
+    fcntl (fd, F_SETFL, flags | O_APPEND);
+#endif
 }
 
 
@@ -277,6 +286,73 @@ release_semaphore (void *sem)
     perror ("fcntl()");
 }
 
+/* Returns a file descriptor to a temporary file.  The file is automatically
+   closed/deleted on exit.  Don't use a FILE* stream.  */
+int
+output_tmpfd ()
+{
+  int fd = -1;
+  FILE *tfile = tmpfile ();
+
+  if (! tfile)
+    pfatal_with_name ("tmpfile");
+
+  /* Create a duplicate so we can close the stream.  */
+  fd = dup (fileno (tfile));
+  if (fd < 0)
+    pfatal_with_name ("dup");
+
+  fclose (tfile);
+
+  set_append_mode (fd);
+
+  return fd;
+}
+
+/* Adds file descriptors to the child structure to support output_sync; one
+   for stdout and one for stderr as long as they are open.  If stdout and
+   stderr share a device they can share a temp file too.
+   Will reset output_sync on error.  */
+static void
+setup_tmpfile (struct output *out)
+{
+  /* Is make's stdout going to the same place as stderr?  */
+  static int combined_output = -1;
+
+  if (combined_output < 0)
+    combined_output = sync_init ();
+
+  if (STREAM_OK (stdout))
+    {
+      int fd = output_tmpfd ();
+      if (fd < 0)
+        goto error;
+      CLOSE_ON_EXEC (fd);
+      out->out = fd;
+    }
+
+  if (STREAM_OK (stderr))
+    {
+      if (out->out != OUTPUT_NONE && combined_output)
+        out->err = out->out;
+      else
+        {
+          int fd = output_tmpfd ();
+          if (fd < 0)
+            goto error;
+          CLOSE_ON_EXEC (fd);
+          out->err = fd;
+        }
+    }
+
+  return;
+
+  /* If we failed to create a temp file, disable output sync going forward.  */
+ error:
+  output_close (out);
+  output_sync = 0;
+}
+
 /* Synchronize the output of jobs in -j mode to keep the results of
    each job together. This is done by holding the results in temp files,
    one for stdout and potentially another for stderr, and only releasing
@@ -290,15 +366,15 @@ output_dump (struct output *out)
 
   if (outfd_not_empty || errfd_not_empty)
     {
-      int logged = 0;
+      int traced = 0;
 
       /* Try to acquire the semaphore.  If it fails, dump the output
          unsynchronized; still better than silently discarding it.  */
       void *sem = acquire_semaphore ();
 
-      /* Log the working directory, if we need to.  */
-      if (out->syncout)
-        logged = log_working_directory (1);
+      /* Log the working directory for this dump.  */
+      if (print_directory_flag && output_sync != OUTPUT_SYNC_RECURSE)
+        traced = log_working_directory (output_context, 1);
 
       /* We've entered the "critical section" during which a lock is held.  We
          want to keep it as short as possible.  */
@@ -307,8 +383,8 @@ output_dump (struct output *out)
       if (errfd_not_empty && out->err != out->out)
         pump_from_tmp (out->err, stderr);
 
-      if (logged)
-        log_working_directory (0);
+      if (traced)
+        log_working_directory (output_context, 0);
 
       /* Exit the critical section.  */
       if (sem)
@@ -329,58 +405,88 @@ output_dump (struct output *out)
         }
     }
 }
-
-/* Adds file descriptors to the child structure to support output_sync; one
-   for stdout and one for stderr as long as they are open.  If stdout and
-   stderr share a device they can share a temp file too.
-   Will reset output_sync on error.  */
-static void
-setup_tmpfile (struct output *out)
-{
-  /* Is make's stdout going to the same place as stderr?  */
-  static int combined_output = -1;
-
-  if (combined_output < 0)
-    combined_output = sync_init ();
-
-  if (STREAM_OK (stdout))
-    {
-      int fd = open_tmpfd ();
-      if (fd < 0)
-        goto error;
-      CLOSE_ON_EXEC (fd);
-      out->out = fd;
-    }
-
-  if (STREAM_OK (stderr))
-    {
-      if (out->out != OUTPUT_NONE && combined_output)
-        out->err = out->out;
-      else
-        {
-          int fd = open_tmpfd ();
-          if (fd < 0)
-            goto error;
-          CLOSE_ON_EXEC (fd);
-          out->err = fd;
-        }
-    }
-
-  return;
-
-  /* If we failed to create a temp file, disable output sync going forward.  */
- error:
-  output_close (out);
-  output_sync = 0;
-}
 #endif /* OUTPUT_SYNC */
 
 
-void
-output_init (struct output *out, unsigned int syncout)
+/* Provide support for temporary files.  */
+
+#ifndef HAVE_STDLIB_H
+# ifdef HAVE_MKSTEMP
+int mkstemp (char *template);
+# else
+char *mktemp (char *template);
+# endif
+#endif
+
+FILE *
+output_tmpfile (char **name, const char *template)
 {
-  out->out = out->err = OUTPUT_NONE;
-  out->syncout = !!syncout;
+#ifdef HAVE_FDOPEN
+  int fd;
+#endif
+
+#if defined HAVE_MKSTEMP || defined HAVE_MKTEMP
+# define TEMPLATE_LEN   strlen (template)
+#else
+# define TEMPLATE_LEN   L_tmpnam
+#endif
+  *name = xmalloc (TEMPLATE_LEN + 1);
+  strcpy (*name, template);
+
+#if defined HAVE_MKSTEMP && defined HAVE_FDOPEN
+  /* It's safest to use mkstemp(), if we can.  */
+  fd = mkstemp (*name);
+  if (fd == -1)
+    return 0;
+  return fdopen (fd, "w");
+#else
+# ifdef HAVE_MKTEMP
+  (void) mktemp (*name);
+# else
+  (void) tmpnam (*name);
+# endif
+
+# ifdef HAVE_FDOPEN
+  /* Can't use mkstemp(), but guard against a race condition.  */
+  fd = open (*name, O_CREAT|O_EXCL|O_WRONLY, 0600);
+  if (fd == -1)
+    return 0;
+  return fdopen (fd, "w");
+# else
+  /* Not secure, but what can we do?  */
+  return fopen (*name, "w");
+# endif
+#endif
+}
+
+
+void
+output_init (struct output *out)
+{
+  if (out)
+    {
+      out->out = out->err = OUTPUT_NONE;
+      out->syncout = !!output_sync;
+      return;
+    }
+
+  /* Configure this instance of make.  Be sure stdout is line-buffered.  */
+
+#ifdef HAVE_SETVBUF
+# ifdef SETVBUF_REVERSED
+  setvbuf (stdout, _IOLBF, xmalloc (BUFSIZ), BUFSIZ);
+# else  /* setvbuf not reversed.  */
+  /* Some buggy systems lose if we pass 0 instead of allocating ourselves.  */
+  setvbuf (stdout, 0, _IOLBF, BUFSIZ);
+# endif /* setvbuf reversed.  */
+#elif HAVE_SETLINEBUF
+  setlinebuf (stdout);
+#endif  /* setlinebuf missing.  */
+
+  /* Force stdout/stderr into append mode.  This ensures parallel jobs won't
+     lose output due to overlapping writes.  */
+  set_append_mode (fileno (stdout));
+  set_append_mode (fileno (stderr));
 }
 
 void
@@ -389,7 +495,7 @@ output_close (struct output *out)
   if (! out)
     {
       if (stdio_traced)
-        log_working_directory (0);
+        log_working_directory (NULL, 0);
       return;
     }
 
@@ -402,46 +508,34 @@ output_close (struct output *out)
   if (out->err >= 0 && out->err != out->out)
     close (out->err);
 
-  output_init (out, 0);
+  output_init (out);
 }
 
-/* We're about to run a sub-process so ensure we've got our output set up.  */
+/* We're about to generate output: be sure it's set up.  */
 void
 output_start ()
 {
-  if (! output_context)
-    {
-      if (! stdio_traced)
-        stdio_traced = log_working_directory (1);
-    }
 #ifdef OUTPUT_SYNC
-  else if (output_context->syncout && ! OUTPUT_ISSET(output_context))
+  if (output_context && output_context->syncout && ! OUTPUT_ISSET(output_context))
     setup_tmpfile (output_context);
 #endif
+
+  if (! output_context || output_sync == OUTPUT_SYNC_RECURSE)
+    {
+      if (! stdio_traced && print_directory_flag)
+        stdio_traced = log_working_directory (NULL, 1);
+    }
 }
 
 void
 outputs (int is_err, const char *msg)
 {
-  /* For stdio, an empty msg means we're about to invoke a shell command,
-     which may or may not generate output, so log the directory.  */
-  if (! output_context && ! stdio_traced)
-    stdio_traced = log_working_directory (1);
-
-  /* Don't bother to do anything with empty strings.  */
   if (! msg || *msg == '\0')
     return;
 
-#ifdef OUTPUT_SYNC
-  if (output_context)
-    {
-      /* Create a temporary file to write to, if necessary.  */
-      if (output_context->syncout && ! OUTPUT_ISSET(output_context))
-        setup_tmpfile (output_context);
-    }
-#endif
+  output_start ();
 
-  _outputs (is_err, msg);
+  _outputs (output_context, is_err, msg);
 }
 
 
@@ -465,7 +559,7 @@ vfmtconcat (const char *fmt, va_list args)
   int tot;
   int unused = fmtbuf.size - fmtbuf.len;
 
-  va_copy(vcopy, args);
+  va_copy (vcopy, args);
 
   tot = vsnprintf (&fmtbuf.buffer[fmtbuf.len], unused, fmt, args);
   assert (tot >= 0);
@@ -479,7 +573,7 @@ vfmtconcat (const char *fmt, va_list args)
       tot = vsnprintf (&fmtbuf.buffer[fmtbuf.len], unused, fmt, vcopy);
     }
 
-  va_end(vcopy);
+  va_end (vcopy);
 
   fmtbuf.len += tot;
 

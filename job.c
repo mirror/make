@@ -1738,7 +1738,7 @@ new_job (struct file *file)
      'struct child', and add that to the chain.  */
 
   c = xcalloc (sizeof (struct child));
-  output_init (&c->output, output_sync);
+  output_init (&c->output);
 
   c->file = file;
   c->sh_batch_file = NULL;
@@ -2588,7 +2588,7 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
                                  "date", "del", "dir", "echo", "echo.",
                                  "endlocal", "erase", "exit", "for", "ftype",
                                  "goto", "if", "if", "md", "mkdir", "move",
-				 "path", "pause", "prompt", "rd", "rem", "ren",
+                                 "path", "pause", "prompt", "rd", "rem", "ren",
                                  "rename", "rmdir", "set", "setlocal",
                                  "shift", "time", "title", "type", "ver",
                                  "verify", "vol", ":", 0 };

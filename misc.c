@@ -704,7 +704,7 @@ child_access (void)
 
 #endif  /* GETLOADAVG_PRIVILEGED */
 }
-
+
 #ifdef NEED_GET_PATH_MAX
 unsigned int
 get_path_max (void)
@@ -723,100 +723,6 @@ get_path_max (void)
   return value;
 }
 #endif
-
-
-/* Set a file descriptor to be in O_APPEND mode.
-   If it fails, just ignore it.  */
-
-void
-set_append_mode (int fd)
-{
-#if defined(F_GETFL) && defined(F_SETFL) && defined(O_APPEND)
-  int flags = fcntl (fd, F_GETFL, 0);
-  if (flags >= 0)
-    fcntl (fd, F_SETFL, flags | O_APPEND);
-#endif
-}
-
-/* Provide support for temporary files.  */
-
-#ifndef HAVE_STDLIB_H
-# ifdef HAVE_MKSTEMP
-int mkstemp (char *template);
-# else
-char *mktemp (char *template);
-# endif
-#endif
-
-/* This is only used by output-sync, and it may not be portable.  */
-#ifdef OUTPUT_SYNC
-
-/* Returns a file descriptor to a temporary file.  The file is automatically
-   closed/deleted on exit.  Don't use a FILE* stream.  */
-int
-open_tmpfd ()
-{
-  int fd = -1;
-  FILE *tfile = tmpfile ();
-
-  if (! tfile)
-    pfatal_with_name ("tmpfile");
-
-  /* Create a duplicate so we can close the stream.  */
-  fd = dup (fileno (tfile));
-  if (fd < 0)
-    pfatal_with_name ("dup");
-
-  fclose (tfile);
-
-  set_append_mode (fd);
-
-  return fd;
-}
-
-#endif
-
-FILE *
-open_tmpfile (char **name, const char *template)
-{
-#ifdef HAVE_FDOPEN
-  int fd;
-#endif
-
-#if defined HAVE_MKSTEMP || defined HAVE_MKTEMP
-# define TEMPLATE_LEN   strlen (template)
-#else
-# define TEMPLATE_LEN   L_tmpnam
-#endif
-  *name = xmalloc (TEMPLATE_LEN + 1);
-  strcpy (*name, template);
-
-#if defined HAVE_MKSTEMP && defined HAVE_FDOPEN
-  /* It's safest to use mkstemp(), if we can.  */
-  fd = mkstemp (*name);
-  if (fd == -1)
-    return 0;
-  return fdopen (fd, "w");
-#else
-# ifdef HAVE_MKTEMP
-  (void) mktemp (*name);
-# else
-  (void) tmpnam (*name);
-# endif
-
-# ifdef HAVE_FDOPEN
-  /* Can't use mkstemp(), but guard against a race condition.  */
-  fd = open (*name, O_CREAT|O_EXCL|O_WRONLY, 0600);
-  if (fd == -1)
-    return 0;
-  return fdopen (fd, "w");
-# else
-  /* Not secure, but what can we do?  */
-  return fopen (*name, "w");
-# endif
-#endif
-}
-
 
 
 /* This code is stolen from gnulib.
