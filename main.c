@@ -714,6 +714,9 @@ decode_debug_flags (void)
               case 'm':
                 db_level |= DB_BASIC | DB_MAKEFILES;
                 break;
+              case 'n':
+                db_level = 0;
+                break;
               case 'v':
                 db_level |= DB_BASIC | DB_VERBOSE;
                 break;
@@ -723,7 +726,10 @@ decode_debug_flags (void)
 
             while (*(++p) != '\0')
               if (*p == ',' || *p == ' ')
-                break;
+                {
+                  ++p;
+                  break;
+                }
 
             if (*p == '\0')
               break;
@@ -732,6 +738,9 @@ decode_debug_flags (void)
 
   if (db_level)
     verify_flag = 1;
+
+  if (! db_level)
+    debug_flag = 0;
 }
 
 static void

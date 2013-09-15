@@ -8595,6 +8595,10 @@ By default, the above messages are not enabled while trying to remake
 the makefiles.  This option enables messages while rebuilding makefiles,
 too.  Note that the @samp{all} option does enable this option.  This
 option also enables @samp{basic} messages.
+
+@item n (@i{none})
+Disable all debugging currently enabled.  If additional debugging
+flags are encountered after this they will still take effect.
 @end table
 
 @item -e

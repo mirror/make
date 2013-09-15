@@ -34,9 +34,10 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
   the recipe to be invoked is printed even if it would otherwise be suppressed
   by .SILENT or a "@" prefix character.  Also before each recipe is run the
   makefile name and linenumber where it was defined are shown as well as the
-  prerequisites that caused the target to be considered out of date.  If the
-  "dir" option argument is given, it will display directory enter/leave
-  logging around each block of synchronized output.
+  prerequisites that caused the target to be considered out of date.
+
+* New command line option argument: --debug now accepts a "n" (none) flag
+  which disables all debugging settings that are currently enabled.
 
 * New feature: The "job server" capability is now supported on Windows.
   Implementation contributed by Troy Runkel <Troy.Runkel@mathworks.com>

@@ -1,5 +1,13 @@
 2013-09-14  Paul Smith  <psmith@gnu.org>
 
+	Fix Savannah bug #35248.
+
+	* main.c (decode_debug_flags): Add support for the "n" flag to
+	disable all debugging.
+	* make.1: Document the "n" (none) flag.
+	* doc/make.texi (Options Summary): Ditto.
+	* NEWS: Ditto.
+
 	Fix Savannah bug #33134.  Suggested by David Boyce <dsb@boyski.com>.
 
 	* misc.c (close_stdout): Move to output.c.

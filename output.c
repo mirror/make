@@ -186,7 +186,7 @@ static sync_handle_t sync_handle = -1;
 static int
 sync_init ()
 {
-  int combined_output;
+  int combined_output = 0;
 
 #ifdef WINDOWS32
   if ((!STREAM_OK (stdout) && !STREAM_OK (stderr))
