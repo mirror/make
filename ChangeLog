@@ -1,27 +1,29 @@
 2013-09-15  Paul Smith  <psmith@gnu.org>
 
-	Fix Savannah bug #39203.
+	* main.c (main): Perform the validation of the jobserver FDs
+	early, before we read makefiles, to ensure that something hasn't
+	opened and used those FDs for some other reason.
+	Fixes Savannah bug #39934.
 
 	* main.c (main): Don't set MAKEFLAGS in the environment when we
 	restart.  We have the original command line flags so keep the
 	original MAKEFLAGS settings as well.
+	Fixes Savannah bug #39203.
 
 2013-09-14  Paul Smith  <psmith@gnu.org>
-
-	Fix Savannah bug #35248.
 
 	* main.c (decode_debug_flags): Add support for the "n" flag to
 	disable all debugging.
 	* make.1: Document the "n" (none) flag.
 	* doc/make.texi (Options Summary): Ditto.
 	* NEWS: Ditto.
-
-	Fix Savannah bug #33134.  Suggested by David Boyce <dsb@boyski.com>.
+	Fixes Savannah bug #35248.
 
 	* misc.c (close_stdout): Move to output.c.
 	* main.c (main): Move atexit call to output_init().
 	* makeint.h: Remove close_stdout() declaration.
 	* output.c (output_init): Add close_stdout at exit only if it's	open.
+	Fixes Savannah bug #33134.  Suggested by David Boyce <dsb@boyski.com>.
 
 2013-09-14  Paul Smith  <psmith@gnu.org>
 

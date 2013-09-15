@@ -1,5 +1,8 @@
 2013-09-15  Paul Smith  <psmith@gnu.org>
 
+	* scripts/features/parallelism: Test broken jobserver on recursion.
+	Test for Savannah bug #39934.
+
 	* scripts/options/eval: Verify --eval during restart.
 	Test for Savannah bug #39203.
 

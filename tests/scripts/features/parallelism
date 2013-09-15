@@ -254,6 +254,26 @@ true
 ');
 }
 
+# Test recursion when make doesn't think it exists.
+# See Savannah bug #39934
+# Or Red Hat bug https://bugzilla.redhat.com/show_bug.cgi?id=885474
+
+open(MAKEFILE,"> Makefile2");
+print MAKEFILE <<EOF;
+vpath %.c $ENV{HOME}/
+foo:
+EOF
+close(MAKEFILE);
+
+run_make_test(q!
+default: ; @ #MAKEPATH# -f Makefile2
+!,
+              '-j2 --no-print-directory',
+"#MAKE#[1]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+#MAKE#[1]: Nothing to be done for 'foo'.");
+
+unlink('Makefile2');
+
 # Make sure that all jobserver FDs are closed if we need to re-exec the
 # master copy.
 #
