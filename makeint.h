@@ -493,8 +493,6 @@ void user_access (void);
 void make_access (void);
 void child_access (void);
 
-void close_stdout (void);
-
 char *strip_whitespace (const char **begpp, const char **endpp);
 
 /* String caching  */

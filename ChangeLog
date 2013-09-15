@@ -1,5 +1,14 @@
 2013-09-14  Paul Smith  <psmith@gnu.org>
 
+	Fix Savannah bug #33134.  Suggested by David Boyce <dsb@boyski.com>.
+
+	* misc.c (close_stdout): Move to output.c.
+	* main.c (main): Move atexit call to output_init().
+	* makeint.h: Remove close_stdout() declaration.
+	* output.c (output_init): Add close_stdout at exit only if it's	open.
+
+2013-09-14  Paul Smith  <psmith@gnu.org>
+
 	* misc.c (set_append_mode, open_tmpfd, open_tmpfile): Move to output.c.
 	* misc.h: Ditto.
 	* output.h: Ditto.
@@ -12,6 +21,7 @@
 	(output_dump): In recurse mode print enter/leave once for the
 	whole makefile.
 	(output_init): Initialize this processes stdio as well as child's.
+
 	* vmsjobs.c: Reformat to be closer to convention.
 
 2013-09-12  Paul Smith  <psmith@gnu.org>

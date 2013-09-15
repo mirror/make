@@ -1063,10 +1063,6 @@ main (int argc, char **argv, char **envp)
   }
 #endif
 
-#ifdef HAVE_ATEXIT
-  atexit (close_stdout);
-#endif
-
   /* Needed for OS/2 */
   initialize_main (&argc, &argv);
 
