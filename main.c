@@ -1887,12 +1887,14 @@ main (int argc, char **argv, char **envp)
          jobserver.  If !job_slots and we don't have a pipe, we can start
          infinite jobs.  If we see both a pipe and job_slots >0 that means the
          user set -j explicitly.  This is broken; in this case obey the user
-         (ignore the jobserver pipe for this make) but print a message.  */
+         (ignore the jobserver pipe for this make) but print a message.
+         If we've restarted, we already printed this the first time.  */
 
       if (job_slots > 0)
-        error (NILF,
-               _("warning: -jN forced in submake: disabling jobserver mode."));
-
+        {
+          if (! restarts)
+            error (NILF, _("warning: -jN forced in submake: disabling jobserver mode."));
+        }
 #ifndef WINDOWS32
       /* Create a duplicate pipe, that will be closed in the SIGCHLD
          handler.  If this fails with EBADF, the parent has closed the pipe
@@ -2278,14 +2280,6 @@ main (int argc, char **argv, char **envp)
              job slots so define_makefiles() will get it right.  */
           if (master_job_slots)
             job_slots = master_job_slots;
-
-          /* Reset makeflags in case they were changed.  */
-          {
-            const char *pv = define_makeflags (1, 0);
-            char *p = alloca (CSTRLEN ("MAKEFLAGS=") + strlen (pv) + 1);
-            sprintf (p, "MAKEFLAGS=%s", pv);
-            putenv (allocated_variable_expand (p));
-          }
 
           if (ISDB (DB_BASIC))
             {
