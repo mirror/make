@@ -653,38 +653,43 @@ sub compare_output
   local($answer,$logfile) = @_;
   local($slurp, $answer_matched) = ('', 0);
 
-  print "Comparing Output ........ " if $debug;
-
-  $slurp = &read_file_into_string ($logfile);
-
-  # For make, get rid of any time skew error before comparing--too bad this
-  # has to go into the "generic" driver code :-/
-  $slurp =~ s/^.*modification time .*in the future.*\n//gm;
-  $slurp =~ s/^.*Clock skew detected.*\n//gm;
-
   ++$tests_run;
 
-  if ($slurp eq $answer) {
-    $answer_matched = 1;
+  if (! defined $answer) {
+      print "Ignoring output ........ " if $debug;
+      $answer_matched = 1;
   } else {
-    # See if it is a slash or CRLF problem
-    local ($answer_mod, $slurp_mod) = ($answer, $slurp);
+      print "Comparing Output ........ " if $debug;
 
-    $answer_mod =~ tr,\\,/,;
-    $answer_mod =~ s,\r\n,\n,gs;
+      $slurp = &read_file_into_string ($logfile);
 
-    $slurp_mod =~ tr,\\,/,;
-    $slurp_mod =~ s,\r\n,\n,gs;
+      # For make, get rid of any time skew error before comparing--too bad this
+      # has to go into the "generic" driver code :-/
+      $slurp =~ s/^.*modification time .*in the future.*\n//gm;
+      $slurp =~ s/^.*Clock skew detected.*\n//gm;
 
-    $answer_matched = ($slurp_mod eq $answer_mod);
+      if ($slurp eq $answer) {
+          $answer_matched = 1;
+      } else {
+          # See if it is a slash or CRLF problem
+          local ($answer_mod, $slurp_mod) = ($answer, $slurp);
 
-    # If it still doesn't match, see if the answer might be a regex.
-    if (!$answer_matched && $answer =~ m,^/(.+)/$,) {
-      $answer_matched = ($slurp =~ /$1/);
-      if (!$answer_matched && $answer_mod =~ m,^/(.+)/$,) {
-          $answer_matched = ($slurp_mod =~ /$1/);
+          $answer_mod =~ tr,\\,/,;
+          $answer_mod =~ s,\r\n,\n,gs;
+
+          $slurp_mod =~ tr,\\,/,;
+          $slurp_mod =~ s,\r\n,\n,gs;
+
+          $answer_matched = ($slurp_mod eq $answer_mod);
+
+          # If it still doesn't match, see if the answer might be a regex.
+          if (!$answer_matched && $answer =~ m,^/(.+)/$,) {
+              $answer_matched = ($slurp =~ /$1/);
+              if (!$answer_matched && $answer_mod =~ m,^/(.+)/$,) {
+                  $answer_matched = ($slurp_mod =~ /$1/);
+              }
+          }
       }
-    }
   }
 
   if ($answer_matched && $test_passed)
@@ -706,8 +711,6 @@ sub compare_output
 
     local($command) = "diff -c " . &get_basefile . " " . $logfile;
     &run_command_with_output(&get_difffile,$command);
-  } else {
-      &rmfiles ();
   }
 
   $suite_passed = 0;

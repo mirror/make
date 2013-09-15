@@ -148,8 +148,10 @@ sub run_make_test
   }
 
   # Do the same processing on $answer as we did on $makestring.
-  $answer && $answer !~ /\n$/s and $answer .= "\n";
-  $answer = subst_make_string($answer);
+  if (defined $answer) {
+      $answer && $answer !~ /\n$/s and $answer .= "\n";
+      $answer = subst_make_string($answer);
+  }
 
   run_make_with_options($makefile, $options, &get_logfile(0),
                         $err_code, $timeout);

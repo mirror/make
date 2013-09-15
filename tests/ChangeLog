@@ -1,5 +1,12 @@
 2013-09-15  Paul Smith  <psmith@gnu.org>
 
+	* scripts/misc/fopen-fail: Check for failure on infinite recursion.
+	* run_make_tests.pl (run_make_test): Allow the answer string to be
+	undef, which means that we shouldn't compare it at all.  Only the
+	exit code matters in this case.
+	* test_driver.pl (compare_output): Ditto.
+	Test for Savannah bug #27374.
+
 	* scripts/features/parallelism: Test broken jobserver on recursion.
 	Test for Savannah bug #39934.
 

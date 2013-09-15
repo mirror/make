@@ -1,5 +1,9 @@
 2013-09-15  Paul Smith  <psmith@gnu.org>
 
+	* read.c (eval_makefile): If the file open fails with an
+	unrecoverable error, stop now rather than trying to make it.
+	Fixes Savannah bug #27374.
+
 	* main.c (main): Perform the validation of the jobserver FDs
 	early, before we read makefiles, to ensure that something hasn't
 	opened and used those FDs for some other reason.
