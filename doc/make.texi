@@ -12174,12 +12174,15 @@ of its arguments.  @xref{Functions, ,Functions for Transforming Text}.
 @itemx multiple target patterns.  Stop.
 @itemx target pattern contains no `%'.  Stop.
 @itemx mixed implicit and static pattern rules.  Stop.
-These are generated for malformed static pattern rules.  The first means
-there's no pattern in the target section of the rule; the second means
-there are multiple patterns in the target section; the third means
-the target doesn't contain a pattern character (@code{%}); and the
-fourth means that all three parts of the static pattern rule contain
-pattern characters (@code{%})--only the first two parts should.
+These are generated for malformed static pattern rules.  The first
+means there's no pattern in the target section of the rule; the second
+means there are multiple patterns in the target section; the third
+means the target doesn't contain a pattern character (@code{%}); and
+the fourth means that all three parts of the static pattern rule
+contain pattern characters (@code{%})--only the first two parts
+should.  If you see these errors and you aren't trying to create a
+static pattern rule, check the value of any variables in your target
+and prerequisite lists to be sure they do not contain colons.
 @xref{Static Usage, ,Syntax of Static Pattern Rules}.
 
 @item warning: -jN forced in submake: disabling jobserver mode.

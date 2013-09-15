@@ -1,5 +1,9 @@
 2013-09-15  Paul Smith  <psmith@gnu.org>
 
+	* doc/make.texi (Error Messages): Add a bit more info to the
+	section on static pattern errors, since they're common.
+	Fixes Savannah bug #31326.
+
 	* read.c (eval_makefile): If the file open fails with an
 	unrecoverable error, stop now rather than trying to make it.
 	Fixes Savannah bug #27374.
