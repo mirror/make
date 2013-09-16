@@ -30,6 +30,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # include <sys/file.h>
 #endif
 
+#ifdef WINDOWS32
+# include <windows.h>
+# include "sub_proc.h"
+#endif /* WINDOWS32 */
+
 struct output *output_context = NULL;
 static unsigned int stdio_traced = 0;
 

@@ -1,3 +1,8 @@
+2013-09-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* output.c [WINDOWS32]: Include windows.h and sub_proc.h, to avoid
+	compiler warnings for CLOSE_ON_EXEC.
+
 2013-09-16  Paul Smith  <psmith@gnu.org>
 
 	* configure.ac: Update version to 3.99.91.
