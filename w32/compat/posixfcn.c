@@ -229,7 +229,7 @@ same_stream (FILE *f1, FILE *f2)
 	      /* Each process on Windows can have at most 1 console,
 		 so if both handles are for the console device, they
 		 are the same.  We also compare the console mode to
-		 distinguish between tsdin and stdout/stderr.  */
+		 distinguish between stdin and stdout/stderr.  */
 	      if (GetConsoleMode (fh1, &conmode1)
 		  && GetConsoleMode (fh2, &conmode2)
 		  && conmode1 == conmode2)
