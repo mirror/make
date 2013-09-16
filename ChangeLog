@@ -1,3 +1,8 @@
+2013-09-16  Paul Smith  <psmith@gnu.org>
+
+	* configure.ac: Update version to 3.99.91.
+	* NEWS: Ditto.
+
 2013-09-15  Paul Smith  <psmith@gnu.org>
 
 	* doc/make.texi (Error Messages): Add a bit more info to the
