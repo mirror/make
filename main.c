@@ -79,7 +79,7 @@ static void print_data_base (void);
 static void print_version (void);
 static void decode_switches (int argc, char **argv, int env);
 static void decode_env_switches (char *envar, unsigned int len);
-static const char *define_makeflags (int all, int makefile);
+static struct variable *define_makeflags (int all, int makefile);
 static char *quote_for_env (char *out, const char *in);
 static void initialize_global_hash_tables (void);
 
@@ -1805,7 +1805,6 @@ main (int argc, char **argv, char **envp)
 #endif
 
   /* Define the initial list of suffixes for old-style rules.  */
-
   set_default_suffixes ();
 
   /* Define the file rules for the built-in suffix rules.  These will later
@@ -1813,17 +1812,14 @@ main (int argc, char **argv, char **envp)
      install_default_implicit_rules, but since that happens after reading
      makefiles, it results in the built-in pattern rules taking precedence
      over makefile-specified suffix rules, which is wrong.  */
-
   install_default_suffix_rules ();
 
   /* Define some internal and special variables.  */
-
   define_automatic_variables ();
 
-  /* Set up the MAKEFLAGS and MFLAGS variables
-     so makefiles can look at them.  */
-
-  define_makeflags (0, 0);
+  /* Set up the MAKEFLAGS and MFLAGS variables for makefiles to see.
+     Initialize it to be exported but allow the makefile to reset it.  */
+  define_makeflags (0, 0)->export = v_export;
 
   /* Define the default variables.  */
   define_default_variables ();
@@ -2305,13 +2301,12 @@ main (int argc, char **argv, char **envp)
             char **p;
             for (p = environ; *p != 0; ++p)
               {
-                if (strneq (*p, MAKELEVEL_NAME, MAKELEVEL_LENGTH)
-                    && (*p)[MAKELEVEL_LENGTH] == '=')
+                if (strneq (*p, MAKELEVEL_NAME "=", MAKELEVEL_LENGTH+1))
                   {
                     *p = alloca (40);
                     sprintf (*p, "%s=%u", MAKELEVEL_NAME, makelevel);
                   }
-                if (strneq (*p, "MAKE_RESTARTS=", 14))
+                else if (strneq (*p, "MAKE_RESTARTS=", CSTRLEN ("MAKE_RESTARTS=")))
                   {
                     *p = alloca (40);
                     sprintf (*p, "MAKE_RESTARTS=%u", restarts);
@@ -2947,7 +2942,7 @@ quote_for_env (char *out, const char *in)
    command switches.  Include options with args if ALL is nonzero.
    Don't include options with the 'no_makefile' flag set if MAKEFILE.  */
 
-static const char *
+static struct variable *
 define_makeflags (int all, int makefile)
 {
   const char ref[] = "$(MAKEOVERRIDES)";
@@ -2955,8 +2950,7 @@ define_makeflags (int all, int makefile)
   const char evalref[] = "$(-*-eval-flags-*-)";
   const struct command_switch *cs;
   char *flagstring;
-  register char *p;
-  struct variable *v;
+  char *p;
 
   /* We will construct a linked list of 'struct flag's describing
      all the flags which need to go in MAKEFLAGS.  Then, once we
@@ -3140,7 +3134,7 @@ define_makeflags (int all, int makefile)
       p += CSTRLEN (evalref);
     }
 
-  if (all && command_variables != 0)
+  if (all && command_variables)
     {
       /* Write a reference to $(MAKEOVERRIDES), which contains all the
          command-line variable definitions.  Separate the variables from the
@@ -3172,16 +3166,8 @@ define_makeflags (int all, int makefile)
      lost when users added -e, causing a previous MAKEFLAGS env. var. to take
      precedence over the new one.  Of course, an override or command
      definition will still take precedence.  */
-  v = define_variable_cname ("MAKEFLAGS", flagstring,
-                             env_overrides ? o_env_override : o_file, 1);
-
-  if (! all)
-    /* The first time we are called, set MAKEFLAGS to always be exported.
-       We should not do this again on the second call, because that is
-       after reading makefiles which might have done 'unexport MAKEFLAGS'. */
-    v->export = v_export;
-
-  return v->value;
+  return define_variable_cname ("MAKEFLAGS", flagstring,
+                                env_overrides ? o_env_override : o_file, 1);
 }
 
 /* Print version information.  */
