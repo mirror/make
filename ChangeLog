@@ -1,3 +1,8 @@
+2013-09-18  Paul Smith  <psmith@gnu.org>
+
+	* main.c (main): Set starting_directory before we write any
+	errors.  Fixes Savannah bug #40043.
+
 2013-09-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* output.c [WINDOWS32]: Include windows.h and sub_proc.h, to avoid

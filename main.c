@@ -1477,6 +1477,9 @@ main (int argc, char **argv, char **envp)
 #endif /* WINDOWS32 */
 #endif
 
+  /* We may move, but until we do, here we are.  */
+  starting_directory = current_directory;
+
 #ifdef MAKE_JOBSERVER
   /* If the jobserver-fds option is seen, make sure that -j is reasonable.
      This can't be usefully set in the makefile, and we want to verify the
@@ -1667,11 +1670,8 @@ main (int argc, char **argv, char **envp)
   construct_include_path (include_directories == 0
                           ? 0 : include_directories->list);
 
-  /* Figure out where we are now, after chdir'ing.  */
-  if (directories == 0)
-    /* We didn't move, so we're still in the same place.  */
-    starting_directory = current_directory;
-  else
+  /* If we chdir'ed, figure out where we are now.  */
+  if (directories)
     {
 #ifdef WINDOWS32
       if (getcwd_fs (current_directory, GET_PATH_MAX) == 0)
