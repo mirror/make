@@ -36,7 +36,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* WINDOWS32 */
 
 struct output *output_context = NULL;
-static unsigned int stdio_traced = 0;
+unsigned int stdio_traced = 0;
 
 #define OUTPUT_NONE (-1)
 
@@ -374,15 +374,14 @@ output_dump (struct output *out)
       int traced = 0;
 
       /* Try to acquire the semaphore.  If it fails, dump the output
-         unsynchronized; still better than silently discarding it.  */
+         unsynchronized; still better than silently discarding it.
+         We want to keep this lock for as little time as possible.  */
       void *sem = acquire_semaphore ();
 
       /* Log the working directory for this dump.  */
       if (print_directory_flag && output_sync != OUTPUT_SYNC_RECURSE)
         traced = log_working_directory (output_context, 1);
 
-      /* We've entered the "critical section" during which a lock is held.  We
-         want to keep it as short as possible.  */
       if (outfd_not_empty)
         pump_from_tmp (out->out, stdout);
       if (errfd_not_empty && out->err != out->out)

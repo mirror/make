@@ -1,3 +1,10 @@
+2013-09-19  Paul Smith  <psmith@gnu.org>
+
+	* main.c (main): Set MAKE_RESTARTS to negative before re-exec if
+	we've already generated an "Entering" message.  If we are started
+	and notice that MAKE_RESTARTS is negative, assume we already wrote
+	"Entering" and don't write it again.
+
 2013-09-18  Paul Smith  <psmith@gnu.org>
 
 	* main.c (main): Set starting_directory before we write any

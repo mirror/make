@@ -1,3 +1,7 @@
+2013-09-21  Paul Smith  <psmith@gnu.org>
+
+	* scripts/options/dash-w: Add a test for -w flag.
+
 2013-09-15  Paul Smith  <psmith@gnu.org>
 
 	* scripts/misc/fopen-fail: Check for failure on infinite recursion.

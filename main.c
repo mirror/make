@@ -1332,11 +1332,17 @@ main (int argc, char **argv, char **envp)
                 shell_var.value = xstrdup (ep + 1);
               }
 
-            /* If MAKE_RESTARTS is set, remember it but don't export it.  */
-            if (streq (v->name, "MAKE_RESTARTS"))
+            /* If MAKE_RESTARTS is set, remember it but don't export it.
+               If it's negative, it means the "enter" message was printed.  */
+            else if (streq (v->name, "MAKE_RESTARTS"))
               {
                 v->export = v_noexport;
-                restarts = (unsigned int) atoi (ep + 1);
+                if (*(++ep) == '-')
+                  {
+                    OUTPUT_TRACED ();
+                    ++ep;
+                  }
+                restarts = (unsigned int) atoi (ep);
               }
           }
       }
@@ -2309,7 +2315,8 @@ main (int argc, char **argv, char **envp)
                 else if (strneq (*p, "MAKE_RESTARTS=", CSTRLEN ("MAKE_RESTARTS=")))
                   {
                     *p = alloca (40);
-                    sprintf (*p, "MAKE_RESTARTS=%u", restarts);
+                    sprintf (*p, "MAKE_RESTARTS=%s%u",
+                             OUTPUT_IS_TRACED () ? "-" : "", restarts);
                     restarts = 0;
                   }
               }
@@ -2321,7 +2328,7 @@ main (int argc, char **argv, char **envp)
             sprintf (buffer, "%u", makelevel);
             SetVar (MAKELEVEL_NAME, buffer, -1, GVF_GLOBAL_ONLY);
 
-            sprintf (buffer, "%u", restarts);
+            sprintf (buffer, "%s%u", OUTPUT_IS_TRACED () ? "-" : "", restarts);
             SetVar ("MAKE_RESTARTS", buffer, -1, GVF_GLOBAL_ONLY);
             restarts = 0;
           }
@@ -2331,7 +2338,8 @@ main (int argc, char **argv, char **envp)
           if (restarts)
             {
               char *b = alloca (40);
-              sprintf (b, "MAKE_RESTARTS=%u", restarts);
+              sprintf (b, "MAKE_RESTARTS=%s%u",
+                       OUTPUT_IS_TRACED () ? "-" : "", restarts);
               putenv (b);
             }
 
