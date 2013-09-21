@@ -1,3 +1,19 @@
+2013-09-21  Paul Smith  <psmith@gnu.org>
+
+	Stderr generated from shell functions in recipes should be synced.
+
+	* job.h (FD_STDIN, FD_STDOUT, FD_STDERR): Create new macros to
+	avoid magic numbers.
+	(child_execute_job): Take a FD for stderr.
+	* job.c (child_execute_job): Handle STDERR FD's in addition to
+	stdin and stdout.
+	(start_job_command): Call child_execute_job() with the new STDERR
+	parameter.  Instead of performing the dup() here, send it to
+	child_execute_job() where it's already being done.
+	* function.c (func_shell_base): Pass the OUTPUT_CONTEXT stderr to
+	child_execute_job() if it's set, otherwise FD_STDERR.
+	* main.c (main): Pass FD_STDERR to child_execute_job().
+
 2013-09-19  Paul Smith  <psmith@gnu.org>
 
 	* main.c (main): Set MAKE_RESTARTS to negative before re-exec if

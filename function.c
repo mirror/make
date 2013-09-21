@@ -1710,7 +1710,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
   CLOSE_ON_EXEC(pipedes[1]);
   CLOSE_ON_EXEC(pipedes[0]);
   /* Never use fork()/exec() here! Use spawn() instead in exec_command() */
-  pid = child_execute_job (0, pipedes[1], command_argv, envp);
+  pid = child_execute_job (FD_STDIN, pipedes[1], FD_STDOUT, command_argv, envp);
   if (pid < 0)
     perror_with_name (error_prefix, "spawn");
 # else /* ! __EMX__ */
@@ -1719,12 +1719,14 @@ func_shell_base (char *o, char **argv, int trim_newlines)
     perror_with_name (error_prefix, "fork");
   else if (pid == 0)
     {
-#ifdef SET_STACK_SIZE
+#  ifdef SET_STACK_SIZE
       /* Reset limits, if necessary.  */
       if (stack_limit.rlim_cur)
        setrlimit (RLIMIT_STACK, &stack_limit);
-#endif
-      child_execute_job (0, pipedes[1], command_argv, envp);
+#  endif
+      child_execute_job (FD_STDIN, pipedes[1],
+                         output_context ? output_context->err : FD_STDERR,
+                         command_argv, envp);
     }
   else
 # endif

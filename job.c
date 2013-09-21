@@ -1438,7 +1438,8 @@ start_job_command (struct child *child)
         CLOSE_ON_EXEC (job_rfd);
 
       /* Never use fork()/exec() here! Use spawn() instead in exec_command() */
-      child->pid = child_execute_job (child->good_stdin ? 0 : bad_stdin, 1,
+      child->pid = child_execute_job (child->good_stdin ? FD_STDIN : bad_stdin,
+                                      FD_STDOUT, FD_STDERR,
                                       argv, child->environment);
       if (child->pid < 0)
         {
@@ -1463,6 +1464,9 @@ start_job_command (struct child *child)
       environ = parent_environ; /* Restore value child may have clobbered.  */
       if (child->pid == 0)
         {
+          int outfd = FD_STDOUT;
+          int errfd = FD_STDERR;
+
           /* We are the child side.  */
           unblock_sigs ();
 
@@ -1482,26 +1486,17 @@ start_job_command (struct child *child)
             setrlimit (RLIMIT_STACK, &stack_limit);
 #endif
 
-#ifdef OUTPUT_SYNC
-          /* Divert child output if output_sync in use.  Don't capture
-             recursive make output unless we are synchronizing "make" mode.  */
+          /* Divert child output if output_sync in use.  */
           if (child->output.syncout)
             {
-              int outfd = fileno (stdout);
-              int errfd = fileno (stderr);
-
-              if ((child->output.out >= 0
-                   && (close (outfd) == -1
-                       || dup2 (child->output.out, outfd) == -1))
-                  || (child->output.err >= 0
-                      && (close (errfd) == -1
-                          || dup2 (child->output.err, errfd) == -1)))
-                perror_with_name ("output-sync: ", "dup2()");
+              if (child->output.out >= 0)
+                outfd = child->output.out;
+              if (child->output.err >= 0)
+                errfd = child->output.err;
             }
-#endif /* OUTPUT_SYNC */
 
-          child_execute_job (child->good_stdin ? 0 : bad_stdin, 1,
-                             argv, child->environment);
+          child_execute_job (child->good_stdin ? FD_STDIN : bad_stdin,
+                             outfd, errfd, argv, child->environment);
         }
       else if (child->pid < 0)
         {
@@ -2185,57 +2180,80 @@ start_waiting_jobs (void)
 /* EMX: Start a child process. This function returns the new pid.  */
 # if defined __EMX__
 int
-child_execute_job (int stdin_fd, int stdout_fd, char **argv, char **envp)
+child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
+                   char **argv, char **envp)
 {
   int pid;
-  /* stdin_fd == 0 means: nothing to do for stdin;
-     stdout_fd == 1 means: nothing to do for stdout */
-  int save_stdin = (stdin_fd != 0) ? dup (0) : 0;
-  int save_stdout = (stdout_fd != 1) ? dup (1): 1;
+  int save_stdin = -1;
+  int save_stdout = -1;
+  int save_stderr = -1;
 
-  /* < 0 only if dup() failed */
-  if (save_stdin < 0)
-    fatal (NILF, _("no more file handles: could not duplicate stdin\n"));
-  if (save_stdout < 0)
-    fatal (NILF, _("no more file handles: could not duplicate stdout\n"));
+  /* For each FD which needs to be redirected first make a dup of the standard
+     FD to save and mark it close on exec so our child won't see it.  Then
+     dup2() the standard FD to the redirect FD, and also mark the redirect FD
+     as close on exec. */
+  if (stdin_fd != FD_STDIN)
+    {
+      save_stdin = dup (FD_STDIN);
+      if (save_stdin < 0)
+        fatal (NILF, _("no more file handles: could not duplicate stdin\n"));
+      CLOSE_ON_EXEC (save_stdin);
 
-  /* Close unnecessary file handles for the child.  */
-  if (save_stdin != 0)
-    CLOSE_ON_EXEC (save_stdin);
-  if (save_stdout != 1)
-    CLOSE_ON_EXEC (save_stdout);
+      dup2 (stdin_fd, FD_STDIN);
+      CLOSE_ON_EXEC (stdin_fd);
+    }
 
-  /* Connect the pipes to the child process.  */
-  if (stdin_fd != 0)
-    (void) dup2 (stdin_fd, 0);
-  if (stdout_fd != 1)
-    (void) dup2 (stdout_fd, 1);
+  if (stdout_fd != FD_STDOUT)
+    {
+      save_stdout = dup (FD_STDOUT);
+      if (save_stdout < 0)
+        fatal (NILF, _("no more file handles: could not duplicate stdout\n"));
+      CLOSE_ON_EXEC (save_stdout);
 
-  /* stdin_fd and stdout_fd must be closed on exit because we are
-     still in the parent process */
-  if (stdin_fd != 0)
-    CLOSE_ON_EXEC (stdin_fd);
-  if (stdout_fd != 1)
-    CLOSE_ON_EXEC (stdout_fd);
+      dup2 (stdout_fd, FD_STDOUT);
+      CLOSE_ON_EXEC (stdout_fd);
+    }
+
+  if (stderr_fd != FD_STDERR)
+    {
+      if (stderr_fd != stdout_fd)
+        {
+          save_stderr = dup (FD_STDERR);
+          if (save_stderr < 0)
+            fatal (NILF, _("no more file handles: could not duplicate stderr\n"));
+          CLOSE_ON_EXEC (save_stderr);
+        }
+
+      dup2 (stderr_fd, FD_STDERR);
+      CLOSE_ON_EXEC (stderr_fd);
+    }
 
   /* Run the command.  */
   pid = exec_command (argv, envp);
 
-  /* Restore stdout/stdin of the parent and close temporary FDs.  */
-  if (stdin_fd != 0)
+  /* Restore stdout/stdin/stderr of the parent and close temporary FDs.  */
+  if (save_stdin >= 0)
     {
-      if (dup2 (save_stdin, 0) != 0)
+      if (dup2 (save_stdin, FD_STDIN) != 0)
         fatal (NILF, _("Could not restore stdin\n"));
       else
         close (save_stdin);
     }
 
-  if (stdout_fd != 1)
+  if (save_stdout >= 0)
     {
-      if (dup2 (save_stdout, 1) != 1)
+      if (dup2 (save_stdout, FD_STDOUT) != 0)
         fatal (NILF, _("Could not restore stdout\n"));
       else
         close (save_stdout);
+    }
+
+  if (save_stderr >= 0)
+    {
+      if (dup2 (save_stderr, FD_STDERR) != 0)
+        fatal (NILF, _("Could not restore stderr\n"));
+      else
+        close (save_stderr);
     }
 
   return pid;
@@ -2245,19 +2263,28 @@ child_execute_job (int stdin_fd, int stdout_fd, char **argv, char **envp)
 
 /* UNIX:
    Replace the current process with one executing the command in ARGV.
-   STDIN_FD and STDOUT_FD are used as the process's stdin and stdout; ENVP is
-   the environment of the new program.  This function does not return.  */
+   STDIN_FD/STDOUT_FD/STDERR_FD are used as the process's stdin/stdout/stderr;
+   ENVP is the environment of the new program.  This function does not return.  */
 void
-child_execute_job (int stdin_fd, int stdout_fd, char **argv, char **envp)
+child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
+                   char **argv, char **envp)
 {
-  if (stdin_fd != 0)
-    (void) dup2 (stdin_fd, 0);
-  if (stdout_fd != 1)
-    (void) dup2 (stdout_fd, 1);
-  if (stdin_fd != 0)
-    (void) close (stdin_fd);
-  if (stdout_fd != 1)
-    (void) close (stdout_fd);
+  /* For any redirected FD, dup2() it to the standard FD then close it.  */
+  if (stdin_fd != FD_STDIN)
+    {
+      dup2 (stdin_fd, FD_STDIN);
+      close (stdin_fd);
+    }
+
+  if (stdout_fd != FD_STDOUT)
+    dup2 (stdout_fd, FD_STDOUT);
+  if (stderr_fd != FD_STDERR)
+    dup2 (stderr_fd, FD_STDERR);
+
+  if (stdout_fd != FD_STDOUT)
+    close (stdout_fd);
+  if (stderr_fd != FD_STDERR && stderr_fd != stdout_fd)
+    close (stderr_fd);
 
   /* Run the command.  */
   exec_command (argv, envp);

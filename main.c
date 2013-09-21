@@ -2363,7 +2363,8 @@ main (int argc, char **argv, char **envp)
                termination. */
             int pid;
             int r;
-            pid = child_execute_job (0, 1, nargv, environ);
+            pid = child_execute_job (FD_STDIN, FD_STDOUT, FD_STDERR,
+                                     nargv, environ);
 
             /* is this loop really necessary? */
             do {

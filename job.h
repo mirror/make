@@ -123,10 +123,17 @@ char **construct_command_argv (char *line, char **restp, struct file *file,
                                int cmd_flags, char** batch_file);
 #ifdef VMS
 int child_execute_job (char *argv, struct child *child);
-#elif defined(__EMX__)
-int child_execute_job (int stdin_fd, int stdout_fd, char **argv, char **envp);
 #else
-void child_execute_job (int stdin_fd, int stdout_fd, char **argv, char **envp);
+# define FD_STDIN       (fileno (stdin))
+# define FD_STDOUT      (fileno (stdout))
+# define FD_STDERR      (fileno (stderr))
+# if defined(__EMX__)
+int child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
+                       char **argv, char **envp)
+# else
+void child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
+                        char **argv, char **envp) __attribute__ ((noreturn));
+# endif
 #endif
 #ifdef _AMIGA
 void exec_command (char **argv) __attribute__ ((noreturn));

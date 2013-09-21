@@ -261,5 +261,11 @@ all:
 
 run_make_test(undef, '-j -Otarget', "foobar\ntrue\n");
 
+# Ensure that shell functions inside recipes write stderr to the sync file
+run_make_test(q!
+all: ; @: $(shell echo foo 1>&2)
+!,
+              '-w -Oline', "#MAKE#: Entering directory '#PWD#'\nfoo\n#MAKE#: Leaving directory '#PWD#'\n");
+
 # This tells the test driver that the perl test script executed properly.
 1;
