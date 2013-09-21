@@ -100,8 +100,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "%VERSION%"
 
-/* Define to 1 if the C compiler supports function prototypes. */
-#define PROTOTYPES 1
+/* Output sync sypport */
+#define NO_OUTPUT_SYNC
 
 /* Version number of package */
 #define VERSION "%VERSION%"

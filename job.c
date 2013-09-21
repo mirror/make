@@ -894,7 +894,7 @@ reap_children (int block, int err)
                 }
               else
                 {
-#ifdef OUTPUT_SYNC
+#ifndef NO_OUTPUT_SYNC
                   /* If we're sync'ing per line, write the previous line's
                      output before starting the next one.  */
                   if (output_sync == OUTPUT_SYNC_LINE)
@@ -930,10 +930,10 @@ reap_children (int block, int err)
 
       /* When we get here, all the commands for c->file are finished.  */
 
-#ifdef OUTPUT_SYNC
+#ifndef NO_OUTPUT_SYNC
       /* Synchronize any remaining parallel output.  */
       output_dump (&c->output);
-#endif /* OUTPUT_SYNC */
+#endif
 
       /* At this point c->file->update_status is success or failed.  But
          c->file->command_state is still cs_running if all the commands
@@ -1267,12 +1267,12 @@ start_job_command (struct child *child)
 
   OUTPUT_SET (&child->output);
 
-#ifdef OUTPUT_SYNC
+#ifndef NO_OUTPUT_SYNC
   if (! child->output.syncout)
     /* We don't want to sync this command: to avoid misordered
        output ensure any already-synced content is written.  */
     output_dump (&child->output);
-#endif /* OUTPUT_SYNC */
+#endif
 
   /* Print the command if appropriate.  */
   if (just_print_flag || trace_flag
@@ -1592,7 +1592,7 @@ start_job_command (struct child *child)
       /* make sure CreateProcess() has Path it needs */
       sync_Path_environment ();
 
-#ifdef OUTPUT_SYNC
+#ifndef NO_OUTPUT_SYNC
           /* Divert child output if output_sync in use.  Don't capture
              recursive make output unless we are synchronizing "make" mode.  */
           if (child->output.syncout)

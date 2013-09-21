@@ -789,7 +789,7 @@ decode_output_sync_flags (void)
 
 #ifdef WINDOWS32
 
-#ifdef OUTPUT_SYNC
+#ifndef NO_OUTPUT_SYNC
 
 /* This is called from start_job_command when it detects that
    output_sync option is in effect.  The handle to the synchronization
@@ -814,7 +814,7 @@ prepare_mutex_handle_string (sync_handle_t handle)
     }
 }
 
-#endif	/* OUTPUT_SYNC */
+#endif  /* NO_OUTPUT_SYNC */
 
 /*
  * HANDLE runtime exceptions by avoiding a requestor on the GUI. Capture
@@ -1263,7 +1263,7 @@ main (int argc, char **argv, char **envp)
 #ifdef MAKE_JOBSERVER
                            " jobserver"
 #endif
-#ifdef OUTPUT_SYNC
+#ifndef NO_OUTPUT_SYNC
                            " output-sync"
 #endif
 #ifdef MAKE_SYMLINKS
@@ -1560,7 +1560,11 @@ main (int argc, char **argv, char **envp)
             error (NILF, _("warning: -jN forced in submake: disabling jobserver mode."));
         }
 #ifndef WINDOWS32
-#define FD_OK(_f) ((fcntl ((_f), F_GETFD) != -1) || (errno != EBADF))
+#ifdef HAVE_FCNTL
+# define FD_OK(_f) ((fcntl ((_f), F_GETFD) != -1) || (errno != EBADF))
+#else
+# define FD_OK(_f) 1
+#endif
       /* Create a duplicate pipe, that will be closed in the SIGCHLD
          handler.  If this fails with EBADF, the parent has closed the pipe
          on us because it didn't think we were a submake.  If so, print a

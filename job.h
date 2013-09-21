@@ -37,7 +37,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define CLOSE_ON_EXEC(_d) (void) fcntl ((_d), F_SETFD, FD_CLOEXEC)
 #endif
 
-#ifdef OUTPUT_SYNC
+#ifdef NO_OUTPUT_SYNC
+# define RECORD_SYNC_MUTEX(m) \
+    error (NILF, \
+           _("-O[TYPE] (--output-sync[=TYPE]) is not configured for this build."));
+#else
 # ifdef WINDOWS32
 /* For emulations in w32/compat/posixfcn.c.  */
 #  define F_GETFD 1
@@ -69,7 +73,6 @@ int same_stream (FILE *f1, FILE *f2);
 #  define RECORD_SYNC_MUTEX(m) record_sync_mutex(m)
 void record_sync_mutex (const char *str);
 void prepare_mutex_handle_string (intptr_t hdl);
-
 # else  /* !WINDOWS32 */
 
 typedef int sync_handle_t;      /* file descriptor */
@@ -77,11 +80,7 @@ typedef int sync_handle_t;      /* file descriptor */
 #  define RECORD_SYNC_MUTEX(m) (void)(m)
 
 # endif
-#else /* !OUTPUT_SYNC */
-#define RECORD_SYNC_MUTEX(m) \
-   error (NILF, \
-         _("-O[TYPE] (--output-sync[=TYPE]) is not configured for this build."));
-#endif  /* OUTPUT_SYNC */
+#endif  /* !OUTPUT_SYNC */
 
 /* Structure describing a running or dead child process.  */
 

@@ -42,6 +42,12 @@ unsigned int stdio_traced = 0;
 
 #define OUTPUT_ISSET(_out) ((_out)->out >= 0 || (_out)->err >= 0)
 
+#ifdef HAVE_FCNTL
+# define STREAM_OK(_s)    ((fcntl (fileno (_s), F_GETFD) != -1) || (errno != EBADF))
+#else
+# define STREAM_OK(_s)    1
+#endif
+
 /* I really want to move to gnulib.  However, this is a big undertaking
    especially for non-UNIX platforms: how to get bootstrapping to work, etc.
    I don't want to take the time to do it right now.  Use a hack to get a
@@ -178,12 +184,10 @@ set_append_mode (int fd)
 }
 
 
-#ifdef OUTPUT_SYNC
+#ifndef NO_OUTPUT_SYNC
 
 /* Semaphore for use in -j mode with output_sync. */
 static sync_handle_t sync_handle = -1;
-
-#define STREAM_OK(_s)    ((fcntl (fileno (_s), F_GETFD) != -1) || (errno != EBADF))
 
 #define FD_NOT_EMPTY(_f) ((_f) != OUTPUT_NONE && lseek ((_f), 0, SEEK_END) > 0)
 
@@ -409,7 +413,7 @@ output_dump (struct output *out)
         }
     }
 }
-#endif /* OUTPUT_SYNC */
+#endif /* NO_OUTPUT_SYNC */
 
 
 /* Provide support for temporary files.  */
@@ -555,7 +559,7 @@ output_close (struct output *out)
       return;
     }
 
-#ifdef OUTPUT_SYNC
+#ifndef NO_OUTPUT_SYNC
   output_dump (out);
 #endif
 
@@ -571,7 +575,7 @@ output_close (struct output *out)
 void
 output_start ()
 {
-#ifdef OUTPUT_SYNC
+#ifndef NO_OUTPUT_SYNC
   if (output_context && output_context->syncout && ! OUTPUT_ISSET(output_context))
     setup_tmpfile (output_context);
 #endif

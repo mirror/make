@@ -44,7 +44,7 @@ void output_start (void);
 /* Show a message on stdout or stderr.  Will start the output if needed.  */
 void outputs (int is_err, const char *msg);
 
-#ifdef OUTPUT_SYNC
+#ifndef NO_OUTPUT_SYNC
 int output_tmpfd (void);
 /* Dump any child output content to stdout, and reset it.  */
 void output_dump (struct output *out);

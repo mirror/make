@@ -411,5 +411,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define alloca(n)       __ALLOCA(n)
 #endif
 
+/* Output sync sypport */
+#define NO_OUTPUT_SYNC
+
 /* Build host information. */
 #define MAKE_HOST "VMS"

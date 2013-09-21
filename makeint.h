@@ -556,10 +556,6 @@ int strncasecmp (const char *s1, const char *s2, int n);
 # endif
 #endif
 
-#ifdef POSIX
-# define OUTPUT_SYNC
-#endif
-
 #define OUTPUT_SYNC_NONE    0
 #define OUTPUT_SYNC_LINE    1
 #define OUTPUT_SYNC_TARGET  2

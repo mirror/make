@@ -1,5 +1,19 @@
 2013-09-21  Paul Smith  <psmith@gnu.org>
 
+	Invert the output-sync #define to NO_OUTPUT_SYNC
+
+	* configure.ac: Don't set OUTPUT_SYNC.
+	* makeint.h: Ditto.
+	* main.c: Use NO_OUTPUT_SYNC instead of OUTPUT_SYNC.
+	* output.c: Ditto.
+	* output.h: Ditto.
+	* job.h: Ditto.
+	* job.c: Ditto.
+	* config.ami.template: Set NO_OUTPUT_SYNC.
+	* config.h-vms.template: Ditto.
+	* config.h.W32.template: Ditto.
+	* configh.dos.template: Ditto.
+
 	Output generated while reading makefiles should be synced.
 
 	* main.c (make_sync): Define a context for syncing while reading
