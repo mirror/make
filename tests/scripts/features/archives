@@ -11,9 +11,13 @@ exists $FEATURES{archives} or return -1;
 # Create some .o files to work with
 utouch(-60, qw(a1.o a2.o a3.o));
 
+# Some versions of ar print different things on creation.  Find out.
+my $created = `ar rv libxx.a a1.o 2>&1`;
+unlink('libxx.a');
+
 # Very simple
 run_make_test('all: libxx.a(a1.o)',
-              '', "ar rv libxx.a a1.o\nar: creating libxx.a\na - a1.o\n");
+              '', "ar rv libxx.a a1.o\n$created");
 
 # Multiple .o's.  Add a new one to the existing library
 run_make_test('all: libxx.a(a1.o a2.o)',

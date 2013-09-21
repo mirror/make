@@ -1,5 +1,14 @@
 2013-09-21  Paul Smith  <psmith@gnu.org>
 
+	* scripts/features/archives: Some versions of ar (MacOSX) generate
+	different output when creating archives.  Run it and verify the
+	real output.
+	* scripts/features/default_names: MacOSX is, like Windows,
+	case-preserving / case-insensitive.  Redo the test to avoid
+	checking for "UNIX".
+	* test_driver.pl (attach_default_output): Don't dup stdout into
+	stderr.  Reported by Denis Excoffier <bug-tar@Denis-Excoffier.org>
+
 	* scripts/features/se_explicit: Fix a test that behaves
 	differently with/without archive capability enabled.
 	* scripts/features/output-sync: Don't test output-sync if it's not

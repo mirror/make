@@ -220,7 +220,7 @@ sub toplevel
     print "s" unless $total_tests_failed == 1;
     print " in $categories_failed Categor";
     print ($categories_failed == 1 ? "y" : "ies");
-    print " Failed (See .$diffext files in $workdir dir for details) :-(\n\n";
+    print " Failed (See .$diffext* files in $workdir dir for details) :-(\n\n";
     return 0;
   }
   else
@@ -752,6 +752,7 @@ sub attach_default_output
   open($dup, '>&', STDOUT) or error("ado: $! duping STDOUT\n", 1);
   push @OUTSTACK, $dup;
 
+  $dup = undef;
   open($dup, '>&', STDERR) or error("ado: $! duping STDERR\n", 1);
   push @ERRSTACK, $dup;
 
