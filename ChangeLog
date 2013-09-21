@@ -1,5 +1,15 @@
 2013-09-21  Paul Smith  <psmith@gnu.org>
 
+	Output generated while reading makefiles should be synced.
+
+	* main.c (make_sync): Define a context for syncing while reading
+	makefiles and other top-level operations.
+	(main): If we request syncing, enable it while we are parsing
+	options, reading makefiles, etc. to capture that output.  Just
+	before we start to run rules, dump the output if any.
+	(die): Dump any output we've been syncing before we die
+	* output.h (OUTPUT_SET): Disable output_context if not syncout.
+
 	Stderr generated from shell functions in recipes should be synced.
 
 	* job.h (FD_STDIN, FD_STDOUT, FD_STDERR): Create new macros to

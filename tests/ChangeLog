@@ -1,7 +1,10 @@
 2013-09-21  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/output-sync: Test shell functions writing to
-	stderr in recipes: ensure it's captured via output-sync.
+	stderr in recipes: ensure it's captured via output-sync.  Test
+	output generated while reading makefiles and make sure it's
+	captured via output-sync.  Make sure that fatal errors dump the
+	output so it's not lost.
 
 	* scripts/options/dash-w: Add a test for -w flag.
 

@@ -24,7 +24,7 @@ struct output
 extern struct output *output_context;
 extern unsigned int stdio_traced;
 
-#define OUTPUT_SET(_new)    do{ if ((_new)->syncout) output_context = (_new); }while(0)
+#define OUTPUT_SET(_new)    do{ output_context = (_new)->syncout ? (_new) : NULL; }while(0)
 #define OUTPUT_UNSET()      do{ output_context = NULL; }while(0)
 
 #define OUTPUT_TRACED()     do{ stdio_traced = 1; }while(0)

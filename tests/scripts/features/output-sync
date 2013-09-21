@@ -267,5 +267,65 @@ all: ; @: $(shell echo foo 1>&2)
 !,
               '-w -Oline', "#MAKE#: Entering directory '#PWD#'\nfoo\n#MAKE#: Leaving directory '#PWD#'\n");
 
+# Ensure that output generated while parsing makefiles is synced
+# when appropriate.
+run_make_test(q!
+$(shell echo foo 1>&2)
+all: ; echo bar
+!,
+              '-s -w -Otarget', "#MAKE#: Entering directory '#PWD#'\nfoo\n#MAKE#: Leaving directory '#PWD#'\n#MAKE#: Entering directory '#PWD#'\nbar\n#MAKE#: Leaving directory '#PWD#'\n");
+
+# Test recursion
+$m1 = get_tmpfile();
+$m2 = get_tmpfile();
+
+open(M1, "> $m1");
+print M1 <<'EOF';
+$(shell echo d1 stderr 1>&2)
+$(info d1 stdout)
+all:; @:
+EOF
+close(M1);
+
+open(M2, "> $m2");
+print M2 <<'EOF';
+$(shell echo d2 stderr 1>&2)
+$(info d2 stdout)
+all:; @:
+# Force an ordering on the output
+$(shell sleep 1)
+EOF
+close(M2);
+
+run_make_test(qq!
+all: t1 t2
+t1: ; \@\$(MAKE) -f $m1
+t2: ; \@\$(MAKE) -f $m2
+!,
+              "-j -Oline", "#MAKE#[1]: Entering directory '#PWD#'\nd1 stderr\nd1 stdout\n#MAKE#[1]: Leaving directory '#PWD#'\n#MAKE#[1]: Entering directory '#PWD#'\nd2 stderr\nd2 stdout\n#MAKE#[1]: Leaving directory '#PWD#'\n");
+
+rmfiles($m1, $m2);
+
+# Ensure that output generated while parsing makefiles is synced
+# when appropriate.
+$m1 = get_tmpfile();
+
+open(M1, "> $m1");
+print M1 <<'EOF';
+$(shell echo d1 stderr 1>&2)
+$(info d1 stdout)
+$(error d1 failed)
+all:; @:
+EOF
+close(M1);
+
+run_make_test(qq!
+all: t1
+t1: ; -\@\$(MAKE) -f $m1
+!,
+              "-j -Oline", "#MAKE#[1]: Entering directory '#PWD#'\nd1 stderr\nd1 stdout\n$m1:3: *** d1 failed.  Stop.\n#MAKE#[1]: Leaving directory '#PWD#'\n#MAKEFILE#:3: recipe for target 't1' failed\n#MAKE#: [t1] Error 2 (ignored)\n");
+
+rmfiles($m1);
+
 # This tells the test driver that the perl test script executed properly.
 1;
