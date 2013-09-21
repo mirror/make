@@ -185,36 +185,6 @@ inc.mk: ; @touch $@
 delete $extraENV{MAKEFLAGS};
 rmfiles('inc.mk');
 
-if ($all_tests) {
-    # Implicit files aren't properly recreated during parallel builds
-    # Savannah bug #26864
-
-    # The first run works fine
-    run_make_test(q!
-%.bar: %.x foo.y ; cat $^ > $@
-%.x: ; touch $@
-foo.y: foo.y.in ; cp $< $@
-foo.y.in: ; touch $@
-!,
-                  '-j2 main.bar',
-                  "touch foo.y.in
-touch main.x
-cp foo.y.in foo.y
-cat main.x foo.y > main.bar
-rm main.x");
-
-    # Now we touch the .in file and make sure it still works
-    touch('foo.y.in');
-
-    run_make_test(undef, '-j2 main.bar', "cp foo.y.in foo.y
-touch main.x
-cat main.x foo.y > main.bar
-rm main.x");
-
-    # Clean up
-    rmfiles(qw(foo.y foo.y.in main.bar));
-}
-
 # Ensure intermediate/secondary files are not pruned incorrectly.
 # See Savannah bug #30653
 
@@ -231,28 +201,6 @@ file2: file1 ; @touch $@
               '--no-print-directory -j2', "touch file3");
 
 rmfiles('file1', 'file2', 'file3', 'file4');
-
-if ($all_tests) {
-    # Jobserver FD handling is messed up in some way.
-    # Savannah bug #28189
-    # It doesn't look like that bug anymore but this is the code it runs
-
-    run_make_test(q!
-ifdef EXTRA
-vpath %.dst /
-xxx.dst: ; true
-yyy.dst: ; true
-endif
-
-M := $(MAKE)
-xx: ; $M --no-print-directory -j2 -f $(MAKEFILE_LIST) xxx.dst yyy.dst EXTRA=1
-!,
-                  '-j2',
-                  '#MAKE#[1]: warning: -jN forced in submake: disabling jobserver mode.
-true
-true
-');
-}
 
 # Test recursion when make doesn't think it exists.
 # See Savannah bug #39934
