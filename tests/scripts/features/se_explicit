@@ -6,6 +6,9 @@ $details = "";
 # TEST #0: Test handing of '$' in prerequisites with and without second
 # expansion.
 
+# If we don't support archives then the prerequisite is different
+my $prereq = exists $FEATURES{'archives'} ? '$' : '$(PRE)';
+
 run_make_test(q!
 ifdef SE
   .SECONDEXPANSION:
@@ -18,7 +21,7 @@ PRE = three four
 .DEFAULT: ; @echo '$@'
 !,
               '',
-              "\$\nbar\$biz\nfoo\$bar : bar\$baz bar\$biz");
+              "$prereq\nbar\$biz\nfoo\$bar : bar\$baz bar\$biz");
 
 run_make_test(undef, 'SE=1', "three\nfour\nbariz\nfoo\$bar : baraz bariz");
 

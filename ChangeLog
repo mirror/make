@@ -1,5 +1,9 @@
 2013-09-21  Paul Smith  <psmith@gnu.org>
 
+	* maintMakefile (check-alt-config): Create a target to test
+	alternative configurations.  Each one will build make with a
+	different configuration then run the test suite.
+
 	Invert the output-sync #define to NO_OUTPUT_SYNC
 
 	* configure.ac: Don't set OUTPUT_SYNC.

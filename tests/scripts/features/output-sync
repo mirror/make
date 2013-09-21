@@ -4,9 +4,12 @@ $description = "Test --output-sync (-O) option.";
 
 $details = "Test the synchronization of output from parallel jobs.";
 
-if (!$parallel_jobs) {
-  return -1;
-}
+# If we don't have output sync support, never mind.
+exists $FEATURES{'output-sync'} or return -1;
+
+# Output sync can't be tested without parallelization
+$parallel_jobs or return -1;
+
 
 if ($vos) {
   $sleep_command = "sleep -seconds";

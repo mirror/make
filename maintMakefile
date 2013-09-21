@@ -184,9 +184,40 @@ scm-update: get-config/texinfo.tex get-config/config.guess get-config/config.sub
 update: po-update scm-update
 
 
+# ---------------------------------- #
+# Alternative configuration checks.  #
+# ---------------------------------- #
+
+.PHONY: check-alt-config
+check-alt-config: \
+	checkcfg.--disable-job-server \
+	checkcfg.--disable-load \
+	checkcfg.--without-guile \
+	checkcfg.CPPFLAGS^-DNO_OUTPUT_SYNC \
+	checkcfg.CPPFLAGS^-DNO_ARCHIVES
+
+checkcfg.%: distdir
+	@  rm -rf $(distdir)/_build \
+	&& mkdir $(distdir)/_build \
+	&& cd $(distdir)/_build \
+	&& echo "Testing configure with $(subst ^,=,$*)" \
+	&& ../configure --srcdir=.. $(subst ^,=,$*) \
+		$(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS) \
+		CFLAGS='$(AM_CFLAGS)' \
+	&& $(MAKE) $(AM_MAKEFLAGS) \
+	&& $(MAKE) $(AM_MAKEFLAGS) check
+
+
+.PHONY: update
+update: po-update scm-update
+
+
 ## --------------- ##
 ## Sanity checks.  ##
 ## --------------- ##
+
+# Before we build a distribution be sure we run our local checks
+#distdir: local-check
 
 # Checks that don't require Git.  Run 'changelog-check' last as
 # previous test may reveal problems requiring new ChangeLog entries.

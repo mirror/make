@@ -1,5 +1,15 @@
 2013-09-21  Paul Smith  <psmith@gnu.org>
 
+	* scripts/features/se_explicit: Fix a test that behaves
+	differently with/without archive capability enabled.
+	* scripts/features/output-sync: Don't test output-sync if it's not
+	enabled.  We also skip it if parallelism is not enabled, although
+	strictly speaking some of the output-sync tests are valid even
+	without parallelism.
+	* scripts/features/jobserver: Move some tests that require the
+	jobserver from features/parallelism to a separate suite.  Only run
+	this if jobserver mode is enabled.
+
 	* scripts/features/output-sync: Test shell functions writing to
 	stderr in recipes: ensure it's captured via output-sync.  Test
 	output generated while reading makefiles and make sure it's
