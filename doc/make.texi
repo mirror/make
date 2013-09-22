@@ -10910,7 +10910,8 @@ The @code{load} directive and extension capability is considered a
 ``technology preview'' in this release of GNU make.  We encourage you
 to experiment with this feature and we appreciate any feedback on it.
 However we cannot guarantee to maintain backward-compatibility in the
-next release.
+next release.  Consider using GNU Guile instead for extending GNU make
+(@pxref{Guile Function, ,The @code{guile} Function}).
 @end quotation
 @end cartouche
 
@@ -10978,7 +10979,9 @@ same directive.
 The initializing function will be provided the file name and line
 number of the invocation of the @code{load} operation.  It should
 return a value of type @code{int}, which must be @code{0} on failure
-and non-@code{0} on success.
+and non-@code{0} on success.  If the return value is @code{-1}, then
+GNU make will @emph{not} attempt to rebuild the object file
+(@pxref{Remaking Loaded Objects, ,How Loaded Objects Are Remade}).
 
 For example:
 
