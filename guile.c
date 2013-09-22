@@ -72,10 +72,10 @@ guile_define_module (void *data UNUSED)
 #include "gmk-default.h"
 
   /* Register a subr for GNU make's eval capability.  */
-  scm_c_define_gsubr ("gmk-expand", 1, 0, 0, guile_expand_wrapper);
+  scm_c_define_gsubr ("gmk-expand", 1, 0, 0, (scm_t_subr) guile_expand_wrapper);
 
   /* Register a subr for GNU make's eval capability.  */
-  scm_c_define_gsubr ("gmk-eval", 1, 0, 0, guile_eval_wrapper);
+  scm_c_define_gsubr ("gmk-eval", 1, 0, 0, (scm_t_subr) guile_eval_wrapper);
 
   /* Define the rest of the module.  */
   scm_c_eval_string (GUILE_module_defn);

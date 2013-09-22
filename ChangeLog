@@ -1,5 +1,10 @@
 2013-09-22  Paul Smith  <psmith@gnu.org>
 
+	* guile.c (guile_define_module): Technically a void* cannot
+	contain a pointer-to-function and some compilers warn about this.
+	Cast the function pointers.
+	* load.c (load_object): Ditto.
+
 	* read.c (eval): If load_file() returns -1, don't add this to the
 	"to be rebuilt" list.
 	* doc/make.texi (load Directive): Document it.
