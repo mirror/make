@@ -1,3 +1,19 @@
+2013-09-22  Paul Smith  <psmith@gnu.org>
+
+	* run_make_tests.pl (set_more_defaults): If we can't find
+	gnumake.h based on the make program we might be running from a
+	remote build directory.  Parse the Makefile for the right path.
+
+	Fix some test issues on Solaris.
+
+	* scripts/features/archives: Determine what output ar gives when
+	adding and replacing objects and compare with that.
+	* scripts/features/escape: Solaris /bin/sh doesn't properly handle
+	backslashes inside single quotes, so don't rely on it.
+	* scripts/features/output-sync: false(1) gives different exit
+	codes on different systems; use "exit 1" instead.
+	* scripts/features/parallelism: Increase the timeout for slower systems.
+
 2013-09-21  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/archives: Some versions of ar (MacOSX) generate

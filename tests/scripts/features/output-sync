@@ -91,7 +91,7 @@ foo-fail:
 \t\@echo foo-fail: start
 \t\@$wait_bar
 \t\@echo foo-fail: end
-\t\@false
+\t\@exit 1
 EOF
 close(MAKEFILE);
 

@@ -41,7 +41,7 @@ all: 1 2; \@echo success
 1.inc: ; \@echo ONE.inc; $sleep_command 2; echo TWO.inc; echo '1: ; \@echo ONE; $sleep_command 2; echo TWO' > \$\@
 2.inc: ; \@$sleep_command 1; echo THREE.inc; echo '2: ; \@$sleep_command 1; echo THREE' > \$\@",
               "-j4",
-              "ONE.inc\nTHREE.inc\nTWO.inc\nONE\nTHREE\nTWO\nsuccess\n");
+              "ONE.inc\nTHREE.inc\nTWO.inc\nONE\nTHREE\nTWO\nsuccess\n", 0, 7);
 
 rmfiles(qw(1.inc 2.inc));
 
@@ -60,7 +60,7 @@ endif
 1.inc: ; \@echo ONE.inc; $sleep_command 2; echo TWO.inc; echo '1: ; \@echo ONE; $sleep_command 2; echo TWO' > \$\@
 2.inc: ; \@$sleep_command 1; echo THREE.inc; echo '2: ; \@$sleep_command 1; echo THREE' > \$\@",
               "-j4",
-              "ONE.inc\nTHREE.inc\nTWO.inc\nONE\nTHREE\nTWO\nsuccess\n");
+              "ONE.inc\nTHREE.inc\nTWO.inc\nONE\nTHREE\nTWO\nsuccess\n", 0, 7);
 
 rmfiles(qw(1.inc 2.inc));
 

@@ -369,6 +369,15 @@ sub set_more_defaults
        -f "${d}gnumake.h" and $srcdir = $d;
    }
 
+   # Not with the make program, so see if we can get it out of the makefile
+   if (! $srcdir && open(MF, "< ../Makefile")) {
+       local $/ = undef;
+       $_ = <MF>;
+       close(MF);
+       /^abs_srcdir\s*=\s*(.*?)\s*$/m;
+       -f "$1/gnumake.h" and $srcdir = $1;
+   }
+
    # Get Purify log info--if any.
 
    if (exists $ENV{PURIFYOPTIONS}

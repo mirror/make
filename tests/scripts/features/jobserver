@@ -19,6 +19,8 @@ if (!$parallel_jobs) {
 # get one from the original invocation and none from the re-exec.
 # See Savannah bug #18124
 
+unlink('inc.mk');
+
 run_make_test(q!
 -include inc.mk
 recur:
@@ -34,7 +36,7 @@ inc.mk:
 !,
               '--no-print-directory -j2', "#MAKE#[1]: warning: -jN forced in submake: disabling jobserver mode.\nall\n");
 
-rmfiles('inc.mk');
+unlink('inc.mk');
 
 # Test recursion when make doesn't think it exists.
 # See Savannah bug #39934
@@ -54,6 +56,6 @@ default: ; @ #MAKEPATH# -f Makefile2
 "#MAKE#[1]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
 #MAKE#[1]: Nothing to be done for 'foo'.");
 
-unlink('Makefile2');
+rmfiles('Makefile2');
 
 1;
