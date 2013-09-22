@@ -244,5 +244,17 @@ sim_%: \
 
 unlink('a');
 
+# Ensure that order-only tokens embedded in second expansions are parsed
+run_make_test(q!
+.SECONDEXPANSION:
+PREREQS=p1|p2
+P2=p2
+all : foo bar
+f%o: $$(PREREQS) ; @echo '$@' from '$^' and '$|'
+b%r: p1|$$(P2)   ; @echo '$@' from '$^' and '$|'
+p% : ; : $@
+!,
+              "", ": p1\n: p2\nfoo from p1 and p2\nbar from p1 and p2\n");
+
 # This tells the test driver that the perl test script executed properly.
 1;

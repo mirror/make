@@ -574,6 +574,7 @@ pattern_search (struct file *file, int archive,
                 {
                   int add_dir = 0;
                   unsigned int len;
+                  struct dep **dptr;
 
                   nptr = get_next_word (nptr, &len);
                   if (nptr == 0)
@@ -616,6 +617,9 @@ pattern_search (struct file *file, int archive,
                         add_dir = 1;
                     }
 
+                  /* Set up for the next word.  */
+                  nptr += len;
+
                   /* Initialize and set file variables if we haven't already
                      done so. */
                   if (!file_vars_initialized)
@@ -634,20 +638,33 @@ pattern_search (struct file *file, int archive,
 
                   /* Perform the 2nd expansion.  */
                   p = variable_expand_for_file (depname, file);
+                  dptr = &dl;
 
-                  /* Parse the expanded string. */
-                  dl = PARSE_FILE_SEQ (&p, struct dep, order_only ? MAP_NUL : MAP_PIPE,
-                                       add_dir ? dir : NULL, PARSEFS_NONE);
-
-                  for (d = dl; d != NULL; d = d->next)
+                  /* Parse the results into a deps list.  */
+                  do
                     {
-                      ++deps_found;
-                      if (order_only)
-                        d->ignore_mtime = 1;
-                    }
+                      /* Parse the expanded string. */
+                      struct dep *dp = PARSE_FILE_SEQ (&p, struct dep,
+                                                       order_only ? MAP_NUL : MAP_PIPE,
+                                                       add_dir ? dir : NULL, PARSEFS_NONE);
+                      *dptr = dp;
 
-                  /* Set up for the next word.  */
-                  nptr += len;
+                      for (d = dp; d != NULL; d = d->next)
+                        {
+                          ++deps_found;
+                          if (order_only)
+                            d->ignore_mtime = 1;
+                          dptr = &d->next;
+                        }
+
+                      /* If we stopped due to an order-only token, note it.  */
+                      if (*p == '|')
+                        {
+                          order_only = 1;
+                          ++p;
+                        }
+                    }
+                  while (*p != '\0');
                 }
 
               /* If there are more than max_pattern_deps prerequisites (due to

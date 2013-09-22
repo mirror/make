@@ -1,5 +1,9 @@
 2013-09-22  Paul Smith  <psmith@gnu.org>
 
+	* scripts/features/se_implicit: Verify that order-only tokens
+	inside second expansion are parsed correctly.
+	Test for Savannah bug #31155.
+
 	* run_make_tests.pl (set_more_defaults): If we can't find
 	gnumake.h based on the make program we might be running from a
 	remote build directory.  Parse the Makefile for the right path.
