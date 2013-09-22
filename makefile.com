@@ -68,7 +68,7 @@ $   gosub check_cc_qual
 $ endif
 $ filelist = "alloca ar arscan commands default dir expand file function " + -
              "hash implicit job load main misc read remake remote-stub rule " + -
-	     "signame variable version vmsfunctions vmsify vpath " + -
+	     "output signame variable version vmsfunctions vmsify vpath " + -
 	     "[.glob]glob [.glob]fnmatch getopt1 getopt strcache"
 $ copy config.h-vms config.h
 $ n=0

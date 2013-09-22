@@ -17,8 +17,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <dlfcn.h>
 
 #include "makeint.h"
-#include "dep.h"
 #include "filedef.h"
+#include "dep.h"
 #include "variable.h"
 #include "job.h"
 #include "commands.h"

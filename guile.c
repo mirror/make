@@ -18,6 +18,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "gnumake.h"
 
 #include "debug.h"
+#include "filedef.h"
 #include "dep.h"
 #include "variable.h"
 

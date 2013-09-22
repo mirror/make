@@ -16,6 +16,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "makeint.h"
 #include "hash.h"
+#include "filedef.h"
 #include "dep.h"
 
 #ifdef  HAVE_DIRENT_H

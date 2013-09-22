@@ -142,7 +142,7 @@ Ports
   - See README.customs for details on integrating GNU make with the
     Customs distributed build environment from the Pmake distribution.
 
-  - See readme.vms for details about GNU Make on OpenVMS.
+  - See README.VMS for details about GNU Make on OpenVMS.
 
   - See README.Amiga for details about GNU Make on AmigaDOS.
 

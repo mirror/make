@@ -1,3 +1,24 @@
+2013-09-22  Paul Smith  <psmith@gnu.org>
+
+	VMS port updates by Hartmut Becker <becker.ismaning@freenet.de>
+
+	* makefile.com: Add output to the filelist.
+	* output.c (va_copy): Add an implementation of this macro for VMS.
+	* commands.c: Ensure filedef.h is #included before dep.h.
+	* dir.c: Ditto.
+	* file.c: Ditto.
+	* guile.c: Ditto.
+	* main.c: Ditto.
+	* misc.c: Ditto.
+	* read.c: Ditto.
+	* rule.c: Ditto.
+	* variable.c: Ditto.
+	* readme.vms: Renamed to README.VMS and updates for this release.
+	* Makefile.am: Ditto.
+	* NEWS: Ditto.
+	* README.template: Ditto.
+	* Makefile.DOS.template: Ditto.
+
 2013-09-21  Paul Smith  <psmith@gnu.org>
 
 	* maintMakefile (check-alt-config): Create a target to test

@@ -52,9 +52,12 @@ unsigned int stdio_traced = 0;
    especially for non-UNIX platforms: how to get bootstrapping to work, etc.
    I don't want to take the time to do it right now.  Use a hack to get a
    useful version of vsnprintf() for Windows.  */
+#ifdef __VMS
+# define va_copy(_d, _s) ((_d) = (_s))
+#endif
 #ifdef _MSC_VER
-#define va_copy(_d, _s) ((_d) = (_s))
-#define snprintf msc_vsnprintf
+# define va_copy(_d, _s) ((_d) = (_s))
+# define snprintf msc_vsnprintf
 static int
 msc_vsnprintf (char *str, size_t size, const char *format, va_list ap)
 {

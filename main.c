@@ -15,8 +15,8 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "makeint.h"
-#include "dep.h"
 #include "filedef.h"
+#include "dep.h"
 #include "variable.h"
 #include "job.h"
 #include "commands.h"
