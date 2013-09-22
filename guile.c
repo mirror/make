@@ -107,6 +107,15 @@ internal_guile_eval (void *arg)
 static char *
 func_guile (const char *funcname UNUSED, int argc UNUSED, char **argv)
 {
+  static int init = 0;
+
+  if (! init)
+    {
+      /* Initialize the Guile interpreter.  */
+      scm_with_guile (guile_init, NULL);
+      init = 1;
+    }
+
   if (argv[0] && argv[0][0] != '\0')
     return scm_with_guile (internal_guile_eval, argv[0]);
 
@@ -120,9 +129,6 @@ func_guile (const char *funcname UNUSED, int argc UNUSED, char **argv)
 int
 guile_gmake_setup (const gmk_floc *flocp UNUSED)
 {
-  /* Initialize the Guile interpreter.  */
-  scm_with_guile (guile_init, NULL);
-
   /* Create a make function "guile".  */
   gmk_add_function ("guile", func_guile, 0, 1, 1);
 

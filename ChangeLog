@@ -1,5 +1,11 @@
 2013-09-22  Paul Smith  <psmith@gnu.org>
 
+	* guile.c (guile_gmake_setup): Don't initialize Guile so early.
+	(func_guile): Lazily initialize Guile the first time the $(guile ..)
+	function is invoked.  Guile can steal file descriptors which
+	confuses our jobserver FD checking, so we don't want to initialize
+	it before we have to.
+
 	VMS port updates by Hartmut Becker <becker.ismaning@freenet.de>
 
 	* makefile.com: Add output to the filelist.
