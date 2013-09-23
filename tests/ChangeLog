@@ -1,3 +1,9 @@
+2013-09-23  Paul Smith  <psmith@gnu.org>
+
+	* scripts/options/print-directory: Rename dash-w to
+	print-directory to avoid conflicts with dash-W on case-insensitive
+	filesystems.
+
 2013-09-22  Paul Smith  <psmith@gnu.org>
 
 	* scripts/features/se_implicit: Verify that order-only tokens
