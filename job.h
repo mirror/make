@@ -80,7 +80,7 @@ typedef int sync_handle_t;      /* file descriptor */
 #  define RECORD_SYNC_MUTEX(m) (void)(m)
 
 # endif
-#endif  /* !OUTPUT_SYNC */
+#endif  /* !NO_OUTPUT_SYNC */
 
 /* Structure describing a running or dead child process.  */
 

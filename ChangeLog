@@ -1,3 +1,9 @@
+2013-09-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32/compat/posixfcn.c: Fix the forgotten OUTPUT_SYNC conditional.
+
+	* job.h: Ditto, but in a comment.
+
 2013-09-22  Paul Smith  <psmith@gnu.org>
 
 	* configure.ac: Update version to 3.99.92.

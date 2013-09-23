@@ -26,7 +26,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "makeint.h"
 #include "job.h"
 
-#ifdef OUTPUT_SYNC
+#ifdef NO_OUTPUT_SYNC
 /* Support for OUTPUT_SYNC and related functionality.  */
 
 /* Emulation of fcntl that supports only F_GETFD and F_SETLKW.  */
@@ -257,7 +257,7 @@ same_stream (FILE *f1, FILE *f2)
   return 0;
 }
 
-#endif	/* OUTPUT_SYNC */
+#endif	/* !NO_OUTPUT_SYNC */
 
 #if MAKE_LOAD
 
