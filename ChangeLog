@@ -1,5 +1,8 @@
 2013-09-22  Paul Smith  <psmith@gnu.org>
 
+	* configure.ac: Update version to 3.99.92.
+	* NEWS: Ditto.
+
 	* implicit.c (pattern_search): After second expansion be sure to
 	handle order-only markers inside the expansion properly.
 	Fixes Savannah bug #31155.

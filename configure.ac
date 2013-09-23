@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT([GNU make],[3.99.91],[bug-make@gnu.org])
+AC_INIT([GNU make],[3.99.92],[bug-make@gnu.org])
 
 AC_PREREQ([2.62])
 
@@ -62,7 +62,7 @@ AC_HEADER_DIRENT
 AC_HEADER_STAT
 AC_HEADER_TIME
 AC_CHECK_HEADERS([stdlib.h locale.h unistd.h limits.h fcntl.h string.h \
-		  memory.h sys/param.h sys/resource.h sys/time.h sys/timeb.h])
+                  memory.h sys/param.h sys/resource.h sys/time.h sys/timeb.h])
 
 AM_PROG_CC_C_O
 AC_C_CONST
@@ -90,12 +90,12 @@ AC_CACHE_CHECK([whether to use high resolution file timestamps],
 #if HAVE_INTTYPES_H
 # include <inttypes.h>
 #endif]],
-	              [[char a[0x7fffffff < (uintmax_t)-1 >> 30 ? 1 : -1];]])],
+                      [[char a[0x7fffffff < (uintmax_t)-1 >> 30 ? 1 : -1];]])],
         [make_cv_file_timestamp_hi_res=yes])
   ])])
 AS_IF([test "$make_cv_file_timestamp_hi_res" = yes], [val=1], [val=0])
 AC_DEFINE_UNQUOTED([FILE_TIMESTAMP_HI_RES], [$val],
-		   [Use high resolution file timestamps if nonzero.])
+                   [Use high resolution file timestamps if nonzero.])
 
 AS_IF([test "$make_cv_file_timestamp_hi_res" = yes],
 [ # Solaris 2.5.1 needs -lposix4 to get the clock_gettime function.
@@ -103,7 +103,7 @@ AS_IF([test "$make_cv_file_timestamp_hi_res" = yes],
   AC_SEARCH_LIBS([clock_gettime], [rt posix4])
   AS_IF([test "$ac_cv_search_clock_gettime" != no],
   [ AC_DEFINE([HAVE_CLOCK_GETTIME], [1],
-	      [Define to 1 if you have the clock_gettime function.])
+              [Define to 1 if you have the clock_gettime function.])
   ])
 ])
 
@@ -117,24 +117,24 @@ AC_CACHE_CHECK([for standard gettimeofday], [ac_cv_func_gettimeofday],
   [ac_cv_func_gettimeofday=no
    AC_RUN_IFELSE([AC_LANG_SOURCE([[#include <sys/time.h>
                   int main ()
-	          {
-		    struct timeval t; t.tv_sec = -1; t.tv_usec = -1;
-		    exit (gettimeofday (&t, 0) != 0
-		          || t.tv_sec < 0 || t.tv_usec < 0);
-	          }]])],
-		  [ac_cv_func_gettimeofday=yes],
-		  [ac_cv_func_gettimeofday=no],
-		  [ac_cv_func_gettimeofday="no (cross-compiling)"])])
+                  {
+                    struct timeval t; t.tv_sec = -1; t.tv_usec = -1;
+                    exit (gettimeofday (&t, 0) != 0
+                          || t.tv_sec < 0 || t.tv_usec < 0);
+                  }]])],
+                  [ac_cv_func_gettimeofday=yes],
+                  [ac_cv_func_gettimeofday=no],
+                  [ac_cv_func_gettimeofday="no (cross-compiling)"])])
 AS_IF([test "$ac_cv_func_gettimeofday" = yes],
 [ AC_DEFINE([HAVE_GETTIMEOFDAY], [1],
-	    [Define to 1 if you have a standard gettimeofday function])
+            [Define to 1 if you have a standard gettimeofday function])
 ])
 
 AC_CHECK_FUNCS([strdup strndup mkstemp mktemp fdopen fileno \
-	        dup dup2 getcwd realpath sigsetmask sigaction \
+                dup dup2 getcwd realpath sigsetmask sigaction \
                 getgroups seteuid setegid setlinebuf setreuid setregid \
                 getrlimit setrlimit setvbuf pipe strerror strsignal \
-		lstat readlink atexit])
+                lstat readlink atexit])
 
 # We need to check declarations, not just existence, because on Tru64 this
 # function is not declared without special flags, which themselves cause
@@ -181,11 +181,11 @@ AC_FUNC_GETLOADAVG
 
 AS_IF([test "$ac_cv_header_nlist_h" = yes],
 [ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <nlist.h>]],
-	[[struct nlist nl;
+        [[struct nlist nl;
           nl.n_name = "string";
           return 0;]])],
-	[make_cv_nlist_struct=yes],
-	[make_cv_nlist_struct=no])
+        [make_cv_nlist_struct=yes],
+        [make_cv_nlist_struct=no])
   AS_IF([test "$make_cv_nlist_struct" = yes],
   [ AC_DEFINE([NLIST_STRUCT], [1],
        [Define to 1 if struct nlist.n_name is a pointer rather than an array.])
@@ -244,7 +244,7 @@ AC_SUBST([REMOTE]) REMOTE=stub
 use_customs=false
 AC_ARG_WITH([customs],
 [ AC_HELP_STRING([--with-customs=DIR],
-		 [enable remote jobs via Customs--see README.customs])],
+                 [enable remote jobs via Customs--see README.customs])],
 [ AS_CASE([$withval], [n|no], [:],
     [make_cppflags="$CPPFLAGS"
      AS_CASE([$withval],
@@ -254,7 +254,7 @@ AC_ARG_WITH([customs],
      CF_NETLIBS
      AC_CHECK_HEADER([customs.h],
                      [use_customs=true
-		      REMOTE=cstms
+                      REMOTE=cstms
                       LIBS="$LIBS -lcustoms" LDFLAGS="$make_ldflags"],
                      [with_customs=no
                       CPPFLAGS="$make_cppflags" make_badcust=yes])
@@ -268,7 +268,7 @@ AM_CONDITIONAL([USE_CUSTOMS], [test "$use_customs" = true])
 AH_TEMPLATE([HAVE_CASE_INSENSITIVE_FS], [Use case insensitive file names])
 AC_ARG_ENABLE([case-insensitive-file-system],
   AC_HELP_STRING([--enable-case-insensitive-file-system],
-		 [assume file systems are case insensitive]),
+                 [assume file systems are case insensitive]),
   [AS_IF([test "$enableval" = yes], [AC_DEFINE([HAVE_CASE_INSENSITIVE_FS])])])
 
 # See if we can handle the job server feature, and if the user wants it.
@@ -368,7 +368,7 @@ AC_CACHE_CHECK([for location of SCCS get command], [make_cv_path_sccs_get], [
         [make_cv_path_sccs_get=get])
 ])
 AC_DEFINE_UNQUOTED([SCCS_GET], ["$make_cv_path_sccs_get"],
-	           [Define to the name of the SCCS 'get' command.])
+                   [Define to the name of the SCCS 'get' command.])
 
 ac_clean_files="$ac_clean_files s.conftest conftoast" # Remove these later.
 AS_IF([(/usr/sccs/admin -n s.conftest || admin -n s.conftest) >/dev/null 2>&1 &&
