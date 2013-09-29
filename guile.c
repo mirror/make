@@ -24,6 +24,15 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <libguile.h>
 
+/* Pre-2.0 versions of Guile don't have a typedef for gsubr function types.  */
+#if SCM_MAJOR_VERSION < 2
+# define GSUBR_TYPE               SCM (*) ()
+/* Guile 1.x doesn't really support i18n.  */
+# define scm_from_utf8_string(_s) (_s)
+#else
+# define GSUBR_TYPE     scm_t_subr
+#endif
+
 static SCM make_mod = SCM_EOL;
 static SCM obj_to_str = SCM_EOL;
 
@@ -72,10 +81,10 @@ guile_define_module (void *data UNUSED)
 #include "gmk-default.h"
 
   /* Register a subr for GNU make's eval capability.  */
-  scm_c_define_gsubr ("gmk-expand", 1, 0, 0, (scm_t_subr) guile_expand_wrapper);
+  scm_c_define_gsubr ("gmk-expand", 1, 0, 0, (GSUBR_TYPE) guile_expand_wrapper);
 
   /* Register a subr for GNU make's eval capability.  */
-  scm_c_define_gsubr ("gmk-eval", 1, 0, 0, (scm_t_subr) guile_eval_wrapper);
+  scm_c_define_gsubr ("gmk-eval", 1, 0, 0, (GSUBR_TYPE) guile_eval_wrapper);
 
   /* Define the rest of the module.  */
   scm_c_eval_string (GUILE_module_defn);
@@ -100,7 +109,7 @@ guile_init (void *arg UNUSED)
 static void *
 internal_guile_eval (void *arg)
 {
-  return cvt_scm_to_str (scm_c_eval_string (arg));
+  return cvt_scm_to_str (scm_eval_string (scm_from_utf8_string (arg)));
 }
 
 /* This is the function registered with make  */

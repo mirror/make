@@ -99,30 +99,6 @@ The Rest of the List
     you just can't figure it out.  The way variables are expanded now
     means this isn't 100% trivial, but it probably won't be hard.
 
- 8) Integration of Guile as an embedded scripting language.  This means:
-    allowing Guile functions to be declared in makefiles somehow, then
-    providing a syntax for invoking them.  At least one formulation of
-    that would have the function resolve to a string which would be
-    substituted in the makefile, kind of like $(shell ...) does now, but
-    using the embedded interpreter so there's no process forked of
-    course.  Obviously this is an optional add-on feature.
-
-    It could be more advanced than that, even, who knows?  Maybe make
-    could provide Guile functions that allow Guile scripts more direct
-    access to internal make structures, somehow.  This kind of thing
-    needs a lot of thought.
-
-    Also there's always the flip side: in some very fundamental ways
-    make isn't the best choice right now for a complex build tool.  It's
-    great for simple-to-medium tasks, but there are already other tools
-    available for the really tough situations.  Ask yourself,
-    realistically, how much work is worthwhile to add to make, given the
-    fundamentals you can't really overcome without significantly
-    affecting backward compatibility--and then why not use another tool
-    in the first place?
-
-    Something to think about.
-
 
 -------------------------------------------------------------------------------
 Copyright (C) 1997-2013 Free Software Foundation, Inc.

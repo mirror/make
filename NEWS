@@ -23,6 +23,14 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
   * Each backslash/newline (plus subsequent whitespace) is converted to a
     single space
 
+* New feature: GNU Guile integration
+  This version of GNU make can be compiled with GNU Guile integration.
+  GNU Guile serves as an embedded extension language for make.
+  See the "Guile Function" section in the GNU Make manual for details.
+  Currently GNU Guile 1.8 and 2.0+ are supported.  In Guile 1.8 there is no
+  support for internationalized character sets.  In Guile 2.0+, scripts can be
+  encoded in UTF-8.
+
 * New command line option: --output-sync (-O) enables grouping of output by
   target or by recursive make.  This is useful during parallel builds to avoid
   mixing output from different jobs together giving hard-to-understand
@@ -47,6 +55,8 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
 
 * New feature: "!=" shell assignment operator as an alternative to the
   $(shell ...) function.  Implemented for compatibility with BSD makefiles.
+  Note there are subtle differences between "!=" and $(shell ...).  See the
+  description in the GNU make manual.
   WARNING: Backward-incompatibility!
   Variables ending in "!" previously defined as "variable!= value" will now be
   interpreted as shell assignment.  Change your assignment to add whitespace
@@ -57,11 +67,6 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
   portable to any implementation of make conforming to a sufficiently new
   version of POSIX (see http://austingroupbugs.net/view.php?id=330).  It is
   not necessary to define the .POSIX target to access this operator.
-
-* New feature: GNU Guile integration
-  This version of GNU make can be compiled with GNU Guile integration.
-  GNU Guile serves as an embedded extension language for make.
-  See the "Guile Function" section in the GNU Make manual for details.
 
 * New feature: Loadable objects
   This version of GNU make contains a "technology preview": the ability to

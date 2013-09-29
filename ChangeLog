@@ -1,5 +1,10 @@
 2013-09-29  Paul Smith  <psmith@gnu.org>
 
+	* guile.c (GSUBR_TYPE): Pre-2.0 Guile doesn't provide a typedef
+	for gsubr pointers.  Create one.
+	(guile_define_module): Use it.
+	(internal_guile_eval): Force UTF-8 encoding for Guile strings.
+
 	* main.c (main): Clear GNUMAKEFLAGS after parsing, to avoid
 	proliferation of options.
 	* NEWS: Document it.
