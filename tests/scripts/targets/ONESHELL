@@ -4,6 +4,10 @@ $description = "Test the behaviour of the .ONESHELL target.";
 
 $details = "";
 
+# Some shells (*shakes fist at Solaris*) cannot handle multiple flags in
+# separate arguments.
+my $t = `/bin/sh -e -c true 2>/dev/null`;
+my $multi_ok = $? == 0;
 
 # Simple
 
@@ -19,7 +23,8 @@ all:
 
 # Simple but use multi-word SHELLFLAGS
 
-run_make_test(q!
+if ($multi_ok) {
+    run_make_test(q!
 .ONESHELL:
 .SHELLFLAGS = -e -c
 all:
@@ -29,6 +34,7 @@ all:
               '', 'a=$$
 [ 0"$a" -eq "$$" ] || echo fail
 ');
+}
 
 # Again, but this time with inner prefix chars
 

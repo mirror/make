@@ -1,5 +1,9 @@
 2013-09-29  Paul Smith  <psmith@gnu.org>
 
+	* scripts/variables/SHELL: Solaris /bin/sh can't handle options in
+	multiple words; skip that test.
+	* scripts/targets/ONESHELL: Ditto.
+
 	* scripts/variables/GNUMAKEFLAGS: Verify that GNUMAKEFLAGS is
 	cleared and options are not duplicated.
 

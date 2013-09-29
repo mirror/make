@@ -71,12 +71,20 @@ all: ; \@$script
               '', $out);
 
 # Do it again but add spaces to SHELLFLAGS
-$flags = '-x -c';
-run_make_test(qq!
+
+# Some shells (*shakes fist at Solaris*) cannot handle multiple flags in
+# separate arguments.
+my $t = `/bin/sh -e -c true 2>/dev/null`;
+my $multi_ok = $? == 0;
+
+if ($multi_ok) {
+    $flags = '-x -c';
+    run_make_test(qq!
 .SHELLFLAGS = $flags
 all: ; \@$script
 !,
               '', $out);
+}
 
 # We can't just use "false" because on different systems it provides a
 # different exit code--once again Solaris: false exits with 255 not 1
