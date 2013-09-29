@@ -22,7 +22,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <assert.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <unistd.h>
+
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
@@ -32,6 +35,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef WINDOWS32
 # include <windows.h>
+# include <io.h>
 # include "sub_proc.h"
 #endif /* WINDOWS32 */
 

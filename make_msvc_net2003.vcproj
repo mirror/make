@@ -172,6 +172,9 @@
 				RelativePath=".\job.c">
 			</File>
 			<File
+				RelativePath=".\load.c">
+			</File>
+			<File
 				RelativePath=".\output.c">
 			</File>
 			<File
@@ -209,6 +212,9 @@
 				Filter="">
 				<File
 					RelativePath=".\w32\compat\dirent.c">
+				</File>
+				<File
+					RelativePath=".\w32\compat\posixfcn.c">
 				</File>
 				<File
 					RelativePath=".\w32\subproc\misc.c">

@@ -1,5 +1,10 @@
 2013-09-29  Paul Smith  <psmith@gnu.org>
 
+	* output.c: Guard unistd.h inclusion, add io.h.
+	* gnumake.h: Move GMK_EXPORT before the declarations.
+	* make_msvc_net2003.vcproj: Add missing files.
+	Changes for MSVC suggested by Gerte Hoogewerf <g.hoogewerf@gmail.com>
+
 	* function.c (func_shell_base) [EMX]: Fix EMX support for output-sync.
 	* job.c (child_execute_job) [EMX]: Ditto.
 	* job.h (child_execute_job) [EMX]: Ditto.

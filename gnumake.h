@@ -38,17 +38,17 @@ typedef struct
 #endif
 
 /* Free memory returned by the gmk_expand() function.  */
-void GMK_EXPORT gmk_free (char *str);
+GMK_EXPORT void gmk_free (char *str);
 
 /* Allocate memory in GNU make's context.  */
-char * GMK_EXPORT gmk_alloc (unsigned int len);
+GMK_EXPORT char *gmk_alloc (unsigned int len);
 
 /* Run $(eval ...) on the provided string BUFFER.  */
-void GMK_EXPORT gmk_eval (const char *buffer, const gmk_floc *floc);
+GMK_EXPORT void gmk_eval (const char *buffer, const gmk_floc *floc);
 
 /* Run GNU make expansion on the provided string STR.
    Returns an allocated buffer that the caller must free with gmk_free().  */
-char * GMK_EXPORT gmk_expand (const char *str);
+GMK_EXPORT char *gmk_expand (const char *str);
 
 /* Register a new GNU make function NAME (maximum of 255 chars long).
    When the function is expanded in the makefile, FUNC will be invoked with
@@ -65,7 +65,7 @@ char * GMK_EXPORT gmk_expand (const char *str);
    If EXPAND_ARGS is 0, the arguments to the function will not be expanded
    before FUNC is called.  If EXPAND_ARGS is non-0, they will be expanded.
 */
-void GMK_EXPORT gmk_add_function (const char *name,
+GMK_EXPORT void gmk_add_function (const char *name,
                                   char *(*func)(const char *nm,
                                                 int argc, char **argv),
                                   int min_args, int max_args, int expand_args);
