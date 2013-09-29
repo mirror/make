@@ -128,7 +128,7 @@ int child_execute_job (char *argv, struct child *child);
 # define FD_STDERR      (fileno (stderr))
 # if defined(__EMX__)
 int child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
-                       char **argv, char **envp)
+                       char **argv, char **envp);
 # else
 void child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
                         char **argv, char **envp) __attribute__ ((noreturn));

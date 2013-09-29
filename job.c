@@ -2234,7 +2234,7 @@ child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
   /* Restore stdout/stdin/stderr of the parent and close temporary FDs.  */
   if (save_stdin >= 0)
     {
-      if (dup2 (save_stdin, FD_STDIN) != 0)
+      if (dup2 (save_stdin, FD_STDIN) != FD_STDIN)
         fatal (NILF, _("Could not restore stdin\n"));
       else
         close (save_stdin);
@@ -2242,7 +2242,7 @@ child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
 
   if (save_stdout >= 0)
     {
-      if (dup2 (save_stdout, FD_STDOUT) != 0)
+      if (dup2 (save_stdout, FD_STDOUT) != FD_STDOUT)
         fatal (NILF, _("Could not restore stdout\n"));
       else
         close (save_stdout);
@@ -2250,7 +2250,7 @@ child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
 
   if (save_stderr >= 0)
     {
-      if (dup2 (save_stderr, FD_STDERR) != 0)
+      if (dup2 (save_stderr, FD_STDERR) != FD_STDERR)
         fatal (NILF, _("Could not restore stderr\n"));
       else
         close (save_stderr);

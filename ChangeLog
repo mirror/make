@@ -1,5 +1,10 @@
 2013-09-29  Paul Smith  <psmith@gnu.org>
 
+	* function.c (func_shell_base) [EMX]: Fix EMX support for output-sync.
+	* job.c (child_execute_job) [EMX]: Ditto.
+	* job.h (child_execute_job) [EMX]: Ditto.
+	* w32/compat/posixfcn.c: Invert the test for NO_OUTPUT_SYNC.
+
 	* guile.c (GSUBR_TYPE): Pre-2.0 Guile doesn't provide a typedef
 	for gsubr pointers.  Create one.
 	(guile_define_module): Use it.

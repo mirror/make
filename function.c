@@ -1652,15 +1652,15 @@ func_shell_base (char *o, char **argv, int trim_newlines)
 #endif
 
   /* Using a target environment for 'shell' loses in cases like:
-     export var = $(shell echo foobie)
-     because target_environment hits a loop trying to expand $(var)
-     to put it in the environment.  This is even more confusing when
-     var was not explicitly exported, but just appeared in the
-     calling environment.
+       export var = $(shell echo foobie)
+       bad := $(var)
+     because target_environment hits a loop trying to expand $(var) to put it
+     in the environment.  This is even more confusing when var was not
+     explicitly exported, but just appeared in the calling environment.
 
      See Savannah bug #10593.
 
-  envp = target_environment (NILF);
+  envp = target_environment (NULL);
   */
 
   envp = environ;
@@ -1710,7 +1710,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
   CLOSE_ON_EXEC(pipedes[1]);
   CLOSE_ON_EXEC(pipedes[0]);
   /* Never use fork()/exec() here! Use spawn() instead in exec_command() */
-  pid = child_execute_job (FD_STDIN, pipedes[1], FD_STDOUT, command_argv, envp);
+  pid = child_execute_job (FD_STDIN, pipedes[1], FD_STDERR, command_argv, envp);
   if (pid < 0)
     perror_with_name (error_prefix, "spawn");
 # else /* ! __EMX__ */
