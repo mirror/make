@@ -23,4 +23,18 @@ all: ; @echo $(MAKEFLAGS)
 echo erR --trace --no-print-directory
 erR --trace --no-print-directory");
 
+# Verify that re-exec / recursion doesn't duplicate flags from GNUMAKEFLAGS
+
+$extraENV{GNUMAKEFLAGS} = '-I/tmp -Oline';
+
+run_make_test(q!
+recurse: ; @echo $@; echo MAKEFLAGS = $$MAKEFLAGS; echo GNUMAKEFLAGS = $$GNUMAKEFLAGS; #MAKEPATH# -f #MAKEFILE# all
+all: ; @echo $@; echo MAKEFLAGS = $$MAKEFLAGS; echo GNUMAKEFLAGS = $$GNUMAKEFLAGS
+-include x.mk
+x.mk: ; @echo $@; echo MAKEFLAGS = $$MAKEFLAGS; echo GNUMAKEFLAGS = $$GNUMAKEFLAGS; echo > $@
+!,
+              "", "x.mk\nMAKEFLAGS = -I/tmp -Oline\nGNUMAKEFLAGS =\nrecurse\nMAKEFLAGS = -I/tmp -Oline\nGNUMAKEFLAGS =\n#MAKE#[1]: Entering directory '#PWD#'\nall\nMAKEFLAGS = w -I/tmp -Oline\nGNUMAKEFLAGS =\n#MAKE#[1]: Leaving directory '#PWD#'\n");
+
+unlink('x.mk');
+
 1;

@@ -73,7 +73,8 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
 * New variable: $(GNUMAKEFLAGS) will be parsed for make flags, just like
   MAKEFLAGS is.  It can be set in the environment or the makefile, containing
   GNU make-specific flags to allow your makefile to be portable to other
-  versions of make.  GNU make never sets or modifies GNUMAKEFLAGS.
+  versions of make.  Once this variable is parsed, GNU make will set it to the
+  empty string so that flags will not be duplicated on recursion.
 
 * New variable: `MAKE_HOST' gives the name of the host architecture
   make was compiled for.  This is the same value you see after 'Built for'
@@ -81,8 +82,10 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set
 
 * Behavior of MAKEFLAGS and MFLAGS is more rigorously defined.  All simple
   flags are grouped together in the first word of MAKEFLAGS.  No options that
-  accept arguments appear there.  If no simple flags are present MAKEFLAGS
-  begins with a space.  MFLAGS never begins with "- ".
+  accept arguments appear in the first word.  If no simple flags are present
+  MAKEFLAGS begins with a space.  Flags with both short and long versions
+  always use the short versions in MAKEFLAGS.  Flags are listed in
+  alphabetical order using ASCII ordering.  MFLAGS never begins with "- ".
 
 * Setting the -r and -R options in MAKEFLAGS inside a makefile now works as
   expected, removing all built-in rules and variables, respectively.

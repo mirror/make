@@ -1,3 +1,8 @@
+2013-09-29  Paul Smith  <psmith@gnu.org>
+
+	* scripts/variables/GNUMAKEFLAGS: Verify that GNUMAKEFLAGS is
+	cleared and options are not duplicated.
+
 2013-09-23  Paul Smith  <psmith@gnu.org>
 
 	* scripts/options/print-directory: Rename dash-w to

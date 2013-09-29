@@ -1,3 +1,10 @@
+2013-09-29  Paul Smith  <psmith@gnu.org>
+
+	* main.c (main): Clear GNUMAKEFLAGS after parsing, to avoid
+	proliferation of options.
+	* NEWS: Document it.
+	* doc/make.texi (Options/Recursion): Ditto.
+
 2013-09-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32/compat/posixfcn.c: Fix the forgotten OUTPUT_SYNC conditional.
