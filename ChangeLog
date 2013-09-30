@@ -1,3 +1,7 @@
+2013-09-30  Paul Smith  <psmith@gnu.org>
+
+	* guile.c: Portability fixes for Guile 1.8.
+
 2013-09-29  Paul Smith  <psmith@gnu.org>
 
 	* output.c (output_dump): Always write Enter/Leave messages to stdio.

@@ -26,11 +26,12 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Pre-2.0 versions of Guile don't have a typedef for gsubr function types.  */
 #if SCM_MAJOR_VERSION < 2
-# define GSUBR_TYPE               SCM (*) ()
+# define GSUBR_TYPE         SCM (*) ()
 /* Guile 1.x doesn't really support i18n.  */
-# define scm_from_utf8_string(_s) (_s)
+# define EVAL_STRING(_s)    scm_c_eval_string (_s)
 #else
-# define GSUBR_TYPE     scm_t_subr
+# define GSUBR_TYPE         scm_t_subr
+# define EVAL_STRING(_s)    scm_eval_string (scm_from_utf8_string (_s))
 #endif
 
 static SCM make_mod = SCM_EOL;
@@ -109,7 +110,7 @@ guile_init (void *arg UNUSED)
 static void *
 internal_guile_eval (void *arg)
 {
-  return cvt_scm_to_str (scm_eval_string (scm_from_utf8_string (arg)));
+  return cvt_scm_to_str (EVAL_STRING (arg));
 }
 
 /* This is the function registered with make  */

@@ -7,7 +7,7 @@ It builds with the MinGW port of GCC (tested with GCC 3.4.2).
 It also builds with MSVC 2.x, 4.x, 5.x, 6.x, and 2003 as well as
 with .NET 7.x and .NET 2003.
 
-As of version 3.83, a build with Guile is supported (tested with Guile
+As of version 4.0, a build with Guile is supported (tested with Guile
 2.0.3).  To build with Guile, you will need, in addition to Guile
 itself, its dependency libraries and the pkg-config program.  The
 latter is used to figure out which compilation and link switches and
