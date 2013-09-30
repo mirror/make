@@ -1295,64 +1295,62 @@ main (int argc, char **argv, char **envp)
 
     for (i = 0; envp[i] != 0; ++i)
       {
-        int do_not_define = 0;
+        struct variable *v;
         char *ep = envp[i];
+        /* By default, export all variables culled from the environment.  */
+        enum variable_export export = v_export;
+        unsigned int len;
 
         while (! STOP_SET (*ep, MAP_EQUALS))
           ++ep;
+
+        /* If there's no equals sign it's a malformed environment.  Ignore.  */
+        if (*ep == '\0')
+          continue;
+
 #ifdef WINDOWS32
         if (!unix_path && strneq (envp[i], "PATH=", 5))
           unix_path = ep+1;
         else if (!strnicmp (envp[i], "Path=", 5))
           {
-            do_not_define = 1; /* it gets defined after loop exits */
             if (!windows32_path)
               windows32_path = ep+1;
+            /* PATH gets defined after the loop exits.  */
+            continue;
           }
 #endif
-        /* The result of pointer arithmetic is cast to unsigned int for
-           machines where ptrdiff_t is a different size that doesn't widen
-           the same.  */
-        if (!do_not_define)
+
+        /* Length of the variable name, and skip the '='.  */
+        len = ep++ - envp[i];
+
+        /* If this is MAKE_RESTARTS, check to see if the "already printed
+           the enter statement" flag is set.  */
+        if (len == 13 && strneq (envp[i], "MAKE_RESTARTS", 13))
           {
-            struct variable *v;
-
-            v = define_variable (envp[i], (unsigned int) (ep - envp[i]),
-                                 ep + 1, o_env, 1);
-            /* Force exportation of every variable culled from the
-               environment.  We used to rely on target_environment's
-               v_default code to do this.  But that does not work for the
-               case where an environment variable is redefined in a makefile
-               with 'override'; it should then still be exported, because it
-               was originally in the environment.  */
-            v->export = v_export;
-
-            /* Another wrinkle is that POSIX says the value of SHELL set in
-               the makefile won't change the value of SHELL given to
-               subprocesses.  */
-            if (streq (v->name, "SHELL"))
+            if (*ep == '-')
               {
-#ifndef __MSDOS__
-                v->export = v_noexport;
-#endif
-                shell_var.name = "SHELL";
-                shell_var.length = 5;
-                shell_var.value = xstrdup (ep + 1);
+                OUTPUT_TRACED ();
+                ++ep;
               }
-
-            /* If MAKE_RESTARTS is set, remember it but don't export it.
-               If it's negative, it means the "enter" message was printed.  */
-            else if (streq (v->name, "MAKE_RESTARTS"))
-              {
-                v->export = v_noexport;
-                if (*(++ep) == '-')
-                  {
-                    OUTPUT_TRACED ();
-                    ++ep;
-                  }
-                restarts = (unsigned int) atoi (ep);
-              }
+            restarts = (unsigned int) atoi (ep);
+            export = v_noexport;
           }
+
+        v = define_variable (envp[i], len, ep, o_env, 1);
+
+        /* POSIX says the value of SHELL set in the makefile won't change the
+           value of SHELL given to subprocesses.  */
+        if (streq (v->name, "SHELL"))
+          {
+#ifndef __MSDOS__
+            export = v_noexport;
+#endif
+            shell_var.name = "SHELL";
+            shell_var.length = 5;
+            shell_var.value = xstrdup (ep);
+          }
+
+        v->export = export;
       }
   }
 #ifdef WINDOWS32

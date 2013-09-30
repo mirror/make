@@ -1620,7 +1620,7 @@ char *
 func_shell_base (char *o, char **argv, int trim_newlines)
 {
   char *batch_filename = NULL;
-
+  int errfd;
 #ifdef __MSDOS__
   FILE *fpipe;
 #endif
@@ -1636,9 +1636,9 @@ func_shell_base (char *o, char **argv, int trim_newlines)
      are used to run the commands, because we normally refrain from
      creating batch files under -n.  */
   int j_p_f = just_print_flag;
-
   just_print_flag = 0;
 #endif
+
   /* Construct the argument list.  */
   command_argv = construct_command_argv (argv[0], NULL, NULL, 0,
                                          &batch_filename);
@@ -1655,7 +1655,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
        export var = $(shell echo foobie)
        bad := $(var)
      because target_environment hits a loop trying to expand $(var) to put it
-     in the environment.  This is even more confusing when var was not
+     in the environment.  This is even more confusing when 'var' was not
      explicitly exported, but just appeared in the calling environment.
 
      See Savannah bug #10593.
@@ -1677,6 +1677,9 @@ func_shell_base (char *o, char **argv, int trim_newlines)
 
   /* Set up the output in case the shell writes something.  */
   output_start ();
+
+  errfd = (output_context && output_context->err >= 0
+           ? output_context->err : FD_STDERR);
 
 #if defined(__MSDOS__)
   fpipe = msdos_openpipe (pipedes, &pid, argv[0]);
@@ -1710,7 +1713,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
   CLOSE_ON_EXEC(pipedes[1]);
   CLOSE_ON_EXEC(pipedes[0]);
   /* Never use fork()/exec() here! Use spawn() instead in exec_command() */
-  pid = child_execute_job (FD_STDIN, pipedes[1], FD_STDERR, command_argv, envp);
+  pid = child_execute_job (FD_STDIN, pipedes[1], errfd, command_argv, envp);
   if (pid < 0)
     perror_with_name (error_prefix, "spawn");
 # else /* ! __EMX__ */
@@ -1724,9 +1727,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
       if (stack_limit.rlim_cur)
        setrlimit (RLIMIT_STACK, &stack_limit);
 #  endif
-      child_execute_job (FD_STDIN, pipedes[1],
-                         output_context ? output_context->err : FD_STDERR,
-                         command_argv, envp);
+      child_execute_job (FD_STDIN, pipedes[1], errfd, command_argv, envp);
     }
   else
 # endif

@@ -96,10 +96,8 @@ _outputs (struct output *out, int is_err, const char *msg)
       while (1)
         {
           EINTRLOOP (r, write (fd, msg, len));
-          if (r == len)
+          if (r == len || r <= 0)
             break;
-          if (r <= 0)
-            return;
           len -= r;
           msg += r;
         }
@@ -110,7 +108,7 @@ _outputs (struct output *out, int is_err, const char *msg)
    left (according to ENTERING) the current directory.  */
 
 static int
-log_working_directory (struct output *out, int entering)
+log_working_directory (int entering)
 {
   static char *buf = NULL;
   static unsigned int len = 0;
@@ -172,7 +170,7 @@ log_working_directory (struct output *out, int entering)
   else
     sprintf (p, fmt, program, makelevel, starting_directory);
 
-  _outputs (out, 0, buf);
+  _outputs (NULL, 0, buf);
 
   return 1;
 }
@@ -391,7 +389,7 @@ output_dump (struct output *out)
 
       /* Log the working directory for this dump.  */
       if (print_directory_flag && output_sync != OUTPUT_SYNC_RECURSE)
-        traced = log_working_directory (output_context, 1);
+        traced = log_working_directory (1);
 
       if (outfd_not_empty)
         pump_from_tmp (out->out, stdout);
@@ -399,7 +397,7 @@ output_dump (struct output *out)
         pump_from_tmp (out->err, stderr);
 
       if (traced)
-        log_working_directory (output_context, 0);
+        log_working_directory (0);
 
       /* Exit the critical section.  */
       if (sem)
@@ -562,7 +560,7 @@ output_close (struct output *out)
   if (! out)
     {
       if (stdio_traced)
-        log_working_directory (NULL, 0);
+        log_working_directory (0);
       return;
     }
 
@@ -583,15 +581,17 @@ void
 output_start ()
 {
 #ifndef NO_OUTPUT_SYNC
-  if (output_context && output_context->syncout && ! OUTPUT_ISSET(output_context))
-    setup_tmpfile (output_context);
+  /* If we're syncing output make sure the temporary file is set up.  */
+  if (output_context && output_context->syncout)
+    if (! OUTPUT_ISSET(output_context))
+      setup_tmpfile (output_context);
 #endif
 
-  if (! output_context || output_sync == OUTPUT_SYNC_RECURSE)
-    {
-      if (! stdio_traced && print_directory_flag)
-        stdio_traced = log_working_directory (NULL, 1);
-    }
+  /* If we're not syncing this output per-line or per-target, make sure we emit
+     the "Entering..." message where appropriate.  */
+  if (output_sync == OUTPUT_SYNC_NONE || output_sync == OUTPUT_SYNC_RECURSE)
+    if (! stdio_traced && print_directory_flag)
+      stdio_traced = log_working_directory (1);
 }
 
 void
