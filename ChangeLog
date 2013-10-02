@@ -1,3 +1,12 @@
+2013-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix $abspath on Cygwin when HAVE_DOS_PATHS is in effect.
+	* function.c (IS_ABSOLUTE) [__CYGWIN__]: Special definition for
+	Cygwin.
+	(abspath) [__CYGWIN__]: Reset root_len to 1 if the absolute file
+	name has the Posix /foo/bar form.
+	[HAVE_DOS_PATHS]: Use root_len instead of hard-coded 2.
+
 2013-10-01  Paul Smith  <psmith@gnu.org>
 
 	* configure.ac: Update version to 3.99.93.

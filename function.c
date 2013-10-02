@@ -1949,8 +1949,12 @@ func_not (char *o, char **argv, char *funcname UNUSED)
 
 
 #ifdef HAVE_DOS_PATHS
-#define IS_ABSOLUTE(n) (n[0] && n[1] == ':')
-#define ROOT_LEN 3
+# ifdef __CYGWIN__
+#  define IS_ABSOLUTE(n) ((n[0] && n[1] == ':') || STOP_SET (n[0], MAP_PATHSEP))
+# else
+#  define IS_ABSOLUTE(n) (n[0] && n[1] == ':')
+# endif
+# define ROOT_LEN 3
 #else
 #define IS_ABSOLUTE(n) (n[0] == '/')
 #define ROOT_LEN 1
@@ -2001,13 +2005,17 @@ abspath (const char *name, char *apath)
     }
   else
     {
+#ifdef __CYGWIN__
+      if (STOP_SET (name[0], MAP_PATHSEP))
+	root_len = 1;
+#endif
       strncpy (apath, name, root_len);
       apath[root_len] = '\0';
       dest = apath + root_len;
       /* Get past the root, since we already copied it.  */
       name += root_len;
 #ifdef HAVE_DOS_PATHS
-      if (! STOP_SET (apath[2], MAP_PATHSEP))
+      if (! STOP_SET (apath[root_len - 1], MAP_PATHSEP))
         {
           /* Convert d:foo into d:./foo and increase root_len.  */
           apath[2] = '.';
@@ -2018,7 +2026,7 @@ abspath (const char *name, char *apath)
           name--;
         }
       else
-        apath[2] = '/'; /* make sure it's a forward slash */
+        apath[root_len - 1] = '/'; /* make sure it's a forward slash */
 #endif
     }
 
