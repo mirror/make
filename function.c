@@ -2005,7 +2005,7 @@ abspath (const char *name, char *apath)
     }
   else
     {
-#ifdef __CYGWIN__
+#if defined(__CYGWIN__) && defined(HAVE_DOS_PATHS)
       if (STOP_SET (name[0], MAP_PATHSEP))
 	root_len = 1;
 #endif

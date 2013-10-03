@@ -1,3 +1,8 @@
+2013-10-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* function.c (abspath): Reset root_len to one for Cygwin only when
+	HAVE_DOS_PATHS is defined.  Suggested by Christopher Faylor.
+
 2013-10-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32/compat/posixfcn.c (tmpfile): New function, a replacement for
