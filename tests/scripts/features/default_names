@@ -40,3 +40,5 @@ if ($case_sensitive) {
     compare_output("It chose Makefile\n",&get_logfile(1));
     unlink("Makefile");
 }
+
+1;

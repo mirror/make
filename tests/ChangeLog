@@ -1,5 +1,10 @@
 2013-10-05  Paul Smith  <psmith@gnu.org>
 
+	* test_driver.pl (run_all_tests): Rewrite to be more clear.
+	* scripts/features/jobserver: Avoid using $ENV{HOME} as it doesn't
+	exist everywhere.
+	* scripts/features/default_names: End with 1;
+
 	* scripts/features/loadapi: Use new calling signatures.  Verify
 	the NOEXPAND flag works.  Test with all valid function name
 	characters.

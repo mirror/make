@@ -202,7 +202,7 @@ sub toplevel
 
   print "\n";
 
-  &run_each_test;
+  run_all_tests();
 
   foreach $dir (@rmdirs)
   {
@@ -415,128 +415,133 @@ sub print_banner
   print "\n";
 }
 
-sub run_each_test
+sub run_all_tests
 {
-  $categories_run = 0;
+    $categories_run = 0;
 
-  foreach $testname (sort @TESTS)
-  {
-    ++$categories_run;
-    $suite_passed = 1;       # reset by test on failure
-    $num_of_logfiles = 0;
-    $num_of_tmpfiles = 0;
-    $description = "";
-    $details = "";
-    $old_makefile = undef;
-    $testname =~ s/^$scriptpath$pathsep//;
-    $perl_testname = "$scriptpath$pathsep$testname";
-    $testname =~ s/(\.pl|\.perl)$//;
-    $testpath = "$workpath$pathsep$testname";
-    # Leave enough space in the extensions to append a number, even
-    # though it needs to fit into 8+3 limits.
-    if ($short_filenames) {
-      $logext = 'l';
-      $diffext = 'd';
-      $baseext = 'b';
-      $runext = 'r';
-      $extext = '';
-    } else {
-      $logext = 'log';
-      $diffext = 'diff';
-      $baseext = 'base';
-      $runext = 'run';
-      $extext = '.';
+    foreach $testname (sort @TESTS) {
+        $suite_passed = 1;       # reset by test on failure
+        $num_of_logfiles = 0;
+        $num_of_tmpfiles = 0;
+        $description = "";
+        $details = "";
+        $old_makefile = undef;
+        $testname =~ s/^$scriptpath$pathsep//;
+        $perl_testname = "$scriptpath$pathsep$testname";
+        $testname =~ s/(\.pl|\.perl)$//;
+        $testpath = "$workpath$pathsep$testname";
+        # Leave enough space in the extensions to append a number, even
+        # though it needs to fit into 8+3 limits.
+        if ($short_filenames) {
+            $logext = 'l';
+            $diffext = 'd';
+            $baseext = 'b';
+            $runext = 'r';
+            $extext = '';
+        } else {
+            $logext = 'log';
+            $diffext = 'diff';
+            $baseext = 'base';
+            $runext = 'run';
+            $extext = '.';
+        }
+        $log_filename = "$testpath.$logext";
+        $diff_filename = "$testpath.$diffext";
+        $base_filename = "$testpath.$baseext";
+        $run_filename = "$testpath.$runext";
+        $tmp_filename = "$testpath.$tmpfilesuffix";
+
+        setup_for_test();
+
+        $output = "........................................................ ";
+
+        substr($output,0,length($testname)) = "$testname ";
+
+        print $output;
+
+        $tests_run = 0;
+        $tests_passed = 0;
+
+        # Run the test!
+        $code = do $perl_testname;
+
+        ++$categories_run;
+        $total_tests_run += $tests_run;
+        $total_tests_passed += $tests_passed;
+
+        # How did it go?
+        if (!defined($code)) {
+            # Failed to parse or called die
+            if (length ($@)) {
+                warn "\n*** Test died ($testname): $@\n";
+            } else {
+                warn "\n*** Couldn't parse $perl_testname\n";
+            }
+            $status = "FAILED ($tests_passed/$tests_run passed)";
+        }
+
+        elsif ($tests_run == 0) {
+            # Nothing was done!!
+            $status = "FAILED (no tests found!)";
+        }
+
+        elsif ($code == -1) {
+            # Skipped... not supported
+            $status = "N/A";
+            --$categories_run;
+        }
+
+        elsif ($code != 1) {
+            # Bad result... this shouldn't really happen.  Usually means that
+            # the suite forgot to end with "1;".
+            warn "\n*** Test returned $code\n";
+            $status = "FAILED ($tests_passed/$tests_run passed)";
+        }
+
+        elsif ($tests_run > $tests_passed) {
+            # Lose!
+            $status = "FAILED ($tests_passed/$tests_run passed)";
+        }
+
+        else {
+            # Win!
+            ++$categories_passed;
+            $status = "ok     ($tests_passed passed)";
+
+            # Clean up
+            for ($i = $num_of_tmpfiles; $i; $i--) {
+                rmfiles($tmp_filename . num_suffix($i));
+            }
+            for ($i = $num_of_logfiles ? $num_of_logfiles : 1; $i; $i--) {
+                rmfiles($log_filename . num_suffix($i));
+                rmfiles($base_filename . num_suffix($i));
+            }
+        }
+
+        # If the verbose option has been specified, then a short description
+        # of each test is printed before displaying the results of each test
+        # describing WHAT is being tested.
+
+        if ($verbose) {
+            if ($detail) {
+                print "\nWHAT IS BEING TESTED\n";
+                print "--------------------";
+            }
+            print "\n\n$description\n\n";
+        }
+
+        # If the detail option has been specified, then the details of HOW
+        # the test is testing what it says it is testing in the verbose output
+        # will be displayed here before the results of the test are displayed.
+
+        if ($detail) {
+            print "\nHOW IT IS TESTED\n";
+            print "----------------";
+            print "\n\n$details\n\n";
+        }
+
+        print "$status\n";
     }
-    $log_filename = "$testpath.$logext";
-    $diff_filename = "$testpath.$diffext";
-    $base_filename = "$testpath.$baseext";
-    $run_filename = "$testpath.$runext";
-    $tmp_filename = "$testpath.$tmpfilesuffix";
-
-    &setup_for_test;          # suite-defined
-
-    $output = "........................................................ ";
-
-    substr($output,0,length($testname)) = "$testname ";
-
-    print $output;
-
-    # Run the actual test!
-    $tests_run = 0;
-    $tests_passed = 0;
-
-    $code = do $perl_testname;
-
-    $total_tests_run += $tests_run;
-    $total_tests_passed += $tests_passed;
-
-    # How did it go?
-    if (!defined($code))
-    {
-      $suite_passed = 0;
-      if (length ($@)) {
-        warn "\n*** Test died ($testname): $@\n";
-      } else {
-        warn "\n*** Couldn't run $perl_testname\n";
-      }
-    }
-    elsif ($code == -1) {
-      $suite_passed = 0;
-    }
-    elsif ($code != 1 && $code != -1) {
-      $suite_passed = 0;
-      warn "\n*** Test returned $code\n";
-    }
-
-    if ($suite_passed) {
-      ++$categories_passed;
-      $status = "ok     ($tests_passed passed)";
-      for ($i = $num_of_tmpfiles; $i; $i--)
-      {
-        &rmfiles ($tmp_filename . &num_suffix ($i) );
-      }
-
-      for ($i = $num_of_logfiles ? $num_of_logfiles : 1; $i; $i--)
-      {
-        &rmfiles ($log_filename . &num_suffix ($i) );
-        &rmfiles ($base_filename . &num_suffix ($i) );
-      }
-    }
-    elsif (!defined $code || $code > 0) {
-      $status = "FAILED ($tests_passed/$tests_run passed)";
-    }
-    elsif ($code < 0) {
-      $status = "N/A";
-      --$categories_run;
-    }
-
-    # If the verbose option has been specified, then a short description
-    # of each test is printed before displaying the results of each test
-    # describing WHAT is being tested.
-
-    if ($verbose)
-    {
-      if ($detail)
-      {
-        print "\nWHAT IS BEING TESTED\n";
-        print "--------------------";
-      }
-      print "\n\n$description\n\n";
-    }
-
-    # If the detail option has been specified, then the details of HOW
-    # the test is testing what it says it is testing in the verbose output
-    # will be displayed here before the results of the test are displayed.
-
-    if ($detail)
-    {
-      print "\nHOW IT IS TESTED\n";
-      print "----------------";
-      print "\n\n$details\n\n";
-    }
-
-    print "$status\n";
-  }
 }
 
 # If the keep flag is not set, this subroutine deletes all filenames that
@@ -713,7 +718,6 @@ sub compare_output
     &run_command_with_output(&get_difffile,$command);
   }
 
-  $suite_passed = 0;
   return 0;
 }
 

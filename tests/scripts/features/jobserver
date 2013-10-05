@@ -43,10 +43,10 @@ unlink('inc.mk');
 # Or Red Hat bug https://bugzilla.redhat.com/show_bug.cgi?id=885474
 
 open(MAKEFILE,"> Makefile2");
-print MAKEFILE <<EOF;
-vpath %.c $ENV{HOME}/
+print MAKEFILE '
+vpath %.c ../
 foo:
-EOF
+';
 close(MAKEFILE);
 
 run_make_test(q!
