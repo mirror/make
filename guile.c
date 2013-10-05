@@ -115,7 +115,7 @@ internal_guile_eval (void *arg)
 
 /* This is the function registered with make  */
 static char *
-func_guile (const char *funcname UNUSED, int argc UNUSED, char **argv)
+func_guile (const char *funcname UNUSED, unsigned int argc UNUSED, char **argv)
 {
   static int init = 0;
 
@@ -140,7 +140,7 @@ int
 guile_gmake_setup (const gmk_floc *flocp UNUSED)
 {
   /* Create a make function "guile".  */
-  gmk_add_function ("guile", func_guile, 0, 1, 1);
+  gmk_add_function ("guile", func_guile, 0, 1, GMK_FUNC_DEFAULT);
 
   return 1;
 }

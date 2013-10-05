@@ -1,3 +1,26 @@
+2013-10-05  Paul Smith  <psmith@gnu.org>
+
+	* makeint.h (MAP_USERFUNC): A new map type for function names.
+	* main.c (initialize_stopchar_map): Set up the function name map.
+
+	* gnumake.h (gmk_func_ptr): Define a type for function pointers.
+	(gmk_add_function): Convert the last argument to FLAGS.
+	(GMK_FUNC_*): Define flags for the function.  Change the default
+	behavior to "expand" since that's the most common one.
+
+	* function.c (function_table_entry): Use new function pointer type.
+	(lookup_function): Accept any valid function name character based
+	on the MAP_USERFUNC values.
+	(define_new_function): Use the new calling signature.  Verify that
+	registered functions have valid names.
+
+	* guile.c (guile_gmake_setup): Use new calling signatures.
+	* loadapi.c (gmk_add_function): Ditto.
+	* variable.h (define_new_function): Ditto.
+
+	* doc/make.texi (Loaded Object API): Make the registered function
+	API documentation more clear.
+
 2013-10-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* function.c (abspath): Reset root_len to one for Cygwin only when

@@ -612,9 +612,12 @@ initialize_stopchar_map ()
   stopchar_map[(int)':'] = MAP_COLON;
   stopchar_map[(int)'%'] = MAP_PERCENT;
   stopchar_map[(int)'|'] = MAP_PIPE;
-  stopchar_map[(int)'.'] = MAP_DOT;
+  stopchar_map[(int)'.'] = MAP_DOT | MAP_USERFUNC;
   stopchar_map[(int)','] = MAP_COMMA;
   stopchar_map[(int)'$'] = MAP_VARIABLE;
+
+  stopchar_map[(int)'-'] = MAP_USERFUNC;
+  stopchar_map[(int)'_'] = MAP_USERFUNC;
 
   stopchar_map[(int)'/'] = MAP_PATHSEP;
 #if defined(VMS)
@@ -629,6 +632,8 @@ initialize_stopchar_map ()
         stopchar_map[i] = MAP_BLANK;
       if (isspace(i))
         stopchar_map[i] |= MAP_SPACE;
+      if (isalnum(i))
+        stopchar_map[i] = MAP_USERFUNC;
     }
 }
 

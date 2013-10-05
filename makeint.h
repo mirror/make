@@ -396,6 +396,8 @@ extern int unixy_shell;
 #define MAP_DOT         0x0200
 #define MAP_COMMA       0x0400
 
+/* These are the valid characters for a user-defined function.  */
+#define MAP_USERFUNC    0x2000
 /* This means not only a '$', but skip the variable reference.  */
 #define MAP_VARIABLE    0x4000
 /* The set of characters which are path separators is OS-specific.  */

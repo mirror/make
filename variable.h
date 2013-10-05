@@ -165,9 +165,9 @@ struct variable *try_variable_definition (const gmk_floc *flocp, char *line,
                                           int target_var);
 void init_hash_global_variable_set (void);
 void hash_init_function_table (void);
-void define_new_function(const gmk_floc *flocp,
-                         const char *name, int min, int max, int expand,
-                         char *(*func)(const char *, int, char **));
+void define_new_function(const gmk_floc *flocp, const char *name,
+                         unsigned int min, unsigned int max, unsigned int flags,
+                         gmk_func_ptr func);
 struct variable *lookup_variable (const char *name, unsigned int length);
 struct variable *lookup_variable_in_set (const char *name, unsigned int length,
                                          const struct variable_set *set);

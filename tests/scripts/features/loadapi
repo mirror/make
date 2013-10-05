@@ -36,7 +36,15 @@ test_expand (const char *val)
 }
 
 static char *
-func_test (const char *funcname, int argc, char **argv)
+test_noexpand (const char *val)
+{
+    char *str = gmk_alloc (strlen (val));
+    strcpy (str, val);
+    return str;
+}
+
+static char *
+func_test (const char *funcname, unsigned int argc, char **argv)
 {
     char *mem;
 
@@ -46,7 +54,10 @@ func_test (const char *funcname, int argc, char **argv)
     if (strcmp (funcname, "test-eval") == 0)
         return test_eval (argv[0]);
 
-    mem = gmk_alloc (strlen ("unknown") + 1);
+    if (strcmp (funcname, "test-noexpand") == 0)
+        return test_noexpand (argv[0]);
+
+    mem = gmk_alloc (sizeof ("unknown"));
     strcpy (mem, "unknown");
     return mem;
 }
@@ -54,8 +65,10 @@ func_test (const char *funcname, int argc, char **argv)
 int
 testapi_gmk_setup ()
 {
-    gmk_add_function ("test-expand", func_test, 1, 1, 1);
-    gmk_add_function ("test-eval", func_test, 1, 1, 1);
+    gmk_add_function ("test-expand", func_test, 1, 1, GMK_FUNC_DEFAULT);
+    gmk_add_function ("test-noexpand", func_test, 1, 1, GMK_FUNC_NOEXPAND);
+    gmk_add_function ("test-eval", func_test, 1, 1, GMK_FUNC_DEFAULT);
+    gmk_add_function ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.", func_test, 0, 0, 0);
     return 1;
 }
 EOF
@@ -83,6 +96,15 @@ TEST = hi
 all:;@echo '$(VAR)'
 !,
               '', "hi there\n");
+
+# TEST 2
+# Check the no-expand capability
+run_make_test(q!
+load testapi.so
+TEST = hi
+all:;@echo '$(test-noexpand $(TEST))'
+!,
+              '', "\$(TEST)\n");
 
 unlink(qw(testapi.c testapi.so)) unless $keep;
 

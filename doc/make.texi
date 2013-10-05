@@ -11115,16 +11115,14 @@ arguments are as follows:
 @table @code
 @item name
 The function name.  This is what the makefile should use to invoke the
-function.  The name must be between 1 and 255 characters long.
+function.  The name must be between 1 and 255 characters long and it
+may only contain alphanumeric, period (@samp{.}), dash (@samp{-}), and
+underscore (@samp{_}) characters.  It may not begin with a period.
 
 @item func_ptr
 A pointer to a function that @code{make} will invoke when it expands
 the function in a makefile.  This function must be defined by the
-loaded object.  GNU @code{make} will call it with three arguments:
-@code{name} (the same name as above), @code{argc} (the number of
-arguments to the function), and @code{argv} (the list of arguments to
-the function).  The last argument (that is, @code{argv[argc]} will be
-null (@code{0}).
+loaded object.
 
 @item min_args
 The minimum number of arguments the function will accept.  Must be
@@ -11140,11 +11138,29 @@ arguments.  If the value is 0, then any number of arguments is
 accepted.  If the value is greater than 0, then it must be greater
 than or equal to @code{min_args}.
 
-@item expand_args
-If this value is 0, then @code{make} will not expand the arguments to
-the function before passing them to @code{func_ptr}.  If the value is
-non-0, then the arguments will be expanded first.
+@item flags
+Flags that specify how this function will operate; the desired flags
+should be OR'd together.  If the @code{GMK_FUNC_NOEXPAND} flag is
+given then the function arguments will not be expanded before the
+function is called; otherwise they will be expanded first.
 @end table
+
+@subsubheading Registered Function Interface
+@findex gmk_func_ptr
+
+A function registered with @code{make} must match the
+@code{gmk_func_ptr} type.  It will be invoked with three parameters:
+@code{name} (the name of the function), @code{argc} (the number of
+arguments to the function), and @code{argv} (an array of pointers to
+arguments to the function).  The last pointer (that is,
+@code{argv[argc]}) will be null (@code{0}).
+
+The return value of the function is the result of expanding the
+function.  If the function expands to nothing the return value may be
+null.  Otherwise, it must be a pointer to a string created with
+@code{gmk_alloc}.  Once the function returns, @code{make} owns this
+string and will free it when appropriate; it cannot be accessed by the
+loaded object.
 
 @subsubheading GNU @code{make} Facilities
 
@@ -11183,6 +11199,12 @@ should never pass memory that you've allocated directly to any
 @code{make} function, nor should you attempt to directly free any
 memory returned to you by any @code{make} function.  Instead, use the
 @code{gmk_alloc} and @code{gmk_free} functions.
+
+In particular, the string returned to @code{make} by a function
+registered using @code{gmk_add_function} @emph{must} be allocated
+using @code{gmk_alloc}, and the string returned from the @code{make}
+@code{gmk_expand} function @emph{must} be freed (when no longer
+needed) using @code{gmk_free}.
 
 @table @code
 @item gmk_alloc

@@ -54,9 +54,8 @@ gmk_expand (const char *ref)
 
 /* Register a function to be called from makefiles.  */
 void
-gmk_add_function (const char *name,
-                  char *(*func)(const char *nm, int argc, char **argv),
-                  int min, int max, int expand)
+gmk_add_function (const char *name, gmk_func_ptr func,
+                  unsigned int min, unsigned int max, unsigned int flags)
 {
-  define_new_function (reading_file, name, min, max, expand, func);
+  define_new_function (reading_file, name, min, max, flags, func);
 }

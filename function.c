@@ -31,7 +31,7 @@ struct function_table_entry
   {
     union {
       char *(*func_ptr) (char *output, char **argv, const char *fname);
-      char *(*alloc_func_ptr) (const char *fname, int argc, char **argv);
+      gmk_func_ptr alloc_func_ptr;
     } fptr;
     const char *name;
     unsigned char len;
@@ -269,19 +269,19 @@ patsubst_expand (char *o, const char *text, char *pattern, char *replace)
 static const struct function_table_entry *
 lookup_function (const char *s)
 {
+  struct function_table_entry function_table_entry_key;
   const char *e = s;
 
-  while (*e && ( (*e >= 'a' && *e <= 'z') || *e == '-'))
+  while (STOP_SET (*e, MAP_USERFUNC))
     e++;
-  if (*e == '\0' || isblank ((unsigned char) *e))
-    {
-      struct function_table_entry function_table_entry_key;
-      function_table_entry_key.name = s;
-      function_table_entry_key.len = e - s;
 
-      return hash_find_item (&function_table, &function_table_entry_key);
-    }
-  return 0;
+  if (e == s || !STOP_SET(*e, MAP_NUL|MAP_SPACE))
+    return NULL;
+
+  function_table_entry_key.name = s;
+  function_table_entry_key.len = e - s;
+
+  return hash_find_item (&function_table, &function_table_entry_key);
 }
 
 
@@ -2445,7 +2445,7 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
   /* There is no way to define a variable with a space in the name, so strip
      leading and trailing whitespace as a favor to the user.  */
   fname = argv[0];
-  while (*fname != '\0' && isspace ((unsigned char)*fname))
+  while (isspace ((unsigned char)*fname))
     ++fname;
 
   cp = fname + strlen (fname) - 1;
@@ -2530,19 +2530,28 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
 }
 
 void
-define_new_function (const gmk_floc *flocp,
-                     const char *name, int min, int max, int expand,
-                     char *(*func)(const char *, int, char **))
+define_new_function (const gmk_floc *flocp, const char *name,
+                     unsigned int min, unsigned int max, unsigned int flags,
+                     gmk_func_ptr func)
 {
+  const char *e = name;
   struct function_table_entry *ent;
-  size_t len = strlen (name);
+  size_t len;
 
+  while (STOP_SET (*e, MAP_USERFUNC))
+    e++;
+  len = e - name;
+
+  if (len == 0)
+    fatal (flocp, _("Empty function name\n"));
+  if (*name == '.' || *e != '\0')
+    fatal (flocp, _("Invalid function name: %s\n"), name);
   if (len > 255)
     fatal (flocp, _("Function name too long: %s\n"), name);
-  if (min < 0 || min > 255)
+  if (min > 255)
     fatal (flocp, _("Invalid minimum argument count (%d) for function %s\n"),
            min, name);
-  if (max < 0 || max > 255 || (max && max < min))
+  if (max > 255 || (max && max < min))
     fatal (flocp, _("Invalid maximum argument count (%d) for function %s\n"),
            max, name);
 
@@ -2551,7 +2560,7 @@ define_new_function (const gmk_floc *flocp,
   ent->len = len;
   ent->minimum_args = min;
   ent->maximum_args = max;
-  ent->expand_args = expand ? 1 : 0;
+  ent->expand_args = ANY_SET(flags, GMK_FUNC_NOEXPAND) ? 0 : 1;
   ent->alloc_fn = 1;
   ent->fptr.alloc_func_ptr = func;
 

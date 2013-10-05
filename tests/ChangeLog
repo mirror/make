@@ -1,3 +1,9 @@
+2013-10-05  Paul Smith  <psmith@gnu.org>
+
+	* scripts/features/loadapi: Use new calling signatures.  Verify
+	the NOEXPAND flag works.  Test with all valid function name
+	characters.
+
 2013-09-29  Paul Smith  <psmith@gnu.org>
 
 	* scripts/variables/SHELL: Solaris /bin/sh can't handle options in
