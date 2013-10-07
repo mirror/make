@@ -40,106 +40,106 @@ fcntl (intptr_t fd, int cmd, ...)
   switch (cmd)
     {
       case F_GETFD:
-	va_end (ap);
-	/* Could have used GetHandleInformation, but that isn't
-	   supported on Windows 9X.  */
-	if (_get_osfhandle (fd) == -1)
-	  return -1;
-	return 0;
+        va_end (ap);
+        /* Could have used GetHandleInformation, but that isn't
+           supported on Windows 9X.  */
+        if (_get_osfhandle (fd) == -1)
+          return -1;
+        return 0;
       case F_SETLKW:
-	{
-	  void *buf = va_arg (ap, void *);
-	  struct flock *fl = (struct flock *)buf;
-	  HANDLE hmutex = (HANDLE)fd;
-	  static struct flock last_fl;
-	  short last_type = last_fl.l_type;
+        {
+          void *buf = va_arg (ap, void *);
+          struct flock *fl = (struct flock *)buf;
+          HANDLE hmutex = (HANDLE)fd;
+          static struct flock last_fl;
+          short last_type = last_fl.l_type;
 
-	  va_end (ap);
+          va_end (ap);
 
-	  if (hmutex == INVALID_HANDLE_VALUE || !hmutex)
-	    return -1;
+          if (hmutex == INVALID_HANDLE_VALUE || !hmutex)
+            return -1;
 
-	  last_fl = *fl;
+          last_fl = *fl;
 
-	  switch (fl->l_type)
-	    {
+          switch (fl->l_type)
+            {
 
-	      case F_WRLCK:
-		{
-		  DWORD result;
+              case F_WRLCK:
+                {
+                  DWORD result;
 
-		  if (last_type == F_WRLCK)
-		    {
-		      /* Don't call WaitForSingleObject if we already
-			 own the mutex, because doing so will require
-			 us to call ReleaseMutex an equal number of
-			 times, before the mutex is actually
-			 released.  */
-		      return 0;
-		    }
+                  if (last_type == F_WRLCK)
+                    {
+                      /* Don't call WaitForSingleObject if we already
+                         own the mutex, because doing so will require
+                         us to call ReleaseMutex an equal number of
+                         times, before the mutex is actually
+                         released.  */
+                      return 0;
+                    }
 
-		  result = WaitForSingleObject (hmutex, INFINITE);
-		  switch (result)
-		    {
-		      case WAIT_OBJECT_0:
-			/* We don't care if the mutex owner crashed or
-			   exited.  */
-		      case WAIT_ABANDONED:
-			return 0;
-		      case WAIT_FAILED:
-		      case WAIT_TIMEOUT: /* cannot happen, really */
-			{
-			  DWORD err = GetLastError ();
+                  result = WaitForSingleObject (hmutex, INFINITE);
+                  switch (result)
+                    {
+                      case WAIT_OBJECT_0:
+                        /* We don't care if the mutex owner crashed or
+                           exited.  */
+                      case WAIT_ABANDONED:
+                        return 0;
+                      case WAIT_FAILED:
+                      case WAIT_TIMEOUT: /* cannot happen, really */
+                        {
+                          DWORD err = GetLastError ();
 
-			  /* Invalidate the last command.  */
-			  memset (&last_fl, 0, sizeof (last_fl));
+                          /* Invalidate the last command.  */
+                          memset (&last_fl, 0, sizeof (last_fl));
 
-			  switch (err)
-			    {
-			      case ERROR_INVALID_HANDLE:
-			      case ERROR_INVALID_FUNCTION:
-				errno = EINVAL;
-				return -1;
-			      default:
-				errno = EDEADLOCK;
-				return -1;
-			    }
-			}
-		    }
-		}
-	      case F_UNLCK:
-		{
-		  /* FIXME: Perhaps we should call ReleaseMutex
-		     repatedly until it errors out, to make sure the
-		     mutext is released even if we somehow managed to
-		     to take ownership multiple times?  */
-		  BOOL status = ReleaseMutex (hmutex);
+                          switch (err)
+                            {
+                              case ERROR_INVALID_HANDLE:
+                              case ERROR_INVALID_FUNCTION:
+                                errno = EINVAL;
+                                return -1;
+                              default:
+                                errno = EDEADLOCK;
+                                return -1;
+                            }
+                        }
+                    }
+                }
+              case F_UNLCK:
+                {
+                  /* FIXME: Perhaps we should call ReleaseMutex
+                     repatedly until it errors out, to make sure the
+                     mutext is released even if we somehow managed to
+                     to take ownership multiple times?  */
+                  BOOL status = ReleaseMutex (hmutex);
 
-		  if (status)
-		    return 0;
-		  else
-		    {
-		      DWORD err = GetLastError ();
+                  if (status)
+                    return 0;
+                  else
+                    {
+                      DWORD err = GetLastError ();
 
-		      if (err == ERROR_NOT_OWNER)
-			errno = EPERM;
-		      else
-			{
-			  memset (&last_fl, 0, sizeof (last_fl));
-			  errno = EINVAL;
-			}
-		      return -1;
-		    }
-		}
-	      default:
-		errno = ENOSYS;
-		return -1;
-	    }
-	}
+                      if (err == ERROR_NOT_OWNER)
+                        errno = EPERM;
+                      else
+                        {
+                          memset (&last_fl, 0, sizeof (last_fl));
+                          errno = EINVAL;
+                        }
+                      return -1;
+                    }
+                }
+              default:
+                errno = ENOSYS;
+                return -1;
+            }
+        }
       default:
-	errno = ENOSYS;
-	va_end (ap);
-	return -1;
+        errno = ENOSYS;
+        va_end (ap);
+        return -1;
     }
 }
 
@@ -210,49 +210,49 @@ same_stream (FILE *f1, FILE *f2)
       && fh2 && fh2 != INVALID_HANDLE_VALUE)
     {
       if (fh1 == fh2)
-	return 1;
+        return 1;
       else
-	{
-	  DWORD ftyp1 = GetFileType (fh1), ftyp2 = GetFileType (fh2);
+        {
+          DWORD ftyp1 = GetFileType (fh1), ftyp2 = GetFileType (fh2);
 
-	  if (ftyp1 != ftyp2
-	      || ftyp1 == FILE_TYPE_UNKNOWN || ftyp2 == FILE_TYPE_UNKNOWN)
-	    return 0;
-	  else if (ftyp1 == FILE_TYPE_CHAR)
-	    {
-	      /* For character devices, check if they both refer to a
-		 console.  This loses if both handles refer to the
-		 null device (FIXME!), but in that case we don't care
-		 in the context of Make.  */
-	      DWORD conmode1, conmode2;
+          if (ftyp1 != ftyp2
+              || ftyp1 == FILE_TYPE_UNKNOWN || ftyp2 == FILE_TYPE_UNKNOWN)
+            return 0;
+          else if (ftyp1 == FILE_TYPE_CHAR)
+            {
+              /* For character devices, check if they both refer to a
+                 console.  This loses if both handles refer to the
+                 null device (FIXME!), but in that case we don't care
+                 in the context of Make.  */
+              DWORD conmode1, conmode2;
 
-	      /* Each process on Windows can have at most 1 console,
-		 so if both handles are for the console device, they
-		 are the same.  We also compare the console mode to
-		 distinguish between stdin and stdout/stderr.  */
-	      if (GetConsoleMode (fh1, &conmode1)
-		  && GetConsoleMode (fh2, &conmode2)
-		  && conmode1 == conmode2)
-		return 1;
-	    }
-	  else
-	    {
-	      /* For disk files and pipes, compare their unique
-		 attributes.  */
-	      BY_HANDLE_FILE_INFORMATION bhfi1, bhfi2;
+              /* Each process on Windows can have at most 1 console,
+                 so if both handles are for the console device, they
+                 are the same.  We also compare the console mode to
+                 distinguish between stdin and stdout/stderr.  */
+              if (GetConsoleMode (fh1, &conmode1)
+                  && GetConsoleMode (fh2, &conmode2)
+                  && conmode1 == conmode2)
+                return 1;
+            }
+          else
+            {
+              /* For disk files and pipes, compare their unique
+                 attributes.  */
+              BY_HANDLE_FILE_INFORMATION bhfi1, bhfi2;
 
-	      /* Pipes get zero in the volume serial number, but do
-		 appear to have meaningful information in file index
-		 attributes.  We test file attributes as well, for a
-		 good measure.  */
-	      if (GetFileInformationByHandle (fh1, &bhfi1)
-		  && GetFileInformationByHandle (fh2, &bhfi2))
-		return (bhfi1.dwVolumeSerialNumber == bhfi2.dwVolumeSerialNumber
-			&& bhfi1.nFileIndexLow == bhfi2.nFileIndexLow
-			&& bhfi1.nFileIndexHigh == bhfi2.nFileIndexHigh
-			&& bhfi1.dwFileAttributes == bhfi2.dwFileAttributes);
-	    }
-	}
+              /* Pipes get zero in the volume serial number, but do
+                 appear to have meaningful information in file index
+                 attributes.  We test file attributes as well, for a
+                 good measure.  */
+              if (GetFileInformationByHandle (fh1, &bhfi1)
+                  && GetFileInformationByHandle (fh2, &bhfi2))
+                return (bhfi1.dwVolumeSerialNumber == bhfi2.dwVolumeSerialNumber
+                        && bhfi1.nFileIndexLow == bhfi2.nFileIndexLow
+                        && bhfi1.nFileIndexHigh == bhfi2.nFileIndexHigh
+                        && bhfi1.dwFileAttributes == bhfi2.dwFileAttributes);
+            }
+        }
     }
   return 0;
 }
@@ -304,18 +304,18 @@ tmpfile (void)
       HANDLE h;
 
       sprintf (temp_path + path_size,
-	       "%s%s%u-%x.tmp",
-	       temp_path[path_size - 1] == '\\' ? "" : "\\",
-	       base, pid, uniq);
+               "%s%s%u-%x.tmp",
+               temp_path[path_size - 1] == '\\' ? "" : "\\",
+               base, pid, uniq);
       h = CreateFile (temp_path,  /* file name */
-		      GENERIC_READ | GENERIC_WRITE | DELETE, /* desired access */
-		      FILE_SHARE_READ | FILE_SHARE_WRITE,    /* share mode */
-		      NULL,                                  /* default security attributes */
-		      CREATE_NEW,                            /* creation disposition */
-		      FILE_ATTRIBUTE_NORMAL |                /* flags and attributes */
-		      FILE_ATTRIBUTE_TEMPORARY |
-		      FILE_FLAG_DELETE_ON_CLOSE,
-		      NULL);                                 /* no template file */
+                      GENERIC_READ | GENERIC_WRITE | DELETE, /* desired access */
+                      FILE_SHARE_READ | FILE_SHARE_WRITE,    /* share mode */
+                      NULL,                                  /* default security attributes */
+                      CREATE_NEW,                            /* creation disposition */
+                      FILE_ATTRIBUTE_NORMAL |                /* flags and attributes */
+                      FILE_ATTRIBUTE_TEMPORARY |
+                      FILE_FLAG_DELETE_ON_CLOSE,
+                      NULL);                                 /* no template file */
 
       if (h == INVALID_HANDLE_VALUE)
         {
@@ -332,8 +332,8 @@ tmpfile (void)
             }
 
           /* The temporary path is not guaranteed to exist, or might
-	     not be writable by user.  Use the current directory as
-	     fallback.  */
+             not be writable by user.  Use the current directory as
+             fallback.  */
           else if (path_is_dot == 0)
             {
               path_size = GetCurrentDirectory (sizeof temp_path, temp_path);
@@ -341,10 +341,10 @@ tmpfile (void)
             }
 
           else
-	    {
-	      errno = EACCES;
-	      break;
-	    }
+            {
+              errno = EACCES;
+              break;
+            }
         }
       else
         {
@@ -359,7 +359,7 @@ tmpfile (void)
   return NULL;
 }
 
-#endif	/* !NO_OUTPUT_SYNC */
+#endif  /* !NO_OUTPUT_SYNC */
 
 #if MAKE_LOAD
 
@@ -388,8 +388,8 @@ dlopen (const char *file, int mode)
       /* MSDN says to be sure to use backslashes in the DLL file name.  */
       strcpy (dllfn, file);
       for (p = dllfn; *p; p++)
-	if (*p == '/')
-	  *p = '\\';
+        if (*p == '/')
+          *p = '\\';
 
       dllhandle = LoadLibrary (dllfn);
     }
@@ -409,8 +409,8 @@ dlerror (void)
     return NULL;
 
   ret = FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM
-		       | FORMAT_MESSAGE_IGNORE_INSERTS,
-		       NULL, last_err, 0, errbuf, sizeof (errbuf), NULL);
+                       | FORMAT_MESSAGE_IGNORE_INSERTS,
+                       NULL, last_err, 0, errbuf, sizeof (errbuf), NULL);
   while (ret > 0 && (errbuf[ret - 1] == '\n' || errbuf[ret - 1] == '\r'))
     --ret;
 
@@ -452,5 +452,5 @@ dlclose (void *handle)
 }
 
 
-#endif	/* MAKE_LOAD */
+#endif  /* MAKE_LOAD */
 
