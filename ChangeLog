@@ -1,3 +1,9 @@
+2013-10-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32/compat/posixfcn.c (tmpfile): Move declaration of h before
+	the first executable statement.  Reported by Gisle Vanem
+	<gvanem@yahoo.no>.
+
 2013-10-05  Paul Smith  <psmith@gnu.org>
 
 	* makeint.h (MAP_USERFUNC): A new map type for function names.

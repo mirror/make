@@ -301,19 +301,21 @@ tmpfile (void)
          path_size + sizemax < sizeof temp_path &&
          !(uniq >= 0x10000 && second_loop))
     {
+      HANDLE h;
+
       sprintf (temp_path + path_size,
 	       "%s%s%u-%x.tmp",
 	       temp_path[path_size - 1] == '\\' ? "" : "\\",
 	       base, pid, uniq);
-      HANDLE h = CreateFile (temp_path,  /* file name */
-                             GENERIC_READ | GENERIC_WRITE | DELETE, /* desired access */
-                             FILE_SHARE_READ | FILE_SHARE_WRITE,    /* share mode */
-                             NULL,                         /* default security attributes */
-                             CREATE_NEW,                   /* creation disposition */
-                             FILE_ATTRIBUTE_NORMAL |       /* flags and attributes */
-                             FILE_ATTRIBUTE_TEMPORARY |
-                             FILE_FLAG_DELETE_ON_CLOSE,
-                             NULL);                        /* no template file */
+      h = CreateFile (temp_path,  /* file name */
+		      GENERIC_READ | GENERIC_WRITE | DELETE, /* desired access */
+		      FILE_SHARE_READ | FILE_SHARE_WRITE,    /* share mode */
+		      NULL,                                  /* default security attributes */
+		      CREATE_NEW,                            /* creation disposition */
+		      FILE_ATTRIBUTE_NORMAL |                /* flags and attributes */
+		      FILE_ATTRIBUTE_TEMPORARY |
+		      FILE_FLAG_DELETE_ON_CLOSE,
+		      NULL);                                 /* no template file */
 
       if (h == INVALID_HANDLE_VALUE)
         {
