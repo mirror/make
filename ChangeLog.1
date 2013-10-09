@@ -1703,7 +1703,7 @@ Thu Sep 14 18:29:38 1989  Roland McGrath  (mcgrath at paris.Berkeley.EDU)
 	existing variable's origin, is `o_env', make it `o_env_override'.
 
 	* load.c: Use the symbol KERNEL_FILE_NAME instead of KERNEL_FILE.
-	* compatMakefile: Changed the comment for `LOAD_AVG' accordinly.
+	* compatMakefile: Changed the comment for `LOAD_AVG' accordingly.
 
 Thu Sep  7 16:46:26 1989  Roland McGrath  (mcgrath at paris.Berkeley.EDU)
 
@@ -3218,7 +3218,7 @@ Sun Feb  5 19:52:38 1989  Roland McGrath  (mcgrath at paris.Berkeley.EDU)
 	* variable.c (expand_function: `shell'): Use
 	`shell_function_completed'.  Block children before forking and
 	unblock after `shell_function_pid' is set properly and
-	`shell_functon_completed' is reset to 0.
+	`shell_function_completed' is reset to 0.
 
 	* commands.c (child_handler): When the child of the `shell' function
 	completes, set `shell_function_completed' to 1 if it actually ran,
@@ -4465,7 +4465,7 @@ Fri Sep 16 13:59:59 1988  Roland McGrath  (mcgrath at tully.Berkeley.EDU)
 	`maxsuffix', and must be called before count_implicit_rule_limits.
 
 	* rule.c (pattern_search): If an existent (non-intermediate)
-	dependendency was found via a terminal rule, set its
+	dependency was found via a terminal rule, set its
 	`tried_implicit' flag, so it will never have implicit rule search done.
 
 	* glob.c: Bug fix to avoid alloca(0).
@@ -4826,7 +4826,7 @@ Sat Jul 30 15:47:23 1988  Roland McGrath  (mcgrath at tully.Berkeley.EDU)
 	new entry as the old entry's prev pointer.
 
 	* dir.c: Re-indented the `struct dir' definition to be right.
-	(dir_load): Cleaned up slighty.
+	(dir_load): Cleaned up slightly.
 	(file_exists_p): Removed comment saying we could use `access', since
 	that is a bad idea (except for setuid programs).  Cleaned up slightly.
 

@@ -1111,7 +1111,7 @@ done2:
 
 /*
  * Description:  Clean up any leftover handles, etc.  It is up to the
- * caller to manage and free the input, ouput, and stderr buffers.
+ * caller to manage and free the input, output, and stderr buffers.
  */
 	void
 process_cleanup(

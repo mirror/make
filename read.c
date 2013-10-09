@@ -1073,7 +1073,7 @@ eval (struct ebuffer *ebuf, int set_default)
                        here, but merely copy, since now you're beyond a ";"
                        and into a command script.  However, the old parser
                        expanded the whole line, so we continue that for
-                       backwards-compatiblity.  Also, it wouldn't be
+                       backwards-compatibility.  Also, it wouldn't be
                        entirely consistent, since we do an unconditional
                        expand below once we know we don't have a
                        target-specific variable. */
