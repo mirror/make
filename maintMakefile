@@ -2,6 +2,8 @@
 # only if you have the full copy of the GNU make sources from the Git
 # tree, not a dist copy.
 
+GPG_FINGERPRINT := 6338B6D4
+
 # We like mondo-warnings!
 AM_CFLAGS += -Wall -Wextra -Wdeclaration-after-statement -Wshadow -Wpointer-arith -Wbad-function-cast
 
@@ -244,6 +246,17 @@ po-check:
 	fi
 
 ## ------------------------- ##
+## Make release targets.     ##
+## ------------------------- ##
+
+tag-release:
+	case '$(VERSION)' in \
+	    (*.*.9*) message=" candidate" ;; \
+	    (*)      message= ;; \
+	esac; \
+	$(GIT) tag -m "GNU Make release$$message $(VERSION)" -u '$(GPG_FINGERPRINT)' '$(VERSION)'
+
+## ------------------------- ##
 ## GNU FTP upload artifacts. ##
 ## ------------------------- ##
 
@@ -252,7 +265,7 @@ po-check:
 # you're SOL! :)
 
 GPG = gpg
-GPGFLAGS = -u 6338B6D4
+GPGFLAGS = -u $(GPG_FINGERPRINT)
 
 DIST_ARCHIVES_SIG = $(addsuffix .sig,$(DIST_ARCHIVES))
 DIST_ARCHIVES_DIRECTIVE = $(addsuffix .directive.asc,$(DIST_ARCHIVES))

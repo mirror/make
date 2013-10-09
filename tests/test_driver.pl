@@ -480,11 +480,6 @@ sub run_all_tests
             $status = "FAILED ($tests_passed/$tests_run passed)";
         }
 
-        elsif ($tests_run == 0) {
-            # Nothing was done!!
-            $status = "FAILED (no tests found!)";
-        }
-
         elsif ($code == -1) {
             # Skipped... not supported
             $status = "N/A";
@@ -496,6 +491,11 @@ sub run_all_tests
             # the suite forgot to end with "1;".
             warn "\n*** Test returned $code\n";
             $status = "FAILED ($tests_passed/$tests_run passed)";
+        }
+
+        elsif ($tests_run == 0) {
+            # Nothing was done!!
+            $status = "FAILED (no tests found!)";
         }
 
         elsif ($tests_run > $tests_passed) {

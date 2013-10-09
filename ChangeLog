@@ -1,3 +1,15 @@
+2013-10-09  Paul Smith  <psmith@gnu.org>
+
+	Version 4.0 released.
+
+	* configure.ac: Updated for the release.
+	* NEWS: Updated for the release.
+
+	* maintMakefile (tag-release): New target to add a Git tag.
+	* read.c (eval): Typo fix.
+	* ChangeLog.1: Typo fixes.
+	* w32/subproc/sub_proc.c (process_cleanup): Typo fix.
+
 2013-10-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32/compat/posixfcn.c (tmpfile): Move declaration of h before
