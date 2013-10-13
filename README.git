@@ -162,29 +162,43 @@ Steps to Release
 ----------------
 
 Here are the things that need to be done (in more or less this order)
-before making an official release:
+before making an official release.  If something breaks such that you need to
+change code, be sure to start over again sufficiently that everything is
+consistent (that's why we don't finalize the Git tag, etc. until the end).
 
   * Update the configure.ac file with the new release number.
+  * Update the EDITION value in the doc/make.texi file.
   * Update the NEWS file with the release number and date.
+  * Ensure the Savannah bug list URL in the NEWS file uses the correct
+    "Fixed Release" ID number.
+  * Run "make distcheck" to be sure it all works.
+  * Run "make update-www" to get a copy of the GNU make web pages
+  * Update the web page boilerplate if necessary
+  * Run "make gendocs" (requires gnulib) to generate the manual files for
+    the GNU make web pages.
+  * Follow the directions from gendocs for the web page repository
+  * run "make tag-release" to create a Git tag for the release
+  * Push everything:
+    git push --tags origin master
+
+Manage the Savannah project for GNU make:
+
   * In Savannah modify the "Value", "Rank", and "Description" values for the
     current "SCM" entry in both "Component Version" and "Fix Release" fields
     to refer to the new release, for "Bugs" and "Patches".
-  * Update the Savannah bug list URL in the NEWS file to use the correct
-    "Fixed Release" ID number.
   * In Savannah create a new entry for the "Component Version" and "Fix
     Release" fields:
       - Value: SCM
       - Rank:  20
       - Descr: Fixed in Git; will be available in the next version of Make.
-  * Run "make distcheck" to be sure it all works.
-  * git tag -u <GPGID> <VER> where GPGID is my GPG key fingerprint,
-    and VER is the release version.
-  * Push everything:
-    git push --tags origin master
   * Create the new release in the Savannah "Bugs" Administration for
     both the "Component Version" and "Fixed Release" fields.
-  * Create the new release in the Savannah "Patches" Administration for
-    the "Fixed Release" field.
+
+Start the next release:
+
+  * Update configure.ac and add a ".90" to the release number.
+  * Update the NEWS file with a new section for the release / date.
+  * Update the Savannah URL for the bugs fixed in the NEWS section.
 
 
 Publishing a Package

@@ -267,10 +267,54 @@ po-check:
 	  rm -f $@-1 $@-2; \
 	fi
 
+
+## --------------- ##
+## Generate docs.  ##
+## --------------- ##
+
+.PHONY: update-www gendocs
+
+CVS = cvs
+
+makeweb-repo = $(USER)@cvs.sv.gnu.org:/web/make
+gnuweb-repo = :pserver:anonymous@cvs.sv.gnu.org:/web/www
+gnuweb-dir = www/server/standards
+
+# Get the GNU make web page boilerplate etc.
+update-makeweb:
+	[ -d '$(MAKEWEBDIR)' ] || mkdir -p '$(MAKEWEBDIR)'
+	[ -d '$(MAKEWEBDIR)'/CVS ] \
+	    && { cd '$(MAKEWEBDIR)' && $(CVS) update; } \
+	    || { mkdir -p '$(dir $(MAKEWEBDIR))' && cd '$(dir $(MAKEWEBDIR))' \
+		 && $(CVS) -d $(makeweb-repo) co -d '$(notdir $(MAKEWEBDIR))' make; }
+
+# Get the GNU web page boilerplate etc.
+update-gnuweb:
+	[ -d '$(GNUWEBDIR)' ] || mkdir -p '$(GNUWEBDIR)'
+	[ -d '$(GNUWEBDIR)/$(gnuweb-dir)'/CVS ] \
+	    && { cd '$(GNUWEBDIR)/$(gnuweb-dir)' && $(CVS) update; } \
+	    || { cd '$(GNUWEBDIR)' && $(CVS) -d $(gnuweb-repo) co '$(gnuweb-dir)'; }
+
+gendocs: update-gnuweb update-makeweb
+	cp $(GNULIBDIR)/doc/gendocs_template doc
+	cd doc \
+	  && rm -rf doc/manual \
+	  && $(GNULIBDIR)/build-aux/gendocs.sh --email '$(BUGLIST)' \
+		make 'GNU Make Manual'
+	find '$(MAKEWEBDIR)'/manual \( -name CVS -prune \) -o \( -name '[!.]*' -type f -exec rm -f '{}' \; \)
+	cp -r doc/manual '$(MAKEWEBDIR)'
+	@echo 'Status of $(MAKEWEBDIR) repo:' && cd '$(MAKEWEBDIR)' \
+	    && cvs -q -n update \
+	    && echo '- cvs add <new files>' \
+	    && echo '- cvs remove <deleted files>' \
+	    && echo '- cvs commit' \
+	    && echo '- cvs tag make-$(subst .,-,$(VERSION))'
+
 ## ------------------------- ##
 ## Make release targets.     ##
 ## ------------------------- ##
 
+.PHONY: tag-release
 tag-release:
 	case '$(VERSION)' in \
 	    (*.*.9*) message=" candidate" ;; \
