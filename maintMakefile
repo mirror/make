@@ -2,7 +2,14 @@
 # only if you have the full copy of the GNU make sources from the Git
 # tree, not a dist copy.
 
+BUGLIST := bug-make@gnu.org
+
+# These are related to my personal setup.
 GPG_FINGERPRINT := 6338B6D4
+SRCROOTDIR := $(HOME)/src
+GNULIBDIR := $(SRCROOTDIR)/gnulib
+MAKEWEBDIR := $(SRCROOTDIR)/make/make-web
+GNUWEBDIR := $(SRCROOTDIR)/gnu-www
 
 # We like mondo-warnings!
 AM_CFLAGS += -Wall -Wextra -Wdeclaration-after-statement -Wshadow -Wpointer-arith -Wbad-function-cast
@@ -99,10 +106,27 @@ git-very-clean: git-clean
 	-$(GIT) clean -fd
 
 
-# ----------------------------------------------------------------------
-#
-# The sections below were stolen from the Makefile.maint used by fileutils,
-# sh-utils, textutils, CPPI, Bison, and Autoconf.
+
+## ---------------------- ##
+## Generating ChangeLog.  ##
+## ---------------------- ##
+
+gl2cl-date := 2013-10-10
+gl2cl := $(GNULIBDIR)/build-aux/gitlog-to-changelog
+
+# Rebuild the changelog whenever a new commit is added
+ChangeLog: .check-git-HEAD
+	if test -f '$(gl2cl)'; then \
+	    '$(gl2cl)' --since='$(gl2cl-date)' > '$@'; \
+	else \
+	    echo "WARNING: $(gl2cl) is not available.  No $@ generated."; \
+	fi
+
+.PHONY: .check-git-HEAD
+.check-git-HEAD:
+	sha="`git rev-parse HEAD`"; \
+	[ -f '$@' ] && [ "`cat '$@' 2>/dev/null`" = "$$sha" ] \
+	    || echo "$$sha" > '$@'
 
 
 ## ---------------- ##
@@ -210,16 +234,14 @@ checkcfg.%: distdir
 	&& $(MAKE) $(AM_MAKEFLAGS) check
 
 
-.PHONY: update
-update: po-update scm-update
-
-
 ## --------------- ##
 ## Sanity checks.  ##
 ## --------------- ##
 
 # Before we build a distribution be sure we run our local checks
 #distdir: local-check
+
+.PHONY: local-check po-check changelog-check
 
 # Checks that don't require Git.  Run 'changelog-check' last as
 # previous test may reveal problems requiring new ChangeLog entries.

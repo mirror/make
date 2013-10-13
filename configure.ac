@@ -26,7 +26,8 @@ AC_CONFIG_SRCDIR([vpath.c])
 AC_CONFIG_HEADERS([config.h])
 
 # Automake setup
-AM_INIT_AUTOMAKE([1.11.1 silent-rules])
+# We have to enable "foreign" because ChangeLog is auto-generated
+AM_INIT_AUTOMAKE([1.11.1 silent-rules foreign -Wall -Werror])
 
 # Checks for programs.
 AC_PROG_CC

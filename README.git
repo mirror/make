@@ -31,12 +31,16 @@ make source code via Git from the FSF's Savannah project
 Changes using Git
 -----------------
 
-For non-developers, please continue to provide patches as before, or if you
+For non-developers, you can continue to provide patches as before, or if you
 make a public repository I can pull from that if you prefer.
 
-For developers, I'm still new to Git myself, so I don't have a ton of advice.
-In this release we will continue to create ChangeLog files by hand so please
-don't forget to update the ChangeLog.
+Starting with GNU make 4.0 we no longer keep a separate ChangeLog file in
+source control.  We use the Gnulib git-to-changelog conversion script to
+convert the Git comments into ChangeLog-style entries for release.  As a
+result, please format your Git comments carefully so they will look clean
+after conversion.  In particular, each line of your comment will have a TAB
+added before it so be sure your comment lines are not longer than 72
+characters; prefer 70 or less.
 
 Rule #1: Don't rewrite pushed history (don't use "git push --force").
 
@@ -73,7 +77,7 @@ Building From Git
 To build GNU make from Git, you will need Autoconf, Automake, and
 Gettext, and any tools that those utilities require (GNU m4, Perl,
 etc.).  See the configure.ac file to find the minimum versions of each
-of these tools.  You will also need a copy of wget.
+of these tools.  You will also need a copy of wget and gnulib.
 
 When building from Git you must build in the source directory: "VPATH
 builds" from remote directories are not supported.  Once you've created

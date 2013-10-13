@@ -29,6 +29,8 @@ make
 
 # Distribution artifacts
 .dep_segment
+.check-git-HEAD
+ChangeLog
 Makefile.DOS
 NMakefile
 README

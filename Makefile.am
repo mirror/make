@@ -90,13 +90,6 @@ EXTRA_DIST =	README build.sh.in $(man_MANS) \
 
 DISTCLEANFILES = build.sh
 
-# Forward targets
-
-html:
-	cd doc && $(MAKE) $(AM_MAKEFLAGS) $@
-
-.PHONY: html
-
 # --------------- Internationalization Section
 
 localedir =	$(datadir)/locale
