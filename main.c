@@ -811,10 +811,11 @@ prepare_mutex_handle_string (sync_handle_t handle)
       /* Prepare the mutex handle string for our children.  */
       sprintf (hdl_string, "0x%x", handle);
       sync_mutex = xmalloc (sizeof (struct stringlist));
-      sync_mutex->list = xmalloc (sizeof (char *));
+      sync_mutex->list = xmalloc (2 * sizeof (char *));
       sync_mutex->list[0] = xstrdup (hdl_string);
+      sync_mutex->list[1] = NULL;
       sync_mutex->idx = 1;
-      sync_mutex->max = 1;
+      sync_mutex->max = 2;
       define_makeflags (1, 0);
     }
 }
@@ -2051,10 +2052,11 @@ main (int argc, char **argv, char **envp)
 #endif
 
       jobserver_fds = xmalloc (sizeof (struct stringlist));
-      jobserver_fds->list = xmalloc (sizeof (char *));
+      jobserver_fds->list = xmalloc (2 * sizeof (char *));
       jobserver_fds->list[0] = cp;
+      jobserver_fds->list[1] = NULL;
       jobserver_fds->idx = 1;
-      jobserver_fds->max = 1;
+      jobserver_fds->max = 2;
     }
 #endif
 
