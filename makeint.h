@@ -56,6 +56,12 @@ char *alloca ();
 #endif
 #include "gnumake.h"
 
+/* Force MinGW64 to use a replacement for MS broken vsnprintf
+   implementation.  */
+#ifdef __MINGW64_VERSION_MAJOR
+# define __USE_MINGW_ANSI_STDIO 1
+#endif
+
 #ifdef  CRAY
 /* This must happen before #include <signal.h> so
    that the declaration therein is changed.  */
