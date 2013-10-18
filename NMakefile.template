@@ -89,6 +89,7 @@ OBJS = \
 	$(OUTDIR)/hash.obj \
 	$(OUTDIR)/implicit.obj \
 	$(OUTDIR)/job.obj \
+	$(OUTDIR)/load.obj \
 	$(OUTDIR)/main.obj \
 	$(OUTDIR)/misc.obj \
 	$(OUTDIR)/output.obj \
@@ -105,6 +106,7 @@ OBJS = \
 	$(OUTDIR)/fnmatch.obj \
 	$(OUTDIR)/dirent.obj \
 	$(OUTDIR)/pathstuff.obj \
+	$(OUTDIR)/posixfcn.obj \
 	$(guile)
 
 $(OUTDIR)/make.exe: $(OUTDIR) $(OBJS)
@@ -120,6 +122,8 @@ $(OUTDIR)/glob.obj : glob/glob.c
 $(OUTDIR)/fnmatch.obj : glob/fnmatch.c
 	$(CC) $(CFLAGS) /c $?
 $(OUTDIR)/dirent.obj : w32/compat/dirent.c
+	$(CC) $(CFLAGS) /c $?
+$(OUTDIR)/pathstuff.obj : w32/compat/posixfcn.c
 	$(CC) $(CFLAGS) /c $?
 $(OUTDIR)/pathstuff.obj : w32/pathstuff.c
 	$(CC) $(CFLAGS) /c $?
