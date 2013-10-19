@@ -6,10 +6,18 @@ BUGLIST := bug-make@gnu.org
 
 # These are related to my personal setup.
 GPG_FINGERPRINT := 6338B6D4
-SRCROOTDIR := $(HOME)/src
-GNULIBDIR := $(SRCROOTDIR)/gnulib
-MAKEWEBDIR := $(SRCROOTDIR)/make/make-web
-GNUWEBDIR := $(SRCROOTDIR)/gnu-www
+
+# SRCROOTDIR is just a handy location to keep source files in
+SRCROOTDIR ?= $(HOME)/src
+
+# Where the gnulib project has been locally cloned
+GNULIBDIR ?= $(SRCROOTDIR)/gnulib
+
+# Where to put the CVS checkout of the GNU web repository
+GNUWEBDIR ?= $(SRCROOTDIR)/gnu-www
+
+# Where to put the CVS checkout of the GNU make web repository
+MAKEWEBDIR ?= $(SRCROOTDIR)/make/make-web
 
 # We like mondo-warnings!
 AM_CFLAGS += -Wall -Wextra -Wdeclaration-after-statement -Wshadow -Wpointer-arith -Wbad-function-cast
