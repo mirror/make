@@ -230,16 +230,22 @@ check-alt-config: \
 	checkcfg.CPPFLAGS^-DNO_OUTPUT_SYNC \
 	checkcfg.CPPFLAGS^-DNO_ARCHIVES
 
+NR_MAKE = $(MAKE)
+
+# Check builds both with build.sh and with make
 checkcfg.%: distdir
-	@  rm -rf $(distdir)/_build \
+	@( rm -rf $(distdir)/_build \
 	&& mkdir $(distdir)/_build \
 	&& cd $(distdir)/_build \
 	&& echo "Testing configure with $(subst ^,=,$*)" \
 	&& ../configure --srcdir=.. $(subst ^,=,$*) \
 		$(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS) \
 		CFLAGS='$(AM_CFLAGS)' \
-	&& $(MAKE) $(AM_MAKEFLAGS) \
-	&& $(MAKE) $(AM_MAKEFLAGS) check
+	&& ./build.sh \
+	&& ./make $(AM_MAKEFLAGS) check \
+	&& rm -f *.o make \
+	&& $(NR_MAKE) $(AM_MAKEFLAGS) \
+	&& ./make $(AM_MAKEFLAGS) check ) 2>&1 | tee checkcfg.$*.log
 
 
 ## --------------- ##

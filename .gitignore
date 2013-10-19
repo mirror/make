@@ -46,3 +46,4 @@ config.h.W32
 configh.dos
 make-[0-9]*/
 make-[0-9]*.tar.*
+checkcfg.*.log
