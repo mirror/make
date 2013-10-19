@@ -6,8 +6,6 @@ $details = "Test dynamic loading of modules.";
 # Don't do anything if this system doesn't support "load"
 exists $FEATURES{load} or return -1;
 
-my $sobuild = '$(CC) '.($srcdir? "-I$srcdir":'').' -g -shared -fPIC -o $@ $<';
-
 # First build a shared object
 # Provide both a default and non-default load symbol
 
@@ -39,7 +37,15 @@ EOF
 close($F) or die "close: testload.c: $!\n";
 
 # Make sure we can compile
-run_make_test('testload.so: testload.c ; @'.$sobuild, '', '');
+# CONFIG_FLAGS are loaded from config-flags.pm and set by configure
+
+my $sobuild = "$CONFIG_FLAGS{CC} ".($srcdir? "-I$srcdir":'')." $CONFIG_FLAGS{CPPFLAGS} $CONFIG_FLAGS{CFLAGS} -shared -fPIC $CONFIG_FLAGS{LDFLAGS} -o testload.so testload.c";
+
+my $clog = `$sobuild 2>&1`;
+if ($? != 0) {
+    $verbose and print "Failed to build testload.so:\n$sobuild\n$_";
+    return -1;
+}
 
 # TEST 1
 run_make_test(q!

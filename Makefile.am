@@ -172,7 +172,7 @@ loadavg_LDADD = @GETLOADAVG_LIBS@
 #
 MAKETESTFLAGS =
 
-check-regression:
+check-regression: tests/config-flags.pm
 	@if test -f '$(srcdir)/tests/run_make_tests'; then \
 	  if $(PERL) -v >/dev/null 2>&1; then \
 	    case `cd '$(srcdir)'; pwd` in `pwd`) : ;; \

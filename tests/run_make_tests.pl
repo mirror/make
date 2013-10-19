@@ -43,6 +43,7 @@ $command_string = '';
 $all_tests = 0;
 
 require "test_driver.pl";
+require "config-flags.pm";
 
 # Some target systems might not have the POSIX module...
 $has_POSIX = eval { require "POSIX.pm" };

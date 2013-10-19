@@ -6,8 +6,6 @@ $details = "Verify the different aspects of the shared object API.";
 # Don't do anything if this system doesn't support "load"
 exists $FEATURES{load} or return -1;
 
-my $sobuild = '$(CC) '.($srcdir? "-I$srcdir":'').' -g -shared -fPIC -o $@ $<';
-
 # First build a shared object
 # Provide both a default and non-default load symbol
 
@@ -74,7 +72,13 @@ testapi_gmk_setup ()
 EOF
 close($F) or die "close: testapi.c: $!\n";
 
-run_make_test('testapi.so: testapi.c ; @'.$sobuild, '', '');
+my $sobuild = "$CONFIG_FLAGS{CC} ".($srcdir? "-I$srcdir":'')." $CONFIG_FLAGS{CPPFLAGS} $CONFIG_FLAGS{CFLAGS} -shared -fPIC $CONFIG_FLAGS{LDFLAGS} -o testapi.so testapi.c";
+
+my $clog = `$sobuild 2>&1`;
+if ($? != 0) {
+    $verbose and print "Failed to build testapi.so:\n$sobuild\n$_";
+    return -1;
+}
 
 # TEST 1
 # Check the gmk_expand() function
