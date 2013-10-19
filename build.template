@@ -22,11 +22,11 @@
 
 srcdir='@srcdir@'
 CC='@CC@'
-CFLAGS='@CFLAGS@'
+CFLAGS='@CFLAGS@ @GUILE_CFLAGS@'
 CPPFLAGS='@CPPFLAGS@'
-LDFLAGS='@LDFLAGS@'
+LDFLAGS='@AM_LDFLAGS@ @LDFLAGS@'
 ALLOCA='@ALLOCA@'
-LOADLIBES='@LIBS@ @LIBINTL@'
+LOADLIBES='@LIBS@ @GUILE_LIBS@ @LIBINTL@'
 eval extras=\'@LIBOBJS@\'
 REMOTE='@REMOTE@'
 GLOBLIB='@GLOBLIB@'
@@ -46,7 +46,7 @@ includedir=${prefix}/include
 localedir=${prefix}/share/locale
 aliaspath=${localedir}${PATH_SEPARATOR}.
 
-defines="-DALIASPATH=\"${aliaspath}\" -DLOCALEDIR=\"${localedir}\" -DLIBDIR=\"${libdir}\" -DINCLUDEDIR=\"${includedir}\""' @DEFS@'
+defines="-DLOCALEDIR=\"${localedir}\" -DLIBDIR=\"${libdir}\" -DINCLUDEDIR=\"${includedir}\""' @DEFS@'
 
 # Exit as soon as any command fails.
 set -e

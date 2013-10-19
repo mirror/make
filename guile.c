@@ -15,6 +15,9 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "makeint.h"
+
+#ifdef HAVE_GUILE
+
 #include "gnumake.h"
 
 #include "debug.h"
@@ -144,3 +147,13 @@ guile_gmake_setup (const gmk_floc *flocp UNUSED)
 
   return 1;
 }
+
+#else
+
+int
+guile_gmake_setup (const gmk_floc *flocp UNUSED)
+{
+  return 1;
+}
+
+#endif

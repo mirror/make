@@ -1286,10 +1286,8 @@ main (int argc, char **argv, char **envp)
     define_variable_cname (".FEATURES", features, o_default, 0);
   }
 
-#ifdef HAVE_GUILE
   /* Configure GNU Guile support */
   guile_gmake_setup (NILF);
-#endif
 
   /* Read in variables from the environment.  It is important that this be
      done before $(MAKE) is figured out so its definitions will not be
