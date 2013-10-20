@@ -15,6 +15,12 @@ A complete list of bugs fixed in this version is available here:
 
 http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=105&set=custom
 
+* Change the fatal error for mixed explicit and implicit rules, that was
+  introduced in GNU make 3.82, to a non-fatal error.  However, this syntax is
+  still deprecated and may return to being illegal in a future version of GNU
+  make.  Makefiles that rely on this syntax should be fixed.
+  See https://savannah.gnu.org/bugs/?33034
+
 
 Version 4.0 (09 Oct 2013)
 
@@ -151,15 +157,6 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=104&set
   it explicitly.
 
 * WARNING: Backward-incompatibility!
-  In previous versions of make it was acceptable to list one or more explicit
-  targets followed by one or more pattern targets in the same rule and it
-  worked "as expected".  However, this was not documented as acceptable and if
-  you listed any explicit targets AFTER the pattern targets, the entire rule
-  would be mis-parsed.  This release removes this ability completely: make
-  will generate an error message if you mix explicit and pattern targets in
-  the same rule.
-
-* WARNING: Backward-incompatibility!
   As a result of parser enhancements, three backward-compatibility issues
   exist: first, a prerequisite containing an "=" cannot be escaped with a
   backslash any longer.  You must create a variable containing an "=" and
@@ -246,8 +243,8 @@ Version 3.81 (01 Apr 2006)
   any prerequisite that does not exist, even though that prerequisite
   might have caused the target to rebuild.  Starting with the _next_
   release of GNU make, '$?' will contain all prerequisites that caused
-  the target to be considered out of date.  See this Savannah bug:
-  http://savannah.gnu.org/bugs/index.php?func=detailitem&item_id=16051
+  the target to be considered out of date.
+  See http://savannah.gnu.org/bugs/?16051
 
 * WARNING: Backward-incompatibility!
   GNU make now implements a generic "second expansion" feature on the
