@@ -40,7 +40,8 @@ convert the Git comments into ChangeLog-style entries for release.  As a
 result, please format your Git comments carefully so they will look clean
 after conversion.  In particular, each line of your comment will have a TAB
 added before it so be sure your comment lines are not longer than 72
-characters; prefer 70 or less.
+characters; prefer 70 or less.  Please use standard ChangeLog formats for
+your commit messages (sans the leading TAB of course).
 
 Rule #1: Don't rewrite pushed history (don't use "git push --force").
 
@@ -63,12 +64,13 @@ diff chunks in the same file.  There is a video available which helps a lot.
 Coding Standards
 ----------------
 
-GNU make code adheres to the GNU Coding Standards.  Additionally, GNU make is
-a foundational bootstrap package for the GNU project; as such it is very
-conservative about language features it expects.  It should build with any C
-compiler conforming to the ANSI C89 / ISO C90 standard.
+GNU make code adheres to the GNU Coding Standards.  Please use only spaces and
+no TAB characters in source code.
 
-Please use only spaces and no TAB characters in source code.
+Additionally, GNU make is a foundational bootstrap package for the GNU
+project; as such it is very conservative about language features it expects.
+It should build with any C compiler conforming to the ANSI C89 / ISO C90
+standard.
 
 
 Building From Git
@@ -87,7 +89,6 @@ there.
 After checking out the code, you will need to perform these steps to get
 to the point where you can run "make".
 
-
  1) $ autoreconf -i
 
     This rebuilds all the things that need rebuilding, installing
@@ -96,11 +97,9 @@ to the point where you can run "make".
     You may get warnings here about missing files like README, etc.
     Ignore them, they are harmless.
 
-
  2) $ ./configure
 
     Generate a Makefile
-
 
  3) $ make update
 
@@ -109,7 +108,6 @@ to the point where you can run "make".
 
     NB: You may need GNU make to correctly perform this step; if you use
     a platform-local make you may get problems with missing files in doc/.
-
 
 At this point you have successfully brought your Git copy of the GNU
 make source directory up to the point where it can be treated
@@ -172,6 +170,7 @@ consistent (that's why we don't finalize the Git tag, etc. until the end).
   * Ensure the Savannah bug list URL in the NEWS file uses the correct
     "Fixed Release" ID number.
   * Run "make distcheck" to be sure it all works.
+  * Run "make check-alt-config" to be sure alternative configurations work
   * Run "make update-www" to get a copy of the GNU make web pages
   * Update the web page boilerplate if necessary
   * Run "make gendocs" (requires gnulib) to generate the manual files for
@@ -183,16 +182,17 @@ consistent (that's why we don't finalize the Git tag, etc. until the end).
 
 Manage the Savannah project for GNU make:
 
+  >>> This is only for real releases, not release candidate builds <<<
+
   * In Savannah modify the "Value", "Rank", and "Description" values for the
     current "SCM" entry in both "Component Version" and "Fix Release" fields
-    to refer to the new release, for "Bugs" and "Patches".
+    to refer to the new release.  The "Rank" field should be 10 less than the
+    previous release so it orders properly.
   * In Savannah create a new entry for the "Component Version" and "Fix
     Release" fields:
       - Value: SCM
       - Rank:  20
       - Descr: Fixed in Git; will be available in the next version of Make.
-  * Create the new release in the Savannah "Bugs" Administration for
-    both the "Component Version" and "Fixed Release" fields.
 
 Start the next release:
 
@@ -242,15 +242,22 @@ Create the announcement in a text file, then sign it with GPG.
 
   gpg --clearsign <announcement.txt>
 
-Upload to gnu.org, then login and send from my account there.
+Or, use your mail client's PGP/GPG signing capabilities.
 
-To: bug-make@gnu.org, help-make@gnu.org, make-w32@gnu.org
-CC: info-gnu@gnu.org
-BCC: make-alpha@gnu.org
+Announce the release:
 
-Add a news item to the Savannah project site.
+  * For release candidate builds:
+    To:  bug-make@gnu.org
+    CC:  coordinator@translationproject.org
+    BCC: help-make@gnu.org, make-w32@gnu.org, make-alpha@gnu.org
 
-Add an update to freshmeat.net.
+  * For release builds
+    To:  info-gnu@gnu.org, bug-make@gnu.org
+    CC:  coordinator@translationproject.org
+    BCC: help-make@gnu.org, make-w32@gnu.org, make-alpha@gnu.org
+
+    * Add a news item to the Savannah project site.
+    * Add an update to freecode.com (nee freshmeat.net)
 
 
 Appendix A - For The Brave
