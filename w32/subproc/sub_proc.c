@@ -756,7 +756,6 @@ process_begin(
 	startInfo.lpReserved = 0;
 	startInfo.cbReserved2 = 0;
 	startInfo.lpReserved2 = 0;
-	startInfo.lpTitle = shell_name ? shell_name : exec_path;
 	startInfo.hStdInput = (HANDLE)pproc->sv_stdin[1];
 	startInfo.hStdOutput = (HANDLE)pproc->sv_stdout[1];
 	startInfo.hStdError = (HANDLE)pproc->sv_stderr[1];
