@@ -30,7 +30,6 @@ copy config.h.W32 config.h
 rem Guile configuration
 set GUILECFLAGS=
 set GUILELIBS=
-set GUILESRC=
 set NOGUILE=
 set OPT=-O2
 set COMPILER=
@@ -79,7 +78,6 @@ GoTo GuileDone
 echo "pkg-config not found, building without Guile"
 :GuileDone
 if not "%GUILECFLAGS%" == "" echo "Guile found, building with Guile"
-if not "%GUILECFLAGS%" == "" set GUILESRC=guile.c
 if not "%GUILECFLAGS%" == "" set GUILECFLAGS=%GUILECFLAGS% -DHAVE_GUILE
 if "%COMPILER%" == "gcc" if "%OPT%" == "-O0" echo "Building without compiler optimizations"
 cd w32\subproc
@@ -162,8 +160,7 @@ cl.exe /nologo /MT /W4 /GX /Zi /YX /Od /I . /I glob /I w32/include /D _DEBUG /D 
 echo WinDebug\fnmatch.obj >>link.dbg
 cl.exe /nologo /MT /W4 /GX /Zi /YX /Od /I . /I glob /I w32/include /D _DEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinDebug/ /Fp.\WinDebug/%make%.pch /Fo.\WinDebug/ /Fd.\WinDebug/%make%.pdb /c  .\w32\pathstuff.c
 echo WinDebug\pathstuff.obj >>link.dbg
-if "%GUILESRC%" == "" GoTo LinkDbg
-cl.exe /nologo /MT /W4 /GX /Zi /YX /Od %GUILECFLAGS%% /I . /I glob /I w32/include /D _DEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinDebug/ /Fp.\WinDebug/%make%.pch /Fo.\WinDebug/ /Fd.\WinDebug/%make%.pdb /c guile.c
+cl.exe /nologo /MT /W4 /GX /Zi /YX /Od %GUILECFLAGS% /I . /I glob /I w32/include /D _DEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinDebug/ /Fp.\WinDebug/%make%.pch /Fo.\WinDebug/ /Fd.\WinDebug/%make%.pdb /c guile.c
 echo WinDebug\guile.obj >>link.dbg
 :LinkDbg
 echo off
@@ -241,8 +238,7 @@ cl.exe /nologo /MT /W4 /GX /YX /O2 /I . /I glob /I w32/include /D NDEBUG /D WIND
 echo WinRel\fnmatch.obj >>link.rel
 cl.exe /nologo /MT /W4 /GX /YX /O2 /I . /I glob /I w32/include /D NDEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinRel/ /Fp.\WinRel/%make%.pch /Fo.\WinRel/ /c  .\w32\pathstuff.c
 echo WinRel\pathstuff.obj >>link.rel
-if "%GUILESRC%" == "" GoTo LinkRel
-cl.exe /nologo /MT /W4 /GX /YX /O2 /I . /I glob /I w32/include /D NDEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinRel/ /Fp.\WinRel/%make%.pch /Fo.\WinRel/ /c guile.c
+cl.exe /nologo /MT /W4 /GX /YX /O2 %GUILECFLAGS% /I . /I glob /I w32/include /D NDEBUG /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR.\WinRel/ /Fp.\WinRel/%make%.pch /Fo.\WinRel/ /c guile.c
 echo WinRel\guile.obj >>link.rel
 :LinkRel
 echo off
@@ -288,18 +284,13 @@ gcc -mthreads -Wall -gdwarf-2 -g3 %OPT% -I. -I./glob -I./w32/include -DWINDOWS32
 gcc -mthreads -Wall -gdwarf-2 -g3 %OPT% -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c ./glob/fnmatch.c -o fnmatch.o
 gcc -mthreads -Wall -gdwarf-2 -g3 %OPT% -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c ./w32/pathstuff.c -o pathstuff.o
 gcc -mthreads -Wall -gdwarf-2 -g3 %OPT% -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c ./w32/compat/posixfcn.c -o posixfcn.o
-@echo off
-set GUILEOBJ=
-if "%GUILESRC%" == "" GoTo LinkGCC
-set GUILEOBJ=guile.o
-echo on
 gcc -mthreads -Wall -gdwarf-2 -g3 %OPT% %GUILECFLAGS% -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H -c guile.c
 :LinkGCC
 @echo off
 Rem The version NN of libgnumake-NN.dll.a should be bumped whenever
 Rem the API changes in binary-incompatible manner.
 @echo on
-gcc -mthreads -gdwarf-2 -g3 -o gnumake.exe variable.o rule.o remote-stub.o commands.o file.o getloadavg.o default.o signame.o expand.o dir.o main.o getopt1.o %GUILEOBJ% job.o output.o read.o version.o getopt.o arscan.o remake.o misc.o hash.o strcache.o ar.o function.o vpath.o implicit.o loadapi.o load.o glob.o fnmatch.o pathstuff.o posixfcn.o w32_misc.o sub_proc.o w32err.o %GUILELIBS% -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32 -Wl,--out-implib=libgnumake-1.dll.a
+gcc -mthreads -gdwarf-2 -g3 -o gnumake.exe variable.o rule.o remote-stub.o commands.o file.o getloadavg.o default.o signame.o expand.o dir.o main.o getopt1.o guile.o job.o output.o read.o version.o getopt.o arscan.o remake.o misc.o hash.o strcache.o ar.o function.o vpath.o implicit.o loadapi.o load.o glob.o fnmatch.o pathstuff.o posixfcn.o w32_misc.o sub_proc.o w32err.o %GUILELIBS% -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32 -Wl,--out-implib=libgnumake-1.dll.a
 @GoTo BuildEnd
 :Usage
 echo Usage: %0 [options] [gcc]
@@ -310,8 +301,6 @@ echo.  --without-guile   Do not compile Guile support even if found
 echo.  --help            Display these instructions and exit
 :BuildEnd
 @echo off
-set GUILEOBJ=
-set GUILESRC=
 set GUILELIBS=
 set GUILECFLAGS=
 set PKGMSC=

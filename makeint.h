@@ -512,9 +512,7 @@ const char *strcache_add_len (const char *str, unsigned int len);
 int strcache_setbufsize (unsigned int size);
 
 /* Guile support  */
-#ifdef HAVE_GUILE
 int guile_gmake_setup (const gmk_floc *flocp);
-#endif
 
 /* Loadable object support.  Sets to the strcached name of the loaded file.  */
 typedef int (*load_func_t)(const gmk_floc *flocp);
