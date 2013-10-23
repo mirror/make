@@ -32,9 +32,9 @@ CFLAGS_debug = $(CFLAGS_any) /Od /D DEBUG /D _DEBUG /FR.\WinDebug/ /Fp.\WinDebug
 CFLAGS_release = $(CFLAGS_any) /O2 /D NDEBUG /FR.\WinRel/ /Fp.\WinRel/make.pch /Fo.\WinRel/
 
 LDFLAGS_debug = w32\subproc\WinDebug\subproc.lib /NOLOGO /SUBSYSTEM:console\
-	/INCREMENTAL:no /PDB:WinDebug/make.pdb /OUT:WinDebug/make.exe /DEBUG
+	/STACK:0x400000 /INCREMENTAL:no /PDB:WinDebug/make.pdb /OUT:WinDebug/make.exe /DEBUG
 LDFLAGS_release = w32\subproc\WinRel\subproc.lib /NOLOGO /SUBSYSTEM:console\
-	/INCREMENTAL:no /OUT:WinRel/make.exe
+	/STACK:0x400000 /INCREMENTAL:no /OUT:WinRel/make.exe
 
 all: config.h subproc Release Debug
 
@@ -72,7 +72,7 @@ $(OUTDIR):
 
 LIBS = kernel32.lib user32.lib advapi32.lib
 
-#guile = $(OUTDIR)/guile.obj
+guile = $(OUTDIR)/guile.obj
 
 OBJS = \
 	$(OUTDIR)/ar.obj \
