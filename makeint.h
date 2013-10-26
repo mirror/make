@@ -415,7 +415,7 @@ extern int unixy_shell;
 # define MAP_VMSCOMMA   0x0000
 #endif
 
-#define STOP_SET(_v,_m) ANY_SET (stopchar_map[(int)(_v)],(_m))
+#define STOP_SET(_v,_m) ANY_SET (stopchar_map[(unsigned char)(_v)],(_m))
 
 #if defined(HAVE_SYS_RESOURCE_H) && defined(HAVE_GETRLIMIT) && defined(HAVE_SETRLIMIT)
 # define SET_STACK_SIZE
