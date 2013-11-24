@@ -2814,7 +2814,7 @@ decode_switches (int argc, char **argv, int env)
                   if (cs->type == filename)
                     sl->list[sl->idx++] = expand_command_line_file (optarg);
                   else
-                    sl->list[sl->idx++] = optarg;
+                    sl->list[sl->idx++] = xstrdup (optarg);
                   sl->list[sl->idx] = 0;
                   break;
 
@@ -2904,7 +2904,7 @@ static void
 decode_env_switches (char *envar, unsigned int len)
 {
   char *varref = alloca (2 + len + 2);
-  char *value, *p;
+  char *value, *p, *buf;
   int argc;
   char **argv;
 
@@ -2925,15 +2925,18 @@ decode_env_switches (char *envar, unsigned int len)
   /* Allocate a vector that is definitely big enough.  */
   argv = alloca ((1 + len + 1) * sizeof (char *));
 
-  /* Allocate a buffer to copy the value into while we split it into words
-     and unquote it.  We must use permanent storage for this because
-     decode_switches may store pointers into the passed argument words.  */
-  p = xmalloc (2 * len);
+  /* We need a buffer to copy the value into while we split it into words
+     and unquote it.  */
+  buf = alloca (2 * len);
 
   /* getopt will look at the arguments starting at ARGV[1].
      Prepend a spacer word.  */
   argv[0] = 0;
   argc = 1;
+
+  /* Set up in case we need to prepend a dash later.  */
+  buf[0] = '-';
+  p = buf+1;
   argv[argc] = p;
   while (*value != '\0')
     {
@@ -2956,10 +2959,8 @@ decode_env_switches (char *envar, unsigned int len)
 
   if (argv[1][0] != '-' && strchr (argv[1], '=') == 0)
     /* The first word doesn't start with a dash and isn't a variable
-       definition.  Add a dash and pass it along to decode_switches.  We
-       need permanent storage for this in case decode_switches saves
-       pointers into the value.  */
-    argv[1] = xstrdup (concat (2, "-", argv[1]));
+       definition, so add a dash.  */
+    argv[1] = buf;
 
   /* Parse those words.  */
   decode_switches (argc, argv, 1);
