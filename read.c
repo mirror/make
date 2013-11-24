@@ -2343,14 +2343,14 @@ unescape_char (char *string, int c)
           if (*e != c || l%2 == 0)
             {
               /* It's not; just take it all without unescaping.  */
-              memcpy (p, s, l);
+              memmove (p, s, l);
               p += l;
             }
           else if (l > 1)
             {
               /* It is, and there's >1 backslash.  Take half of them.  */
               l /= 2;
-              memcpy (p, s, l);
+              memmove (p, s, l);
               p += l;
             }
           s = e;
