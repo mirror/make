@@ -36,7 +36,7 @@ test_expand (const char *val)
 static char *
 test_noexpand (const char *val)
 {
-    char *str = gmk_alloc (strlen (val));
+    char *str = gmk_alloc (strlen (val) + 1);
     strcpy (str, val);
     return str;
 }
