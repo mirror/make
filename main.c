@@ -94,7 +94,8 @@ struct command_switch
       {
         flag,                   /* Turn int flag on.  */
         flag_off,               /* Turn int flag off.  */
-        string,                 /* One string per switch.  */
+        string,                 /* One string per invocation.  */
+        strlist,                /* One string per switch.  */
         filename,               /* A string containing a file name.  */
         positive_int,           /* A positive integer.  */
         floating,               /* A floating-point number (double).  */
@@ -118,7 +119,7 @@ struct command_switch
 #define short_option(c) ((c) <= CHAR_MAX)
 
 /* The structure used to hold the list of strings given
-   in command switches of a type that takes string arguments.  */
+   in command switches of a type that takes strlist arguments.  */
 
 struct stringlist
   {
@@ -157,7 +158,7 @@ int db_level = 0;
 
 /* Synchronize output (--output-sync).  */
 
-static struct stringlist *output_sync_option = 0;
+char *output_sync_option = 0;
 
 #ifdef WINDOWS32
 /* Suspend make in main for a short time to allow debugger to attach */
@@ -234,7 +235,7 @@ static unsigned int inf_jobs = 0;
 
 /* File descriptors for the jobs pipe.  */
 
-static struct stringlist *jobserver_fds = 0;
+char *jobserver_fds = 0;
 
 int job_fds[2] = { -1, -1 };
 int job_rfd = -1;
@@ -242,7 +243,7 @@ int job_rfd = -1;
 /* Handle for the mutex used on Windows to synchronize output of our
    children under -O.  */
 
-static struct stringlist *sync_mutex = 0;
+char *sync_mutex = 0;
 
 /* Maximum load average at which multiple jobs will be run.
    Negative values mean unlimited, while zero means limit to
@@ -436,14 +437,14 @@ static const struct command_switch switches[] =
     { 'W', filename, &new_files, 0, 0, 0, 0, 0, "what-if" },
 
     /* These are long-style options.  */
-    { CHAR_MAX+1, string, &db_flags, 1, 1, 0, "basic", 0, "debug" },
+    { CHAR_MAX+1, strlist, &db_flags, 1, 1, 0, "basic", 0, "debug" },
     { CHAR_MAX+2, string, &jobserver_fds, 1, 1, 0, 0, 0, "jobserver-fds" },
     { CHAR_MAX+3, flag, &trace_flag, 1, 1, 0, 0, 0, "trace" },
     { CHAR_MAX+4, flag, &inhibit_print_directory_flag, 1, 1, 0, 0, 0,
       "no-print-directory" },
     { CHAR_MAX+5, flag, &warn_undefined_variables_flag, 1, 1, 0, 0, 0,
       "warn-undefined-variables" },
-    { CHAR_MAX+6, string, &eval_strings, 1, 0, 0, 0, 0, "eval" },
+    { CHAR_MAX+6, strlist, &eval_strings, 1, 0, 0, 0, 0, "eval" },
     { CHAR_MAX+7, string, &sync_mutex, 1, 1, 0, 0, 0, "sync-mutex" },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
   };
@@ -757,40 +758,23 @@ decode_debug_flags (void)
 static void
 decode_output_sync_flags (void)
 {
-  const char **pp;
-
-  if (!output_sync_option)
-    return;
-
-  for (pp=output_sync_option->list; *pp; ++pp)
+  if (output_sync_option)
     {
-      const char *p = *pp;
-
-      if (streq (p, "none"))
+      if (streq (output_sync_option, "none"))
         output_sync = OUTPUT_SYNC_NONE;
-      else if (streq (p, "line"))
+      else if (streq (output_sync_option, "line"))
         output_sync = OUTPUT_SYNC_LINE;
-      else if (streq (p, "target"))
+      else if (streq (output_sync_option, "target"))
         output_sync = OUTPUT_SYNC_TARGET;
-      else if (streq (p, "recurse"))
+      else if (streq (output_sync_option, "recurse"))
         output_sync = OUTPUT_SYNC_RECURSE;
       else
-        OS (fatal, NILF, _("unknown output-sync type '%s'"), p);
+        OS (fatal, NILF,
+            _("unknown output-sync type '%s'"), output_sync_option);
     }
 
   if (sync_mutex)
-    {
-      const char *mp;
-      unsigned int idx;
-
-      for (idx = 1; idx < sync_mutex->idx; idx++)
-        if (!streq (sync_mutex->list[0], sync_mutex->list[idx]))
-          O (fatal, NILF, _("internal error: multiple --sync-mutex options"));
-
-      /* Now parse the mutex handle string.  */
-      mp = sync_mutex->list[0];
-      RECORD_SYNC_MUTEX (mp);
-    }
+    RECORD_SYNC_MUTEX (sync_mutex);
 }
 
 #ifdef WINDOWS32
@@ -806,17 +790,10 @@ prepare_mutex_handle_string (sync_handle_t handle)
 {
   if (!sync_mutex)
     {
-      /* 2 hex digits per byte + 2 characters for "0x" + null.  */
-      char hdl_string[2 * sizeof (sync_handle_t) + 2 + 1];
-
       /* Prepare the mutex handle string for our children.  */
-      sprintf (hdl_string, "0x%x", handle);
-      sync_mutex = xmalloc (sizeof (struct stringlist));
-      sync_mutex->list = xmalloc (2 * sizeof (char *));
-      sync_mutex->list[0] = xstrdup (hdl_string);
-      sync_mutex->list[1] = NULL;
-      sync_mutex->idx = 1;
-      sync_mutex->max = 2;
+      /* 2 hex digits per byte + 2 characters for "0x" + null.  */
+      sync_mutex = xmalloc ((2 * sizeof (sync_handle_t)) + 2 + 1);
+      sprintf (sync_mutex, "0x%x", handle);
       define_makeflags (1, 0);
     }
 }
@@ -1526,17 +1503,8 @@ main (int argc, char **argv, char **envp)
 
   if (jobserver_fds)
     {
-      const char *cp;
-      unsigned int ui;
-
-      for (ui=1; ui < jobserver_fds->idx; ++ui)
-        if (!streq (jobserver_fds->list[0], jobserver_fds->list[ui]))
-          O (fatal, NILF,
-             _("internal error: multiple --jobserver-fds options"));
-
-      /* Now parse the fds string and make sure it has the proper format.  */
-
-      cp = jobserver_fds->list[0];
+      /* Make sure the jobserver option has the proper format.  */
+      const char *cp = jobserver_fds;
 
 #ifdef WINDOWS32
       if (! open_jobserver_semaphore (cp))
@@ -1604,7 +1572,7 @@ main (int argc, char **argv, char **envp)
             close (job_fds[1]);
 #endif
           job_fds[0] = job_fds[1] = -1;
-          free (jobserver_fds->list);
+
           free (jobserver_fds);
           jobserver_fds = 0;
         }
@@ -1998,8 +1966,6 @@ main (int argc, char **argv, char **envp)
 
   if (job_slots > 1)
     {
-      char *cp;
-
 #ifdef WINDOWS32
       /* sub_proc.c cannot wait for more than MAXIMUM_WAIT_OBJECTS objects
        * and one of them is the job-server semaphore object.  Limit the
@@ -2046,22 +2012,15 @@ main (int argc, char **argv, char **envp)
         }
 #endif
 
-      /* Fill in the jobserver_fds struct for our children.  */
+      /* Fill in the jobserver_fds for our children.  */
 
 #ifdef WINDOWS32
-      cp = xmalloc (MAX_PATH + 1);
-      strcpy (cp, get_jobserver_semaphore_name ());
+      jobserver_fds = xmalloc (MAX_PATH + 1);
+      strcpy (jobserver_fds, get_jobserver_semaphore_name ());
 #else
-      cp = xmalloc ((CSTRLEN ("1024") * 2) + 2);
-      sprintf (cp, "%d,%d", job_fds[0], job_fds[1]);
+      jobserver_fds = xmalloc ((INTSTR_LENGTH * 2) + 2);
+      sprintf (jobserver_fds, "%d,%d", job_fds[0], job_fds[1]);
 #endif
-
-      jobserver_fds = xmalloc (sizeof (struct stringlist));
-      jobserver_fds->list = xmalloc (2 * sizeof (char *));
-      jobserver_fds->list[0] = cp;
-      jobserver_fds->list[1] = NULL;
-      jobserver_fds->idx = 1;
-      jobserver_fds->max = 2;
     }
 #endif
 
@@ -2610,6 +2569,7 @@ init_switches (void)
           break;
 
         case string:
+        case strlist:
         case filename:
         case positive_int:
         case floating:
@@ -2802,6 +2762,7 @@ decode_switches (int argc, char **argv, int env)
                   break;
 
                 case string:
+                case strlist:
                 case filename:
                   if (!doit)
                     break;
@@ -2822,6 +2783,16 @@ decode_switches (int argc, char **argv, int env)
                              _("the '%s%s' option requires a non-empty string argument"),
                              short_option (cs->c) ? "-" : "--", op);
                       bad = 1;
+                      break;
+                    }
+
+                  if (cs->type == string)
+                    {
+                      char **val = (char **)cs->value_ptr;
+                      if (*val)
+                        free (*val);
+                      *val = xstrdup (optarg);
+                      break;
                     }
 
                   sl = *(struct stringlist **) cs->value_ptr;
@@ -3122,8 +3093,17 @@ define_makeflags (int all, int makefile)
           break;
 #endif
 
-        case filename:
         case string:
+          if (all)
+            {
+              p = *((char **)cs->value_ptr);
+              if (p)
+                ADD_FLAG (p, strlen (p));
+            }
+          break;
+
+        case filename:
+        case strlist:
           if (all)
             {
               struct stringlist *sl = *(struct stringlist **) cs->value_ptr;
@@ -3383,8 +3363,6 @@ clean_jobserver (int status)
       job_slots = default_job_slots;
       if (jobserver_fds)
         {
-          /* MSVC erroneously warns without a cast here.  */
-          free ((void *)jobserver_fds->list);
           free (jobserver_fds);
           jobserver_fds = 0;
         }
