@@ -261,22 +261,25 @@ rehash_file (struct file *from_file, const char *to_hname)
         to_file->cmds = from_file->cmds;
       else if (from_file->cmds != to_file->cmds)
         {
+          size_t l = strlen (from_file->name);
           /* We have two sets of commands.  We will go with the
              one given in the rule explicitly mentioning this name,
              but give a message to let the user know what's going on.  */
           if (to_file->cmds->fileinfo.filenm != 0)
             error (&from_file->cmds->fileinfo,
+                   l + strlen (to_file->cmds->fileinfo.filenm) + INTSTR_LENGTH,
                    _("Recipe was specified for file '%s' at %s:%lu,"),
                    from_file->name, to_file->cmds->fileinfo.filenm,
                    to_file->cmds->fileinfo.lineno);
           else
-            error (&from_file->cmds->fileinfo,
+            error (&from_file->cmds->fileinfo, l,
                    _("Recipe for file '%s' was found by implicit rule search,"),
                    from_file->name);
-          error (&from_file->cmds->fileinfo,
+          l += strlen (to_hname);
+          error (&from_file->cmds->fileinfo, l,
                  _("but '%s' is now considered the same file as '%s'."),
                  from_file->name, to_hname);
-          error (&from_file->cmds->fileinfo,
+          error (&from_file->cmds->fileinfo, l,
                  _("Recipe for '%s' will be ignored in favor of the one for '%s'."),
                  to_hname, from_file->name);
         }
@@ -297,13 +300,14 @@ rehash_file (struct file *from_file, const char *to_hname)
   merge_variable_set_lists (&to_file->variables, from_file->variables);
 
   if (to_file->double_colon && from_file->is_target && !from_file->double_colon)
-    fatal (NILF, _("can't rename single-colon '%s' to double-colon '%s'"),
-           from_file->name, to_hname);
+    OSS (fatal, NILF, _("can't rename single-colon '%s' to double-colon '%s'"),
+         from_file->name, to_hname);
   if (!to_file->double_colon  && from_file->double_colon)
     {
       if (to_file->is_target)
-        fatal (NILF, _("can't rename double-colon '%s' to single-colon '%s'"),
-               from_file->name, to_hname);
+        OSS (fatal, NILF,
+             _("can't rename double-colon '%s' to single-colon '%s'"),
+             from_file->name, to_hname);
       else
         to_file->double_colon = from_file->double_colon;
     }
@@ -393,7 +397,8 @@ remove_intermediates (int sig)
             if (!f->dontcare)
               {
                 if (sig)
-                  error (NILF, _("*** Deleting intermediate file '%s'"), f->name);
+                  OS (error, NILF,
+                      _("*** Deleting intermediate file '%s'"), f->name);
                 else
                   {
                     if (! doneany)
@@ -803,10 +808,11 @@ file_timestamp_cons (const char *fname, time_t stamp, long int ns)
          && product <= ts && ts <= ORDINARY_MTIME_MAX))
     {
       char buf[FILE_TIMESTAMP_PRINT_LEN_BOUND + 1];
+      const char *f = fname ? fname : _("Current time");
       ts = s <= OLD_MTIME ? ORDINARY_MTIME_MIN : ORDINARY_MTIME_MAX;
       file_timestamp_sprintf (buf, ts);
-      error (NILF, _("%s: Timestamp out of range; substituting %s"),
-             fname ? fname : _("Current time"), buf);
+      OSS (error, NILF,
+           _("%s: Timestamp out of range; substituting %s"), f, buf);
     }
 
   return ts;
@@ -1046,9 +1052,10 @@ print_file_data_base (void)
 /* Verify the integrity of the data base of files.  */
 
 #define VERIFY_CACHED(_p,_n) \
-    do{\
-        if (_p->_n && _p->_n[0] && !strcache_iscached (_p->_n)) \
-          error (NULL, _("%s: Field '%s' not cached: %s"), _p->name, # _n, _p->_n); \
+    do{                                                                       \
+        if (_p->_n && _p->_n[0] && !strcache_iscached (_p->_n))               \
+          error (NULL, strlen (_p->name) + CSTRLEN (# _n) + strlen (_p->_n),  \
+                 _("%s: Field '%s' not cached: %s"), _p->name, # _n, _p->_n); \
     }while(0)
 
 static void

@@ -50,7 +50,10 @@ load_object (const gmk_floc *flocp, int noerror,
     {
       global_dl = dlopen (NULL, RTLD_NOW|RTLD_GLOBAL);
       if (! global_dl)
-        fatal (flocp, _("Failed to open global symbol table: %s"), dlerror ());
+        {
+          const char *err = dlerror ();
+          OS (fatal, flocp, _("Failed to open global symbol table: %s"), err);
+        }
     }
 
   symp = (load_func_t) dlsym (global_dl, symname);
@@ -74,23 +77,28 @@ load_object (const gmk_floc *flocp, int noerror,
       /* Still no?  Then fail.  */
       if (! dlp)
         {
+          const char *err = dlerror ();
           if (noerror)
-            DB (DB_BASIC, ("%s", dlerror ()));
+            DB (DB_BASIC, ("%s", err));
           else
-            error (flocp, "%s", dlerror ());
+            OS (error, flocp, "%s", err);
           return NULL;
         }
 
       /* Assert that the GPL license symbol is defined.  */
       symp = (load_func_t) dlsym (dlp, "plugin_is_GPL_compatible");
       if (! symp)
-        fatal (flocp, _("Loaded object %s is not declared to be GPL compatible"),
-               ldname);
+        OS (fatal, flocp,
+             _("Loaded object %s is not declared to be GPL compatible"),
+             ldname);
 
       symp = (load_func_t) dlsym (dlp, symname);
       if (! symp)
-        fatal (flocp, _("Failed to load symbol %s from %s: %s"),
-               symname, ldname, dlerror ());
+        {
+          const char *err = dlerror ();
+          OSSS (fatal, flocp, _("Failed to load symbol %s from %s: %s"),
+                symname, ldname, err);
+        }
 
       /* Add this symbol to a trivial lookup table.  This is not efficient but
          it's highly unlikely we'll be loading lots of objects, and we only
@@ -133,7 +141,7 @@ load_file (const gmk_floc *flocp, const char **ldname, int noerror)
 
           ++fp;
           if (fp == ep)
-            fatal (flocp, _("Empty symbol name for load: %s"), *ldname);
+            OS (fatal, flocp, _("Empty symbol name for load: %s"), *ldname);
 
           /* Make a copy of the ldname part.  */
           memcpy (new, *ldname, l);
@@ -226,7 +234,8 @@ int
 load_file (const gmk_floc *flocp, const char **ldname, int noerror)
 {
   if (! noerror)
-    fatal (flocp, _("The 'load' operation is not supported on this platform."));
+    O (fatal, flocp,
+       _("The 'load' operation is not supported on this platform."));
 
   return 0;
 }
@@ -234,7 +243,7 @@ load_file (const gmk_floc *flocp, const char **ldname, int noerror)
 void
 unload_file (const char *name)
 {
-  fatal (NILF, "INTERNAL: Cannot unload when load is not supported!");
+  O (fatal, NILF, "INTERNAL: Cannot unload when load is not supported!");
 }
 
 #endif  /* MAKE_LOAD */

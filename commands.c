@@ -403,7 +403,7 @@ chop_commands (struct commands *cmds)
      CMDS->any_recurse flag.  */
 
   if (nlines > USHRT_MAX)
-    fatal (&cmds->fileinfo, _("Recipe has too many lines (%ud)"), nlines);
+    ON (fatal, &cmds->fileinfo, _("Recipe has too many lines (%ud)"), nlines);
 
   cmds->ncommand_lines = nlines;
   cmds->command_lines = lines;
@@ -627,11 +627,13 @@ delete_target (struct file *file, const char *on_behalf_of)
       if (ar_member_date (file->name) != file_date)
         {
           if (on_behalf_of)
-            error (NILF, _("*** [%s] Archive member '%s' may be bogus; not deleted"),
-                   on_behalf_of, file->name);
+            OSS (error, NILF,
+                 _("*** [%s] Archive member '%s' may be bogus; not deleted"),
+                 on_behalf_of, file->name);
           else
-            error (NILF, _("*** Archive member '%s' may be bogus; not deleted"),
-                   file->name);
+            OS (error, NILF,
+                _("*** Archive member '%s' may be bogus; not deleted"),
+                file->name);
         }
       return;
     }
@@ -643,9 +645,10 @@ delete_target (struct file *file, const char *on_behalf_of)
       && FILE_TIMESTAMP_STAT_MODTIME (file->name, st) != file->last_mtime)
     {
       if (on_behalf_of)
-        error (NILF, _("*** [%s] Deleting file '%s'"), on_behalf_of, file->name);
+        OSS (error, NILF,
+             _("*** [%s] Deleting file '%s'"), on_behalf_of, file->name);
       else
-        error (NILF, _("*** Deleting file '%s'"), file->name);
+        OS (error, NILF, _("*** Deleting file '%s'"), file->name);
       if (unlink (file->name) < 0
           && errno != ENOENT)   /* It disappeared; so what.  */
         perror_with_name ("unlink: ", file->name);

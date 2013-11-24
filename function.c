@@ -726,7 +726,7 @@ check_numeric (const char *s, const char *msg)
       break;
 
   if (s <= end || end - beg < 0)
-    fatal (*expanding_var, "%s: '%s'", msg, beg);
+    OSS (fatal, *expanding_var, "%s: '%s'", msg, beg);
 }
 
 
@@ -743,8 +743,8 @@ func_word (char *o, char **argv, const char *funcname UNUSED)
   i = atoi (argv[0]);
 
   if (i == 0)
-    fatal (*expanding_var,
-           _("first argument to 'word' function must be greater than 0"));
+    O (fatal, *expanding_var,
+       _("first argument to 'word' function must be greater than 0"));
 
   end_p = argv[1];
   while ((p = find_next_token (&end_p, 0)) != 0)
@@ -770,8 +770,8 @@ func_wordlist (char *o, char **argv, const char *funcname UNUSED)
 
   start = atoi (argv[0]);
   if (start < 1)
-    fatal (*expanding_var,
-           "invalid first argument to 'wordlist' function: '%d'", start);
+    ON (fatal, *expanding_var,
+        "invalid first argument to 'wordlist' function: '%d'", start);
 
   count = atoi (argv[1]) - start + 1;
 
@@ -1082,10 +1082,10 @@ func_error (char *o, char **argv, const char *funcname)
   switch (*funcname)
     {
     case 'e':
-      fatal (reading_file, "%s", msg);
+      OS (fatal, reading_file, "%s", msg);
 
     case 'w':
-      error (reading_file, "%s", msg);
+      OS (error, reading_file, "%s", msg);
       break;
 
     case 'i':
@@ -1094,7 +1094,7 @@ func_error (char *o, char **argv, const char *funcname)
       break;
 
     default:
-      fatal (*expanding_var, "Internal error: func_error: '%s'", funcname);
+      OS (fatal, *expanding_var, "Internal error: func_error: '%s'", funcname);
     }
 
   /* The warning function expands to the empty string.  */
@@ -1457,7 +1457,8 @@ windows32_openpipe (int *pipedes, pid_t *pid_p, char **command_argv, char **envp
         }
       if (hIn == INVALID_HANDLE_VALUE)
         {
-          error (NILF, _("windows32_openpipe: DuplicateHandle(In) failed (e=%ld)\n"), e);
+          ON (error, NILF,
+              _("windows32_openpipe: DuplicateHandle(In) failed (e=%ld)\n"), e);
           return -1;
         }
     }
@@ -1480,14 +1481,15 @@ windows32_openpipe (int *pipedes, pid_t *pid_p, char **command_argv, char **envp
         }
       if (hErr == INVALID_HANDLE_VALUE)
         {
-          error (NILF, _("windows32_openpipe: DuplicateHandle(Err) failed (e=%ld)\n"), e);
+          ON (error, NILF,
+              _("windows32_openpipe: DuplicateHandle(Err) failed (e=%ld)\n"), e);
           return -1;
         }
     }
 
   if (! CreatePipe (&hChildOutRd, &hChildOutWr, &saAttr, 0))
     {
-      error (NILF, _("CreatePipe() failed (e=%ld)\n"), GetLastError());
+      ON (error, NILF, _("CreatePipe() failed (e=%ld)\n"), GetLastError());
       return -1;
     }
 
@@ -1495,7 +1497,7 @@ windows32_openpipe (int *pipedes, pid_t *pid_p, char **command_argv, char **envp
 
   if (!hProcess)
     {
-      error (NILF, _("windows32_openpipe(): process_init_fd() failed\n"));
+      O (error, NILF, _("windows32_openpipe(): process_init_fd() failed\n"));
       return -1;
     }
 
@@ -2007,7 +2009,7 @@ abspath (const char *name, char *apath)
     {
 #if defined(__CYGWIN__) && defined(HAVE_DOS_PATHS)
       if (STOP_SET (name[0], MAP_PATHSEP))
-	root_len = 1;
+        root_len = 1;
 #endif
       strncpy (apath, name, root_len);
       apath[root_len] = '\0';
@@ -2148,20 +2150,25 @@ func_file (char *o, char **argv, const char *funcname UNUSED)
 
       fp = fopen (fn, mode);
       if (fp == NULL)
-        fatal (reading_file, _("open: %s: %s"), fn, strerror (errno));
+        {
+          const char *err = strerror (errno);
+          OSS (fatal, reading_file, _("open: %s: %s"), fn, err);
+        }
       else
         {
           int l = strlen (argv[1]);
           int nl = (l == 0 || argv[1][l-1] != '\n');
 
           if (fputs (argv[1], fp) == EOF || (nl && fputc ('\n', fp) == EOF))
-            fatal (reading_file, _("write: %s: %s"), fn, strerror (errno));
-
+            {
+              const char *err = strerror (errno);
+              OSS (fatal, reading_file, _("write: %s: %s"), fn, err);
+            }
           fclose (fp);
         }
     }
   else
-    fatal (reading_file, _("Invalid file operation: %s"), fn);
+    OS (fatal, reading_file, _("Invalid file operation: %s"), fn);
 
   return o;
 }
@@ -2275,7 +2282,7 @@ expand_builtin_function (char *o, int argc, char **argv,
   char *p;
 
   if (argc < (int)entry_p->minimum_args)
-    fatal (*expanding_var,
+    fatal (*expanding_var, strlen (entry_p->name),
            _("insufficient number of arguments (%d) to function '%s'"),
            argc, entry_p->name);
 
@@ -2287,8 +2294,8 @@ expand_builtin_function (char *o, int argc, char **argv,
     return o;
 
   if (!entry_p->fptr.func_ptr)
-    fatal (*expanding_var,
-           _("unimplemented on this platform: function '%s'"), entry_p->name);
+    OS (fatal, *expanding_var,
+        _("unimplemented on this platform: function '%s'"), entry_p->name);
 
   if (!entry_p->alloc_fn)
     return entry_p->fptr.func_ptr (o, argv, entry_p->name);
@@ -2350,7 +2357,7 @@ handle_function (char **op, const char **stringp)
       break;
 
   if (count >= 0)
-    fatal (*expanding_var,
+    fatal (*expanding_var, strlen (entry_p->name),
            _("unterminated call to function '%s': missing '%c'"),
            entry_p->name, closeparen);
 
@@ -2543,17 +2550,17 @@ define_new_function (const gmk_floc *flocp, const char *name,
   len = e - name;
 
   if (len == 0)
-    fatal (flocp, _("Empty function name\n"));
+    O (fatal, flocp, _("Empty function name"));
   if (*name == '.' || *e != '\0')
-    fatal (flocp, _("Invalid function name: %s\n"), name);
+    OS (fatal, flocp, _("Invalid function name: %s"), name);
   if (len > 255)
-    fatal (flocp, _("Function name too long: %s\n"), name);
+    OS (fatal, flocp, _("Function name too long: %s"), name);
   if (min > 255)
-    fatal (flocp, _("Invalid minimum argument count (%d) for function %s\n"),
-           min, name);
+    ONS (fatal, flocp,
+         _("Invalid minimum argument count (%d) for function %s"), min, name);
   if (max > 255 || (max && max < min))
-    fatal (flocp, _("Invalid maximum argument count (%d) for function %s\n"),
-           max, name);
+    ONS (fatal, flocp,
+         _("Invalid maximum argument count (%d) for function %s"), max, name);
 
   ent = xmalloc (sizeof (struct function_table_entry));
   ent->name = name;

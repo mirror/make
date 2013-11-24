@@ -219,10 +219,10 @@ void undefine_variable_in_set (const char *name, unsigned int length,
 /* Warn that NAME is an undefined variable.  */
 
 #define warn_undefined(n,l) do{\
-                              if (warn_undefined_variables_flag) \
-                                error (reading_file, \
+                              if (warn_undefined_variables_flag)        \
+                                error (reading_file, (l),               \
                                        _("warning: undefined variable '%.*s'"), \
-                                (int)(l), (n)); \
+                                       (int)(l), (n));                  \
                               }while(0)
 
 char **target_environment (struct file *file);

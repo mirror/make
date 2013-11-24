@@ -1551,7 +1551,7 @@ assign_variable_definition (struct variable *v, char *line)
   v->name = allocated_variable_expand (name);
 
   if (v->name[0] == '\0')
-    fatal (&v->fileinfo, _("empty variable name"));
+    O (fatal, &v->fileinfo, _("empty variable name"));
 
   return v;
 }

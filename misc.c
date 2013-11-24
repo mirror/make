@@ -219,7 +219,7 @@ xmalloc (unsigned int size)
   /* Make sure we don't allocate 0, for pre-ISO implementations.  */
   void *result = malloc (size ? size : 1);
   if (result == 0)
-    fatal (NILF, _("virtual memory exhausted"));
+    OUT_OF_MEM();
   return result;
 }
 
@@ -230,7 +230,7 @@ xcalloc (unsigned int size)
   /* Make sure we don't allocate 0, for pre-ISO implementations.  */
   void *result = calloc (size ? size : 1, 1);
   if (result == 0)
-    fatal (NILF, _("virtual memory exhausted"));
+    OUT_OF_MEM();
   return result;
 }
 
@@ -245,7 +245,7 @@ xrealloc (void *ptr, unsigned int size)
     size = 1;
   result = ptr ? realloc (ptr, size) : malloc (size);
   if (result == 0)
-    fatal (NILF, _("virtual memory exhausted"));
+    OUT_OF_MEM();
   return result;
 }
 
@@ -262,7 +262,7 @@ xstrdup (const char *ptr)
 #endif
 
   if (result == 0)
-    fatal (NILF, _("virtual memory exhausted"));
+    OUT_OF_MEM();
 
 #ifdef HAVE_STRDUP
   return result;
@@ -281,7 +281,7 @@ xstrndup (const char *str, unsigned int length)
 #ifdef HAVE_STRNDUP
   result = strndup (str, length);
   if (result == 0)
-    fatal (NILF, _("virtual memory exhausted"));
+    OUT_OF_MEM();
 #else
   result = xmalloc (length + 1);
   if (length > 0)

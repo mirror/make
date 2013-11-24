@@ -644,7 +644,7 @@ expand_command_line_file (char *name)
   char *expanded = 0;
 
   if (name[0] == '\0')
-    fatal (NILF, _("empty string invalid as file name"));
+    O (fatal, NILF, _("empty string invalid as file name"));
 
   if (name[0] == '~')
     {
@@ -731,7 +731,8 @@ decode_debug_flags (void)
                 db_level |= DB_BASIC | DB_VERBOSE;
                 break;
               default:
-                fatal (NILF, _("unknown debug level specification '%s'"), p);
+                OS (fatal, NILF,
+                    _("unknown debug level specification '%s'"), p);
               }
 
             while (*(++p) != '\0')
@@ -774,7 +775,7 @@ decode_output_sync_flags (void)
       else if (streq (p, "recurse"))
         output_sync = OUTPUT_SYNC_RECURSE;
       else
-        fatal (NILF, _("unknown output-sync type '%s'"), p);
+        OS (fatal, NILF, _("unknown output-sync type '%s'"), p);
     }
 
   if (sync_mutex)
@@ -784,7 +785,7 @@ decode_output_sync_flags (void)
 
       for (idx = 1; idx < sync_mutex->idx; idx++)
         if (!streq (sync_mutex->list[0], sync_mutex->list[idx]))
-          fatal (NILF, _("internal error: multiple --sync-mutex options"));
+          O (fatal, NILF, _("internal error: multiple --sync-mutex options"));
 
       /* Now parse the mutex handle string.  */
       mp = sync_mutex->list[0];
@@ -1238,7 +1239,7 @@ main (int argc, char **argv, char **envp)
 #ifdef  HAVE_GETCWD
       perror_with_name ("getcwd", "");
 #else
-      error (NILF, "getwd: %s", current_directory);
+      OS (error, NILF, "getwd: %s", current_directory);
 #endif
       current_directory[0] = '\0';
       directory_before_chdir = 0;
@@ -1530,7 +1531,8 @@ main (int argc, char **argv, char **envp)
 
       for (ui=1; ui < jobserver_fds->idx; ++ui)
         if (!streq (jobserver_fds->list[0], jobserver_fds->list[ui]))
-          fatal (NILF, _("internal error: multiple --jobserver-fds options"));
+          O (fatal, NILF,
+             _("internal error: multiple --jobserver-fds options"));
 
       /* Now parse the fds string and make sure it has the proper format.  */
 
@@ -1540,14 +1542,16 @@ main (int argc, char **argv, char **envp)
       if (! open_jobserver_semaphore (cp))
         {
           DWORD err = GetLastError ();
-          fatal (NILF, _("internal error: unable to open jobserver semaphore '%s': (Error %ld: %s)"),
-                 cp, err, map_windows32_error_to_string (err));
+          const char *estr = map_windows32_error_to_string (err);
+          fatal (NILF, strlen (cp) + INTSTR_LENGTH + strlen (estr),
+                 _("internal error: unable to open jobserver semaphore '%s': (Error %ld: %s)"),
+                 cp, err, estr);
         }
       DB (DB_JOBS, (_("Jobserver client (semaphore %s)\n"), cp));
 #else
       if (sscanf (cp, "%d,%d", &job_fds[0], &job_fds[1]) != 2)
-        fatal (NILF,
-               _("internal error: invalid --jobserver-fds string '%s'"), cp);
+        OS (fatal, NILF,
+            _("internal error: invalid --jobserver-fds string '%s'"), cp);
 
       DB (DB_JOBS,
           (_("Jobserver client (fds %d,%d)\n"), job_fds[0], job_fds[1]));
@@ -1563,7 +1567,8 @@ main (int argc, char **argv, char **envp)
       if (job_slots > 0)
         {
           if (! restarts)
-            error (NILF, _("warning: -jN forced in submake: disabling jobserver mode."));
+            O (error, NILF,
+               _("warning: -jN forced in submake: disabling jobserver mode."));
         }
 #ifndef WINDOWS32
 #ifdef HAVE_FCNTL
@@ -1581,8 +1586,8 @@ main (int argc, char **argv, char **envp)
           if (errno != EBADF)
             pfatal_with_name (_("dup jobserver"));
 
-          error (NILF,
-                 _("warning: jobserver unavailable: using -j1.  Add '+' to parent make rule."));
+          O (error, NILF,
+             _("warning: jobserver unavailable: using -j1.  Add '+' to parent make rule."));
           job_slots = 1;
           job_fds[0] = job_fds[1] = -1;
         }
@@ -1723,7 +1728,7 @@ main (int argc, char **argv, char **envp)
 #ifdef  HAVE_GETCWD
           perror_with_name ("getcwd", "");
 #else
-          error (NILF, "getwd: %s", current_directory);
+          OS (error, NILF, "getwd: %s", current_directory);
 #endif
           starting_directory = 0;
         }
@@ -1748,7 +1753,8 @@ main (int argc, char **argv, char **envp)
             char *template, *tmpdir;
 
             if (stdin_nm)
-              fatal (NILF, _("Makefile from standard input specified twice."));
+              O (fatal, NILF,
+                 _("Makefile from standard input specified twice."));
 
 #ifdef VMS
 # define DEFAULT_TMPDIR     "sys$scratch:"
@@ -1979,9 +1985,9 @@ main (int argc, char **argv, char **envp)
 # endif
       )
     {
-      error (NILF,
-             _("Parallel jobs (-j) are not supported on this platform."));
-      error (NILF, _("Resetting to single job (-j1) mode."));
+      O (error, NILF,
+         _("Parallel jobs (-j) are not supported on this platform."));
+      O (error, NILF, _("Resetting to single job (-j1) mode."));
       job_slots = 1;
     }
 #endif
@@ -2008,8 +2014,9 @@ main (int argc, char **argv, char **envp)
       if (! create_jobserver_semaphore (job_slots - 1))
         {
           DWORD err = GetLastError ();
-          fatal (NILF, _("creating jobserver semaphore: (Error %ld: %s)"),
-                 err, map_windows32_error_to_string (err));
+          const char *estr = map_windows32_error_to_string (err);
+          OSN (fatal, NILF,
+               _("creating jobserver semaphore: (Error %ld: %s)"), err, estr);
         }
 #else
       char c = '+';
@@ -2061,7 +2068,7 @@ main (int argc, char **argv, char **envp)
 #ifndef MAKE_SYMLINKS
   if (check_symlink_flag)
     {
-      error (NILF, _("Symbolic links not supported: disabling -L."));
+      O (error, NILF, _("Symbolic links not supported: disabling -L."));
       check_symlink_flag = 0;
     }
 #endif
@@ -2250,8 +2257,8 @@ main (int argc, char **argv, char **envp)
                         FILE_TIMESTAMP mtime;
                         /* The update failed and this makefile was not
                            from the MAKEFILES variable, so we care.  */
-                        error (NILF, _("Failed to remake makefile '%s'."),
-                               d->file->name);
+                        OS (error, NILF, _("Failed to remake makefile '%s'."),
+                            d->file->name);
                         mtime = file_mtime_no_search (d->file);
                         any_remade |= (mtime != NONEXISTENT_MTIME
                                        && mtime != makefile_mtimes[i]);
@@ -2262,18 +2269,20 @@ main (int argc, char **argv, char **envp)
                   /* This makefile was not found at all.  */
                   if (! (d->changed & RM_DONTCARE))
                     {
+                      const char *dnm = dep_name (d);
+                      size_t l = strlen (dnm);
+
                       /* This is a makefile we care about.  See how much.  */
                       if (d->changed & RM_INCLUDED)
-                        /* An included makefile.  We don't need
-                           to die, but we do want to complain.  */
-                        error (NILF,
-                               _("Included makefile '%s' was not found."),
-                               dep_name (d));
+                        /* An included makefile.  We don't need to die, but we
+                           do want to complain.  */
+                        error (NILF, l,
+                               _("Included makefile '%s' was not found."), dnm);
                       else
                         {
                           /* A normal makefile.  We must die later.  */
-                          error (NILF, _("Makefile '%s' was not found"),
-                                 dep_name (d));
+                          error (NILF, l,
+                                 _("Makefile '%s' was not found"), dnm);
                           any_failed = 1;
                         }
                     }
@@ -2338,7 +2347,8 @@ main (int argc, char **argv, char **envp)
                     bad = 0;
                 }
               if (bad)
-                fatal (NILF, _("Couldn't change back to original directory."));
+                O (fatal, NILF,
+                   _("Couldn't change back to original directory."));
             }
 
           ++restarts;
@@ -2492,7 +2502,8 @@ main (int argc, char **argv, char **envp)
                 {
                   /* .DEFAULT_GOAL should contain one target. */
                   if (ns->next != 0)
-                    fatal (NILF, _(".DEFAULT_GOAL contains more than one target"));
+                    O (fatal, NILF,
+                       _(".DEFAULT_GOAL contains more than one target"));
 
                   f = enter_file (strcache_add (ns->name));
 
@@ -2515,9 +2526,9 @@ main (int argc, char **argv, char **envp)
   if (!goals)
     {
       if (read_files == 0)
-        fatal (NILF, _("No targets specified and no makefile found"));
+        O (fatal, NILF, _("No targets specified and no makefile found"));
 
-      fatal (NILF, _("No targets"));
+      O (fatal, NILF, _("No targets"));
     }
 
   /* Update the goals.  */
@@ -2546,8 +2557,8 @@ main (int argc, char **argv, char **envp)
 
     /* If we detected some clock skew, generate one last warning */
     if (clock_skew_detected)
-      error (NILF,
-             _("warning:  Clock skew detected.  Your build may be incomplete."));
+      O (error, NILF,
+         _("warning:  Clock skew detected.  Your build may be incomplete."));
 
     /* Exit.  */
     die (makefile_status);
@@ -2807,7 +2818,8 @@ decode_switches (int argc, char **argv, int env)
                       else
                         op = cs->long_name;
 
-                      error (NILF, _("the '%s%s' option requires a non-empty string argument"),
+                      error (NILF, strlen (op),
+                             _("the '%s%s' option requires a non-empty string argument"),
                              short_option (cs->c) ? "-" : "--", op);
                       bad = 1;
                     }
@@ -2861,7 +2873,8 @@ decode_switches (int argc, char **argv, int env)
 
                       if (i < 1 || cp[0] != '\0')
                         {
-                          error (NILF, _("the '-%c' option requires a positive integer argument"),
+                          error (NILF, 0,
+                                 _("the '-%c' option requires a positive integer argument"),
                                  cs->c);
                           bad = 1;
                         }
@@ -3314,9 +3327,9 @@ clean_jobserver (int status)
 #endif
     {
       if (status != 2)
-        error (NILF,
-               "INTERNAL: Exiting with %u jobserver tokens (should be 0)!",
-               jobserver_tokens);
+        ON (error, NILF,
+            "INTERNAL: Exiting with %u jobserver tokens (should be 0)!",
+            jobserver_tokens);
       else
         /* Don't write back the "free" token */
         while (--jobserver_tokens)
@@ -3354,9 +3367,9 @@ clean_jobserver (int status)
 #endif
 
       if (tcnt != master_job_slots)
-        error (NILF,
-               "INTERNAL: Exiting with %u jobserver tokens available; should be %u!",
-               tcnt, master_job_slots);
+        ONN (error, NILF,
+             "INTERNAL: Exiting with %u jobserver tokens available; should be %u!",
+             tcnt, master_job_slots);
 
 #ifdef WINDOWS32
       free_jobserver_semaphore ();

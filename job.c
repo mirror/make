@@ -359,7 +359,7 @@ create_batch_file (char const *base, int unixy, int *fd)
   *fd = -1;
   if (error_string == NULL)
     error_string = _("Cannot create a temporary file\n");
-  fatal (NILF, error_string);
+  O (fatal, NILF, error_string);
 
   /* not reached */
   return NULL;
@@ -474,6 +474,7 @@ child_error (struct child *child,
   const struct file *f = child->file;
   const gmk_floc *flocp = &f->cmds->fileinfo;
   const char *nm;
+  size_t l = strlen (f->name);
 
   if (ignored && silent_flag)
     return;
@@ -498,7 +499,10 @@ child_error (struct child *child,
 
   OUTPUT_SET (&child->output);
 
-  message (0, _("%s: recipe for target '%s' failed"), nm, f->name);
+  message (0, l + strlen (nm),
+           _("%s: recipe for target '%s' failed"), nm, f->name);
+
+  l += strlen (pre) + strlen (post);
 
 #ifdef VMS
   if ((exit_code & 1) != 0)
@@ -507,14 +511,17 @@ child_error (struct child *child,
       return;
     }
 
-  error (NILF, _("%s[%s] Error 0x%x%s"), pre, f->name, exit_code, post);
+  error (NILF, l + INTSTR_LENGTH,
+         _("%s[%s] Error 0x%x%s"), pre, f->name, exit_code, post);
 #else
   if (exit_sig == 0)
-    error (NILF, _("%s[%s] Error %d%s"), pre, f->name, exit_code, post);
+    error (NILF, l + INTSTR_LENGTH,
+           _("%s[%s] Error %d%s"), pre, f->name, exit_code, post);
   else
     {
       const char *s = strsignal (exit_sig);
-      error (NILF, _("%s[%s] %s%s%s"), pre, f->name, s, dump, post);
+      error (NILF, l + strlen (s) + strlen (dump),
+             _("%s[%s] %s%s%s"), pre, f->name, s, dump, post);
     }
 #endif /* VMS */
 
@@ -606,7 +613,7 @@ reap_children (int block, int err)
              Only print this message once no matter how many jobs are left.  */
           fflush (stdout);
           if (!printed)
-            error (NILF, _("*** Waiting for unfinished jobs...."));
+            O (error, NILF, _("*** Waiting for unfinished jobs...."));
           printed = 1;
         }
 
@@ -992,8 +999,8 @@ free_child (struct child *child)
   output_close (&child->output);
 
   if (!jobserver_tokens)
-    fatal (NILF, "INTERNAL: Freeing child %p (%s) but no tokens left!\n",
-           child, child->file->name);
+    ONS (fatal, NILF, "INTERNAL: Freeing child %p (%s) but no tokens left!\n",
+         child, child->file->name);
 
   /* If we're using the jobserver and this child is not the only outstanding
      job, put a token back into the pipe for it.  */
@@ -1004,8 +1011,9 @@ free_child (struct child *child)
       if (! release_jobserver_semaphore ())
         {
           DWORD err = GetLastError ();
-          fatal (NILF, _("release jobserver semaphore: (Error %ld: %s)"),
-                 err, map_windows32_error_to_string (err));
+          const char *estr = map_windows32_error_to_string (err);
+          OSN (fatal, NILF,
+               _("release jobserver semaphore: (Error %ld: %s)"), err, estr);
         }
 
       DB (DB_JOBS, (_("Released token for child %p (%s).\n"), child, child->file->name));
@@ -1277,7 +1285,7 @@ start_job_command (struct child *child)
   /* Print the command if appropriate.  */
   if (just_print_flag || trace_flag
       || (!(flags & COMMANDS_SILENT) && !silent_flag))
-    message (0, "%s", p);
+    OS (message, 0, "%s", p);
 
   /* Tell update_goal_chain that a command has been started on behalf of
      this target.  It is important that this happens here and not in
@@ -1940,7 +1948,7 @@ new_job (struct file *file)
         /* There must be at least one child already, or we have no business
            waiting for a token. */
         if (!children)
-          fatal (NILF, "INTERNAL: no children as we go to sleep on read\n");
+          O (fatal, NILF, "INTERNAL: no children as we go to sleep on read\n");
 
 #ifdef WINDOWS32
         /* On Windows we simply wait for the jobserver semaphore to become
@@ -1950,8 +1958,10 @@ new_job (struct file *file)
         if (got_token < 0)
           {
             DWORD err = GetLastError ();
-            fatal (NILF, _("semaphore or child process wait: (Error %ld: %s)"),
-                   err, map_windows32_error_to_string (err));
+            const char *estr = map_windows32_error_to_string (err);
+            OSN (fatal, NILF,
+                 _("semaphore or child process wait: (Error %ld: %s)"),
+                 err, estr);
           }
 #else
         /* Set interruptible system calls, and read() for a job token.  */
@@ -2000,10 +2010,11 @@ new_job (struct file *file)
         }
 
       if (newer[0] == '\0')
-        message (0, _("%s: target '%s' does not exist"), nm, c->file->name);
+        OSS (message, 0,
+             _("%s: target '%s' does not exist"), nm, c->file->name);
       else
-        message (0, _("%s: update target '%s' due to: %s"), nm,
-                 c->file->name, newer);
+        OSSS (message, 0,
+              _("%s: update target '%s' due to: %s"), nm, c->file->name, newer);
 
       free (newer);
     }
@@ -2114,8 +2125,8 @@ load_too_high (void)
         {
           if (errno == 0)
             /* An errno value of zero means getloadavg is just unsupported.  */
-            error (NILF,
-                   _("cannot enforce load limits on this operating system"));
+            O (error, NILF,
+               _("cannot enforce load limits on this operating system"));
           else
             perror_with_name (_("cannot enforce load limit: "), "getloadavg");
         }
@@ -2196,7 +2207,7 @@ child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
     {
       save_stdin = dup (FD_STDIN);
       if (save_stdin < 0)
-        fatal (NILF, _("no more file handles: could not duplicate stdin\n"));
+        O (fatal, NILF, _("no more file handles: could not duplicate stdin\n"));
       CLOSE_ON_EXEC (save_stdin);
 
       dup2 (stdin_fd, FD_STDIN);
@@ -2207,7 +2218,8 @@ child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
     {
       save_stdout = dup (FD_STDOUT);
       if (save_stdout < 0)
-        fatal (NILF, _("no more file handles: could not duplicate stdout\n"));
+        O (fatal, NILF,
+           _("no more file handles: could not duplicate stdout\n"));
       CLOSE_ON_EXEC (save_stdout);
 
       dup2 (stdout_fd, FD_STDOUT);
@@ -2220,7 +2232,8 @@ child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
         {
           save_stderr = dup (FD_STDERR);
           if (save_stderr < 0)
-            fatal (NILF, _("no more file handles: could not duplicate stderr\n"));
+            O (fatal, NILF,
+               _("no more file handles: could not duplicate stderr\n"));
           CLOSE_ON_EXEC (save_stderr);
         }
 
@@ -2235,7 +2248,7 @@ child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
   if (save_stdin >= 0)
     {
       if (dup2 (save_stdin, FD_STDIN) != FD_STDIN)
-        fatal (NILF, _("Could not restore stdin\n"));
+        O (fatal, NILF, _("Could not restore stdin\n"));
       else
         close (save_stdin);
     }
@@ -2243,7 +2256,7 @@ child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
   if (save_stdout >= 0)
     {
       if (dup2 (save_stdout, FD_STDOUT) != FD_STDOUT)
-        fatal (NILF, _("Could not restore stdout\n"));
+        O (fatal, NILF, _("Could not restore stdout\n"));
       else
         close (save_stdout);
     }
@@ -2251,7 +2264,7 @@ child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
   if (save_stderr >= 0)
     {
       if (dup2 (save_stderr, FD_STDERR) != FD_STDERR)
-        fatal (NILF, _("Could not restore stderr\n"));
+        O (fatal, NILF, _("Could not restore stderr\n"));
       else
         close (save_stderr);
     }
@@ -2400,7 +2413,7 @@ exec_command (char **argv, char **envp)
   switch (errno)
     {
     case ENOENT:
-      error (NILF, _("%s: Command not found"), argv[0]);
+      OS (error, NILF, _("%s: Command not found"), argv[0]);
       break;
     case ENOEXEC:
       {
@@ -2460,7 +2473,7 @@ exec_command (char **argv, char **envp)
         execvp (shell, new_argv);
 # endif
         if (errno == ENOENT)
-          error (NILF, _("%s: Shell program not found"), shell);
+          OS (error, NILF, _("%s: Shell program not found"), shell);
         else
           perror_with_name ("execvp: ", shell);
         break;
@@ -2469,7 +2482,7 @@ exec_command (char **argv, char **envp)
 # ifdef __EMX__
     case EINVAL:
       /* this nasty error was driving me nuts :-( */
-      error (NILF, _("spawnvpe: environment space might be exhausted"));
+      O (error, NILF, _("spawnvpe: environment space might be exhausted"));
       /* FALLTHROUGH */
 # endif
 
@@ -3441,7 +3454,8 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
       }
 #else
     else
-      fatal (NILF, _("%s (line %d) Bad shell context (!unixy && !batch_mode_shell)\n"),
+      fatal (NILF, CSTRLEN (__FILE__) + INTSTR_LENGTH,
+             _("%s (line %d) Bad shell context (!unixy && !batch_mode_shell)\n"),
             __FILE__, __LINE__);
 #endif
 

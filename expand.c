@@ -121,9 +121,9 @@ recursively_expand_for_file (struct variable *v, struct file *file)
     {
       if (!v->exp_count)
         /* Expanding V causes infinite recursion.  Lose.  */
-        fatal (*expanding_var,
-               _("Recursive variable '%s' references itself (eventually)"),
-               v->name);
+        OS (fatal, *expanding_var,
+            _("Recursive variable '%s' references itself (eventually)"),
+            v->name);
       --v->exp_count;
     }
 
@@ -266,7 +266,7 @@ variable_expand_string (char *line, const char *string, long length)
             end = strchr (beg, closeparen);
             if (end == 0)
               /* Unterminated variable reference.  */
-              fatal (*expanding_var, _("unterminated variable reference"));
+              O (fatal, *expanding_var, _("unterminated variable reference"));
             p1 = lindex (beg, end, '$');
             if (p1 != 0)
               {

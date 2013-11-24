@@ -37,7 +37,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 static void *VMS_lib_idx;
 
-static char *VMS_saved_memname;
+static const char *VMS_saved_memname;
 
 static time_t VMS_member_date;
 
@@ -64,8 +64,9 @@ VMS_get_member_info (struct dsc$descriptor_s *module, unsigned long *rfa)
                            &bufdesc.dsc$w_length, 0);
   if (! (status & 1))
     {
-      error (NILF, _("lbr$set_module() failed to extract module info, status = %d"),
-             status);
+      ON (error, NILF,
+          _("lbr$set_module() failed to extract module info, status = %d"),
+          status);
 
       lbr$close (&VMS_lib_idx);
 
@@ -153,9 +154,10 @@ VMS_get_member_info (struct dsc$descriptor_s *module, unsigned long *rfa)
    Returns 0 if have scanned successfully.  */
 
 long int
-ar_scan (const char *archive, ar_member_func_t function, const void *arg)
+ar_scan (const char *archive, ar_member_func_t function, const void *varg)
 {
   char *p;
+  const char *arg = varg;
 
   static struct dsc$descriptor_s libdesc =
     { 0, DSC$K_DTYPE_T, DSC$K_CLASS_S, NULL };
@@ -170,7 +172,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
 
   if (! (status & 1))
     {
-      error (NILF, _("lbr$ini_control() failed with status = %d"), status);
+      ON (error, NILF, _("lbr$ini_control() failed with status = %d"), status);
       return -2;
     }
 
@@ -182,12 +184,12 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
 
   if (! (status & 1))
     {
-      error (NILF, _("unable to open library '%s' to lookup member '%s'"),
-             archive, (char *)arg);
+      OSS (error, NILF, _("unable to open library '%s' to lookup member '%s'"),
+           archive, arg);
       return -1;
     }
 
-  VMS_saved_memname = (char *)arg;
+  VMS_saved_memname = arg;
 
   /* For comparison, delete .obj from arg name.  */
 

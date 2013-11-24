@@ -47,33 +47,9 @@ unsigned int stdio_traced = 0;
 #define OUTPUT_ISSET(_out) ((_out)->out >= 0 || (_out)->err >= 0)
 
 #ifdef HAVE_FCNTL
-# define STREAM_OK(_s)    ((fcntl (fileno (_s), F_GETFD) != -1) || (errno != EBADF))
+# define STREAM_OK(_s) ((fcntl (fileno (_s), F_GETFD) != -1) || (errno != EBADF))
 #else
-# define STREAM_OK(_s)    1
-#endif
-
-/* I really want to move to gnulib.  However, this is a big undertaking
-   especially for non-UNIX platforms: how to get bootstrapping to work, etc.
-   I don't want to take the time to do it right now.  Use a hack to get a
-   useful version of vsnprintf() for Windows.  */
-#ifdef __VMS
-# define va_copy(_d, _s) ((_d) = (_s))
-#endif
-#ifdef _MSC_VER
-# define va_copy(_d, _s) ((_d) = (_s))
-# define vsnprintf msc_vsnprintf
-static int
-msc_vsnprintf (char *str, size_t size, const char *format, va_list ap)
-{
-  int len = -1;
-
-  if (size > 0)
-    len = _vsnprintf_s (str, size, _TRUNCATE, format, ap);
-  if (len == -1)
-    len = _vscprintf (format, ap);
-
-  return len;
-}
+# define STREAM_OK(_s) 1
 #endif
 
 /* Write a string to the current STDOUT or STDERR.  */
@@ -117,7 +93,7 @@ log_working_directory (int entering)
   char *p;
 
   /* Get enough space for the longest possible output.  */
-  need = strlen (program) + INTEGER_LENGTH + 2 + 1;
+  need = strlen (program) + INTSTR_LENGTH + 2 + 1;
   if (starting_directory)
     need += strlen (starting_directory);
 
@@ -512,9 +488,9 @@ close_stdout (void)
   if (prev_fail || fclose_fail)
     {
       if (fclose_fail)
-        error (NILF, _("write error: %s"), strerror (errno));
+        perror_with_name (_("write error: stdout"), "");
       else
-        error (NILF, _("write error"));
+        O (error, NILF, _("write error: stdout"));
       exit (EXIT_FAILURE);
     }
 }
@@ -606,138 +582,117 @@ outputs (int is_err, const char *msg)
 }
 
 
-/* Return formatted string buffers.
-   If we move to gnulib we can use vasnprintf() etc. to make this simpler.
-   Note these functions use a static buffer, so each call overwrites the
-   results of the previous call.  */
-
 static struct fmtstring
   {
     char *buffer;
-    unsigned int size;
-    unsigned int len;
-  } fmtbuf = { NULL, 0, 0 };
+    size_t size;
+  } fmtbuf = { NULL, 0 };
 
-/* Concatenate a formatted string onto the format buffer.  */
-static const char *
-vfmtconcat (const char *fmt, va_list args)
+static char *
+get_buffer (size_t need)
 {
-  va_list vcopy;
-  int tot;
-  int unused = fmtbuf.size - fmtbuf.len;
-
-  va_copy (vcopy, args);
-
-  tot = vsnprintf (&fmtbuf.buffer[fmtbuf.len], unused, fmt, args);
-  assert (tot >= 0);
-
-  if (tot >= unused)
+  /* Make sure we have room.  */
+  if (need > fmtbuf.size)
     {
-      fmtbuf.size += tot * 2;
+      fmtbuf.size += need * 2;
       fmtbuf.buffer = xrealloc (fmtbuf.buffer, fmtbuf.size);
-
-      unused = fmtbuf.size - fmtbuf.len;
-      tot = vsnprintf (&fmtbuf.buffer[fmtbuf.len], unused, fmt, vcopy);
     }
 
-  va_end (vcopy);
-
-  fmtbuf.len += tot;
+  fmtbuf.buffer[need] = '\0';
 
   return fmtbuf.buffer;
 }
 
-static const char *
-fmtconcat (const char *fmt, ...)
-{
-  const char *p;
-  va_list args;
-
-  va_start (args, fmt);
-  p = vfmtconcat (fmt, args);
-  va_end (args);
-
-  return p;
-}
-
 /* Print a message on stdout.  */
 
 void
-message (int prefix, const char *fmt, ...)
+message (int prefix, size_t len, const char *fmt, ...)
 {
   va_list args;
+  char *p;
 
-  assert (fmt != NULL);
-
-  fmtbuf.len = 0;
+  len += strlen (fmt) + strlen (program) + INTSTR_LENGTH + 4 + 1 + 1;
+  p = get_buffer (len);
 
   if (prefix)
     {
       if (makelevel == 0)
-        fmtconcat ("%s: ", program);
+        sprintf (p, "%s: ", program);
       else
-        fmtconcat ("%s[%u]: ", program, makelevel);
+        sprintf (p, "%s[%u]: ", program, makelevel);
+      p += strlen (p);
     }
 
   va_start (args, fmt);
-  vfmtconcat (fmt, args);
+  vsprintf (p, fmt, args);
   va_end (args);
 
-  fmtconcat ("\n");
+  strcat (p, "\n");
 
+  assert (fmtbuf.buffer[len] == '\0');
   outputs (0, fmtbuf.buffer);
 }
 
 /* Print an error message.  */
 
 void
-error (const gmk_floc *flocp, const char *fmt, ...)
+error (const gmk_floc *flocp, size_t len, const char *fmt, ...)
 {
   va_list args;
+  char *p;
 
-  assert (fmt != NULL);
-
-  fmtbuf.len = 0;
+  len += (strlen (fmt) + strlen (program)
+          + (flocp && flocp->filenm ? strlen (flocp->filenm) : 0)
+          + INTSTR_LENGTH + 4 + 1 + 1);
+  p = get_buffer (len);
 
   if (flocp && flocp->filenm)
-    fmtconcat ("%s:%lu: ", flocp->filenm, flocp->lineno);
+    sprintf (p, "%s:%lu: ", flocp->filenm, flocp->lineno);
   else if (makelevel == 0)
-    fmtconcat ("%s: ", program);
+    sprintf (p, "%s: ", program);
   else
-    fmtconcat ("%s[%u]: ", program, makelevel);
+    sprintf (p, "%s[%u]: ", program, makelevel);
+  p += strlen (p);
 
   va_start (args, fmt);
-  vfmtconcat (fmt, args);
+  vsprintf (p, fmt, args);
   va_end (args);
 
-  fmtconcat ("\n");
+  strcat (p, "\n");
 
+  assert (fmtbuf.buffer[len] == '\0');
   outputs (1, fmtbuf.buffer);
 }
 
 /* Print an error message and exit.  */
 
 void
-fatal (const gmk_floc *flocp, const char *fmt, ...)
+fatal (const gmk_floc *flocp, size_t len, const char *fmt, ...)
 {
   va_list args;
+  const char *stop = _(".  Stop.\n");
+  char *p;
 
-  assert (fmt != NULL);
-
-  fmtbuf.len = 0;
+  len += (strlen (fmt) + strlen (program)
+          + (flocp && flocp->filenm ? strlen (flocp->filenm) : 0)
+          + INTSTR_LENGTH + 8 + strlen (stop) + 1);
+  p = get_buffer (len);
 
   if (flocp && flocp->filenm)
-    fmtconcat ("%s:%lu: *** ", flocp->filenm, flocp->lineno);
+    sprintf (p, "%s:%lu: *** ", flocp->filenm, flocp->lineno);
   else if (makelevel == 0)
-    fmtconcat ("%s: *** ", program);
+    sprintf (p, "%s: *** ", program);
   else
-    fmtconcat ("%s[%u]: *** ", program, makelevel);
+    sprintf (p, "%s[%u]: *** ", program, makelevel);
+  p += strlen (p);
 
   va_start (args, fmt);
-  vfmtconcat (fmt, args);
+  vsprintf (p, fmt, args);
   va_end (args);
 
-  fmtconcat (_(".  Stop.\n"));
+  strcat (p, stop);
+
+  assert (fmtbuf.buffer[len] == '\0');
   outputs (1, fmtbuf.buffer);
 
   die (2);
@@ -748,7 +703,8 @@ fatal (const gmk_floc *flocp, const char *fmt, ...)
 void
 perror_with_name (const char *str, const char *name)
 {
-  error (NILF, _("%s%s: %s"), str, name, strerror (errno));
+  const char *err = strerror (errno);
+  OSSS (error, NILF, _("%s%s: %s"), str, name, err);
 }
 
 /* Print an error message from errno and exit.  */
@@ -756,7 +712,8 @@ perror_with_name (const char *str, const char *name)
 void
 pfatal_with_name (const char *name)
 {
-  fatal (NILF, _("%s: %s"), name, strerror (errno));
+  const char *err = strerror (errno);
+  OSS (fatal, NILF, _("%s: %s"), name, err);
 
   /* NOTREACHED */
 }

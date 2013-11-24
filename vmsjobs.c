@@ -175,8 +175,8 @@ vmsHandleChildTerm(struct child *child)
           break;
 
         default:
-          error (NILF, _("internal error: '%s' command_state"),
-                 c->file->name);
+          OS (error, NILF,
+              _("internal error: '%s' command_state"), c->file->name);
           abort ();
           break;
         }
