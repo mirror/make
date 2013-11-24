@@ -152,6 +152,7 @@ load_file (const gmk_floc *flocp, const char **ldname, int noerror)
           memcpy (new, *ldname, l);
           new[l] = '\0';
           *ldname = new;
+          nmlen = l;
 
           /* Make a copy of the symbol name part.  */
           symname = new + l + 1;
