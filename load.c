@@ -30,6 +30,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "filedef.h"
 #include "variable.h"
 
+/* Tru64 V4.0 does not have this flag */
+#ifndef RTLD_GLOBAL
+# define RTLD_GLOBAL 0
+#endif
+
 struct load_list
   {
     struct load_list *next;
