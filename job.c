@@ -1012,7 +1012,7 @@ free_child (struct child *child)
         {
           DWORD err = GetLastError ();
           const char *estr = map_windows32_error_to_string (err);
-          OSN (fatal, NILF,
+          ONS (fatal, NILF,
                _("release jobserver semaphore: (Error %ld: %s)"), err, estr);
         }
 
@@ -1959,7 +1959,7 @@ new_job (struct file *file)
           {
             DWORD err = GetLastError ();
             const char *estr = map_windows32_error_to_string (err);
-            OSN (fatal, NILF,
+            ONS (fatal, NILF,
                  _("semaphore or child process wait: (Error %ld: %s)"),
                  err, estr);
           }

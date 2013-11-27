@@ -793,7 +793,7 @@ prepare_mutex_handle_string (sync_handle_t handle)
       /* Prepare the mutex handle string for our children.  */
       /* 2 hex digits per byte + 2 characters for "0x" + null.  */
       sync_mutex = xmalloc ((2 * sizeof (sync_handle_t)) + 2 + 1);
-      sprintf (sync_mutex, "0x%x", handle);
+      sprintf (sync_mutex, "0x%Ix", handle);
       define_makeflags (1, 0);
     }
 }
@@ -1981,7 +1981,7 @@ main (int argc, char **argv, char **envp)
         {
           DWORD err = GetLastError ();
           const char *estr = map_windows32_error_to_string (err);
-          OSN (fatal, NILF,
+          ONS (fatal, NILF,
                _("creating jobserver semaphore: (Error %ld: %s)"), err, estr);
         }
 #else

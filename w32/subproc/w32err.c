@@ -67,7 +67,7 @@ map_windows32_error_to_string (DWORD ercode) {
 			FreeLibrary(hModule);
 		}
 #else
-		fatal(NILF, szMessageBuffer);
+                O (fatal, NILF, szMessageBuffer);
 #endif
 	} else {
 		/*
