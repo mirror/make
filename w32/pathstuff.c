@@ -27,15 +27,15 @@ convert_vpath_to_windows32(char *Path, char to_delim)
 {
     char *etok;            /* token separator for old Path */
 
-	/*
-	 * Convert all spaces to delimiters. Note that pathnames which
-	 * contain blanks get trounced here. Use 8.3 format as a workaround.
-	 */
-	for (etok = Path; etok && *etok; etok++)
-		if (isblank ((unsigned char) *etok))
-			*etok = to_delim;
+        /*
+         * Convert all spaces to delimiters. Note that pathnames which
+         * contain blanks get trounced here. Use 8.3 format as a workaround.
+         */
+        for (etok = Path; etok && *etok; etok++)
+                if (isblank ((unsigned char) *etok))
+                        *etok = to_delim;
 
-	return (convert_Path_to_windows32(Path, to_delim));
+        return (convert_Path_to_windows32(Path, to_delim));
 }
 
 /*
@@ -79,7 +79,7 @@ convert_Path_to_windows32(char *Path, char to_delim)
             if (etok) {
                 *etok = to_delim;
                 p = ++etok;
-	    } else
+            } else
                 p += strlen(p);
         } else {
             /* found another one, no drive letter */
@@ -114,14 +114,14 @@ w32ify(const char *filename, int resolve)
 char *
 getcwd_fs(char* buf, int len)
 {
-	char *p = getcwd(buf, len);
+        char *p = getcwd(buf, len);
 
-	if (p) {
-		char *q = w32ify(buf, 0);
-		strncpy(buf, q, len);
-	}
+        if (p) {
+                char *q = w32ify(buf, 0);
+                strncpy(buf, q, len);
+        }
 
-	return p;
+        return p;
 }
 
 #ifdef unused

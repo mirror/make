@@ -32,17 +32,17 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 EXTERN_DECL(HANDLE process_init, (VOID_DECL));
 EXTERN_DECL(HANDLE process_init_fd, (HANDLE stdinh, HANDLE stdouth,
-	HANDLE stderrh));
+        HANDLE stderrh));
 EXTERN_DECL(long process_begin, (HANDLE proc, char **argv, char **envp,
-	char *exec_path, char *as_user));
+        char *exec_path, char *as_user));
 EXTERN_DECL(long process_pipe_io, (HANDLE proc, char *stdin_data,
-	int stdin_data_len));
+        int stdin_data_len));
 EXTERN_DECL(long process_file_io, (HANDLE proc));
 EXTERN_DECL(void process_cleanup, (HANDLE proc));
 EXTERN_DECL(HANDLE process_wait_for_any, (int block, DWORD* pdwWaitStatus));
 EXTERN_DECL(void process_register, (HANDLE proc));
 EXTERN_DECL(HANDLE process_easy, (char** argv, char** env,
-				  int outfd, int errfd));
+                                  int outfd, int errfd));
 EXTERN_DECL(BOOL process_kill, (HANDLE proc, int signal));
 EXTERN_DECL(int process_used_slots, (VOID_DECL));
 
