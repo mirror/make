@@ -2925,16 +2925,14 @@ decode_env_switches (char *envar, unsigned int len)
   /* Allocate a vector that is definitely big enough.  */
   argv = alloca ((1 + len + 1) * sizeof (char *));
 
-  /* We need a buffer to copy the value into while we split it into words
-     and unquote it.  */
-  buf = alloca (2 * len);
-
   /* getopt will look at the arguments starting at ARGV[1].
      Prepend a spacer word.  */
   argv[0] = 0;
   argc = 1;
 
-  /* Set up in case we need to prepend a dash later.  */
+  /* We need a buffer to copy the value into while we split it into words
+     and unquote it.  Set up in case we need to prepend a dash later.  */
+  buf = alloca (1 + len + 1);
   buf[0] = '-';
   p = buf+1;
   argv[argc] = p;
@@ -2956,6 +2954,7 @@ decode_env_switches (char *envar, unsigned int len)
     }
   *p = '\0';
   argv[++argc] = 0;
+  assert (p < buf + len + 2);
 
   if (argv[1][0] != '-' && strchr (argv[1], '=') == 0)
     /* The first word doesn't start with a dash and isn't a variable
