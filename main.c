@@ -3406,9 +3406,14 @@ die (int status)
 
       if (output_context)
         {
-          assert (output_context == &make_sync);
+          /* die() might be called in a recipe output context due to an
+             $(error ...) function.  */
+          output_close (output_context);
+
+          if (output_context != &make_sync)
+            output_close (&make_sync);
+
           OUTPUT_UNSET ();
-          output_close (&make_sync);
         }
 
       output_close (NULL);

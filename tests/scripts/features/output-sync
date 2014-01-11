@@ -330,5 +330,12 @@ t1: ; -\@\$(MAKE) -f $m1
 
 rmfiles($m1);
 
+# Test $(error ...) functions in recipes
+
+run_make_test(q!
+foo: $(OBJS) ; echo $(or $(filter %.o,$^),$(error fail))
+!,
+              '-O', "#MAKEFILE#:2: *** fail.  Stop.\n", 512);
+
 # This tells the test driver that the perl test script executed properly.
 1;
