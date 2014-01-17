@@ -1145,6 +1145,8 @@ start_job_command (struct child *child)
   char *argv;
 #else
   char **argv;
+  int outfd = FD_STDOUT;
+  int errfd = FD_STDERR;
 #endif
 
   /* If we have a completely empty commandset, stop now.  */
@@ -1434,6 +1436,16 @@ start_job_command (struct child *child)
 
       parent_environ = environ;
 
+#ifndef NO_OUTPUT_SYNC
+      /* Divert child output if output_sync in use.  */
+      if (child->output.syncout)
+        {
+          if (child->output.out >= 0)
+            outfd = child->output.out;
+          if (child->output.err >= 0)
+            errfd = child->output.err;
+        }
+#endif
 # ifdef __EMX__
       /* If we aren't running a recursive command and we have a jobserver
          pipe, close it before exec'ing.  */
@@ -1447,7 +1459,7 @@ start_job_command (struct child *child)
 
       /* Never use fork()/exec() here! Use spawn() instead in exec_command() */
       child->pid = child_execute_job (child->good_stdin ? FD_STDIN : bad_stdin,
-                                      FD_STDOUT, FD_STDERR,
+                                      outfd, errfd,
                                       argv, child->environment);
       if (child->pid < 0)
         {
@@ -1472,9 +1484,6 @@ start_job_command (struct child *child)
       environ = parent_environ; /* Restore value child may have clobbered.  */
       if (child->pid == 0)
         {
-          int outfd = FD_STDOUT;
-          int errfd = FD_STDERR;
-
           /* We are the child side.  */
           unblock_sigs ();
 
@@ -1493,16 +1502,6 @@ start_job_command (struct child *child)
           if (stack_limit.rlim_cur)
             setrlimit (RLIMIT_STACK, &stack_limit);
 #endif
-
-          /* Divert child output if output_sync in use.  */
-          if (child->output.syncout)
-            {
-              if (child->output.out >= 0)
-                outfd = child->output.out;
-              if (child->output.err >= 0)
-                errfd = child->output.err;
-            }
-
           child_execute_job (child->good_stdin ? FD_STDIN : bad_stdin,
                              outfd, errfd, argv, child->environment);
         }
