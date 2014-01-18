@@ -318,18 +318,18 @@ AC_ARG_ENABLE([load],
   [make_cv_load="$enableval" user_load="$enableval"],
   [make_cv_load="yes"])
 
-AS_CASE([/$ac_cv_func_dlopen/$ac_cv_func_dlsym/$ac_cv_func_dlerror/],
+AS_CASE([/$ac_cv_have_decl_dlopen/$ac_cv_have_decl_dlsym/$ac_cv_have_decl_dlerror/],
   [*/no/*], [make_cv_load=no])
+
+# We might need -ldl
+AS_IF([test "$make_cv_load" = yes], [
+  AC_SEARCH_LIBS([dlopen], [dl], [], [make_cv_load=])
+  ])
 
 AS_CASE([/$make_cv_load/$user_load/],
   [*/no/*], [make_cv_load=no],
   [AC_DEFINE(MAKE_LOAD, 1,
              [Define to 1 to enable 'load' support in GNU make.])
-  ])
-
-# We might need -ldl
-AS_IF([test "$make_cv_load" = yes], [
-  AC_SEARCH_LIBS([dlopen], [dl], [], [make_cv_load=])
   ])
 
 # If we want load support, we might need to link with export-dynamic.
