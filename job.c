@@ -1116,10 +1116,20 @@ set_child_handler_action_flags (int set_handler, int set_alarm)
       /* If we're about to enter the read(), set an alarm to wake up in a
          second so we can check if the load has dropped and we can start more
          work.  On the way out, turn off the alarm and set SIG_DFL.  */
-      alarm (set_handler ? 1 : 0);
-      sa.sa_handler = set_handler ? job_noop : SIG_DFL;
-      sa.sa_flags = 0;
-      sigaction (SIGALRM, &sa, NULL);
+      if (set_handler)
+        {
+          sa.sa_handler = job_noop;
+          sa.sa_flags = 0;
+          sigaction (SIGALRM, &sa, NULL);
+          alarm (1);
+        }
+      else
+        {
+          alarm (0);
+          sa.sa_handler = SIG_DFL;
+          sa.sa_flags = 0;
+          sigaction (SIGALRM, &sa, NULL);
+        }
     }
 #endif
 }
