@@ -30,6 +30,7 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([1.11.1 silent-rules foreign -Wall -Werror])
 
 # Checks for programs.
+AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_RANLIB
@@ -37,6 +38,9 @@ AC_PROG_CPP
 AC_CHECK_PROG([AR], [ar], [ar], [ar])
 # Perl is needed for the test suite (only)
 AC_CHECK_PROG([PERL], [perl], [perl], [perl])
+
+# Needed for w32/Makefile.am
+AM_PROG_AR
 
 # Specialized system macros
 AC_CANONICAL_HOST
