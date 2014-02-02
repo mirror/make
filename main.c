@@ -620,11 +620,11 @@ initialize_stopchar_map ()
   stopchar_map[(int)'-'] = MAP_USERFUNC;
   stopchar_map[(int)'_'] = MAP_USERFUNC;
 
-  stopchar_map[(int)'/'] = MAP_PATHSEP;
+  stopchar_map[(int)'/'] = MAP_DIRSEP;
 #if defined(VMS)
-  stopchar_map[(int)']'] = MAP_PATHSEP;
+  stopchar_map[(int)']'] = MAP_DIRSEP;
 #elif defined(HAVE_DOS_PATHS)
-  stopchar_map[(int)'\\'] = MAP_PATHSEP;
+  stopchar_map[(int)'\\'] = MAP_DIRSEP;
 #endif
 
   for (i = 1; i <= UCHAR_MAX; ++i)

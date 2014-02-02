@@ -519,7 +519,7 @@ func_notdir_suffix (char *o, char **argv, const char *funcname)
 
   int is_suffix = funcname[0] == 's';
   int is_notdir = !is_suffix;
-  int stop = MAP_PATHSEP | (is_suffix ? MAP_DOT : 0);
+  int stop = MAP_DIRSEP | (is_suffix ? MAP_DOT : 0);
   while ((p2 = find_next_token (&list_iterator, &len)) != 0)
     {
       const char *p = p2 + len - 1;
@@ -572,7 +572,7 @@ func_basename_dir (char *o, char **argv, const char *funcname)
 
   int is_basename = funcname[0] == 'b';
   int is_dir = !is_basename;
-  int stop = MAP_PATHSEP | (is_basename ? MAP_DOT : 0) | MAP_NUL;
+  int stop = MAP_DIRSEP | (is_basename ? MAP_DOT : 0) | MAP_NUL;
   while ((p2 = find_next_token (&p3, &len)) != 0)
     {
       const char *p = p2 + len - 1;
@@ -1952,7 +1952,7 @@ func_not (char *o, char **argv, char *funcname UNUSED)
 
 #ifdef HAVE_DOS_PATHS
 # ifdef __CYGWIN__
-#  define IS_ABSOLUTE(n) ((n[0] && n[1] == ':') || STOP_SET (n[0], MAP_PATHSEP))
+#  define IS_ABSOLUTE(n) ((n[0] && n[1] == ':') || STOP_SET (n[0], MAP_DIRSEP))
 # else
 #  define IS_ABSOLUTE(n) (n[0] && n[1] == ':')
 # endif
@@ -1986,9 +1986,9 @@ abspath (const char *name, char *apath)
       strcpy (apath, starting_directory);
 
 #ifdef HAVE_DOS_PATHS
-      if (STOP_SET (name[0], MAP_PATHSEP))
+      if (STOP_SET (name[0], MAP_DIRSEP))
         {
-          if (STOP_SET (name[1], MAP_PATHSEP))
+          if (STOP_SET (name[1], MAP_DIRSEP))
             {
               /* A UNC.  Don't prepend a drive letter.  */
               apath[0] = name[0];
@@ -2008,7 +2008,7 @@ abspath (const char *name, char *apath)
   else
     {
 #if defined(__CYGWIN__) && defined(HAVE_DOS_PATHS)
-      if (STOP_SET (name[0], MAP_PATHSEP))
+      if (STOP_SET (name[0], MAP_DIRSEP))
         root_len = 1;
 #endif
       strncpy (apath, name, root_len);
@@ -2017,7 +2017,7 @@ abspath (const char *name, char *apath)
       /* Get past the root, since we already copied it.  */
       name += root_len;
 #ifdef HAVE_DOS_PATHS
-      if (! STOP_SET (apath[root_len - 1], MAP_PATHSEP))
+      if (! STOP_SET (apath[root_len - 1], MAP_DIRSEP))
         {
           /* Convert d:foo into d:./foo and increase root_len.  */
           apath[2] = '.';
@@ -2037,11 +2037,11 @@ abspath (const char *name, char *apath)
       unsigned long len;
 
       /* Skip sequence of multiple path-separators.  */
-      while (STOP_SET (*start, MAP_PATHSEP))
+      while (STOP_SET (*start, MAP_DIRSEP))
         ++start;
 
       /* Find end of path component.  */
-      for (end = start; ! STOP_SET (*end, MAP_PATHSEP|MAP_NUL); ++end)
+      for (end = start; ! STOP_SET (*end, MAP_DIRSEP|MAP_NUL); ++end)
         ;
 
       len = end - start;
@@ -2054,12 +2054,12 @@ abspath (const char *name, char *apath)
         {
           /* Back up to previous component, ignore if at root already.  */
           if (dest > apath + root_len)
-            for (--dest; ! STOP_SET (dest[-1], MAP_PATHSEP); --dest)
+            for (--dest; ! STOP_SET (dest[-1], MAP_DIRSEP); --dest)
               ;
         }
       else
         {
-          if (! STOP_SET (dest[-1], MAP_PATHSEP))
+          if (! STOP_SET (dest[-1], MAP_DIRSEP))
             *dest++ = '/';
 
           if (dest + len >= apath_limit)
@@ -2072,7 +2072,7 @@ abspath (const char *name, char *apath)
     }
 
   /* Unless it is root strip trailing separator.  */
-  if (dest > apath + root_len && STOP_SET (dest[-1], MAP_PATHSEP))
+  if (dest > apath + root_len && STOP_SET (dest[-1], MAP_DIRSEP))
     --dest;
 
   *dest = '\0';

@@ -397,8 +397,8 @@ extern int unixy_shell;
 #define MAP_USERFUNC    0x2000
 /* This means not only a '$', but skip the variable reference.  */
 #define MAP_VARIABLE    0x4000
-/* The set of characters which are path separators is OS-specific.  */
-#define MAP_PATHSEP     0x8000
+/* The set of characters which are directory separators is OS-specific.  */
+#define MAP_DIRSEP      0x8000
 
 #ifdef VMS
 # define MAP_VMSCOMMA   MAP_COMMA
