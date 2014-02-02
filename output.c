@@ -591,14 +591,14 @@ static struct fmtstring
 static char *
 get_buffer (size_t need)
 {
-  /* Make sure we have room.  */
+  /* Make sure we have room.  NEED includes space for \0.  */
   if (need > fmtbuf.size)
     {
       fmtbuf.size += need * 2;
       fmtbuf.buffer = xrealloc (fmtbuf.buffer, fmtbuf.size);
     }
 
-  fmtbuf.buffer[need] = '\0';
+  fmtbuf.buffer[need-1] = '\0';
 
   return fmtbuf.buffer;
 }
@@ -629,7 +629,7 @@ message (int prefix, size_t len, const char *fmt, ...)
 
   strcat (p, "\n");
 
-  assert (fmtbuf.buffer[len] == '\0');
+  assert (fmtbuf.buffer[len-1] == '\0');
   outputs (0, fmtbuf.buffer);
 }
 
@@ -660,7 +660,7 @@ error (const gmk_floc *flocp, size_t len, const char *fmt, ...)
 
   strcat (p, "\n");
 
-  assert (fmtbuf.buffer[len] == '\0');
+  assert (fmtbuf.buffer[len-1] == '\0');
   outputs (1, fmtbuf.buffer);
 }
 
@@ -692,7 +692,7 @@ fatal (const gmk_floc *flocp, size_t len, const char *fmt, ...)
 
   strcat (p, stop);
 
-  assert (fmtbuf.buffer[len] == '\0');
+  assert (fmtbuf.buffer[len-1] == '\0');
   outputs (1, fmtbuf.buffer);
 
   die (2);
