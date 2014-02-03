@@ -253,10 +253,10 @@ ar_scan (const char *archive, ar_member_func_t function, const void *varg)
 #endif
 
 #ifndef WINDOWS32
-# ifndef __BEOS__
+# if !defined (__ANDROID__) && !defined (__BEOS__)
 #  include <ar.h>
 # else
-   /* BeOS 5 doesn't have <ar.h> but has archives in the same format
+   /* These platforms don't have <ar.h> but have archives in the same format
     * as many other Unices.  This was taken from GNU binutils for BeOS.
     */
 #  define ARMAG "!<arch>\n"     /* String that begins an archive file.  */
