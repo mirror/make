@@ -36,7 +36,7 @@ int _cdecl compare(const void *a1, const void *a2)
         return _stricoll(*((char**)a1),*((char**)a2));
 }
 bool_t
-arr2envblk(char **arr, char **envblk_out)
+arr2envblk(char **arr, char **envblk_out, int *envsize_needed)
 {
         char **tmp;
         int size_needed;
@@ -54,13 +54,14 @@ arr2envblk(char **arr, char **envblk_out)
         }
 
         arrcnt = 0;
-        size_needed = 0;
+        size_needed = *envsize_needed = 0;
         while (arr[arrcnt]) {
                 tmp[arrcnt] = arr[arrcnt];
                 size_needed += strlen(arr[arrcnt]) + 1;
                 arrcnt++;
         }
         size_needed++;
+        *envsize_needed = size_needed;
 
         qsort((void *) tmp, (size_t) arrcnt, sizeof (char*), compare);
 
