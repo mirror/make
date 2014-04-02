@@ -42,6 +42,22 @@ $command_string = '';
 
 $all_tests = 0;
 
+# rmdir broken in some Perls on VMS.
+if ($^O eq 'VMS')
+{
+  require VMS::Filespec;
+  VMS::Filespec->import();
+
+  sub vms_rmdir {
+    my $vms_file = vmspath($_[0]);
+    $vms_file = fileify($vms_file);
+    my $ret = unlink(vmsify($vms_file));
+    return $ret
+  };
+
+  *CORE::GLOBAL::rmdir = \&vms_rmdir;
+}
+
 require "test_driver.pl";
 require "config-flags.pm";
 
@@ -178,6 +194,40 @@ sub run_make_with_options {
   }
 
   if ($options) {
+    if ($^O eq 'VMS') {
+      # Try to make sure arguments are properly quoted.
+      # This does not handle all cases.
+
+      # VMS uses double quotes instead of single quotes.
+      $options =~ s/\'/\"/g;
+
+      # If the leading quote is inside non-whitespace, then the
+      # quote must be doubled, because it will be enclosed in another
+      # set of quotes.
+      $options =~ s/(\S)(\".*\")/$1\"$2\"/g;
+
+      # Options must be quoted to preserve case if not already quoted.
+      $options =~ s/(\S+)/\"$1\"/g;
+
+      # Special fixup for embedded quotes.
+      $options =~ s/(\"\".+)\"(\s+)\"(.+\"\")/$1$2$3/g;
+
+      $options =~ s/(\A)(?:\"\")(.+)(?:\"\")/$1\"$2\"/g;
+
+      # Special fixup for misc/general4 test.
+      $options =~ s/""\@echo" "cc""/\@echo cc"/;
+      $options =~ s/"\@echo link"""/\@echo link"/;
+
+      # Remove shell escapes expected to be removed by bash
+      if ($options !~ /path=pre/) {
+        $options =~ s/\\//g;
+      }
+
+      # special fixup for options/eval
+      $options =~ s/"--eval=\$\(info" "eval/"--eval=\$\(info eval/;
+
+      print ("Options fixup = -$options-\n") if $debug;
+    }
     $command .= " $options";
   }
 
@@ -196,7 +246,6 @@ sub run_make_with_options {
       $valgrind and $test_timeout = 0;
 
       $code = &run_command_with_output($logname,$command);
-
       $test_timeout = $old_timeout;
   }
 
@@ -327,19 +376,28 @@ sub set_more_defaults
 
    # Find the full pathname of Make.  For DOS systems this is more
    # complicated, so we ask make itself.
-   my $mk = `sh -c 'echo "all:;\@echo \\\$(MAKE)" | $make_path -f-'`;
-   chop $mk;
-   $mk or die "FATAL ERROR: Cannot determine the value of \$(MAKE):\n
+   if ($osname eq 'VMS') {
+     # On VMS pre-setup make to be found with simply 'make'.
+     $make_path = 'make';
+   } else {
+     my $mk = `sh -c 'echo "all:;\@echo \\\$(MAKE)" | $make_path -f-'`;
+     chop $mk;
+     $mk or die "FATAL ERROR: Cannot determine the value of \$(MAKE):\n
 'echo \"all:;\@echo \\\$(MAKE)\" | $make_path -f-' failed!\n";
-   $make_path = $mk;
+     $make_path = $mk;
+   }
    print "Make\t= '$make_path'\n" if $debug;
 
-   $string = `$make_path -v -f /dev/null 2> /dev/null`;
+   my $redir2 = '2> /dev/null';
+   $redir2 = '' if os_name eq 'VMS';
+   $string = `$make_path -v -f /dev/null $redir2`;
 
    $string =~ /^(GNU Make [^,\n]*)/;
    $testee_version = "$1\n";
 
-   $string = `sh -c "$make_path -f /dev/null 2>&1"`;
+   my $redir = '2>&1';
+   $redir = '' if os_name eq 'VMS';
+   $string = `sh -c "$make_path -f /dev/null $redir"`;
    if ($string =~ /(.*): \*\*\* No targets\.  Stop\./) {
      $make_name = $1;
    }
@@ -388,7 +446,7 @@ sub set_more_defaults
      $purify_errors = 0;
    }
 
-   $string = `sh -c "$make_path -j 2 -f /dev/null 2>&1"`;
+   $string = `sh -c "$make_path -j 2 -f /dev/null $redir"`;
    if ($string =~ /not supported/) {
      $parallel_jobs = 0;
    }
