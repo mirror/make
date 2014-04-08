@@ -30,6 +30,23 @@ x:;@cat file.out
 
 unlink('file.out');
 
+# Test > with no content
+run_make_test(q!
+$(file >4touch)
+.PHONY:x
+x:;@cat 4touch
+!,
+              '', '');
+
+# Test >> with no content
+run_make_test(q!
+$(file >>4touch)
+.PHONY:x
+x:;@cat 4touch
+!,
+              '', '');
+unlink('4touch');
+
 # Test > to a read-only file
 touch('file.out');
 chmod(0444, 'file.out');

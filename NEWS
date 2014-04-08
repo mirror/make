@@ -15,6 +15,10 @@ A complete list of bugs fixed in this version is available here:
 
 http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=105&set=custom
 
+* Allow a no-text-argument form of the $(file ...) function.  Without a text
+  argument nothing is written to the file: it is simply opened in the
+  requested mode, then closed again.
+
 * Change the fatal error for mixed explicit and implicit rules, that was
   introduced in GNU make 3.82, to a non-fatal error.  However, this syntax is
   still deprecated and may return to being illegal in a future version of GNU
@@ -771,7 +775,7 @@ Version 3.69 (07 Nov 1993)
   have reversed the change made in version 3.68 because it turned out to
   cause a paradoxical situation in cases like:
 
-	export variable = $(shell echo value)
+        export variable = $(shell echo value)
 
   When Make attempted to put this variable in the environment for a
   recipe, it would try expand the value by running the shell command
@@ -794,8 +798,8 @@ Version 3.68 (28 Jul 1993)
   foo.a(b.o) bar.a(c.o) bar.a(d.o)'.
 
 * A suffix rule `.X.a' now produces two pattern rules:
-	(%.o): %.X	# Previous versions produced only this.
-	%.a: %.X	# Now produces this as well, just like other suffixes.
+        (%.o): %.X	# Previous versions produced only this.
+        %.a: %.X	# Now produces this as well, just like other suffixes.
 
 * The new flag `--warn-undefined-variables' says to issue a warning message
   whenever Make expands a reference to an undefined variable.
@@ -865,15 +869,15 @@ Version 3.63 (22 Jan 1993)
   no longer automatically put into the environments of the recipe lines that
   Make runs.  Instead, only variables specified on the command line or in
   the environment are exported by default.  To export others, use:
-	export VARIABLE
+        export VARIABLE
   or you can define variables with:
-	export VARIABLE = VALUE
+        export VARIABLE = VALUE
   or:
-	export VARIABLE := VALUE
+        export VARIABLE := VALUE
   You can use just:
-	export
+        export
   or:
-	.EXPORT_ALL_VARIABLES:
+        .EXPORT_ALL_VARIABLES:
   to get the old behavior.  See the node `Variables/Recursion' in the manual
   for a full description.
 
@@ -893,9 +897,9 @@ Version 3.63 (22 Jan 1993)
 
 * A single `include' directive can now specify more than one makefile to
   include, like this:
-	include file1 file2
+        include file1 file2
   You can also use shell file name patterns in an `include' directive:
-	include *.mk
+        include *.mk
 
 * The default directories to search for included makefiles, and for
   libraries specified with `-lNAME', are now set by configuration.
@@ -1031,7 +1035,7 @@ Version 3.49
 * The `wildcard' variable expansion function now expands ~ and ~USER.
 
 * Messages indicating failed recipe lines now contain the target name:
-	make: *** [target] Error 1
+        make: *** [target] Error 1
 
 * The `-p' output format has been changed somewhat to look more like
   makefile rules and to give all information that Make has about files.
