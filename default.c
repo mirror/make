@@ -108,7 +108,7 @@ static struct pspec default_terminal_rules[] =
     { 0, 0, 0 }
   };
 
-static char *default_suffix_rules[] =
+static const char *default_suffix_rules[] =
   {
 #ifdef VMS
     ".obj.exe",
@@ -548,8 +548,8 @@ set_default_suffixes (void)
   else
     {
       struct dep *d;
-      char *p = default_suffixes;
-      suffix_file->deps = enter_prereqs (PARSE_SIMPLE_SEQ (&p, struct dep),
+      const char *p = default_suffixes;
+      suffix_file->deps = enter_prereqs (PARSE_SIMPLE_SEQ ((char **)&p, struct dep),
                                          NULL);
       for (d = suffix_file->deps; d; d = d->next)
         d->file->builtin = 1;
@@ -566,7 +566,7 @@ set_default_suffixes (void)
 void
 install_default_suffix_rules (void)
 {
-  char **s;
+  const char **s;
 
   if (no_builtin_rules_flag)
     return;
@@ -578,7 +578,7 @@ install_default_suffix_rules (void)
       assert (f->cmds == 0);
       f->cmds = xmalloc (sizeof (struct commands));
       f->cmds->fileinfo.filenm = 0;
-      f->cmds->commands = s[1];
+      f->cmds->commands = xstrdup (s[1]);
       f->cmds->command_lines = 0;
       f->cmds->recipe_prefix = RECIPEPREFIX_DEFAULT;
       f->builtin = 1;

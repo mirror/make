@@ -785,12 +785,8 @@ merge_variable_set_lists (struct variable_set_list **setlist0,
 void
 define_automatic_variables (void)
 {
-#if defined(WINDOWS32) || defined(__EMX__)
-  extern char* default_shell;
-#else
-  extern char default_shell[];
-#endif
-  register struct variable *v;
+  extern const char* default_shell;
+  struct variable *v;
   char buf[200];
 
   sprintf (buf, "%u", makelevel);
@@ -1045,7 +1041,7 @@ target_environment (struct file *file)
           }
     }
 
-  makelevel_key.name = MAKELEVEL_NAME;
+  makelevel_key.name = xstrdup (MAKELEVEL_NAME);
   makelevel_key.length = MAKELEVEL_LENGTH;
   hash_delete (&table, &makelevel_key);
 
@@ -1328,7 +1324,7 @@ do_variable_definition (const gmk_floc *flocp, const char *varname,
   if ((origin == o_file || origin == o_override || origin == o_command)
       && streq (varname, "SHELL"))
     {
-      extern char *default_shell;
+      extern const char *default_shell;
 
       /* Call shell locator function. If it returns TRUE, then
          set no_default_sh_exe to indicate sh was found and
@@ -1537,7 +1533,7 @@ parse_variable_definition (const char *p, struct variable *var)
    returned.  */
 
 struct variable *
-assign_variable_definition (struct variable *v, char *line)
+assign_variable_definition (struct variable *v, const char *line)
 {
   char *name;
 
@@ -1570,7 +1566,7 @@ assign_variable_definition (struct variable *v, char *line)
    returned.  */
 
 struct variable *
-try_variable_definition (const gmk_floc *flocp, char *line,
+try_variable_definition (const gmk_floc *flocp, const char *line,
                          enum variable_origin origin, int target_var)
 {
   struct variable v;
@@ -1690,11 +1686,11 @@ print_noauto_variable (const void *item, void *arg)
 /* Print all the variables in SET.  PREFIX is printed before
    the actual variable definitions (everything else is comments).  */
 
-void
-print_variable_set (struct variable_set *set, char *prefix, int pauto)
+static void
+print_variable_set (struct variable_set *set, const char *prefix, int pauto)
 {
   hash_map_arg (&set->table, (pauto ? print_auto_variable : print_variable),
-                prefix);
+                (void *)prefix);
 
   fputs (_("# variable set hash-table stats:\n"), stdout);
   fputs ("# ", stdout);
@@ -1721,7 +1717,7 @@ print_variable_data_base (void)
       {
         ++rules;
         printf ("\n%s :\n", p->target);
-        print_variable (&p->variable, "# ");
+        print_variable (&p->variable, (void *)"# ");
       }
 
     if (rules == 0)

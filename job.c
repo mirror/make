@@ -31,14 +31,14 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef WINDOWS32
 #include <windows.h>
 
-char *default_shell = "sh.exe";
+const char *default_shell = "sh.exe";
 int no_default_sh_exe = 1;
 int batch_mode_shell = 1;
 HANDLE main_thread;
 
 #elif defined (_AMIGA)
 
-char default_shell[] = "";
+const char *default_shell = "";
 extern int MyExecute (char **);
 int batch_mode_shell = 0;
 
@@ -48,28 +48,28 @@ int batch_mode_shell = 0;
    says so.  It is without an explicit path so we get a chance
    to search the $PATH for it (since MSDOS doesn't have standard
    directories we could trust).  */
-char *default_shell = "command.com";
+const char *default_shell = "command.com";
 int batch_mode_shell = 0;
 
 #elif defined (__EMX__)
 
-char *default_shell = "/bin/sh";
+const char *default_shell = "/bin/sh";
 int batch_mode_shell = 0;
 
 #elif defined (VMS)
 
 # include <descrip.h>
-char default_shell[] = "";
+const char *default_shell = "";
 int batch_mode_shell = 0;
 
 #elif defined (__riscos__)
 
-char default_shell[] = "";
+const char *default_shell = "";
 int batch_mode_shell = 0;
 
 #else
 
-char default_shell[] = "/bin/sh";
+const char *default_shell = "/bin/sh";
 int batch_mode_shell = 0;
 
 #endif
@@ -2428,7 +2428,7 @@ exec_command (char **argv, char **envp)
       {
         /* The file is not executable.  Try it as a shell script.  */
         extern char *getenv ();
-        char *shell;
+        const char *shell;
         char **new_argv;
         int argc;
         int i=1;
@@ -2456,7 +2456,7 @@ exec_command (char **argv, char **envp)
 # endif
 
         new_argv = alloca ((1 + argc + 1) * sizeof (char *));
-        new_argv[0] = shell;
+        new_argv[0] = (char *)shell;
 
 # ifdef __EMX__
         if (!unixy_shell)
@@ -2509,7 +2509,8 @@ exec_command (char **argv, char **envp)
 #endif /* !VMS */
 }
 #else /* On Amiga */
-void exec_command (char **argv)
+void
+exec_command (char **argv)
 {
   MyExecute (argv);
 }
@@ -2526,7 +2527,7 @@ void clean_tmp (void)
    avoid using a shell.  This routine handles only ' quoting, and " quoting
    when no backslash, $ or ' characters are seen in the quotes.  Starting
    quotes may be escaped with a backslash.  If any of the characters in
-   sh_chars[] is seen, or any of the builtin commands listed in sh_cmds[]
+   sh_chars is seen, or any of the builtin commands listed in sh_cmds
    is the first word of a line, the shell is used.
 
    If RESTP is not NULL, *RESTP is set to point to the first newline in LINE.
@@ -2541,9 +2542,9 @@ void clean_tmp (void)
    is overridden.  */
 
 static char **
-construct_command_argv_internal (char *line, char **restp, char *shell,
-                                 char *shellflags, char *ifs, int flags,
-                                 char **batch_filename UNUSED)
+construct_command_argv_internal (char *line, char **restp, const char *shell,
+                                 const char *shellflags, const char *ifs,
+                                 int flags, char **batch_filename UNUSED)
 {
 #ifdef __MSDOS__
   /* MSDOS supports both the stock DOS shell and ports of Unixy shells.
@@ -2568,61 +2569,58 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
        DOS_CHARS also include characters special to 4DOS/NDOS, so we
        won't have to tell one from another and have one more set of
        commands and special characters.  */
-  static char sh_chars_dos[] = "*?[];|<>%^&()";
-  static char *sh_cmds_dos[] = { "break", "call", "cd", "chcp", "chdir", "cls",
-                                 "copy", "ctty", "date", "del", "dir", "echo",
-                                 "erase", "exit", "for", "goto", "if", "md",
-                                 "mkdir", "path", "pause", "prompt", "rd",
-                                 "rmdir", "rem", "ren", "rename", "set",
-                                 "shift", "time", "type", "ver", "verify",
-                                 "vol", ":", 0 };
+  static const char *sh_chars_dos = "*?[];|<>%^&()";
+  static const char *sh_cmds_dos[] =
+    { "break", "call", "cd", "chcp", "chdir", "cls", "copy", "ctty", "date",
+      "del", "dir", "echo", "erase", "exit", "for", "goto", "if", "md",
+      "mkdir", "path", "pause", "prompt", "rd", "rmdir", "rem", "ren",
+      "rename", "set", "shift", "time", "type", "ver", "verify", "vol", ":",
+      0 };
 
-  static char sh_chars_sh[]  = "#;\"*?[]&|<>(){}$`^";
-  static char *sh_cmds_sh[]  = { "cd", "echo", "eval", "exec", "exit", "login",
-                                 "logout", "set", "umask", "wait", "while",
-                                 "for", "case", "if", ":", ".", "break",
-                                 "continue", "export", "read", "readonly",
-                                 "shift", "times", "trap", "switch", "unset",
-                                 "ulimit", 0 };
+  static const char *sh_chars_sh = "#;\"*?[]&|<>(){}$`^";
+  static const char *sh_cmds_sh[] =
+    { "cd", "echo", "eval", "exec", "exit", "login", "logout", "set", "umask",
+      "wait", "while", "for", "case", "if", ":", ".", "break", "continue",
+      "export", "read", "readonly", "shift", "times", "trap", "switch",
+      "unset", "ulimit", 0 };
 
-  char *sh_chars;
-  char **sh_cmds;
+  const char *sh_chars;
+  const char **sh_cmds;
+
 #elif defined (__EMX__)
-  static char sh_chars_dos[] = "*?[];|<>%^&()";
-  static char *sh_cmds_dos[] = { "break", "call", "cd", "chcp", "chdir", "cls",
-                                 "copy", "ctty", "date", "del", "dir", "echo",
-                                 "erase", "exit", "for", "goto", "if", "md",
-                                 "mkdir", "path", "pause", "prompt", "rd",
-                                 "rmdir", "rem", "ren", "rename", "set",
-                                 "shift", "time", "type", "ver", "verify",
-                                 "vol", ":", 0 };
+  static const char *sh_chars_dos = "*?[];|<>%^&()";
+  static const char *sh_cmds_dos[] =
+    { "break", "call", "cd", "chcp", "chdir", "cls", "copy", "ctty", "date",
+      "del", "dir", "echo", "erase", "exit", "for", "goto", "if", "md",
+      "mkdir", "path", "pause", "prompt", "rd", "rmdir", "rem", "ren",
+      "rename", "set", "shift", "time", "type", "ver", "verify", "vol", ":",
+      0 };
 
-  static char sh_chars_os2[] = "*?[];|<>%^()\"'&";
-  static char *sh_cmds_os2[] = { "call", "cd", "chcp", "chdir", "cls", "copy",
-                             "date", "del", "detach", "dir", "echo",
-                             "endlocal", "erase", "exit", "for", "goto", "if",
-                             "keys", "md", "mkdir", "move", "path", "pause",
-                             "prompt", "rd", "rem", "ren", "rename", "rmdir",
-                             "set", "setlocal", "shift", "start", "time",
-                             "type", "ver", "verify", "vol", ":", 0 };
+  static const char *sh_chars_os2 = "*?[];|<>%^()\"'&";
+  static const char *sh_cmds_os2[] =
+    { "call", "cd", "chcp", "chdir", "cls", "copy", "date", "del", "detach",
+      "dir", "echo", "endlocal", "erase", "exit", "for", "goto", "if", "keys",
+      "md", "mkdir", "move", "path", "pause", "prompt", "rd", "rem", "ren",
+      "rename", "rmdir", "set", "setlocal", "shift", "start", "time", "type",
+      "ver", "verify", "vol", ":", 0 };
 
-  static char sh_chars_sh[]  = "#;\"*?[]&|<>(){}$`^~'";
-  static char *sh_cmds_sh[]  = { "echo", "cd", "eval", "exec", "exit", "login",
-                                 "logout", "set", "umask", "wait", "while",
-                                 "for", "case", "if", ":", ".", "break",
-                                 "continue", "export", "read", "readonly",
-                                 "shift", "times", "trap", "switch", "unset",
-                                 0 };
-  char *sh_chars;
-  char **sh_cmds;
+  static const char *sh_chars_sh = "#;\"*?[]&|<>(){}$`^~'";
+  static const char *sh_cmds_sh[] =
+    { "echo", "cd", "eval", "exec", "exit", "login", "logout", "set", "umask",
+      "wait", "while", "for", "case", "if", ":", ".", "break", "continue",
+      "export", "read", "readonly", "shift", "times", "trap", "switch",
+      "unset", 0 };
+
+  const char *sh_chars;
+  const char **sh_cmds;
 
 #elif defined (_AMIGA)
-  static char sh_chars[] = "#;\"|<>()?*$`";
-  static char *sh_cmds[] = { "cd", "eval", "if", "delete", "echo", "copy",
-                             "rename", "set", "setenv", "date", "makedir",
-                             "skip", "else", "endif", "path", "prompt",
-                             "unset", "unsetenv", "version",
-                             0 };
+  static const char *sh_chars = "#;\"|<>()?*$`";
+  static const char *sh_cmds[] =
+    { "cd", "eval", "if", "delete", "echo", "copy", "rename", "set", "setenv",
+      "date", "makedir", "skip", "else", "endif", "path", "prompt", "unset",
+      "unsetenv", "version", 0 };
+
 #elif defined (WINDOWS32)
   /* We used to have a double quote (") in sh_chars_dos[] below, but
      that caused any command line with quoted file names be run
@@ -2631,49 +2629,51 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
      can handle quoted file names just fine, removing the quote lifts
      the limit from a very frequent use case, because using quoted
      file names is commonplace on MS-Windows.  */
-  static char sh_chars_dos[] = "|&<>";
-  static char *sh_cmds_dos[] = { "assoc", "break", "call", "cd", "chcp",
-                                 "chdir", "cls", "color", "copy", "ctty",
-                                 "date", "del", "dir", "echo", "echo.",
-                                 "endlocal", "erase", "exit", "for", "ftype",
-                                 "goto", "if", "if", "md", "mkdir", "move",
-                                 "path", "pause", "prompt", "rd", "rem", "ren",
-                                 "rename", "rmdir", "set", "setlocal",
-                                 "shift", "time", "title", "type", "ver",
-                                 "verify", "vol", ":", 0 };
-  static char sh_chars_sh[] = "#;\"*?[]&|<>(){}$`^";
-  static char *sh_cmds_sh[] = { "cd", "eval", "exec", "exit", "login",
-                             "logout", "set", "umask", "wait", "while", "for",
-                             "case", "if", ":", ".", "break", "continue",
-                             "export", "read", "readonly", "shift", "times",
-                             "trap", "switch", "test",
+  static const char *sh_chars_dos = "|&<>";
+  static const char *sh_cmds_dos[] =
+    { "assoc", "break", "call", "cd", "chcp", "chdir", "cls", "color", "copy",
+      "ctty", "date", "del", "dir", "echo", "echo.", "endlocal", "erase",
+      "exit", "for", "ftype", "goto", "if", "if", "md", "mkdir", "move",
+      "path", "pause", "prompt", "rd", "rem", "ren", "rename", "rmdir",
+      "set", "setlocal", "shift", "time", "title", "type", "ver", "verify",
+      "vol", ":", 0 };
+
+  static const char *sh_chars_sh = "#;\"*?[]&|<>(){}$`^";
+  static const char *sh_cmds_sh[] =
+    { "cd", "eval", "exec", "exit", "login", "logout", "set", "umask", "wait",
+      "while", "for", "case", "if", ":", ".", "break", "continue", "export",
+      "read", "readonly", "shift", "times", "trap", "switch", "test",
 #ifdef BATCH_MODE_ONLY_SHELL
-                 "echo",
+      "echo",
 #endif
-                 0 };
-  char*  sh_chars;
-  char** sh_cmds;
+      0 };
+
+  const char *sh_chars;
+  const char **sh_cmds;
 #elif defined(__riscos__)
-  static char sh_chars[] = "";
-  static char *sh_cmds[] = { 0 };
+  static const char *sh_chars = "";
+  static const char *sh_cmds[] = { 0 };
 #else  /* must be UNIX-ish */
-  static char sh_chars[] = "#;\"*?[]&|<>(){}$`^~!";
-  static char *sh_cmds[] = { ".", ":", "break", "case", "cd", "continue",
-                             "eval", "exec", "exit", "export", "for", "if",
-                             "login", "logout", "read", "readonly", "set",
-                             "shift", "switch", "test", "times", "trap",
-                             "ulimit", "umask", "unset", "wait", "while", 0 };
+  static const char *sh_chars = "#;\"*?[]&|<>(){}$`^~!";
+  static const char *sh_cmds[] =
+    { ".", ":", "break", "case", "cd", "continue", "eval", "exec", "exit",
+      "export", "for", "if", "login", "logout", "read", "readonly", "set",
+      "shift", "switch", "test", "times", "trap", "ulimit", "umask", "unset",
+      "wait", "while", 0 };
+
 # ifdef HAVE_DOS_PATHS
   /* This is required if the MSYS/Cygwin ports (which do not define
      WINDOWS32) are compiled with HAVE_DOS_PATHS defined, which uses
-     sh_chars_sh[] directly (see below).  */
-  static char *sh_chars_sh = sh_chars;
+     sh_chars_sh directly (see below).  */
+  static const char *sh_chars_sh = sh_chars;
 # endif  /* HAVE_DOS_PATHS */
 #endif
   int i;
   char *p;
-  char *ap;
   char *end;
+  char *ap;
+  const char *cap;
+  const char *cp;
   int instring, word_has_equals, seen_nonequals, last_argument_was_empty;
   char **new_argv = 0;
   char *argstr = 0;
@@ -2758,12 +2758,12 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
 #endif /* !__MSDOS__ && !__EMX__ */
 #endif /* not WINDOWS32 */
 
-  if (ifs != 0)
-    for (ap = ifs; *ap != '\0'; ++ap)
-      if (*ap != ' ' && *ap != '\t' && *ap != '\n')
+  if (ifs)
+    for (cap = ifs; *cap != '\0'; ++cap)
+      if (*cap != ' ' && *cap != '\t' && *cap != '\n')
         goto slow;
 
-  if (shellflags != 0)
+  if (shellflags)
     if (shellflags[0] != '-'
         || ((shellflags[1] != 'c' || shellflags[2] != '\0')
             && (shellflags[1] != 'e' || shellflags[2] != 'c' || shellflags[3] != '\0')))
@@ -3251,11 +3251,11 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
        we don't escape them, construct_command_argv_internal will
        recursively call itself ad nauseam, or until stack overflow,
        whichever happens first.  */
-    for (p = shell; *p != '\0'; ++p)
+    for (cp = shell; *cp != '\0'; ++cp)
       {
-        if (strchr (sh_chars, *p) != 0)
+        if (strchr (sh_chars, *cp) != 0)
           *(ap++) = '\\';
-        *(ap++) = *p;
+        *(ap++) = *cp;
       }
     *(ap++) = ' ';
     if (shellflags)
@@ -3480,7 +3480,7 @@ construct_command_argv_internal (char *line, char **restp, char *shell,
    avoid using a shell.  This routine handles only ' quoting, and " quoting
    when no backslash, $ or ' characters are seen in the quotes.  Starting
    quotes may be escaped with a backslash.  If any of the characters in
-   sh_chars[] is seen, or any of the builtin commands listed in sh_cmds[]
+   sh_chars is seen, or any of the builtin commands listed in sh_cmds
    is the first word of a line, the shell is used.
 
    If RESTP is not NULL, *RESTP is set to point to the first newline in LINE.

@@ -1546,7 +1546,7 @@ name_mtime (const char *name)
 static const char *
 library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
 {
-  static char *dirs[] =
+  static const char *dirs[] =
     {
 #ifndef _AMIGA
       "/lib",
@@ -1576,7 +1576,7 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
   /* Information about the earliest (in the vpath sequence) match.  */
   unsigned int best_vpath = 0, best_path = 0;
 
-  char **dp;
+  const char **dp;
 
   libpatterns = xstrdup (variable_expand ("$(.LIBPATTERNS)"));
 

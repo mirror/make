@@ -159,8 +159,8 @@ struct variable *do_variable_definition (const gmk_floc *flocp,
                                          int target_var);
 char *parse_variable_definition (const char *line,
                                  struct variable *v);
-struct variable *assign_variable_definition (struct variable *v, char *line);
-struct variable *try_variable_definition (const gmk_floc *flocp, char *line,
+struct variable *assign_variable_definition (struct variable *v, const char *line);
+struct variable *try_variable_definition (const gmk_floc *flocp, const char *line,
                                           enum variable_origin origin,
                                           int target_var);
 void init_hash_global_variable_set (void);

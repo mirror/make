@@ -23,8 +23,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define MAKE_HOST "unknown"
 #endif
 
-char *version_string = VERSION;
-char *make_host = MAKE_HOST;
+const char *version_string = VERSION;
+const char *make_host = MAKE_HOST;
 
 /*
   Local variables:

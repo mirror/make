@@ -609,7 +609,7 @@ extern double max_load_average;
 extern int max_load_average;
 #endif
 
-extern char *program;
+extern const char *program;
 extern char *starting_directory;
 extern unsigned int makelevel;
 extern char *version_string, *remote_description, *make_host;

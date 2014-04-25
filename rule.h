@@ -33,7 +33,7 @@ struct rule
 /* For calling install_pattern_rule.  */
 struct pspec
   {
-    char *target, *dep, *commands;
+    const char *target, *dep, *commands;
   };
 
 

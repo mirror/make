@@ -238,7 +238,7 @@ read_all_makefiles (const char **makefiles)
 
   if (num_makefiles == 0)
     {
-      static char *default_makefiles[] =
+      static const char *default_makefiles[] =
 #ifdef VMS
         /* all lower case since readdir() (the vms version) 'lowercasifies' */
         { "makefile.vms", "gnumakefile.", "makefile.", 0 };
@@ -249,7 +249,7 @@ read_all_makefiles (const char **makefiles)
         { "GNUmakefile", "makefile", "Makefile", 0 };
 #endif /* AMIGA */
 #endif /* VMS */
-      register char **p = default_makefiles;
+      const char **p = default_makefiles;
       while (*p != 0 && !file_exists_p (*p))
         ++p;
 
@@ -1572,7 +1572,7 @@ do_define (char *name, enum variable_origin origin, struct ebuffer *ebuf)
 static int
 conditional_line (char *line, int len, const gmk_floc *flocp)
 {
-  char *cmdname;
+  const char *cmdname;
   enum { c_ifdef, c_ifndef, c_ifeq, c_ifneq, c_else, c_endif } cmdtype;
   unsigned int i;
   unsigned int o;

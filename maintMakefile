@@ -20,7 +20,7 @@ GNUWEBDIR ?= $(SRCROOTDIR)/gnu-www
 MAKEWEBDIR ?= $(SRCROOTDIR)/make/make-web
 
 # We like mondo-warnings!
-AM_CFLAGS += -Wall -Wextra -Wdeclaration-after-statement -Wshadow -Wpointer-arith -Wbad-function-cast
+AM_CFLAGS += -Wall -Wwrite-strings -Wextra -Wdeclaration-after-statement -Wshadow -Wpointer-arith -Wbad-function-cast
 
 MAKE_MAINTAINER_MODE := -DMAKE_MAINTAINER_MODE
 AM_CPPFLAGS += $(MAKE_MAINTAINER_MODE)

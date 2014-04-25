@@ -77,8 +77,8 @@ double atof ();
 static void clean_jobserver (int status);
 static void print_data_base (void);
 static void print_version (void);
-static void decode_switches (int argc, char **argv, int env);
-static void decode_env_switches (char *envar, unsigned int len);
+static void decode_switches (int argc, const char **argv, int env);
+static void decode_env_switches (const char *envar, unsigned int len);
 static struct variable *define_makeflags (int all, int makefile);
 static char *quote_for_env (char *out, const char *in);
 static void initialize_global_hash_tables (void);
@@ -111,7 +111,7 @@ struct command_switch
     const void *noarg_value;    /* Pointer to value used if no arg given.  */
     const void *default_value;  /* Pointer to default value.  */
 
-    char *long_name;            /* Long option name.  */
+    const char *long_name;      /* Long option name.  */
   };
 
 /* True if C is a switch value that corresponds to a short option.  */
@@ -480,7 +480,7 @@ static struct command_variable *command_variables;
 
 /* The name we were invoked with.  */
 
-char *program;
+const char *program;
 
 /* Our current directory before processing any -C options.  */
 
@@ -639,7 +639,7 @@ initialize_stopchar_map ()
 }
 
 static const char *
-expand_command_line_file (char *name)
+expand_command_line_file (const char *name)
 {
   const char *cp;
   char *expanded = 0;
@@ -650,35 +650,30 @@ expand_command_line_file (char *name)
   if (name[0] == '~')
     {
       expanded = tilde_expand (name);
-      if (expanded != 0)
+      if (expanded && expanded[0] != '\0')
         name = expanded;
     }
 
   /* This is also done in parse_file_seq, so this is redundant
      for names read from makefiles.  It is here for names passed
      on the command line.  */
-  while (name[0] == '.' && name[1] == '/' && name[2] != '\0')
+  while (name[0] == '.' && name[1] == '/')
     {
       name += 2;
-      while (*name == '/')
+      while (name[0] == '/')
         /* Skip following slashes: ".//foo" is "foo", not "/foo".  */
         ++name;
     }
 
-  if (*name == '\0')
+  if (name[0] == '\0')
     {
-      /* It was all slashes!  Move back to the dot and truncate
-         it after the first slash, so it becomes just "./".  */
-      do
-        --name;
-      while (name[0] != '.');
-      name[2] = '\0';
+      /* Nothing else but one or more "./", maybe plus slashes!  */
+      name = "./";
     }
 
   cp = strcache_add (name);
 
-  if (expanded)
-    free (expanded);
+  free (expanded);
 
   return cp;
 }
@@ -888,15 +883,15 @@ find_and_set_default_shell (const char *token)
 {
   int sh_found = 0;
   char *atoken = 0;
-  char *search_token;
+  const char *search_token;
   char *tokend;
   PATH_VAR(sh_path);
-  extern char *default_shell;
+  extern const char *default_shell;
 
   if (!token)
     search_token = default_shell;
   else
-    atoken = search_token = xstrdup (token);
+    search_token = atoken = xstrdup (token);
 
   /* If the user explicitly requests the DOS cmd shell, obey that request.
      However, make sure that's what they really want by requiring the value
@@ -1156,7 +1151,7 @@ main (int argc, char **argv, char **envp)
   /* Figure out where this program lives.  */
 
   if (argv[0] == 0)
-    argv[0] = "";
+    argv[0] = (char *)"";
   if (argv[0][0] == '\0')
     program = "make";
   else
@@ -1278,7 +1273,7 @@ main (int argc, char **argv, char **envp)
     for (i = 0; envp[i] != 0; ++i)
       {
         struct variable *v;
-        char *ep = envp[i];
+        const char *ep = envp[i];
         /* By default, export all variables culled from the environment.  */
         enum variable_export export = v_export;
         unsigned int len;
@@ -1327,7 +1322,7 @@ main (int argc, char **argv, char **envp)
 #ifndef __MSDOS__
             export = v_noexport;
 #endif
-            shell_var.name = "SHELL";
+            shell_var.name = xstrdup ("SHELL");
             shell_var.length = 5;
             shell_var.value = xstrdup (ep);
           }
@@ -1396,7 +1391,7 @@ main (int argc, char **argv, char **envp)
   decode_env_switches (STRING_SIZE_TUPLE ("MFLAGS"));
 #endif
 
-  decode_switches (argc, argv, 0);
+  decode_switches (argc, (const char **)argv, 0);
 
   /* Reset in case the switches changed our minds.  */
   syncing = (output_sync == OUTPUT_SYNC_LINE
@@ -1718,7 +1713,8 @@ main (int argc, char **argv, char **envp)
                and thus re-read the makefiles, we read standard input
                into a temporary file and read from that.  */
             FILE *outfile;
-            char *template, *tmpdir;
+            char *template;
+            const char *tmpdir;
 
             if (stdin_nm)
               O (fatal, NILF,
@@ -1889,7 +1885,7 @@ main (int argc, char **argv, char **envp)
     extern int _is_unixy_shell (const char *_path);
     struct variable *shv = lookup_variable (STRING_SIZE_TUPLE ("SHELL"));
     extern int unixy_shell;
-    extern char *default_shell;
+    extern const char *default_shell;
 
     if (shv && *shv->value)
       {
@@ -2104,7 +2100,8 @@ main (int argc, char **argv, char **envp)
 
       FILE_TIMESTAMP *makefile_mtimes = 0;
       unsigned int mm_idx = 0;
-      char **nargv;
+      char **aargv = NULL;
+      const char **nargv;
       int nargc;
       int orig_db_level = db_level;
       enum update_status status;
@@ -2287,13 +2284,15 @@ main (int argc, char **argv, char **envp)
           nargc = argc;
           if (stdin_nm)
             {
-              nargv = xmalloc ((nargc + 2) * sizeof (char *));
-              memcpy (nargv, argv, argc * sizeof (char *));
-              nargv[nargc++] = xstrdup (concat (2, "-o", stdin_nm));
-              nargv[nargc] = 0;
+              void *m = xmalloc ((nargc + 2) * sizeof (char *));
+              aargv = m;
+              memcpy (aargv, argv, argc * sizeof (char *));
+              aargv[nargc++] = xstrdup (concat (2, "-o", stdin_nm));
+              aargv[nargc] = 0;
+              nargv = m;
             }
           else
-            nargv = argv;
+            nargv = (const char**)argv;
 
           if (directories != 0 && directories->idx > 0)
             {
@@ -2319,7 +2318,7 @@ main (int argc, char **argv, char **envp)
 
           if (ISDB (DB_BASIC))
             {
-              char **p;
+              const char **p;
               printf (_("Re-executing[%u]:"), restarts);
               for (p = nargv; *p != 0; ++p)
                 printf (" %s", *p);
@@ -2398,8 +2397,10 @@ main (int argc, char **argv, char **envp)
             exit (WIFEXITED(r) ? WEXITSTATUS(r) : EXIT_FAILURE);
           }
 #else
-          exec_command (nargv, environ);
+          exec_command ((char **)nargv, environ);
 #endif
+          free (aargv);
+          break;
         }
 
       db_level = orig_db_level;
@@ -2597,7 +2598,7 @@ init_switches (void)
 
 /* Non-option argument.  It might be a variable definition.  */
 static void
-handle_non_switch_argument (char *arg, int env)
+handle_non_switch_argument (const char *arg, int env)
 {
   struct variable *v;
 
@@ -2704,7 +2705,7 @@ print_usage (int bad)
    They came from the environment if ENV is nonzero.  */
 
 static void
-decode_switches (int argc, char **argv, int env)
+decode_switches (int argc, const char **argv, int env)
 {
   int bad = 0;
   register const struct command_switch *cs;
@@ -2724,14 +2725,17 @@ decode_switches (int argc, char **argv, int env)
 
   while (optind < argc)
     {
+      const char *coptarg;
+
       /* Parse the next argument.  */
-      c = getopt_long (argc, argv, options, long_options, (int *) 0);
+      c = getopt_long (argc, (char*const*)argv, options, long_options, NULL);
+      coptarg = optarg;
       if (c == EOF)
         /* End of arguments, or "--" marker seen.  */
         break;
       else if (c == 1)
         /* An argument not starting with a dash.  */
-        handle_non_switch_argument (optarg, env);
+        handle_non_switch_argument (coptarg, env);
       else if (c == '?')
         /* Bad option.  We will print a usage message and die later.
            But continue to parse the other options so the user can
@@ -2767,9 +2771,9 @@ decode_switches (int argc, char **argv, int env)
                   if (!doit)
                     break;
 
-                  if (optarg == 0)
-                    optarg = xstrdup (cs->noarg_value);
-                  else if (*optarg == '\0')
+                  if (! coptarg)
+                    coptarg = xstrdup (cs->noarg_value);
+                  else if (*coptarg == '\0')
                     {
                       char opt[2] = "c";
                       const char *op = opt;
@@ -2791,7 +2795,7 @@ decode_switches (int argc, char **argv, int env)
                       char **val = (char **)cs->value_ptr;
                       if (*val)
                         free (*val);
-                      *val = xstrdup (optarg);
+                      *val = xstrdup (coptarg);
                       break;
                     }
 
@@ -2812,34 +2816,34 @@ decode_switches (int argc, char **argv, int env)
                                            sl->max * sizeof (char *));
                     }
                   if (cs->type == filename)
-                    sl->list[sl->idx++] = expand_command_line_file (optarg);
+                    sl->list[sl->idx++] = expand_command_line_file (coptarg);
                   else
-                    sl->list[sl->idx++] = xstrdup (optarg);
+                    sl->list[sl->idx++] = xstrdup (coptarg);
                   sl->list[sl->idx] = 0;
                   break;
 
                 case positive_int:
                   /* See if we have an option argument; if we do require that
                      it's all digits, not something like "10foo".  */
-                  if (optarg == 0 && argc > optind)
+                  if (coptarg == 0 && argc > optind)
                     {
                       const char *cp;
                       for (cp=argv[optind]; ISDIGIT (cp[0]); ++cp)
                         ;
                       if (cp[0] == '\0')
-                        optarg = argv[optind++];
+                        coptarg = argv[optind++];
                     }
 
                   if (!doit)
                     break;
 
-                  if (optarg != 0)
+                  if (coptarg)
                     {
-                      int i = atoi (optarg);
+                      int i = atoi (coptarg);
                       const char *cp;
 
                       /* Yes, I realize we're repeating this in some cases.  */
-                      for (cp = optarg; ISDIGIT (cp[0]); ++cp)
+                      for (cp = coptarg; ISDIGIT (cp[0]); ++cp)
                         ;
 
                       if (i < 1 || cp[0] != '\0')
@@ -2859,13 +2863,13 @@ decode_switches (int argc, char **argv, int env)
 
 #ifndef NO_FLOAT
                 case floating:
-                  if (optarg == 0 && optind < argc
+                  if (coptarg == 0 && optind < argc
                       && (ISDIGIT (argv[optind][0]) || argv[optind][0] == '.'))
-                    optarg = argv[optind++];
+                    coptarg = argv[optind++];
 
                   if (doit)
                     *(double *) cs->value_ptr
-                      = (optarg != 0 ? atof (optarg)
+                      = (coptarg != 0 ? atof (coptarg)
                          : *(double *) cs->noarg_value);
 
                   break;
@@ -2901,12 +2905,12 @@ decode_switches (int argc, char **argv, int env)
    decode_switches.  */
 
 static void
-decode_env_switches (char *envar, unsigned int len)
+decode_env_switches (const char *envar, unsigned int len)
 {
   char *varref = alloca (2 + len + 2);
   char *value, *p, *buf;
   int argc;
-  char **argv;
+  const char **argv;
 
   /* Get the variable's value.  */
   varref[0] = '$';
@@ -3234,7 +3238,7 @@ print_version (void)
 {
   static int printed_version = 0;
 
-  char *precede = print_data_base_flag ? "# " : "";
+  const char *precede = print_data_base_flag ? "# " : "";
 
   if (printed_version)
     /* Do it only once.  */
