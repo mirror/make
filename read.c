@@ -307,10 +307,8 @@ static void
 restore_conditionals (struct conditionals *saved)
 {
   /* Free any space allocated by conditional_line.  */
-  if (conditionals->ignoring)
-    free (conditionals->ignoring);
-  if (conditionals->seen_else)
-    free (conditionals->seen_else);
+  free (conditionals->ignoring);
+  free (conditionals->seen_else);
 
   /* Restore state.  */
   conditionals = saved;
@@ -409,8 +407,7 @@ eval_makefile (const char *filename, int flags)
   if (flags & RM_DONTCARE)
     deps->dontcare = 1;
 
-  if (expanded)
-    free (expanded);
+  free (expanded);
 
   /* If the makefile can't be found at all, give up entirely.  */
 
@@ -707,8 +704,7 @@ eval (struct ebuffer *ebuf, int set_default)
       if (collapsed_length < linelen+1)
         {
           collapsed_length = linelen+1;
-          if (collapsed)
-            free (collapsed);
+          free (collapsed);
           /* Don't need xrealloc: we don't need to preserve the content.  */
           collapsed = xmalloc (collapsed_length);
         }
@@ -856,8 +852,7 @@ eval (struct ebuffer *ebuf, int set_default)
             /* No pattern means remove all previous selective VPATH's.  */
             vpat = 0;
           construct_vpath_list (vpat, p);
-          if (vpat != 0)
-            free (vpat);
+          free (vpat);
 
           continue;
         }
@@ -1401,8 +1396,7 @@ eval (struct ebuffer *ebuf, int set_default)
   /* At eof, record the last rule.  */
   record_waiting_files ();
 
-  if (collapsed)
-    free (collapsed);
+  free (collapsed);
   free (commands);
 }
 
@@ -1918,8 +1912,7 @@ record_target_var (struct nameseq *filenames, char *defn,
           if (gv && v != gv
               && (gv->origin == o_env_override || gv->origin == o_command))
             {
-              if (v->value != 0)
-                free (v->value);
+              free (v->value);
               v->value = xstrdup (gv->value);
               v->origin = gv->origin;
               v->recursive = gv->recursive;
@@ -2854,8 +2847,7 @@ construct_include_path (const char **arg_dirs)
             dirs[idx++] = strcache_add_len (dir, len);
           }
 
-        if (expanded)
-          free (expanded);
+        free (expanded);
       }
 
   /* Now add the standard default dirs at the end.  */
@@ -3347,12 +3339,10 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
         globfree (&gl);
 
 #ifndef NO_ARCHIVES
-      if (arname)
-        free (arname);
+      free (arname);
 #endif
 
-      if (tildep)
-        free (tildep);
+      free (tildep);
     }
 
   *stringp = p;

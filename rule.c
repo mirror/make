@@ -140,8 +140,7 @@ count_implicit_rule_limits (void)
       rule = next;
     }
 
-  if (name != 0)
-    free (name);
+  free (name);
 }
 
 /* Create a pattern rule from a suffix rule.

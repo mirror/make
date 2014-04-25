@@ -222,8 +222,7 @@ define_variable_in_set (const char *name, unsigned int length,
          than this one, don't redefine it.  */
       if ((int) origin >= (int) v->origin)
         {
-          if (v->value != 0)
-            free (v->value);
+          free (v->value);
           v->value = xstrdup (value);
           if (flocp != 0)
             v->fileinfo = *flocp;
@@ -1233,8 +1232,7 @@ do_variable_definition (const gmk_floc *flocp, const char *varname,
             alloc_value[oldlen] = ' ';
             memcpy (&alloc_value[oldlen + 1], val, vallen + 1);
 
-            if (tp)
-              free (tp);
+            free (tp);
           }
       }
     }
@@ -1359,8 +1357,7 @@ do_variable_definition (const gmk_floc *flocp, const char *varname,
           else
             v = lookup_variable (varname, strlen (varname));
 
-          if (tp)
-            free (tp);
+          free (tp);
         }
     }
   else
@@ -1380,8 +1377,7 @@ do_variable_definition (const gmk_floc *flocp, const char *varname,
   v->append = append;
   v->conditional = conditional;
 
-  if (alloc_value)
-    free (alloc_value);
+  free (alloc_value);
 
   return v->special ? set_special_var (v) : v;
 }
@@ -1764,16 +1760,10 @@ sync_Path_environment (void)
   if (!path)
     return;
 
-  /*
-   * If done this before, don't leak memory unnecessarily.
-   * Free the previous entry before allocating new one.
-   */
-  if (environ_path)
-    free (environ_path);
+  /* If done this before, free the previous entry before allocating new one.  */
+  free (environ_path);
 
-  /*
-   * Create something WINDOWS32 world can grok
-   */
+  /* Create something WINDOWS32 world can grok.  */
   convert_Path_to_windows32 (path, ';');
   environ_path = xstrdup (concat (3, "PATH", "=", path));
   putenv (environ_path);

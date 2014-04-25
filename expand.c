@@ -377,7 +377,6 @@ variable_expand_string (char *line, const char *string, long length)
                  Look up the value of the variable.  */
                 o = reference_variable (o, beg, end - beg);
 
-          if (abeg)
             free (abeg);
           }
           break;
@@ -447,8 +446,7 @@ expand_argument (const char *str, const char *end)
 
   r = allocated_variable_expand (tmp);
 
-  if (alloc)
-    free (alloc);
+  free (alloc);
 
   return r;
 }

@@ -2715,10 +2715,8 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
 
     slow_flag = strcmp ((s1 ? s1 : ""), (s2 ? s2 : ""));
 
-    if (s1)
-      free (s1);
-    if (s2)
-      free (s2);
+    free (s1);
+    free (s2);
   }
   if (slow_flag)
     goto slow;

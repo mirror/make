@@ -767,7 +767,7 @@ process_begin(
         startInfo.hStdError = (HANDLE)pproc->sv_stderr[1];
 
         if (as_user) {
-                if (envblk) free(envblk);
+                free(envblk);
                 return -1;
         } else {
                 DB (DB_JOBS, ("CreateProcess(%s,%s,...)\n",
@@ -789,7 +789,7 @@ process_begin(
                         pproc->lerrno = E_FORK;
                         fprintf(stderr, "process_begin: CreateProcess(%s, %s, ...) failed.\n",
                                 exec_path ? exec_path : "NULL", command_line);
-                        if (envblk) free(envblk);
+                        free(envblk);
                         free( command_line );
                         return(-1);
                 }
@@ -811,7 +811,7 @@ process_begin(
         pproc->sv_stderr[1] = 0;
 
         free( command_line );
-        if (envblk) free(envblk);
+        free(envblk);
         pproc->lerrno=0;
         return 0;
 }
@@ -1320,7 +1320,7 @@ make_command_line( char *shell_name, char *full_exec_path, char **argv)
         command_line = (char*) malloc(bytes_required);
 
         if (!command_line) {
-                if (enclose_in_quotes) free(enclose_in_quotes);
+                free(enclose_in_quotes);
                 return NULL;
         }
 
@@ -1413,7 +1413,7 @@ make_command_line( char *shell_name, char *full_exec_path, char **argv)
          */
         *command_line_i = '\0';
 
-        if (enclose_in_quotes) free(enclose_in_quotes);
+        free(enclose_in_quotes);
         return command_line;
 }
 

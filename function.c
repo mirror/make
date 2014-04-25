@@ -2425,7 +2425,7 @@ handle_function (char **op, const char **stringp)
   if (entry_p->expand_args)
     for (argvp=argv; *argvp != 0; ++argvp)
       free (*argvp);
-  else if (abeg)
+  else
     free (abeg);
 
   return 1;

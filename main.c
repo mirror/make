@@ -996,8 +996,7 @@ find_and_set_default_shell (const char *token)
   batch_mode_shell = 1;
 #endif
 
-  if (atoken)
-    free (atoken);
+  free (atoken);
 
   return (sh_found);
 }
@@ -2405,9 +2404,8 @@ main (int argc, char **argv, char **envp)
 
       db_level = orig_db_level;
 
-      /* Free the makefile mtimes (if we allocated any).  */
-      if (makefile_mtimes)
-        free (makefile_mtimes);
+      /* Free the makefile mtimes.  */
+      free (makefile_mtimes);
     }
 
   /* Set up 'MAKEFLAGS' again for the normal targets.  */
@@ -2793,8 +2791,7 @@ decode_switches (int argc, const char **argv, int env)
                   if (cs->type == string)
                     {
                       char **val = (char **)cs->value_ptr;
-                      if (*val)
-                        free (*val);
+                      free (*val);
                       *val = xstrdup (coptarg);
                       break;
                     }
@@ -3365,11 +3362,8 @@ clean_jobserver (int status)
          sub-makes.  Also reset job_slots since it will be put on the command
          line, not in MAKEFLAGS.  */
       job_slots = default_job_slots;
-      if (jobserver_fds)
-        {
-          free (jobserver_fds);
-          jobserver_fds = 0;
-        }
+      free (jobserver_fds);
+      jobserver_fds = 0;
     }
 }
 
