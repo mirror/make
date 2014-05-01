@@ -58,10 +58,10 @@ unsigned int commands_started = 0;
 /* Current value for pruning the scan of the goal chain (toggle 0/1).  */
 static unsigned int considered;
 
-static int update_file (struct file *file, unsigned int depth);
-static int update_file_1 (struct file *file, unsigned int depth);
-static int check_dep (struct file *file, unsigned int depth,
-                      FILE_TIMESTAMP this_mtime, int *must_make_ptr);
+static enum update_status update_file (struct file *file, unsigned int depth);
+static enum update_status update_file_1 (struct file *file, unsigned int depth);
+static enum update_status check_dep (struct file *file, unsigned int depth,
+                                     FILE_TIMESTAMP this_mtime, int *must_make);
 static enum update_status touch_file (struct file *file);
 static void remake_file (struct file *file);
 static FILE_TIMESTAMP name_mtime (const char *name);
@@ -130,7 +130,7 @@ update_goal_chain (struct dep *goals)
                file = file->prev)
             {
               unsigned int ocommands_started;
-              int fail;
+              enum update_status fail;
 
               file->dontcare = g->dontcare;
 
@@ -161,14 +161,12 @@ update_goal_chain (struct dep *goals)
               if (commands_started > ocommands_started)
                 g->changed = 1;
 
-              /* If we updated a file and STATUS was not already 1, set it to
-                 1 if updating failed, or to 0 if updating succeeded.  Leave
-                 STATUS as it is if no updating was done.  */
-
               stop = 0;
               if ((fail || file->updated) && status < us_question)
                 {
-                  if (file->update_status != us_success)
+                  /* We updated this goal.  Update STATUS and decide whether
+                     to stop.  */
+                  if (file->update_status)
                     {
                       /* Updating failed, or -q triggered.  The STATUS value
                          tells our caller which.  */
@@ -282,11 +280,11 @@ update_goal_chain (struct dep *goals)
    If there are multiple double-colon entries for FILE,
    each is considered in turn.  */
 
-static int
+static enum update_status
 update_file (struct file *file, unsigned int depth)
 {
-  int status = 0;
-  register struct file *f;
+  enum update_status status = us_success;
+  struct file *f;
 
   f = file->double_colon ? file->double_colon : file;
 
@@ -311,26 +309,31 @@ update_file (struct file *file, unsigned int depth)
      the chain is exhausted. */
   for (; f != 0; f = f->prev)
     {
+      enum update_status new;
+
       f->considered = considered;
 
-      status |= update_file_1 (f, depth);
+      new = update_file_1 (f, depth);
       check_renamed (f);
 
       /* Clean up any alloca() used during the update.  */
       alloca (0);
 
       /* If we got an error, don't bother with double_colon etc.  */
-      if (status != 0 && !keep_going_flag)
-        return status;
+      if (new && !keep_going_flag)
+        return new;
 
       if (f->command_state == cs_running
           || f->command_state == cs_deps_running)
         {
           /* Don't run the other :: rules for this
              file until this rule is finished.  */
-          status = 0;
+          status = us_success;
           break;
         }
+
+      if (new > status)
+        status = new;
     }
 
   /* Process the remaining rules in the double colon chain so they're marked
@@ -343,7 +346,11 @@ update_file (struct file *file, unsigned int depth)
         f->considered = considered;
 
         for (d = f->deps; d != 0; d = d->next)
-          status |= update_file (d->file, depth + 1);
+          {
+            enum update_status new = update_file (d->file, depth + 1);
+            if (new > status)
+              new = status;
+          }
       }
 
   return status;
@@ -405,12 +412,12 @@ complain (struct file *file)
 /* Consider a single 'struct file' and update it as appropriate.
    Return 0 on success, or non-0 on failure.  */
 
-static int
+static enum update_status
 update_file_1 (struct file *file, unsigned int depth)
 {
+  enum update_status dep_status = us_success;
   FILE_TIMESTAMP this_mtime;
   int noexist, must_make, deps_changed;
-  int dep_status = 0;
   struct file *ofile;
   struct dep *d, *ad;
   struct dep amake;
@@ -528,6 +535,7 @@ update_file_1 (struct file *file, unsigned int depth)
 
       while (d)
         {
+          enum update_status new;
           FILE_TIMESTAMP mtime;
           int maybe_make;
           int dontcare = 0;
@@ -562,7 +570,9 @@ update_file_1 (struct file *file, unsigned int depth)
               d->file->dontcare = file->dontcare;
             }
 
-          dep_status |= check_dep (d->file, depth, this_mtime, &maybe_make);
+          new = check_dep (d->file, depth, this_mtime, &maybe_make);
+          if (new > dep_status)
+            dep_status = new;
 
           /* Restore original dontcare flag. */
           if (rebuilding_makefiles)
@@ -608,6 +618,7 @@ update_file_1 (struct file *file, unsigned int depth)
       for (d = file->deps; d != 0; d = d->next)
         if (d->file->intermediate)
           {
+            enum update_status new;
             int dontcare = 0;
 
             FILE_TIMESTAMP mtime = file_mtime (d->file);
@@ -626,7 +637,9 @@ update_file_1 (struct file *file, unsigned int depth)
                not prune it.  */
             d->file->considered = !considered;
 
-            dep_status |= update_file (d->file, depth);
+            new = update_file (d->file, depth);
+            if (new > dep_status)
+              dep_status = new;
 
             /* Restore original dontcare flag. */
             if (rebuilding_makefiles)
@@ -671,9 +684,10 @@ update_file_1 (struct file *file, unsigned int depth)
 
   /* If any dependency failed, give up now.  */
 
-  if (dep_status != 0)
+  if (dep_status)
     {
-      file->update_status = us_failed;
+      /* I'm not sure if we can't just assign dep_status...  */
+      file->update_status = dep_status == us_none ? us_failed : dep_status;
       notice_finished_file (file);
 
       --depth;
@@ -988,13 +1002,13 @@ notice_finished_file (struct file *file)
    FILE depends on (including FILE itself).  Return nonzero if any updating
    failed.  */
 
-static int
+static enum update_status
 check_dep (struct file *file, unsigned int depth,
            FILE_TIMESTAMP this_mtime, int *must_make_ptr)
 {
   struct file *ofile;
   struct dep *d;
-  int dep_status = 0;
+  enum update_status dep_status = us_success;
 
   ++depth;
   start_updating (file);
@@ -1067,6 +1081,7 @@ check_dep (struct file *file, unsigned int depth,
           d = file->deps;
           while (d != 0)
             {
+              enum update_status new;
               int maybe_make;
 
               if (is_updating (d->file))
@@ -1090,12 +1105,14 @@ check_dep (struct file *file, unsigned int depth,
 
               d->file->parent = file;
               maybe_make = *must_make_ptr;
-              dep_status |= check_dep (d->file, depth, this_mtime,
-                                       &maybe_make);
+              new = check_dep (d->file, depth, this_mtime, &maybe_make);
+              if (new > dep_status)
+                dep_status = new;
+
               if (! d->ignore_mtime)
                 *must_make_ptr = maybe_make;
               check_renamed (d->file);
-              if (dep_status != 0 && !keep_going_flag)
+              if (dep_status && !keep_going_flag)
                 break;
 
               if (d->file->command_state == cs_running
