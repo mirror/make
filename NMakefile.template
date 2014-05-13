@@ -123,7 +123,7 @@ $(OUTDIR)/fnmatch.obj : glob/fnmatch.c
 	$(CC) $(CFLAGS) /c $?
 $(OUTDIR)/dirent.obj : w32/compat/dirent.c
 	$(CC) $(CFLAGS) /c $?
-$(OUTDIR)/pathstuff.obj : w32/compat/posixfcn.c
+$(OUTDIR)/posixfcn.obj : w32/compat/posixfcn.c
 	$(CC) $(CFLAGS) /c $?
 $(OUTDIR)/pathstuff.obj : w32/pathstuff.c
 	$(CC) $(CFLAGS) /c $?
