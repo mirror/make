@@ -240,7 +240,11 @@ pump_from_tmp (int from, FILE *to)
       if (len <= 0)
         break;
       if (fwrite (buffer, len, 1, to) < 1)
-        perror ("fwrite()");
+        {
+          perror ("fwrite()");
+          break;
+        }
+      fflush (to);
     }
 
 #ifdef WINDOWS32
