@@ -480,7 +480,13 @@ static struct command_variable *command_variables;
 
 /* The name we were invoked with.  */
 
+#ifdef WINDOWS32
+/* On MS-Windows, we chop off the .exe suffix in 'main', so this
+   cannot be 'const'.  */
+char *program;
+#else
 const char *program;
+#endif
 
 /* Our current directory before processing any -C options.  */
 
