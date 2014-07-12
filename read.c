@@ -246,7 +246,11 @@ read_all_makefiles (const char **makefiles)
 #ifdef _AMIGA
         { "GNUmakefile", "Makefile", "SMakefile", 0 };
 #else /* !Amiga && !VMS */
+#ifdef WINDOWS32
+        { "GNUmakefile", "Makefile", "makefile.mak", 0 };
+#else /* !Amiga && !VMS && !WINDOWS32 */
         { "GNUmakefile", "makefile", "Makefile", 0 };
+#endif /* !Amiga && !VMS && !WINDOWS32 */
 #endif /* AMIGA */
 #endif /* VMS */
       const char **p = default_makefiles;
