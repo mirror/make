@@ -609,7 +609,11 @@ extern double max_load_average;
 extern int max_load_average;
 #endif
 
+#ifdef WINDOWS32
+extern char *program;
+#else
 extern const char *program;
+#endif
 extern char *starting_directory;
 extern unsigned int makelevel;
 extern char *version_string, *remote_description, *make_host;
