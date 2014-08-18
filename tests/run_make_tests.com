@@ -201,7 +201,7 @@ $ if help_flag .nes. ""
 $ then
 $   type sys$input
 $DECK
-This is a test script wrapper for the [.tests]run_make_tests.pl script.
+This is a test script wrapper for the run_make_tests.pl script.
 
 This wrapper makes sure that the DCL symbols and logical names needed to
 run the perl script are in place.
@@ -239,15 +239,16 @@ $ if no_gnv .or. no_perl then exit 44
 $!
 $!
 $ make := $bin:make.exe
+$ default = f$environment("DEFAULT")
+$ this = f$environment("PROCEDURE")
+$ on error then goto all_error
+$ set default 'f$parse(this,,,"DEVICE")''f$parse(this,,,"DIRECTORY")'
 $!
 $! Need to make sure that the config-flags.pm exists.
-$ if f$search("[.tests]config-flags.pm") .eqs. ""
+$ if f$search("config-flags.pm") .eqs. ""
 $ then
 $   @config_flags_pm.com
 $ endif
-$ default = f$environment("DEFAULT")
-$ on error then goto all_error
-$ set def [.tests]
 $ define/user bin 'default',gnv$gnu:[bin]
 $ define/user decc$filename_unix_noversion enable
 $ define/user decc$filename_unix_report enable

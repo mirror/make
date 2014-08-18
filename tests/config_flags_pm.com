@@ -20,9 +20,9 @@ $! You should have received a copy of the GNU General Public License along with
 $! this program.  If not, see <http://www.gnu.org/licenses/>.
 $!
 $!
-$ open/read cfpm_in [.tests]config-flags.pm.in
+$ open/read cfpm_in config-flags.pm.in
 $!
-$ outfile = "sys$disk:[.tests]config-flags.pm"
+$ outfile = "sys$disk:[]config-flags.pm"
 $!
 $ cflags = "/include=([],[.glob]"
 $!
