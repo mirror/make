@@ -88,13 +88,13 @@ mandir = []
 # Number to put on the man page filename.
 manext = 1
 
-#guile = ,guile.obj
+guile = ,guile.obj
 
 objs = commands.obj,job.obj,output.obj,dir.obj,file.obj,misc.obj,hash.obj,\
        load.obj,main.obj,read.obj,remake.obj,rule.obj,implicit.obj,\
        default.obj,variable.obj,expand.obj,function.obj,strcache.obj,\
-       vpath.obj,version.obj\
-       $(ARCHIVES)$(ALLOCA)$(extras)$(getopt)$(glob)$(guile)
+       vpath.obj,version.obj$(guile)\
+       $(ARCHIVES)$(ALLOCA)$(extras)$(getopt)$(glob)
 
 srcs = commands.c job.c output.c dir.c file.c misc.c guile.c hash.c \
 	load.c main.c read.c remake.c rule.c implicit.c \
@@ -118,40 +118,56 @@ clean:
 	-$(RM) make.exe;,*.obj;
 	-$(RM) [.glob]*.obj;
 
-# Automatically generated dependencies.
-# makeint.h: config.h gnumake.h gettext.h
-# filedef.h: hash.h
-ar.obj: ar.c makeint.h filedef.h dep.h [.glob]fnmatch.h
-arscan.obj: arscan.c makeint.h
-commands.obj: commands.c makeint.h dep.h commands.h filedef.h variable.h job.h
-default.obj: default.c makeint.h rule.h dep.h job.h filedef.h commands.h variable.h
-dir.obj: dir.c makeint.h hash.h [.glob]glob.h
-expand.obj: expand.c makeint.h commands.h filedef.h job.h rule.h variable.h
-file.obj: file.c makeint.h commands.h dep.h filedef.h variable.h job.h debug.h
-function.obj: function.c makeint.h variable.h dep.h commands.h filedef.h debug.h job.h
-getopt.obj: getopt.c getopt.h config.h gettext.h
-getopt1.obj: getopt1.c getopt.h config.h
-guile.obj: guile.c makeint.h debug.h dep.h gmk-default.h
-hash.obj: hash.c makeint.h hash.h
-implicit.obj: implicit.c makeint.h rule.h dep.h filedef.h debug.h variable.h job.h commands.h
-job.obj: job.c vmsjobs.c makeint.h commands.h job.h filedef.h variable.h debug.h
-output.obj: output.c vmsjobs.c makeint.h output.h filedef.h debug.h
-load.obj: load.c makeint.h debug.h filedef.h variable.h
-main.obj: main.c makeint.h commands.h dep.h filedef.h variable.h job.h rule.h debug.h getopt.h
-misc.obj: misc.c makeint.h dep.h debug.h
-read.obj: read.c makeint.h commands.h dep.h filedef.h variable.h [.glob]glob.h debug.h rule.h job.h
-remake.obj: remake.c makeint.h commands.h job.h dep.h filedef.h variable.h debug.h
-remote-stub.obj: remote-stub.c makeint.h filedef.h job.h commands.h
-rule.obj: rule.c makeint.h commands.h dep.h filedef.h variable.h rule.h job.h
-signame.obj: signame.c makeint.h
-strcache.obj: strcache.c makeint.h hash.h
-variable.obj: variable.c makeint.h commands.h variable.h dep.h filedef.h job.h rule.h
+ar.obj: ar.c makeint.h config.h gnumake.h gettext.h filedef.h hash.h dep.h \
+     [.glob]fnmatch.h
+arscan.obj: arscan.c makeint.h config.h gnumake.h gettext.h
+commands.obj: commands.c makeint.h config.h gnumake.h gettext.h filedef.h \
+     hash.h dep.h variable.h job.h output.h commands.h
+default.obj: default.c makeint.h config.h gnumake.h gettext.h filedef.h \
+     hash.h variable.h rule.h dep.h job.h output.h commands.h
+dir.obj: dir.c makeint.h config.h gnumake.h gettext.h hash.h filedef.h \
+     dep.h [.glob]glob.h
+expand.obj: expand.c makeint.h config.h gnumake.h gettext.h filedef.h \
+     hash.h job.h output.h commands.h variable.h rule.h
+file.obj: file.c makeint.h config.h gnumake.h gettext.h filedef.h hash.h \
+     dep.h job.h output.h commands.h variable.h debug.h
+[.glob]fnmatch.obj: [.glob]fnmatch.c config.h [.glob]fnmatch.h
+function.obj: function.c makeint.h config.h gnumake.h gettext.h filedef.h \
+     hash.h variable.h dep.h job.h output.h commands.h debug.h
+getopt.obj: getopt.c config.h gettext.h getopt.h
+getopt1.obj: getopt1.c config.h getopt.h
+[.glob]glob.obj: [.glob]glob.c config.h [.glob]fnmatch.h [.glob]glob.h
+guile.obj: guile.c makeint.h config.h gnumake.h gettext.h
+hash.obj: hash.c makeint.h config.h gnumake.h gettext.h hash.h
+implicit.obj: implicit.c makeint.h config.h gnumake.h gettext.h filedef.h \
+     hash.h rule.h dep.h debug.h variable.h job.h output.h commands.h
+job.obj: job.c makeint.h config.h gnumake.h gettext.h job.h output.h debug.h \
+     filedef.h hash.h commands.h variable.h debug.h vmsjobs.c
+load.obj: load.c makeint.h config.h gnumake.h gettext.h
+main.obj: main.c makeint.h config.h gnumake.h gettext.h filedef.h hash.h \
+     dep.h variable.h job.h output.h commands.h rule.h debug.h getopt.h
+misc.obj: misc.c makeint.h config.h gnumake.h gettext.h filedef.h hash.h \
+     dep.h debug.h
+output.obj: output.c makeint.h config.h gnumake.h gettext.h job.h output.h
+read.obj: read.c makeint.h config.h gnumake.h gettext.h [.glob]glob.h \
+     filedef.h hash.h dep.h job.h output.h commands.h variable.h rule.h \
+     debug.h
+remake.obj: remake.c makeint.h config.h gnumake.h gettext.h filedef.h \
+     hash.h job.h output.h commands.h dep.h variable.h debug.h
+remote-stub.obj: remote-stub.c makeint.h config.h gnumake.h gettext.h \
+     filedef.h hash.h job.h output.h commands.h
+rule.obj: rule.c makeint.h config.h gnumake.h gettext.h filedef.h hash.h \
+     dep.h job.h output.h commands.h variable.h rule.h
+signame.obj: signame.c makeint.h config.h gnumake.h gettext.h
+strcache.obj: strcache.c makeint.h config.h gnumake.h gettext.h hash.h
+variable.obj: variable.c makeint.h config.h gnumake.h gettext.h filedef.h \
+     hash.h dep.h job.h output.h commands.h variable.h rule.h
 version.obj: version.c config.h
-vmsfunctions.obj: vmsfunctions.c makeint.h vmsdir.h debug.h job.h
+vmsfunctions.obj: vmsfunctions.c makeint.h config.h gnumake.h gettext.h \
+     debug.h job.h output.h vmsdir.h
 vmsify.obj: vmsify.c
-vpath.obj: vpath.c makeint.h filedef.h variable.h
-[.glob]fnmatch.obj: [.glob]fnmatch.c [.glob]fnmatch.h config.h
-[.glob]glob.obj: [.glob]glob.c [.glob]glob.h [.glob]fnmatch.h config.h
+vpath.obj: vpath.c makeint.h config.h gnumake.h gettext.h filedef.h hash.h \
+     variable.h
 
 config.h: config.h-vms
 	$(CP) $< $@

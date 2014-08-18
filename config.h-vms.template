@@ -18,6 +18,12 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* config.h.  Generated automatically by configure.  */
 /* config.h.in.  Generated automatically from configure.ac by autoheader.  */
 
+/* Pull in types.h here to get __CRTL_VER defined for old versions of the
+   compiler which don't define it. */
+#ifdef __DECC
+# include <types.h>
+#endif
+
 /* Define to 1 if on AIX 3.
    System headers sometimes define this.
    We just want to avoid a redefinition error message.  */
@@ -372,15 +378,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* #undef HAVE_VMSDIR_H */
 /* #undef _DIRENT_HAVE_D_NAMLEN */
 
-/* On older systems without 7.0 backport of CRTL the first one is defined */
-#ifdef __CRTL_VER
-# if __CRTL_VER < 70000000
-#  define HAVE_VMSDIR_H 1
-# endif
-#else
-# if __VMS_VER < 70000000
-#  define HAVE_VMSDIR_H 1
-# endif
+/* On older systems without 7.0 backport of CRTL use non-VMS code for opendir() etc. */
+#if __CRTL_VER < 70000000
+# define HAVE_VMSDIR_H 1
 #endif
 
 #if defined(HAVE_VMSDIR_H) && defined(HAVE_DIRENT_H)
