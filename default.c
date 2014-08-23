@@ -333,7 +333,7 @@ static const char *default_variables[] =
 #endif
     "CD", "builtin_cd",
     "MAKE", "make",
-    "ECHO", "write sys$$output \"",
+    "ECHO", "builtin_echo",
 #ifdef GCC_IS_NATIVE
     "C++", "gcc/plus",
     "CXX", "gcc/plus",

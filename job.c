@@ -1,5 +1,5 @@
 /* Job execution and handling for GNU Make.
-Copyright (C) 1988-2013 Free Software Foundation, Inc.
+Copyright (C) 1988-2014 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the
@@ -1214,6 +1214,27 @@ start_job_command (struct child *child)
     char *end = 0;
 #ifdef VMS
     argv = p;
+    /* Although construct_command_argv contains some code for VMS, it was/is
+       not called/used.  Please note, for VMS argv is a string (not an array
+       of strings) which contains the complete command line, which for
+       multi-line variables still includes the newlines.  So detect newlines
+       and set 'end' (which is used for child->command_ptr) instead of
+       (re-)writing construct_command_argv */
+    {
+      char *s = p;
+      int instring = 0;
+      while (*s)
+        {
+          if (*s == '"')
+            instring = !instring;
+          else if (*s == '\n' && !instring)
+            {
+              end = s;
+              break;
+            }
+          ++s;
+        }
+    }
 #else
     argv = construct_command_argv (p, &end, child->file,
                                    child->file->cmds->lines_flags[child->command_line - 1],

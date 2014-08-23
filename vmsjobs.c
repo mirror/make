@@ -1,7 +1,7 @@
 /* --------------- Moved here from job.c ---------------
    This file must be #included in job.c, as it accesses static functions.
 
-Copyright (C) 1996-2013 Free Software Foundation, Inc.
+Copyright (C) 1996-2014 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the
@@ -431,36 +431,40 @@ child_execute_job (char *argv, struct child *child)
           else
             return 1;
         }
-      else if ((*(p) == 'r')
-               && (*(p+1) == 'm')
-               && ((*(p+2) == ' ') || (*(p+2) == '\t')))
+      else if ((*(p) == 'e')
+               && (*(p+1) == 'c')
+               && (*(p+2) == 'h')
+               && (*(p+3) == 'o')
+            && ((*(p+4) == ' ') || (*(p+4) == '\t') || (*(p+4) == '\0')))
         {
-          int in_arg;
-
-          /* rm  */
-          p += 3;
-          while ((*p == ' ') || (*p == '\t'))
-            p++;
-          in_arg = 1;
-
-          DB (DB_JOBS, (_("BUILTIN RM %s\n"), p));
-          while (*p)
+          /* This is not a real builtin, it is a built in pre-processing
+             for the VMS/DCL echo (write sys$output) to ensure the to be echoed
+             string is correctly quoted (with the DCL quote character '"'). */
+#define VMS_EMPTY_ECHO "$ write sys$output \"\""
+          char *vms_echo;
+          p += 4;
+          if (*p == '\0')
             {
-              switch (*p)
-                {
-                case ' ':
-                case '\t':
-                  if (in_arg)
-                    {
-                      *p++ = ';';
-                      in_arg = 0;
-                    }
-                  break;
-                default:
-                  break;
-                }
-              p++;
+              cmd = VMS_EMPTY_ECHO;
             }
+          else
+            {
+              p++;
+              while ((*p == ' ') || (*p == '\t'))
+                p++;
+              if (*p == '\0')
+                cmd = VMS_EMPTY_ECHO;
+              else
+                {
+                  vms_echo = alloca(strlen(p) + sizeof VMS_EMPTY_ECHO);
+                  strcpy(vms_echo, VMS_EMPTY_ECHO);
+                  vms_echo[sizeof VMS_EMPTY_ECHO - 2] = '\0';
+                  strcat(vms_echo, p);
+                  strcat(vms_echo, "\"");
+                  cmd = vms_echo;
+                }
+            }
+          DB(DB_JOBS, (_("BUILTIN ECHO %s\n"), p));
         }
       else
         {
