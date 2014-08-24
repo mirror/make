@@ -495,7 +495,7 @@ close_stdout (void)
         perror_with_name (_("write error: stdout"), "");
       else
         O (error, NILF, _("write error: stdout"));
-      exit (EXIT_FAILURE);
+      exit (MAKE_TROUBLE);
     }
 }
 
@@ -699,7 +699,7 @@ fatal (const gmk_floc *flocp, size_t len, const char *fmt, ...)
   assert (fmtbuf.buffer[len-1] == '\0');
   outputs (1, fmtbuf.buffer);
 
-  die (2);
+  die (MAKE_FAILURE);
 }
 
 /* Print an error message from errno.  */

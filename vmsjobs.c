@@ -114,7 +114,7 @@ static int ctrlYPressed= 0;
 int
 vmsHandleChildTerm(struct child *child)
 {
-  int status;
+  int exit_code;
   register struct child *lastc, *c;
   int child_failed;
 
@@ -130,7 +130,9 @@ vmsHandleChildTerm(struct child *child)
 
   (void) sigblock (fatal_signal_mask);
 
-  child_failed = !(child->cstatus & 1 || ((child->cstatus & 7) == 0));
+  child_failed = !(child->cstatus & 1);
+  if (child_failed)
+    exit_code = child->cstatus;
 
   /* Search for a child matching the deceased one.  */
   lastc = 0;
@@ -202,7 +204,7 @@ vmsHandleChildTerm(struct child *child)
 
   /* If the job failed, and the -k flag was not given, die.  */
   if (child_failed && !keep_going_flag)
-    die (EXIT_FAILURE);
+    die (exit_code);
 
   (void) sigsetmask (sigblock (0) & ~(fatal_signal_mask));
 

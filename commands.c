@@ -585,7 +585,7 @@ fatal_error_signal (int sig)
   if (sig == SIGQUIT)
     /* We don't want to send ourselves SIGQUIT, because it will
        cause a core dump.  Just exit instead.  */
-    exit (EXIT_FAILURE);
+    exit (MAKE_TROUBLE);
 #endif
 
 #ifdef WINDOWS32

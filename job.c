@@ -510,9 +510,14 @@ child_error (struct child *child,
       OUTPUT_UNSET ();
       return;
     }
-
-  error (NILF, l + INTSTR_LENGTH,
-         _("%s[%s] Error 0x%x%s"), pre, f->name, exit_code, post);
+  /* Check for a Posix compatible VMS style exit code:
+     decode and print the Posix exit code */
+  if ((exit_code & 0x35a000) == 0x35a000)
+    error(NILF, l + INTSTR_LENGTH, _("%s[%s] Error %d%s"), pre, f->name,
+        ((exit_code & 0x7f8) >> 3), post);
+  else
+    error(NILF, l + INTSTR_LENGTH, _("%s[%s] Error 0x%x%s"), pre, f->name,
+        exit_code, post);
 #else
   if (exit_sig == 0)
     error (NILF, l + INTSTR_LENGTH,
@@ -982,7 +987,7 @@ reap_children (int block, int err)
       if (!err && child_failed && !dontcare && !keep_going_flag &&
           /* fatal_error_signal will die with the right signal.  */
           !handling_fatal_signal)
-        die (2);
+        die (MAKE_FAILURE);
 
       /* Only block for one child.  */
       block = 0;

@@ -630,10 +630,14 @@ extern int handling_fatal_signal;
 #define MAX(_a,_b) ((_a)>(_b)?(_a):(_b))
 #endif
 
+
 #ifdef VMS
-#  define MAKE_SUCCESS 1
-#  define MAKE_TROUBLE 2
-#  define MAKE_FAILURE 3
+/* These are the VMS __posix_exit compliant exit codes, constructed out of
+   STS$M_INHIB_MSG, C facility code, a POSIX condition code mask, MAKE_NNN<<3 and
+   the coresponding VMS severity, here STS$K_SUCCESS and STS$K_ERROR. */
+#  define MAKE_SUCCESS 0x1035a001
+#  define MAKE_TROUBLE 0x1035a00a
+#  define MAKE_FAILURE 0x1035a012
 #else
 #  define MAKE_SUCCESS 0
 #  define MAKE_TROUBLE 1

@@ -1434,7 +1434,7 @@ main (int argc, char **argv, char **envp)
   if (print_version_flag)
     {
       print_version ();
-      die (0);
+      die (MAKE_SUCCESS);
     }
 
   if (ISDB (DB_BASIC))
@@ -2254,7 +2254,7 @@ main (int argc, char **argv, char **envp)
             if (any_remade)
               goto re_exec;
             if (any_failed)
-              die (2);
+              die (MAKE_FAILURE);
             break;
           }
 
@@ -2529,7 +2529,7 @@ main (int argc, char **argv, char **envp)
   }
 
   /* NOTREACHED */
-  exit (0);
+  exit (MAKE_SUCCESS);
 }
 
 /* Parsing of arguments, decoding of switches.  */
@@ -2894,7 +2894,7 @@ decode_switches (int argc, const char **argv, int env)
   if (!env && (bad || print_usage_flag))
     {
       print_usage (bad);
-      die (bad ? 2 : 0);
+      die (bad ? MAKE_FAILURE : MAKE_SUCCESS);
     }
 
   /* If there are any options that need to be decoded do it now.  */
