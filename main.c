@@ -1,5 +1,5 @@
 /* Argument parsing and main program of GNU Make.
-Copyright (C) 1988-2013 Free Software Foundation, Inc.
+Copyright (C) 1988-2014 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the
@@ -1161,11 +1161,7 @@ main (int argc, char **argv, char **envp)
     program = "make";
   else
     {
-#ifdef VMS
-      program = strrchr (argv[0], ']');
-#else
       program = strrchr (argv[0], '/');
-#endif
 #if defined(__MSDOS__) || defined(__EMX__)
       if (program == 0)
         program = strrchr (argv[0], '\\');
@@ -1195,7 +1191,11 @@ main (int argc, char **argv, char **envp)
         }
 #endif
       if (program == 0)
+#ifdef VMS
+        program = vms_progname(argv[0]);
+#else
         program = argv[0];
+#endif
       else
         ++program;
     }
@@ -1581,7 +1581,11 @@ main (int argc, char **argv, char **envp)
 
   /* The extra indirection through $(MAKE_COMMAND) is done
      for hysterical raisins.  */
+#ifdef VMS
+  define_variable_cname("MAKE_COMMAND", vms_command(argv[0]), o_default, 0);
+#else
   define_variable_cname ("MAKE_COMMAND", argv[0], o_default, 0);
+#endif
   define_variable_cname ("MAKE", "$(MAKE_COMMAND)", o_default, 1);
 
   if (command_variables != 0)

@@ -1,5 +1,5 @@
 /* Miscellaneous global declarations and portability cruft for GNU Make.
-Copyright (C) 1988-2013 Free Software Foundation, Inc.
+Copyright (C) 1988-2014 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the
@@ -614,6 +614,12 @@ extern char *program;
 #else
 extern const char *program;
 #endif
+
+#ifdef VMS
+const char *vms_command(const char *argv0);
+const char *vms_progname(const char *argv0);
+#endif
+
 extern char *starting_directory;
 extern unsigned int makelevel;
 extern char *version_string, *remote_description, *make_host;

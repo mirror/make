@@ -1,5 +1,5 @@
 /* Data base of default implicit rules for GNU Make.
-Copyright (C) 1988-2013 Free Software Foundation, Inc.
+Copyright (C) 1988-2014 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the
@@ -332,7 +332,6 @@ static const char *default_variables[] =
     "CC", "cc",
 #endif
     "CD", "builtin_cd",
-    "MAKE", "make",
     "ECHO", "builtin_echo",
 #ifdef GCC_IS_NATIVE
     "C++", "gcc/plus",
