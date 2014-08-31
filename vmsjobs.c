@@ -43,10 +43,11 @@ vmsWaitForChildren(int *status)
 
 /* Set up IO redirection.  */
 
-char *
+static char *
 vms_redirect (struct dsc$descriptor_s *desc, char *fname, char *ibuf)
 {
   char *fptr;
+  char saved;
 
   ibuf++;
   while (isspace ((unsigned char)*ibuf))
@@ -54,6 +55,7 @@ vms_redirect (struct dsc$descriptor_s *desc, char *fname, char *ibuf)
   fptr = ibuf;
   while (*ibuf && !isspace ((unsigned char)*ibuf))
     ibuf++;
+  saved = *ibuf;
   *ibuf = 0;
   if (strcmp (fptr, "/dev/null") != 0)
     {
@@ -68,7 +70,10 @@ vms_redirect (struct dsc$descriptor_s *desc, char *fname, char *ibuf)
 
   if (*fname == 0)
     printf (_("Warning: Empty redirection\n"));
-  return ibuf;
+  if (saved=='\0')
+    return ibuf;
+  *ibuf = saved;
+  return --ibuf;
 }
 
 
@@ -76,13 +81,10 @@ vms_redirect (struct dsc$descriptor_s *desc, char *fname, char *ibuf)
    inc p until after closing apostrophe.
 */
 
-char *
+static char *
 vms_handle_apos (char *p)
 {
   int alast;
-
-#define SEPCHARS ",/()= "
-
   alast = 0;
 
   while (*p != 0)
@@ -95,7 +97,7 @@ vms_handle_apos (char *p)
       else
         {
           p++;
-          if (strchr (SEPCHARS, *p))
+          if (*p!='"')
             break;
           alast = 1;
         }
@@ -111,7 +113,7 @@ static int ctrlYPressed= 0;
    terminated. At AST level it won't get interrupted by anything except a
    inner mode level AST.
 */
-int
+static int
 vmsHandleChildTerm(struct child *child)
 {
   int exit_code;
@@ -296,6 +298,21 @@ tryToSetupYAst(void)
     chan = loc_chan;
 }
 
+static int
+nextnl(char *cmd, int l)
+{
+  int instring;
+  instring = 0;
+  while (cmd[l])
+    {
+      if (cmd[l]=='"')
+        instring = !instring;
+      else if (cmd[l]=='\n' && !instring)
+        return ++l;
+      ++l;
+    }
+  return l;
+}
 int
 child_execute_job (char *argv, struct child *child)
 {
@@ -339,7 +356,11 @@ child_execute_job (char *argv, struct child *child)
   pnamedsc.dsc$b_class = DSC$K_CLASS_S;
 
   in_string = 0;
-  /* Handle comments and redirection. */
+  /* Handle comments and redirection.
+     For ONESHELL, the redirection must be on the first line. Any other
+     redirection token is handled by DCL, that is, the pipe command with
+     redirection can be used, but it should not be used on the first line
+     for ONESHELL. */
   for (p = argv, q = cmd; *p; p++, q++)
     {
       if (*p == '"')
@@ -367,40 +388,50 @@ child_execute_job (char *argv, struct child *child)
           *q = *p;
           break;
         case '<':
-          p = vms_redirect (&ifiledsc, ifile, p);
-          *q = ' ';
-          have_redirection = 1;
-          break;
-        case '>':
-          have_redirection = 1;
-          if (*(p-1) == '2')
+          if (have_newline==0)
             {
-              q--;
-              if (strncmp (p, ">&1", 3) == 0)
-                {
-                  p += 3;
-                  strcpy (efile, "sys$output");
-                  efiledsc.dsc$w_length = strlen(efile);
-                  efiledsc.dsc$a_pointer = efile;
-                  efiledsc.dsc$b_dtype = DSC$K_DTYPE_T;
-                  efiledsc.dsc$b_class = DSC$K_CLASS_S;
-                }
-              else
-                  p = vms_redirect (&efiledsc, efile, p);
+              p = vms_redirect (&ifiledsc, ifile, p);
+              *q = ' ';
+              have_redirection = 1;
             }
           else
+            *q = *p;
+          break;
+        case '>':
+          if (have_newline==0)
             {
-              if (*(p+1) == '>')
+              have_redirection = 1;
+              if (*(p-1) == '2')
                 {
-                  have_append = 1;
-                  p += 1;
+                  q--;
+                  if (strncmp (p, ">&1", 3) == 0)
+                    {
+                      p += 2;
+                      strcpy (efile, "sys$output");
+                      efiledsc.dsc$w_length = strlen(efile);
+                      efiledsc.dsc$a_pointer = efile;
+                      efiledsc.dsc$b_dtype = DSC$K_DTYPE_T;
+                      efiledsc.dsc$b_class = DSC$K_CLASS_S;
+                    }
+                  else
+                    p = vms_redirect (&efiledsc, efile, p);
                 }
-              p = vms_redirect (&ofiledsc, ofile, p);
+              else
+                {
+                  if (*(p+1) == '>')
+                    {
+                      have_append = 1;
+                      p += 1;
+                    }
+                  p = vms_redirect (&ofiledsc, ofile, p);
+                }
+              *q = ' ';
             }
-          *q = ' ';
+          else
+            *q = *p;
           break;
         case '\n':
-          have_newline = 1;
+          have_newline++;
         default:
           *q = *p;
           break;
@@ -410,72 +441,178 @@ child_execute_job (char *argv, struct child *child)
   while (isspace ((unsigned char)*--q))
     *q = '\0';
 
-  if (strncmp (cmd, "builtin_", 8) == 0)
+
+#define VMS_EMPTY_ECHO "write sys$output \"\""
+  if (have_newline == 0)
     {
-      child->pid = 270163;
-      child->efn = 0;
-      child->cstatus = 1;
-
-      DB (DB_JOBS, (_("BUILTIN [%s][%s]\n"), cmd, cmd+8));
-
-      p = cmd + 8;
-
-      if ((*(p) == 'c')
-          && (*(p+1) == 'd')
-          && ((*(p+2) == ' ') || (*(p+2) == '\t')))
+      /* multiple shells */
+      if (strncmp(cmd, "builtin_", 8) == 0)
         {
-          p += 3;
-          while ((*p == ' ') || (*p == '\t'))
-            p++;
-          DB (DB_JOBS, (_("BUILTIN CD %s\n"), p));
-          if (chdir (p))
-            return 0;
-          else
-            return 1;
-        }
-      else if ((*(p) == 'e')
-               && (*(p+1) == 'c')
-               && (*(p+2) == 'h')
-               && (*(p+3) == 'o')
-            && ((*(p+4) == ' ') || (*(p+4) == '\t') || (*(p+4) == '\0')))
-        {
-          /* This is not a real builtin, it is a built in pre-processing
-             for the VMS/DCL echo (write sys$output) to ensure the to be echoed
-             string is correctly quoted (with the DCL quote character '"'). */
-#define VMS_EMPTY_ECHO "$ write sys$output \"\""
-          char *vms_echo;
-          p += 4;
-          if (*p == '\0')
+          child->pid = 270163;
+          child->efn = 0;
+          child->cstatus = 1;
+
+          DB(DB_JOBS, (_("BUILTIN [%s][%s]\n"), cmd, cmd + 8));
+
+          p = cmd + 8;
+
+          if ((*(p) == 'c') && (*(p + 1) == 'd')
+              && ((*(p + 2) == ' ') || (*(p + 2) == '\t')))
             {
-              cmd = VMS_EMPTY_ECHO;
-            }
-          else
-            {
-              p++;
+              p += 3;
               while ((*p == ' ') || (*p == '\t'))
                 p++;
+              DB(DB_JOBS, (_("BUILTIN CD %s\n"), p));
+              if (chdir(p))
+                return 0;
+              else
+                return 1;
+            }
+          else if ((*(p) == 'e')
+              && (*(p+1) == 'c')
+              && (*(p+2) == 'h')
+              && (*(p+3) == 'o')
+              && ((*(p+4) == ' ') || (*(p+4) == '\t') || (*(p+4) == '\0')))
+            {
+              /* This is not a real builtin, it is a built in pre-processing
+                 for the VMS/DCL echo (write sys$output) to ensure the to be echoed
+                 string is correctly quoted (with the DCL quote character '"'). */
+              char *vms_echo;
+              p += 4;
               if (*p == '\0')
                 cmd = VMS_EMPTY_ECHO;
               else
                 {
-                  vms_echo = alloca(strlen(p) + sizeof VMS_EMPTY_ECHO);
-                  strcpy(vms_echo, VMS_EMPTY_ECHO);
-                  vms_echo[sizeof VMS_EMPTY_ECHO - 2] = '\0';
-                  strcat(vms_echo, p);
-                  strcat(vms_echo, "\"");
-                  cmd = vms_echo;
+                  p++;
+                  while ((*p == ' ') || (*p == '\t'))
+                    p++;
+                  if (*p == '\0')
+                    cmd = VMS_EMPTY_ECHO;
+                  else
+                    {
+                      vms_echo = alloca(strlen(p) + sizeof VMS_EMPTY_ECHO);
+                      strcpy(vms_echo, VMS_EMPTY_ECHO);
+                      vms_echo[sizeof VMS_EMPTY_ECHO - 2] = '\0';
+                      strcat(vms_echo, p);
+                      strcat(vms_echo, "\"");
+                      cmd = vms_echo;
+                    }
                 }
+              DB (DB_JOBS, (_("BUILTIN ECHO %s->%s\n"), p, cmd));
             }
-          DB(DB_JOBS, (_("BUILTIN ECHO %s\n"), p));
+          else
+            {
+              printf(_("Unknown builtin command '%s'\n"), cmd);
+              fflush(stdout);
+              return 0;
+            }
         }
-      else
+      /* expand ':' aka 'do nothing' builtin for bash and friends */
+      else if (cmd[0]==':' && cmd[1]=='\0')
         {
-          printf (_("Unknown builtin command '%s'\n"), cmd);
-          fflush (stdout);
-          return 0;
+          cmd = "continue";
         }
     }
+  else
+    {
+      /* todo: expand ':' aka 'do nothing' builtin for bash and friends */
+      /* For 'one shell' expand all the
+           builtin_echo
+         to
+           write sys$output ""
+         where one is  ......7 bytes longer.
+         At the same time ensure that the echo string is properly terminated.
+         For that, allocate a command buffer big enough for all possible expansions
+         (have_newline is the count), then expand, copy and terminate. */
+      char *tmp_cmd;
+      int nloff = 0;
+      int vlen = 0;
+      int clen = 0;
+      int inecho;
 
+      tmp_cmd = alloca(strlen(cmd) + (have_newline + 1) * 7 + 1);
+      tmp_cmd[0] = '\0';
+      inecho = 0;
+      while (cmd[nloff])
+        {
+          if (inecho)
+            {
+              if (clen < nloff - 1)
+                {
+                  memcpy(&tmp_cmd[vlen], &cmd[clen], nloff - clen - 1);
+                  vlen += nloff - clen - 1;
+                  clen = nloff;
+                }
+              inecho = 0;
+              tmp_cmd[vlen] = '"';
+              vlen++;
+              tmp_cmd[vlen] = '\n';
+              vlen++;
+            }
+          if (strncmp(&cmd[nloff], "builtin_", 8) == 0)
+            {
+              /* ??? */
+              child->pid = 270163;
+              child->efn = 0;
+              child->cstatus = 1;
+
+              DB (DB_JOBS, (_("BUILTIN [%s][%s]\n"), &cmd[nloff], &cmd[nloff+8]));
+              p = &cmd[nloff + 8];
+              if ((*(p) ==        'e')
+                  && (*(p + 1) == 'c')
+                  && (*(p + 2) == 'h')
+                  && (*(p + 3) == 'o')
+                  && ((*(p + 4) == ' ') || (*(p + 4) == '\t') || (*(p + 4) == '\0')))
+                {
+                  if (clen < nloff - 1)
+                    {
+                      memcpy(&tmp_cmd[vlen], &cmd[clen], nloff - clen - 1);
+                      vlen += nloff - clen - 1;
+                      clen = nloff;
+                      if (inecho)
+                        {
+                          inecho = 0;
+                          tmp_cmd[vlen] = '"';
+                          vlen++;
+                        }
+                      tmp_cmd[vlen] = '\n';
+                      vlen++;
+                    }
+                  inecho = 1;
+                  p += 4;
+                  while ((*p == ' ') || (*p == '\t'))
+                    p++;
+                  clen = p - cmd;
+                  memcpy(&tmp_cmd[vlen], VMS_EMPTY_ECHO,
+                      sizeof VMS_EMPTY_ECHO - 2);
+                  vlen += sizeof VMS_EMPTY_ECHO - 2;
+                }
+              else
+                {
+                  printf (_("Builtin command is unknown or unsupported in .ONESHELL: '%s'\n"), &cmd[nloff]);
+                  fflush(stdout);
+                  return 0;
+                }
+            }
+          nloff = nextnl(cmd, nloff + 1);
+        }
+      if (clen < nloff)
+        {
+          memcpy(&tmp_cmd[vlen], &cmd[clen], nloff - clen);
+          vlen += nloff - clen;
+          clen = nloff;
+          if (inecho)
+            {
+              inecho = 0;
+              tmp_cmd[vlen] = '"';
+              vlen++;
+            }
+        }
+
+      tmp_cmd[vlen] = '\0';
+
+      cmd = tmp_cmd;
+    }
   /* Create a *.com file if either the command is too long for
      lib$spawn, or the command contains a newline, or if redirection
      is desired. Forcing commands with newlines into DCLs allows to
@@ -489,7 +626,8 @@ child_execute_job (char *argv, struct child *child)
       char c;
       char *sep;
       int alevel = 0;   /* apostrophe level */
-
+      int tmpstrlen;
+      char *tmpstr;
       if (strlen (cmd) == 0)
         {
           printf (_("Error, empty command\n"));
@@ -498,10 +636,28 @@ child_execute_job (char *argv, struct child *child)
         }
 
       outfile = output_tmpfile (&child->comname, "sys$scratch:CMDXXXXXX.COM");
+      /*                                          012345678901234567890 */
+#define TMP_OFFSET 12
+#define TMP_LEN 9
       if (outfile == 0)
         pfatal_with_name (_("fopen (temporary file)"));
       comnamelen = strlen (child->comname);
-
+      tmpstr = &child->comname[TMP_OFFSET];
+      tmpstrlen = TMP_LEN;
+      /* The whole DCL "script" is executed as one action, and it behaves as
+         any DCL "script", that is errors stop it but warnings do not. Usually
+         the command on the last line, defines the exit code.  However, with
+         redirections there is a prolog and possibly an epilog to implement
+         the redirection.  Both are part of the script which is actually
+         executed. So if the redirection encounters an error in the prolog,
+         the user actions will not run; if in the epilog, the user actions
+         ran, but output is not captured. In both error cases, the error of
+         redirection is passed back and not the exit code of the actions. The
+         user should be able to enable DCL "script" verification with "set
+         verify". However, the prolog and epilog commands are not shown. Also,
+         if output redirection is used, the verification output is redirected
+         into that file as well. */
+      fprintf (outfile, "$ %.*s_1 = \"''f$verify(0)'\"\n", tmpstrlen, tmpstr);
       if (ifile[0])
         {
           fprintf (outfile, "$ assign/user %s sys$input\n", ifile);
@@ -519,8 +675,8 @@ child_execute_job (char *argv, struct child *child)
       if (ofile[0])
         if (have_append)
           {
-            fprintf (outfile, "$ set noon\n");
             fprintf (outfile, "$ define sys$output %.*s\n", comnamelen-3, child->comname);
+            fprintf (outfile, "$ on error then $ goto %.*s\n", tmpstrlen, tmpstr);
             DB (DB_JOBS, (_("Append output to %s\n"), ofile));
             ofiledsc.dsc$w_length = 0;
           }
@@ -530,7 +686,7 @@ child_execute_job (char *argv, struct child *child)
             DB (DB_JOBS, (_("Redirected output to %s\n"), ofile));
             ofiledsc.dsc$w_length = 0;
           }
-
+      fprintf (outfile, "$ %.*s_ = f$verify(%.*s_1)\n", tmpstrlen, tmpstr, tmpstrlen, tmpstr);
       p = sep = q = cmd;
       for (c = '\n'; c; c = *q++)
         {
@@ -585,17 +741,31 @@ child_execute_job (char *argv, struct child *child)
 
       if (*p)
         {
-          fwrite (p, 1, --q - p, outfile);
-          fputc ('\n', outfile);
+          /* At the end of the line, skip any whitespace around a leading $
+             from the command because one $ was already written into the DCL. */
+          while (isspace((unsigned char) *p))
+            p++;
+          if (*p == '$')
+            p++;
+          while (isspace((unsigned char) *p))
+            p++;
+          fwrite(p, 1, --q - p, outfile);
+          fputc('\n', outfile);
         }
 
       if (have_append)
         {
-          fprintf (outfile, "$ deassign sys$output ! 'f$verify(0)\n");
+          fprintf (outfile, "$ %.*s: ! 'f$verify(0)\n", tmpstrlen, tmpstr);
+          fprintf (outfile, "$ %.*s_2 = $status\n", tmpstrlen, tmpstr);
+          fprintf (outfile, "$ on error then $ exit\n");
+          fprintf (outfile, "$ deassign sys$output\n");
+          if (efile[0])
+            fprintf (outfile, "$ deassign sys$error\n");
           fprintf (outfile, "$ append:=append\n");
           fprintf (outfile, "$ delete:=delete\n");
           fprintf (outfile, "$ append/new %.*s %s\n", comnamelen-3, child->comname, ofile);
           fprintf (outfile, "$ delete %.*s;*\n", comnamelen-3, child->comname);
+          fprintf (outfile, "$ exit '%.*s_2 + (0*f$verify(%.*s_1))\n", tmpstrlen, tmpstr, tmpstrlen, tmpstr);
           DB (DB_JOBS, (_("Append %.*s and cleanup\n"), comnamelen-3, child->comname));
         }
 

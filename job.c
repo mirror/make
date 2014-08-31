@@ -1225,21 +1225,22 @@ start_job_command (struct child *child)
        multi-line variables still includes the newlines.  So detect newlines
        and set 'end' (which is used for child->command_ptr) instead of
        (re-)writing construct_command_argv */
-    {
-      char *s = p;
-      int instring = 0;
-      while (*s)
-        {
-          if (*s == '"')
-            instring = !instring;
-          else if (*s == '\n' && !instring)
-            {
-              end = s;
-              break;
-            }
-          ++s;
-        }
-    }
+    if (!one_shell)
+      {
+        char *s = p;
+        int instring = 0;
+        while (*s)
+          {
+            if (*s == '"')
+              instring = !instring;
+            else if (*s == '\n' && !instring)
+              {
+                end = s;
+                break;
+              }
+            ++s;
+          }
+      }
 #else
     argv = construct_command_argv (p, &end, child->file,
                                    child->file->cmds->lines_flags[child->command_line - 1],
