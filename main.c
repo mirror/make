@@ -1951,7 +1951,7 @@ main (int argc, char **argv, char **envp)
       undefine_default_variables ();
   }
 
-#if defined (__MSDOS__) || defined (__EMX__)
+#if defined (__MSDOS__) || defined (__EMX__) || defined (VMS)
   if (job_slots != 1
 # ifdef __EMX__
       && _osmode != OS2_MODE /* turn off -j if we are in DOS mode */
