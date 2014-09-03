@@ -613,14 +613,24 @@ child_execute_job (char *argv, struct child *child)
 
       cmd = tmp_cmd;
     }
+
+#ifdef USE_DCL_COM_FILE
+  /* Enforce the creation of a command file.
+     Then all the make environment variables are written as DCL symbol
+     assignments into the command file as well, so that they are visible
+     in the sub-process but do not affect the current process.
+     Further, this way DCL reads the input stream and therefore does
+     'forced' symbol substitution, which it doesn't do for one-liners when
+     they are 'lib$spawn'ed. */
+#else
   /* Create a *.com file if either the command is too long for
      lib$spawn, or the command contains a newline, or if redirection
      is desired. Forcing commands with newlines into DCLs allows to
      store search lists on user mode logicals.  */
-
   if (strlen (cmd) > MAXCMDLEN
       || (have_redirection != 0)
       || (have_newline != 0))
+#endif
     {
       FILE *outfile;
       char c;
@@ -686,6 +696,23 @@ child_execute_job (char *argv, struct child *child)
             DB (DB_JOBS, (_("Redirected output to %s\n"), ofile));
             ofiledsc.dsc$w_length = 0;
           }
+#ifdef USE_DCL_COM_FILE
+      /* Export the child environment into DCL symbols */
+      if (child->environment != 0)
+        {
+          char **ep = child->environment;
+          char *valstr;
+          while (*ep != 0)
+            {
+              valstr = strchr(*ep, '=');
+              if (valstr == NULL)
+                continue;
+              fprintf(outfile, "$ %.*s=\"%s\"\n", valstr - *ep, *ep,
+                  valstr + 1);
+              ep++;
+            }
+        }
+#endif
       fprintf (outfile, "$ %.*s_ = f$verify(%.*s_1)\n", tmpstrlen, tmpstr, tmpstrlen, tmpstr);
       p = sep = q = cmd;
       for (c = '\n'; c; c = *q++)
