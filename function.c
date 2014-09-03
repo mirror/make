@@ -1,5 +1,5 @@
 /* Builtin function expansion for GNU Make.
-Copyright (C) 1988-2013 Free Software Foundation, Inc.
+Copyright (C) 1988-2014 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the
@@ -520,7 +520,24 @@ func_notdir_suffix (char *o, char **argv, const char *funcname)
   int is_suffix = funcname[0] == 's';
   int is_notdir = !is_suffix;
   int stop = MAP_DIRSEP | (is_suffix ? MAP_DOT : 0);
+#ifdef VMS
+  /* For VMS list_iterator points to a comma separated list. To use the common
+     [find_]next_token, create a local copy and replace the commas with
+     spaces. Obviously, there is a problem if there is a ',' in the VMS filename
+     (can only happen on ODS5), the same problem as with spaces in filenames,
+     which seems to be present in make on all platforms. */
+  char *vms_list_iterator = alloca(strlen(list_iterator) + 1);
+  int i;
+  for (i = 0; list_iterator[i]; i++)
+    if (list_iterator[i] == ',')
+      vms_list_iterator[i] = ' ';
+    else
+      vms_list_iterator[i] = list_iterator[i];
+  vms_list_iterator[i] = list_iterator[i];
+  while ((p2 = find_next_token((const char**) &vms_list_iterator, &len)) != 0)
+#else
   while ((p2 = find_next_token (&list_iterator, &len)) != 0)
+#endif
     {
       const char *p = p2 + len - 1;
 
@@ -548,7 +565,11 @@ func_notdir_suffix (char *o, char **argv, const char *funcname)
 
       if (is_notdir || p >= p2)
         {
+#ifdef VMS
+          o = variable_buffer_output (o, ",", 1);
+#else
           o = variable_buffer_output (o, " ", 1);
+#endif
           doneany = 1;
         }
     }
@@ -573,7 +594,20 @@ func_basename_dir (char *o, char **argv, const char *funcname)
   int is_basename = funcname[0] == 'b';
   int is_dir = !is_basename;
   int stop = MAP_DIRSEP | (is_basename ? MAP_DOT : 0) | MAP_NUL;
+#ifdef VMS
+  /* As in func_notdir_suffix ... */
+  char *vms_p3 = alloca(strlen(p3) + 1);
+  int i;
+  for (i = 0; p3[i]; i++)
+    if (p3[i] == ',')
+      vms_p3[i] = ' ';
+    else
+      vms_p3[i] = p3[i];
+  vms_p3[i] = p3[i];
+  while ((p2 = find_next_token((const char**) &vms_p3, &len)) != 0)
+#else
   while ((p2 = find_next_token (&p3, &len)) != 0)
+#endif
     {
       const char *p = p2 + len - 1;
       while (p >= p2 && ! STOP_SET (*p, stop))
@@ -602,7 +636,11 @@ func_basename_dir (char *o, char **argv, const char *funcname)
         /* The entire name is the basename.  */
         o = variable_buffer_output (o, p2, len);
 
+#ifdef VMS
+      o = variable_buffer_output (o, ",", 1);
+#else
       o = variable_buffer_output (o, " ", 1);
+#endif
       doneany = 1;
     }
 
