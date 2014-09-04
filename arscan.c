@@ -1,5 +1,5 @@
 /* Library function for scanning an archive file.
-Copyright (C) 1987-2013 Free Software Foundation, Inc.
+Copyright (C) 1987-2014 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the
@@ -16,6 +16,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "makeint.h"
 
+#ifdef TEST
+/* Hack, the real error() routine eventually pulls in die from main.c */
+#define error(a, b, c, d)
+#endif
+
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #else
@@ -30,99 +35,138 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <credef.h>
 #include <descrip.h>
 #include <ctype.h>
+#include <ssdef.h>
+#include <stsdef.h>
+#include <rmsdef.h>
+globalvalue unsigned int LBR$_HDRTRUNC;
+
 #if __DECC
 #include <unixlib.h>
 #include <lbr$routines.h>
 #endif
+const char *
+vmsify (const char *name, int type);
 
+/* Time conversion from VMS to Unix
+   Conversion from local time (stored in library) to GMT (needed for gmake)
+   Note: The tm_gmtoff element is a VMS extension to the ANSI standard. */
+static time_t
+vms_time_to_unix(void *vms_time)
+{
+  struct tm *tmp;
+  time_t unix_time;
+
+  unix_time = decc$fix_time(vms_time);
+  tmp = localtime(&unix_time);
+  unix_time -= tmp->tm_gmtoff;
+
+  return unix_time;
+}
+
+
+/* VMS library routines need static variables for callback */
 static void *VMS_lib_idx;
 
-static const char *VMS_saved_memname;
-
-static time_t VMS_member_date;
+static const void *VMS_saved_arg;
 
 static long int (*VMS_function) ();
 
+static long int VMS_function_ret;
+
+
+/* This is a callback procedure for lib$get_index */
 static int
-VMS_get_member_info (struct dsc$descriptor_s *module, unsigned long *rfa)
+VMS_get_member_info(struct dsc$descriptor_s *module, unsigned long *rfa)
 {
   int status, i;
-  long int fnval;
+  const int truncated = 0; /* Member name may be truncated */
+  time_t member_date; /* Member date */
+  char *filename;
+  unsigned int buffer_length; /* Actual buffer length */
 
-  time_t val;
+  /* Unused constants - Make does not actually use most of these */
+  const int file_desc = -1; /* archive file descriptor for reading the data */
+  const int header_position = 0; /* Header position */
+  const int data_position = 0; /* Data position in file */
+  const int data_size = 0; /* Data size */
+  const int uid = 0; /* member gid */
+  const int gid = 0; /* member gid */
+  const int mode = 0; /* member protection mode */
+  /* End of unused constants */
 
   static struct dsc$descriptor_s bufdesc =
     { 0, DSC$K_DTYPE_T, DSC$K_CLASS_S, NULL };
 
+  /* Only need the module definition */
   struct mhddef *mhd;
-  char filename[128];
 
-  bufdesc.dsc$a_pointer = filename;
-  bufdesc.dsc$w_length = sizeof (filename);
-
-  status = lbr$set_module (&VMS_lib_idx, rfa, &bufdesc,
-                           &bufdesc.dsc$w_length, 0);
-  if (! (status & 1))
+  /* If a previous callback is non-zero, just return that status */
+  if (VMS_function_ret)
     {
-      ON (error, NILF,
+      return SS$_NORMAL;
+    }
+
+  /* lbr_set_module returns more than just the module header. So allocate
+     a buffer which is big enough: the maximum LBR$C_MAXHDRSIZ. That's at
+     least bigger than the size of struct mhddef.
+     If the request is too small, a buffer truncated warning is issued so
+     it can be reissued with a larger buffer.
+     We do not care if the buffer is truncated, so that is still a success. */
+  mhd = xmalloc(LBR$C_MAXHDRSIZ);
+  bufdesc.dsc$a_pointer = (char *) mhd;
+  bufdesc.dsc$w_length = LBR$C_MAXHDRSIZ;
+
+  status = lbr$set_module(&VMS_lib_idx, rfa, &bufdesc, &buffer_length, 0);
+
+  if ((status != LBR$_HDRTRUNC) && !$VMS_STATUS_SUCCESS(status))
+    {
+      ON(error, NILF,
           _("lbr$set_module() failed to extract module info, status = %d"),
           status);
 
-      lbr$close (&VMS_lib_idx);
+      lbr$close(&VMS_lib_idx);
 
-      return 0;
+      return status;
     }
 
-  mhd = (struct mhddef *) filename;
-
-#ifdef __DECC
-  /* John Fowler <jfowler@nyx.net> writes this is needed in his environment,
-   * but that decc$fix_time() isn't documented to work this way.  Let me
-   * know if this causes problems in other VMS environments.
-   */
-  {
-    /* Modified by M. Gehre at 11-JAN-2008 because old formula is wrong:
-     * val = decc$fix_time (&mhd->mhd$l_datim) + timezone - daylight*3600;
-     * a) daylight specifies, if the timezone has daylight saving enabled, not
-     *    if it is active
-     * b) what we need is the information, if daylight saving was active, if
-     *    the library module was replaced. This information we get using the
-     *    localtime function
-     */
-
-    struct tm *tmp;
-
-    /* Conversion from VMS time to C time */
-    val = decc$fix_time (&mhd->mhd$l_datim);
-
-    /*
-     * Conversion from local time (stored in library) to GMT (needed for gmake)
-     * Note: The tm_gmtoff element is a VMS extension to the ANSI standard.
-     */
-    tmp = localtime (&val);
-    val -= tmp->tm_gmtoff;
-  }
+#ifdef TEST
+  /* When testing this code, it is useful to know the length returned */
+  printf("Input length = %d, actual = %d\n",
+      bufdesc.dsc$w_length, buffer_length);
 #endif
 
+  /* Conversion from VMS time to C time.
+     VMS defectlet - mhddef is sub-optimal, for the time, it has a 32 bit
+     longword, mhd$l_datim, and a 32 bit fill instead of two longwords, or
+     equivalent. */
+  member_date = vms_time_to_unix(&mhd->mhd$l_datim);
+  free(mhd);
+
+  /* Here we have a problem.  The module name on VMS does not have
+     a file type, but the filename pattern in the "VMS_saved_arg"
+     may have one.
+     But only the method being called knows how to interpret the
+     filename pattern.
+     There are currently two different formats being used.
+     This means that we need a VMS specific code in those methods
+     to handle it. */
+  filename = xmalloc(module->dsc$w_length + 1);
+
+  /* TODO: We may need an option to preserve the case of the module
+     For now force the module name to lower case */
   for (i = 0; i < module->dsc$w_length; i++)
-    filename[i] = _tolower ((unsigned char)module->dsc$a_pointer[i]);
+    filename[i] = _tolower((unsigned char )module->dsc$a_pointer[i]);
 
   filename[i] = '\0';
 
-  VMS_member_date = (time_t) -1;
+  VMS_function_ret = (*VMS_function)(file_desc, filename, truncated,
+      header_position, data_position, data_size, member_date, uid, gid, mode,
+      VMS_saved_arg);
 
-  fnval =
-    (*VMS_function) (-1, filename, 0, 0, 0, 0, val, 0, 0, 0,
-                     VMS_saved_memname);
-
-  if (fnval)
-    {
-      VMS_member_date = fnval;
-      return 0;
-    }
-  else
-    return 1;
+  free(filename);
+  return SS$_NORMAL;
 }
+
 
 /* Takes three arguments ARCHIVE, FUNCTION and ARG.
 
@@ -156,59 +200,87 @@ VMS_get_member_info (struct dsc$descriptor_s *module, unsigned long *rfa)
 long int
 ar_scan (const char *archive, ar_member_func_t function, const void *varg)
 {
-  char *p;
-  const char *arg = varg;
+  char *vms_archive;
 
   static struct dsc$descriptor_s libdesc =
     { 0, DSC$K_DTYPE_T, DSC$K_CLASS_S, NULL };
 
-  unsigned long func = LBR$C_READ;
-  unsigned long type = LBR$C_TYP_UNK;
-  unsigned long index = 1;
-
+  const unsigned long func = LBR$C_READ;
+  const unsigned long type = LBR$C_TYP_UNK;
+  const unsigned long index = 1;
+  unsigned long lib_idx;
   int status;
 
-  status = lbr$ini_control (&VMS_lib_idx, &func, &type, 0);
+  VMS_saved_arg = varg;
 
-  if (! (status & 1))
+  /* Null archive string can show up in test and cause an access violation */
+  if (archive == NULL)
     {
-      ON (error, NILF, _("lbr$ini_control() failed with status = %d"), status);
-      return -2;
-    }
-
-  /* there is no such descriptor with "const char *dsc$a_pointer" */
-  libdesc.dsc$a_pointer = (char *)archive;
-  libdesc.dsc$w_length = strlen (archive);
-
-  status = lbr$open (&VMS_lib_idx, &libdesc, 0, 0, 0, 0, 0);
-
-  if (! (status & 1))
-    {
-      OSS (error, NILF, _("unable to open library '%s' to lookup member '%s'"),
-           archive, arg);
+      /* Null filenames do not exist */
       return -1;
     }
 
-  VMS_saved_memname = arg;
+  /* archive path name must be in VMS format */
+  vms_archive = (char *) vmsify(archive, 0);
 
-  /* For comparison, delete .obj from arg name.  */
+  status = lbr$ini_control(&VMS_lib_idx, &func, &type, 0);
 
-  p = strrchr (VMS_saved_memname, '.');
-  if (p)
-    *p = '\0';
+  if (!$VMS_STATUS_SUCCESS(status))
+    {
+      ON(error, NILF, _("lbr$ini_control() failed with status = %d"), status);
+      return -2;
+    }
+
+  libdesc.dsc$a_pointer = vms_archive;
+  libdesc.dsc$w_length = strlen(vms_archive);
+
+  status = lbr$open(&VMS_lib_idx, &libdesc, 0, NULL, 0, NULL, 0);
+
+  if (!$VMS_STATUS_SUCCESS(status))
+    {
+
+      /* TODO: A library format failure could mean that this is a file
+         generated by the GNU AR utility and in that case, we need to
+         take the UNIX codepath.  This will also take a change to the
+         GNV AR wrapper program. */
+
+      switch (status)
+        {
+      case RMS$_FNF:
+        /* Archive does not exist */
+        return -1;
+      default:
+#ifndef TEST
+        OSN(error, NILF,
+            _("unable to open library '%s' to lookup member status %d"),
+            archive, status);
+#endif
+        /* For library format errors, specification says to return -2 */
+        return -2;
+        }
+    }
 
   VMS_function = function;
 
-  VMS_member_date = (time_t) -1;
-  lbr$get_index (&VMS_lib_idx, &index, VMS_get_member_info, 0);
+  /* Clear the return status, as we are supposed to stop calling the
+     callback function if it becomes non-zero, and this is a static
+     variable. */
+  VMS_function_ret = 0;
 
-  /* Undo the damage.  */
-  if (p)
-    *p = '.';
+  status = lbr$get_index(&VMS_lib_idx, &index, VMS_get_member_info, NULL, 0);
 
-  lbr$close (&VMS_lib_idx);
+  lbr$close(&VMS_lib_idx);
 
-  return VMS_member_date > 0 ? VMS_member_date : 0;
+  /* Unless a failure occurred in the lbr$ routines, return the
+     the status from the 'function' routine. */
+  if ($VMS_STATUS_SUCCESS(status))
+    {
+      return VMS_function_ret;
+    }
+
+  /* This must be something wrong with the library and an error
+     message should already have been printed. */
+  return -2;
 }
 
 #else /* !VMS */
@@ -753,9 +825,32 @@ ar_name_equal (const char *name, const char *mem, int truncated)
 #endif /* !__hpux && !cray */
 #endif /* !AIAMAG */
     }
-#endif /* !VMS */
 
   return !strcmp (name, mem);
+#else
+  /* VMS members do not have suffixes, but the filenames usually
+     have.
+     Do we need to strip VMS disk/directory format paths?
+
+     Most VMS compilers etc. by default are case insensitive
+     but produce uppercase external names, incl. module names.
+     However the VMS librarian (ar) and the linker by default
+     are case sensitive: they take what they get, usually
+     uppercase names. So for the non-default settings of the
+     compilers etc. there is a need to have a case sensitive
+     mode. */
+  {
+    int len;
+    len = strlen(mem);
+    int match;
+    char *dot;
+    if ((dot=strrchr(name,'.')))
+      match = (len == dot - name) && !strncasecmp(name, mem, len);
+    else
+      match = !strcasecmp (name, mem);
+    return match;
+  }
+#endif /* !VMS */
 }
 
 #ifndef VMS
