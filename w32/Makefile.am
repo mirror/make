@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
+AUTOMAKE_OPTIONS = subdir-objects
+
 noinst_LIBRARIES = libw32.a
 
 libw32_a_SOURCES =  subproc/misc.c subproc/sub_proc.c subproc/w32err.c \

@@ -141,13 +141,13 @@ ChangeLog: .check-git-HEAD
 ## Updating files.  ##
 ## ---------------- ##
 
-WGET = wget --passive-ftp -nv
+WGET = wget --passive-ftp -np -nv
 ftp-gnu = ftp://ftp.gnu.org/gnu
 
 move_if_change =  if test -r $(target) && cmp -s $(target).t $(target); then \
 		    echo $(target) is unchanged; rm -f $(target).t; \
 		  else \
-		    mv $(target).t $(target); \
+		    mv -f $(target).t $(target); \
 		  fi
 
 # ------------------- #
@@ -159,8 +159,7 @@ move_if_change =  if test -r $(target) && cmp -s $(target).t $(target); then \
 #   http://translation.sf.net/maint/
 #   ftp://tiger.informatik.hu-berlin.de/pub/po/maint/
 
-po_wget_flags =	--recursive --level=1 --no-directories --no-parent \
-		--no-check-certificate
+po_wget_flags =	--recursive --level=1 --no-directories --no-check-certificate
 po_repo = http://translationproject.org/latest/$(PACKAGE)
 .PHONY: do-po-update po-update
 do-po-update:
@@ -169,7 +168,8 @@ do-po-update:
 	  && mkdir "$$tmppo" \
 	  && (cd "$$tmppo" \
 		&& $(WGET) $(po_wget_flags) -A '*.po' $(po_repo)) \
-	  && cp "$$tmppo"/*.po $(top_srcdir)/po && rm -rf "$$tmppo"
+	  && cp "$$tmppo"/*.po $(top_srcdir)/po \
+	  && rm -rf "$$tmppo"
 	cd po && $(MAKE) update-po
 	$(MAKE) po-check
 

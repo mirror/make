@@ -27,7 +27,9 @@ AC_CONFIG_HEADERS([config.h])
 
 # Automake setup
 # We have to enable "foreign" because ChangeLog is auto-generated
-AM_INIT_AUTOMAKE([1.11.1 silent-rules foreign -Wall -Werror])
+# We cannot enable -Werror because gettext 0.18.1 has invalid content
+# When we update gettext to 0.18.3 or better we can add it again.
+AM_INIT_AUTOMAKE([1.11.1 silent-rules foreign -Wall])
 
 # Checks for programs.
 AC_USE_SYSTEM_EXTENSIONS
@@ -49,7 +51,6 @@ AC_ISC_POSIX
 AC_MINIX
 
 # Enable gettext, in "external" mode.
-
 AM_GNU_GETTEXT_VERSION([0.18.1])
 AM_GNU_GETTEXT([external])
 
