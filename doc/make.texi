@@ -304,7 +304,7 @@ Using Implicit Rules
 
 * Using Implicit::              How to use an existing implicit rule
                                   to get the recipes for updating a file.
-* Catalogue of Rules::          A list of built-in implicit rules.
+* Catalogue of Rules::          A list of built-in rules.
 * Implicit Variables::          How to change what predefined rules do.
 * Chained Rules::               How to use a chain of implicit rules.
 * Pattern Rules::               How to define new implicit rules.
@@ -2584,29 +2584,13 @@ will be executed every time you say @samp{make clean}.
 @cindex @code{rm} (shell command)
 
 @findex .PHONY
-The phony target will cease to work if anything ever does create a file
-named @file{clean} in this directory.  Since it has no prerequisites, the
-file @file{clean} would inevitably be considered up to date, and its
-recipe would not be executed.  To avoid this problem, you can explicitly
-declare the target to be phony, using the special target @code{.PHONY}
+In this example, the @file{clean} target will not work properly if a
+file named @file{clean} is ever created in this directory.  Since it
+has no prerequisites, @file{clean} would always be considered up to
+date and its recipe would not be executed.  To avoid this problem you
+can explicitly declare the target to be phony by making it a
+prerequisite of the special target @code{.PHONY}
 (@pxref{Special Targets, ,Special Built-in Target Names}) as follows:
-
-@example
-.PHONY : clean
-@end example
-
-@noindent
-Once this is done, @samp{make clean} will run the recipe regardless of
-whether there is a file named @file{clean}.
-
-Since it knows that phony targets do not name actual files that could be
-remade from other files, @code{make} skips the implicit rule search for
-phony targets (@pxref{Implicit Rules}).  This is why declaring a target
-phony is good for performance, even if you are not worried about the
-actual file existing.
-
-Thus, you first write the line that states that @code{clean} is a
-phony target, then you write the rule, like this:
 
 @example
 @group
@@ -2616,12 +2600,16 @@ clean:
 @end group
 @end example
 
-Another example of the usefulness of phony targets is in conjunction
-with recursive invocations of @code{make} (for more information, see
-@ref{Recursion, ,Recursive Use of @code{make}}).  In this case the
-makefile will often contain a variable which lists a number of
-sub-directories to be built.  One way to handle this is with one rule
-whose recipe is a shell loop over the sub-directories, like this:
+@noindent
+Once this is done, @samp{make clean} will run the recipe regardless of
+whether there is a file named @file{clean}.
+
+Phony targets are also useful in conjunction with recursive
+invocations of @code{make} (@pxref{Recursion, ,Recursive Use of @code{make}}).
+In this situation the makefile will often contain a variable which
+lists a number of sub-directories to be built.  A simplistic way to
+handle this is to define one rule with a recipe that loops over the
+sub-directories, like this:
 
 @example
 @group
@@ -2644,9 +2632,9 @@ you cannot take advantage of @code{make}'s ability to build targets in
 parallel (@pxref{Parallel, ,Parallel Execution}), since there is only
 one rule.
 
-By declaring the sub-directories as phony targets (you must do this as
-the sub-directory obviously always exists; otherwise it won't be built)
-you can remove these problems:
+By declaring the sub-directories as @code{.PHONY} targets (you must do
+this as the sub-directory obviously always exists; otherwise it won't
+be built) you can remove these problems:
 
 @example
 @group
@@ -2667,6 +2655,11 @@ Here we've also declared that the @file{foo} sub-directory cannot be
 built until after the @file{baz} sub-directory is complete; this kind of
 relationship declaration is particularly important when attempting
 parallel builds.
+
+The implicit rule search (@pxref{Implicit Rules}) is skipped for
+@code{.PHONY} targets.  This is why declaring a target as
+@code{.PHONY} is good for performance, even if you are not worried
+about the actual file existing.
 
 A phony target should not be a prerequisite of a real target file; if it
 is, its recipe will be run every time @code{make} goes to update that
@@ -5809,7 +5802,7 @@ CFLAGS += -pg # enable profiling
 @noindent
 The first line defines the @code{CFLAGS} variable with a reference to another
 variable, @code{includes}.  (@code{CFLAGS} is used by the rules for C
-compilation; @pxref{Catalogue of Rules, ,Catalogue of Implicit Rules}.)
+compilation; @pxref{Catalogue of Rules, ,Catalogue of Built-In Rules}.)
 Using @samp{=} for the definition makes @code{CFLAGS} a recursively-expanded
 variable, meaning @w{@samp{$(includes) -O}} is @emph{not} expanded when
 @code{make} processes the definition of @code{CFLAGS}.  Thus, @code{includes}
@@ -8935,7 +8928,7 @@ retained for compatibility.
 @menu
 * Using Implicit::              How to use an existing implicit rule
                                   to get the recipes for updating a file.
-* Catalogue of Rules::          A list of built-in implicit rules.
+* Catalogue of Rules::          A list of built-in rules.
 * Implicit Variables::          How to change what predefined rules do.
 * Chained Rules::               How to use a chain of implicit rules.
 * Pattern Rules::               How to define new implicit rules.
@@ -8987,7 +8980,7 @@ compiler; and so on.
 Of course, when you write the makefile, you know which implicit rule you
 want @code{make} to use, and you know it will choose that one because you
 know which possible prerequisite files are supposed to exist.
-@xref{Catalogue of Rules, ,Catalogue of Implicit Rules},
+@xref{Catalogue of Rules, ,Catalogue of Built-In Rules},
 for a catalogue of all the predefined implicit rules.
 
 Above, we said an implicit rule applies if the required prerequisites ``exist
@@ -9017,7 +9010,7 @@ make an object file, a @file{.o} file, from a Pascal source file, a
 @file{.p} file.  For example, if @file{foo.c} also exists, the implicit
 rule to make an object file from a C source file is used instead,
 because it appears before the Pascal rule in the list of predefined
-implicit rules (@pxref{Catalogue of Rules, , Catalogue of Implicit
+implicit rules (@pxref{Catalogue of Rules, , Catalogue of Built-In
 Rules}).
 
 If you do not want an implicit rule to be used for a target that has no
@@ -9025,7 +9018,7 @@ recipe, you can give that target an empty recipe by writing a semicolon
 (@pxref{Empty Recipes, ,Defining Empty Recipes}).
 
 @node Catalogue of Rules, Implicit Variables, Using Implicit, Implicit Rules
-@section Catalogue of Implicit Rules
+@section Catalogue of Built-In Rules
 @cindex implicit rule, predefined
 @cindex rule, implicit, predefined
 
@@ -11573,7 +11566,7 @@ functionality in that it will check out SCCS files for makefiles.
 
 @item
 Various new built-in implicit rules.
-@xref{Catalogue of Rules, ,Catalogue of Implicit Rules}.
+@xref{Catalogue of Rules, ,Catalogue of Built-In Rules}.
 
 @item
 Load dynamic objects which can modify the behavior of @code{make}.
@@ -11696,7 +11689,7 @@ special treatment.
 
 This appendix summarizes the directives, text manipulation functions,
 and special variables which GNU @code{make} understands.
-@xref{Special Targets}, @ref{Catalogue of Rules, ,Catalogue of Implicit Rules},
+@xref{Special Targets}, @ref{Catalogue of Rules, ,Catalogue of Built-In Rules},
 and @ref{Options Summary, ,Summary of Options},
 for other summaries.
 

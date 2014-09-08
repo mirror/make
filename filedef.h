@@ -143,7 +143,7 @@ void print_file_data_base (void);
                                       & ((1 << FILE_TIMESTAMP_LO_BITS) - 1)))
 
 /* Upper bound on length of string "YYYY-MM-DD HH:MM:SS.NNNNNNNNN"
-   representing a file timestamp.  The upper bound is not necessarily 19,
+   representing a file timestamp.  The upper bound is not necessarily 29,
    since the year might be less than -999 or greater than 9999.
 
    Subtract one for the sign bit if in case file timestamps can be negative;
