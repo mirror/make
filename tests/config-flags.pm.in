@@ -5,6 +5,7 @@
 
 %CONFIG_FLAGS = (
     AM_LDFLAGS   => '@AM_LDFLAGS@',
+    AR           => '@AR@',
     CC           => '@CC@',
     CFLAGS       => '@CFLAGS@',
     CPP          => '@CPP@',
