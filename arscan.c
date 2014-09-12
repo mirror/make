@@ -38,12 +38,18 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <ssdef.h>
 #include <stsdef.h>
 #include <rmsdef.h>
-globalvalue unsigned int LBR$_HDRTRUNC;
 
-#if __DECC
+/* This symbol should be present in lbrdef.h. */
+#ifndef LBR$_HDRTRUNC
+#pragma extern_model save
+#pragma extern_model globalvalue
+extern unsigned int LBR$_HDRTRUNC;
+#pragma extern_model restore
+#endif
+
 #include <unixlib.h>
 #include <lbr$routines.h>
-#endif
+
 const char *
 vmsify (const char *name, int type);
 
