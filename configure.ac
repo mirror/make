@@ -140,7 +140,7 @@ AC_CHECK_FUNCS([strdup strndup mkstemp mktemp fdopen fileno \
                 dup dup2 getcwd realpath sigsetmask sigaction \
                 getgroups seteuid setegid setlinebuf setreuid setregid \
                 getrlimit setrlimit setvbuf pipe strerror strsignal \
-                lstat readlink atexit])
+                lstat readlink atexit isatty ttyname])
 
 # We need to check declarations, not just existence, because on Tru64 this
 # function is not declared without special flags, which themselves cause

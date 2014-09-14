@@ -362,6 +362,12 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the sun library (-lsun).  */
 /* #undef HAVE_LIBSUN */
 
+/* Define to 1 if you have the `isatty' function. */
+/* #undef HAVE_ISATTY */
+
+/* Define to 1 if you have the `ttyname' function. */
+/* #undef HAVE_TTYNAME */
+
 /* Use high resolution file timestamps if nonzero. */
 #define FILE_TIMESTAMP_HI_RES 0
 

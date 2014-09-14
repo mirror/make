@@ -292,6 +292,12 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the 'strsignal' function. */
 /* #undef HAVE_STRSIGNAL */
 
+/* Define to 1 if you have the `isatty' function. */
+#define HAVE_ISATTY 1
+
+/* Define to 1 if you have the `ttyname' function. */
+/* #undef HAVE_TTYNAME */
+
 /* Define to 1 if 'n_un.n_name' is a member of 'struct nlist'. */
 /* #undef HAVE_STRUCT_NLIST_N_UN_N_NAME */
 

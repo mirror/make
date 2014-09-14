@@ -15,6 +15,9 @@ A complete list of bugs fixed in this version is available here:
 
 http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=105&set=custom
 
+* New variables: $(MAKE_TTYOUT) and $(MAKE_TTYERR) are set if stdout or
+  stderr, respectively, are believed to be writing to a terminal.
+
 * Allow a no-text-argument form of the $(file ...) function.  Without a text
   argument nothing is written to the file: it is simply opened in the
   requested mode, then closed again.

@@ -6321,6 +6321,28 @@ will contain the number of times this instance has restarted.  Note
 this is not the same as recursion (counted by the @code{MAKELEVEL}
 variable).  You should not set, modify, or export this variable.
 
+@vindex MAKE_TTYOUT @r{(whether stdout is a terminal)}
+@vindex MAKE_TTYERR @r{(whether stderr is a terminal)}
+@item MAKE_TTYOUT
+@itemx MAKE_TTYERR
+When @code{make} starts it will check whether stdout and stderr will
+show their output on a terminal.  If so, it will set
+@code{MAKE_TTYOUT} and @code{MAKE_TTYERR}, respectively, to the name
+of the terminal device (or @code{true} if this cannot be determined).
+If set these variables will be marked for export.  These variables
+will not be changed by @code{make} and they will not be modified if
+already set.
+
+These values can be used (particularly in combination with output
+synchronization (@pxref{Parallel Output, ,Output During Parallel
+Execution}) to determine whether @code{make} itself is writing to a
+terminal; they can be tested to decide whether to force recipe
+commands to generate colorized output for example.
+
+If you invoke a sub-@code{make} and redirect its stdout or stderr it
+is your responsibility to reset or unexport these variables as well,
+if your makefiles rely on them.
+
 @vindex .RECIPEPREFIX @r{(change the recipe prefix character)}
 @item .RECIPEPREFIX
 The first character of the value of this variable is used as the
