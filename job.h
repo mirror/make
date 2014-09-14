@@ -99,6 +99,7 @@ struct child
     char *comname;              /* Temporary command file name */
     int efn;                    /* Completion event flag number */
     int cstatus;                /* Completion status */
+    int vms_launch_status;      /* non-zero if lib$spawn, etc failed */
 #endif
 
     unsigned int  command_line; /* Index into command_lines.  */

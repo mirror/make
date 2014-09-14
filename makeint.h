@@ -99,6 +99,15 @@ extern int errno;
 # define isblank(c)     ((c) == ' ' || (c) == '\t')
 #endif
 
+#ifdef __VMS
+/* In strict ANSI mode, VMS compilers should not be defining the
+   VMS macro.  Define it here instead of a bulk edit for the correct code.
+ */
+# ifndef VMS
+#  define VMS
+# endif
+#endif
+
 #ifdef  HAVE_UNISTD_H
 # include <unistd.h>
 /* Ultrix's unistd.h always defines _POSIX_VERSION, but you only get
@@ -201,6 +210,9 @@ unsigned int get_path_max (void);
 # include <perror.h>
 /* Needed to use alloca on VMS.  */
 # include <builtins.h>
+
+extern int vms_use_mcr_command;
+extern int vms_always_use_cmd_file;
 #endif
 
 #ifndef __attribute__
@@ -622,8 +634,33 @@ extern const char *program;
 #endif
 
 #ifdef VMS
-const char *vms_command(const char *argv0);
-const char *vms_progname(const char *argv0);
+const char *vms_command (const char *argv0);
+const char *vms_progname (const char *argv0);
+
+void vms_exit (int);
+# define _exit(foo) vms_exit(foo)
+# define exit(foo) vms_exit(foo)
+
+extern char *program_name;
+
+void
+set_program_name (const char *arv0);
+
+int
+need_vms_symbol (void);
+
+int
+create_foreign_command (const char *command, const char *image);
+
+int
+vms_export_dcl_symbol (const char *name, const char *value);
+
+int
+vms_putenv_symbol (const char *string);
+
+void
+vms_restore_symbol (const char *string);
+
 #endif
 
 extern char *starting_directory;
@@ -643,18 +680,9 @@ extern int handling_fatal_signal;
 #endif
 
 
-#ifdef VMS
-/* These are the VMS __posix_exit compliant exit codes, constructed out of
-   STS$M_INHIB_MSG, C facility code, a POSIX condition code mask, MAKE_NNN<<3 and
-   the coresponding VMS severity, here STS$K_SUCCESS and STS$K_ERROR. */
-#  define MAKE_SUCCESS 0x1035a001
-#  define MAKE_TROUBLE 0x1035a00a
-#  define MAKE_FAILURE 0x1035a012
-#else
-#  define MAKE_SUCCESS 0
-#  define MAKE_TROUBLE 1
-#  define MAKE_FAILURE 2
-#endif
+#define MAKE_SUCCESS 0
+#define MAKE_TROUBLE 1
+#define MAKE_FAILURE 2
 
 /* Set up heap debugging library dmalloc.  */
 

@@ -47,6 +47,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef _AMIGA
 int __stack = 20000; /* Make sure we have 20K of stack space */
 #endif
+#ifdef VMS
+int vms_use_mcr_command = 0;
+int vms_always_use_cmd_file = 0;
+#endif
 
 void init_dir (void);
 void remote_setup (void);
@@ -1190,14 +1194,38 @@ main (int argc, char **argv, char **envp)
             }
         }
 #endif
-      if (program == 0)
 #ifdef VMS
-        program = vms_progname(argv[0]);
+      set_program_name (argv[0]);
+      program = program_name;
+      {
+        const char *value;
+        value = getenv ("GNV$MAKE_USE_MCR");
+        if (value != NULL)
+          vms_use_mcr_command = 1;
+
+        value = getenv ("GNV$MAKE_USE_CMD_FILE");
+        if (value != NULL)
+          switch (value[0])
+            {
+            case '1':
+            case 'T':
+            case 't':
+            case 'e':
+            case 'E':
+              vms_always_use_cmd_file = 1;
+              break;
+            default:
+              vms_always_use_cmd_file = 0;
+            }
+      }
+      if (need_vms_symbol () && !vms_use_mcr_command)
+        create_foreign_command (program_name, argv[0]);
 #else
+      if (program == 0)
         program = argv[0];
-#endif
       else
         ++program;
+#endif
     }
 
   /* Set up to access user data (files).  */
@@ -1593,8 +1621,12 @@ main (int argc, char **argv, char **envp)
 
   /* The extra indirection through $(MAKE_COMMAND) is done
      for hysterical raisins.  */
+
 #ifdef VMS
-  define_variable_cname("MAKE_COMMAND", vms_command(argv[0]), o_default, 0);
+  if (vms_use_mcr_command)
+    define_variable_cname ("MAKE_COMMAND", vms_command (argv[0]), o_default, 0);
+  else
+    define_variable_cname ("MAKE_COMMAND", program, o_default, 0);
 #else
   define_variable_cname ("MAKE_COMMAND", argv[0], o_default, 0);
 #endif
@@ -1742,7 +1774,7 @@ main (int argc, char **argv, char **envp)
                  _("Makefile from standard input specified twice."));
 
 #ifdef VMS
-# define DEFAULT_TMPDIR     "sys$scratch:"
+# define DEFAULT_TMPDIR     "/sys$scratch/"
 #else
 # ifdef P_tmpdir
 #  define DEFAULT_TMPDIR    P_tmpdir
@@ -1900,7 +1932,7 @@ main (int argc, char **argv, char **envp)
     no_default_sh_exe = !find_and_set_default_shell (NULL);
 #endif /* WINDOWS32 */
 
-#if defined (__MSDOS__) || defined (__EMX__)
+#if defined (__MSDOS__) || defined (__EMX__) || defined (VMS)
   /* We need to know what kind of shell we will be using.  */
   {
     extern int _is_unixy_shell (const char *_path);
@@ -2355,12 +2387,18 @@ main (int argc, char **argv, char **envp)
                   {
                     *p = alloca (40);
                     sprintf (*p, "%s=%u", MAKELEVEL_NAME, makelevel);
+#ifdef VMS
+                    vms_putenv_symbol (*p);
+#endif
                   }
                 else if (strneq (*p, "MAKE_RESTARTS=", CSTRLEN ("MAKE_RESTARTS=")))
                   {
                     *p = alloca (40);
                     sprintf (*p, "MAKE_RESTARTS=%s%u",
                              OUTPUT_IS_TRACED () ? "-" : "", restarts);
+#ifdef VMS
+                    vms_putenv_symbol (*p);
+#endif
                     restarts = 0;
                   }
               }
@@ -2385,6 +2423,9 @@ main (int argc, char **argv, char **envp)
               sprintf (b, "MAKE_RESTARTS=%s%u",
                        OUTPUT_IS_TRACED () ? "-" : "", restarts);
               putenv (b);
+#ifdef __VMS
+              vms_putenv_symbol (b);
+#endif
             }
 
           fflush (stdout);
@@ -2529,8 +2570,7 @@ main (int argc, char **argv, char **envp)
         makefile_status = MAKE_TROUBLE;
         break;
       case us_failed:
-        /* Updating failed.  POSIX.2 specifies exit status >1 for this;
-           but in VMS, there is only success and failure.  */
+        /* Updating failed.  POSIX.2 specifies exit status >1 for this; */
         makefile_status = MAKE_FAILURE;
         break;
     }

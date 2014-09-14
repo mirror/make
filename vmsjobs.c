@@ -20,13 +20,67 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <descrip.h>
 #include <clidef.h>
 
+/* TODO - VMS specific header file conditionally included in makeint.h */
+
+#include <stsdef.h>
+#include <ssdef.h>
+void
+decc$exit (int status);
+
+/* Lowest legal non-success VMS exit code is 8 */
+/* GNU make only defines codes 0, 1, 2 */
+/* So assume any exit code > 8 is a VMS exit code */
+
+#ifndef MAX_EXPECTED_EXIT_CODE
+# define MAX_EXPECTED_EXIT_CODE 7
+#endif
+
+
+#if __CRTL_VER >= 70302000 && !defined(__VAX)
+# define MAX_DCL_LINE_LENGTH 4095
+#else
+# define MAX_DCL_LINE_LENGTH 1023
+#endif
+
 char *vmsify (char *name, int type);
 
 static int vms_jobsefnmask = 0;
 
+/* returns whether path is assumed to be a unix like shell. */
+int
+_is_unixy_shell (const char *path)
+{
+  if (path == NULL)
+      return 0;
+
+  /* When in doubt assume a unix like shell */
+  return 1;
+}
+
+#define VMS_GETMSG_MAX 256
+static char vms_strsignal_text[VMS_GETMSG_MAX + 2];
+
+char *
+vms_strsignal (int status)
+{
+  if (status <= MAX_EXPECTED_EXIT_CODE)
+    sprintf (vms_strsignal_text, "lib$spawn returned %x", status);
+  else
+    {
+      int vms_status;
+      unsigned short * msg_len;
+      unsigned char out[4];
+      vms_status = SYS$GETMSG (status, &msg_len,
+                               vms_strsignal_text, 7, *out);
+    }
+
+  return vms_strsignal_text;
+}
+
+
 /* Wait for nchildren children to terminate */
 static void
-vmsWaitForChildren(int *status)
+vmsWaitForChildren (int *status)
 {
   while (1)
     {
@@ -132,9 +186,19 @@ vmsHandleChildTerm(struct child *child)
 
   (void) sigblock (fatal_signal_mask);
 
-  child_failed = !(child->cstatus & 1);
-  if (child_failed)
-    exit_code = child->cstatus;
+  /* First check to see if this is a POSIX exit status and handle */
+  if ((child->cstatus & VMS_POSIX_EXIT_MASK) == VMS_POSIX_EXIT_MASK)
+    {
+      exit_code = (child->cstatus >> 3) & 255;
+      if (exit_code != MAKE_SUCCESS)
+        child_failed = 1;
+    }
+  else
+    {
+      child_failed = !$VMS_STATUS_SUCCESS (child->cstatus);
+      if (child_failed)
+        exit_code = child->cstatus;
+    }
 
   /* Search for a child matching the deceased one.  */
   lastc = 0;
@@ -145,68 +209,15 @@ vmsHandleChildTerm(struct child *child)
   c = child;
 #endif
 
-  if (child_failed && !c->noerror && !ignore_errors_flag)
+  if ($VMS_STATUS_SUCCESS (child->vms_launch_status))
     {
-      /* The commands failed.  Write an error message,
-         delete non-precious targets, and abort.  */
-      child_error (c, c->cstatus, 0, 0, 0);
-      c->file->update_status = us_failed;
-      delete_child_targets (c);
-    }
-  else
-    {
-      if (child_failed)
-        {
-          /* The commands failed, but we don't care.  */
-          child_error (c, c->cstatus, 0, 0, 1);
-          child_failed = 0;
-        }
-
-#if defined(RECURSIVEJOBS) /* I've had problems with recursive stuff and process handling */
-      /* If there are more commands to run, try to start them.  */
-      start_job (c);
-
-      switch (c->file->command_state)
-        {
-        case cs_running:
-          /* Successfully started.  */
-          break;
-
-        case cs_finished:
-          if (c->file->update_status != us_success)
-            /* We failed to start the commands.  */
-            delete_child_targets (c);
-          break;
-
-        default:
-          OS (error, NILF,
-              _("internal error: '%s' command_state"), c->file->name);
-          abort ();
-          break;
-        }
-#endif /* RECURSIVEJOBS */
+      /* Convert VMS success status to 0 for UNIX code to be happy */
+      child->vms_launch_status = 0;
     }
 
   /* Set the state flag to say the commands have finished.  */
   c->file->command_state = cs_finished;
   notice_finished_file (c->file);
-
-#if defined(RECURSIVEJOBS) /* I've had problems with recursive stuff and process handling */
-  /* Remove the child from the chain and free it.  */
-  if (lastc == 0)
-    children = c->next;
-  else
-    lastc->next = c->next;
-  free_child (c);
-#endif /* RECURSIVEJOBS */
-
-  /* There is now another slot open.  */
-  if (job_slots_used > 0)
-    --job_slots_used;
-
-  /* If the job failed, and the -k flag was not given, die.  */
-  if (child_failed && !keep_going_flag)
-    die (exit_code);
 
   (void) sigsetmask (sigblock (0) & ~(fatal_signal_mask));
 
@@ -215,8 +226,6 @@ vmsHandleChildTerm(struct child *child)
 
 /* VMS:
    Spawn a process executing the command in ARGV and return its pid. */
-
-#define MAXCMDLEN 200
 
 /* local helpers to make ctrl+c and ctrl+y working, see below */
 #include <iodef.h>
@@ -508,10 +517,8 @@ child_execute_job (char *argv, struct child *child)
             }
         }
       /* expand ':' aka 'do nothing' builtin for bash and friends */
-      else if (cmd[0]==':' && cmd[1]=='\0')
-        {
-          cmd = "continue";
-        }
+      else if (cmd[0]==':')
+        cmd[0] = '!';
     }
   else
     {
@@ -614,23 +621,23 @@ child_execute_job (char *argv, struct child *child)
       cmd = tmp_cmd;
     }
 
-#ifdef USE_DCL_COM_FILE
-  /* Enforce the creation of a command file.
+  /* Enforce the creation of a command file if "vms_always_use_cmd_file" is
+     non-zero.
      Then all the make environment variables are written as DCL symbol
      assignments into the command file as well, so that they are visible
      in the sub-process but do not affect the current process.
      Further, this way DCL reads the input stream and therefore does
      'forced' symbol substitution, which it doesn't do for one-liners when
      they are 'lib$spawn'ed. */
-#else
+
+  /* Otherwise the behavior is: */
   /* Create a *.com file if either the command is too long for
      lib$spawn, or the command contains a newline, or if redirection
      is desired. Forcing commands with newlines into DCLs allows to
      store search lists on user mode logicals.  */
-  if (strlen (cmd) > MAXCMDLEN
+  if (vms_always_use_cmd_file || strlen (cmd) > (MAX_DCL_LINE_LENGTH - 30)
       || (have_redirection != 0)
       || (have_newline != 0))
-#endif
     {
       FILE *outfile;
       char c;
@@ -696,9 +703,9 @@ child_execute_job (char *argv, struct child *child)
             DB (DB_JOBS, (_("Redirected output to %s\n"), ofile));
             ofiledsc.dsc$w_length = 0;
           }
-#ifdef USE_DCL_COM_FILE
+
       /* Export the child environment into DCL symbols */
-      if (child->environment != 0)
+      if (vms_always_use_cmd_file || (child->environment != 0))
         {
           char **ep = child->environment;
           char *valstr;
@@ -712,7 +719,7 @@ child_execute_job (char *argv, struct child *child)
               ep++;
             }
         }
-#endif
+
       fprintf (outfile, "$ %.*s_ = f$verify(%.*s_1)\n", tmpstrlen, tmpstr, tmpstrlen, tmpstr);
 
       /* TODO: give 78 a name! Whether 78 is a good number is another question.
@@ -834,6 +841,17 @@ child_execute_job (char *argv, struct child *child)
 
   vms_jobsefnmask |= (1 << (child->efn - 32));
 
+  /* Export the child environment into DCL symbols */
+  if (!vms_always_use_cmd_file && child->environment != 0)
+    {
+      char **ep = child->environment;
+      while (*ep != 0)
+        {
+          vms_putenv_symbol (*ep);
+          *ep++;
+        }
+    }
+
   /*
     LIB$SPAWN  [command-string]
     [,input-file]
@@ -886,21 +904,23 @@ child_execute_job (char *argv, struct child *child)
 
   if (!setupYAstTried)
     tryToSetupYAst();
-  status = lib$spawn (&cmddsc,                                  /* cmd-string */
-                      (ifiledsc.dsc$w_length == 0)?0:&ifiledsc, /* input-file */
-                      (ofiledsc.dsc$w_length == 0)?0:&ofiledsc, /* output-file */
-                      &spflags,                                 /* flags */
-                      &pnamedsc,                                /* proc name */
-                      &child->pid, &child->cstatus, &child->efn,
-                      0, 0,
-                      0, 0, 0);
-  if (status & 1)
+  child->vms_launch_status = lib$spawn (&cmddsc,               /* cmd-string */
+                     (ifiledsc.dsc$w_length == 0)?0:&ifiledsc, /* input-file */
+                     (ofiledsc.dsc$w_length == 0)?0:&ofiledsc, /* output-file */
+                     &spflags,                                 /* flags */
+                     &pnamedsc,                                /* proc name */
+                     &child->pid, &child->cstatus, &child->efn,
+                     0, 0,
+                     0, 0, 0);
+
+  status = child->vms_launch_status;
+  if ($VMS_STATUS_SUCCESS (status))
     {
-      status= sys$waitfr (child->efn);
-      vmsHandleChildTerm(child);
+      status = sys$waitfr (child->efn);
+      vmsHandleChildTerm (child);
     }
 #else
-  status = lib$spawn (&cmddsc,
+  child->vms_launch_status = lib$spawn (&cmddsc,
                       (ifiledsc.dsc$w_length == 0)?0:&ifiledsc,
                       (ofiledsc.dsc$w_length == 0)?0:&ofiledsc,
                       &spflags,
@@ -908,19 +928,29 @@ child_execute_job (char *argv, struct child *child)
                       &child->pid, &child->cstatus, &child->efn,
                       vmsHandleChildTerm, child,
                       0, 0, 0);
+   status = child->vms_launch_status;
 #endif
 
-  if (!(status & 1))
+  if (!$VMS_STATUS_SUCCESS (status))
     {
-      printf (_("Error spawning, %d\n") ,status);
-      fflush (stdout);
       switch (status)
         {
-        case 0x1c:
+        case SS$_EXQUOTA:
           errno = EPROCLIM;
           break;
         default:
           errno = EFAIL;
+        }
+    }
+
+  /* Restore the VMS symbols that were changed */
+  if (!vms_always_use_cmd_file && child->environment != 0)
+    {
+      char **ep = child->environment;
+      while (*ep != 0)
+        {
+          vms_restore_symbol (*ep);
+          *ep++;
         }
     }
 

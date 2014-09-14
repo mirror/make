@@ -59,8 +59,20 @@ int batch_mode_shell = 0;
 #elif defined (VMS)
 
 # include <descrip.h>
+# include <stsdef.h>
 const char *default_shell = "";
 int batch_mode_shell = 0;
+
+#define strsignal vms_strsignal
+char * vms_strsignal (int status);
+
+#ifndef C_FACILITY_NO
+# define C_FACILITY_NO 0x350000
+#endif
+#ifndef VMS_POSIX_EXIT_MASK
+# define VMS_POSIX_EXIT_MASK (C_FACILITY_NO | 0xA000)
+#endif
+
 
 #elif defined (__riscos__)
 
@@ -504,21 +516,6 @@ child_error (struct child *child,
 
   l += strlen (pre) + strlen (post);
 
-#ifdef VMS
-  if ((exit_code & 1) != 0)
-    {
-      OUTPUT_UNSET ();
-      return;
-    }
-  /* Check for a Posix compatible VMS style exit code:
-     decode and print the Posix exit code */
-  if ((exit_code & 0x35a000) == 0x35a000)
-    error(NILF, l + INTSTR_LENGTH, _("%s[%s] Error %d%s"), pre, f->name,
-        ((exit_code & 0x7f8) >> 3), post);
-  else
-    error(NILF, l + INTSTR_LENGTH, _("%s[%s] Error 0x%x%s"), pre, f->name,
-        exit_code, post);
-#else
   if (exit_sig == 0)
     error (NILF, l + INTSTR_LENGTH,
            _("%s[%s] Error %d%s"), pre, f->name, exit_code, post);
@@ -528,7 +525,6 @@ child_error (struct child *child,
       error (NILF, l + strlen (s) + strlen (dump),
              _("%s[%s] %s%s%s"), pre, f->name, s, dump, post);
     }
-#endif /* VMS */
 
   OUTPUT_UNSET ();
 }
@@ -678,8 +674,17 @@ reap_children (int block, int err)
           if (any_local)
             {
 #ifdef VMS
+              /* Todo: This needs more untangling multi-process support */
+              /* Just do single child process support now */
               vmsWaitForChildren (&status);
               pid = c->pid;
+
+              /* VMS failure status can not be fully translated */
+              status = $VMS_STATUS_SUCCESS (c->cstatus) ? 0 : (1 << 8);
+
+              /* A Posix failure can be exactly translated */
+              if ((c->cstatus & VMS_POSIX_EXIT_MASK) == VMS_POSIX_EXIT_MASK)
+                status = (c->cstatus >> 3 & 255) << 8;
 #else
 #ifdef WAIT_NOHANG
               if (!block)
