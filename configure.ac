@@ -249,8 +249,8 @@ AS_IF([test "$PATH_SEPARATOR" = ';'],
 AC_SUBST([REMOTE]) REMOTE=stub
 use_customs=false
 AC_ARG_WITH([customs],
-[ AC_HELP_STRING([--with-customs=DIR],
-                 [enable remote jobs via Customs--see README.customs])],
+[AC_HELP_STRING([--with-customs=DIR],
+                [enable remote jobs via Customs--see README.customs])],
 [ AS_CASE([$withval], [n|no], [:],
     [make_cppflags="$CPPFLAGS"
      AS_CASE([$withval],
