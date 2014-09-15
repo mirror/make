@@ -1400,12 +1400,14 @@ main (int argc, char **argv, char **envp)
     /* Set a variable specifying whether stdout/stdin is hooked to a TTY.  */
 #ifdef HAVE_ISATTY
     if (isatty (fileno (stdout)))
-      define_variable_cname ("MAKE_TTYOUT", TTYNAME (fileno (stdout)),
-                             o_default, 0)->export = v_export;
+      if (! lookup_variable (STRING_SIZE_TUPLE ("MAKE_TERMOUT")))
+        define_variable_cname ("MAKE_TERMOUT", TTYNAME (fileno (stdout)),
+                               o_default, 0)->export = v_export;
 
     if (isatty (fileno (stderr)))
-      define_variable_cname ("MAKE_TTYERR", TTYNAME (fileno (stderr)),
-                             o_default, 0)->export = v_export;
+      if (! lookup_variable (STRING_SIZE_TUPLE ("MAKE_TERMERR")))
+        define_variable_cname ("MAKE_TERMERR", TTYNAME (fileno (stderr)),
+                               o_default, 0)->export = v_export;
 #endif
 
   /* Reset in case the switches changed our minds.  */
