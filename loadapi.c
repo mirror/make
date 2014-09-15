@@ -39,9 +39,17 @@ gmk_free (char *s)
 void
 gmk_eval (const char *buffer, const gmk_floc *floc)
 {
+  /* Preserve existing variable buffer context.  */
+  char *pbuf;
+  unsigned int plen;
+
+  install_variable_buffer (&pbuf, &plen);
+
   char *s = xstrdup (buffer);
   eval_buffer (s, floc);
   free (s);
+
+  restore_variable_buffer (pbuf, plen);
 }
 
 /* Expand a string and return an allocated buffer.
