@@ -1233,6 +1233,8 @@ start_job_command (struct child *child)
           {
             if (*s == '"')
               instring = !instring;
+            else if (*s == '\\' && !instring && *(s+1) != 0)
+              s++;
             else if (*s == '\n' && !instring)
               {
                 end = s;

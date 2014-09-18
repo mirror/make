@@ -714,68 +714,74 @@ child_execute_job (char *argv, struct child *child)
         }
 #endif
       fprintf (outfile, "$ %.*s_ = f$verify(%.*s_1)\n", tmpstrlen, tmpstr, tmpstrlen, tmpstr);
+
+      /* TODO: give 78 a name! Whether 78 is a good number is another question.
+         Trim, split and write the command lines.
+         Splitting of a command is done after 78 output characters at an
+         appropriate place (after strings, after comma or space and
+         before slash): appending a hyphen indicates that the DCL command
+         is being continued.
+         Trimming is to skip any whitespace around - including - a
+         leading $ from the command to ensure writing exactly one "$ "
+         at the beginning of the line of the output file. Trimming is
+         done when a new command is seen, indicated by a '\n' (outside
+         of a string).
+         The buffer so far is written and reset, when a new command is
+         seen, when a split was done and at the end of the command.
+         Only for ONESHELL there will be several commands separated by
+         '\n'. But there can always be multiple continuation lines. */
       p = sep = q = cmd;
       for (c = '\n'; c; c = *q++)
         {
           switch (c)
-            {
-            case '\n':
-              /* At a newline, skip any whitespace around a leading $
-                 from the command and issue exactly one $ into the DCL. */
-              while (isspace ((unsigned char)*p))
-                p++;
-              if (*p == '$')
-                p++;
-              while (isspace ((unsigned char)*p))
-                p++;
-              fwrite (p, 1, q - p, outfile);
-              fputc ('$', outfile);
-              fputc (' ', outfile);
-              /* Reset variables. */
-              p = sep = q;
-              break;
-
-              /* Nice places for line breaks are after strings, after
-                 comma or space and before slash. */
-            case '"':
-              q = vms_handle_apos (q);
-              sep = q;
-              break;
-            case ',':
-            case ' ':
-              sep = q;
-              break;
-            case '/':
-            case '\0':
-              sep = q - 1;
-              break;
-            default:
-              break;
-            }
+          {
+          case '\n':
+            if (q > p)
+              {
+                fwrite(p, 1, q - p, outfile);
+                p = q;
+              }
+            fputc('$', outfile);
+            fputc(' ', outfile);
+            while (isspace((unsigned char) *p))
+              p++;
+            if (*p == '$')
+              p++;
+            while (isspace((unsigned char) *p))
+              p++;
+            q = sep = p;
+            break;
+          case '"':
+            q = vms_handle_apos(q);
+            sep = q;
+            break;
+          case ',':
+          case ' ':
+            sep = q;
+            break;
+          case '/':
+          case '\0':
+            sep = q - 1;
+            break;
+          default:
+            break;
+          }
           if (sep - p > 78)
             {
               /* Enough stuff for a line. */
-              fwrite (p, 1, sep - p, outfile);
+              fwrite(p, 1, sep - p, outfile);
               p = sep;
               if (*sep)
                 {
                   /* The command continues.  */
-                  fputc ('-', outfile);
+                  fputc('-', outfile);
                 }
-              fputc ('\n', outfile);
+              fputc('\n', outfile);
             }
         }
 
       if (*p)
         {
-          /* At the end of the line, skip any whitespace around a leading $
-             from the command because one $ was already written into the DCL. */
-          while (isspace((unsigned char) *p))
-            p++;
-          if (*p == '$')
-            p++;
-          while (isspace((unsigned char) *p))
-            p++;
           fwrite(p, 1, --q - p, outfile);
           fputc('\n', outfile);
         }
