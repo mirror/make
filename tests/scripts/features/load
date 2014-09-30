@@ -23,6 +23,7 @@ int plugin_is_GPL_compatible;
 int
 testload_gmk_setup (gmk_floc *pos)
 {
+    (void)pos;
     gmk_eval ("TESTLOAD = implicit", 0);
     return 1;
 }
@@ -30,6 +31,7 @@ testload_gmk_setup (gmk_floc *pos)
 int
 explicit_setup (gmk_floc *pos)
 {
+    (void)pos;
     gmk_eval ("TESTLOAD = explicit", 0);
     return 1;
 }
