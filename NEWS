@@ -1,6 +1,6 @@
 GNU make NEWS                                               -*-indented-text-*-
   History of user-visible changes.
-  13 Oct 2013
+  30 Sep 2014
 
 See the end of this file for copyrights and conditions.
 
@@ -9,15 +9,15 @@ manual, which is contained in this distribution as the file doc/make.texi.
 See the README file and the GNU make manual for instructions for
 reporting bugs.
 
-Version 4.0.90
+Version 4.0.90 (30 Sep 2014)
 
 A complete list of bugs fixed in this version is available here:
 
 http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=105&set=custom
 
-* New variables: $(MAKE_TERMOUT) and $(MAKE_TERMERR) are set if stdout or
-  stderr, respectively, are believed to be writing to a terminal.  These
-  variables are exported by default.
+* New variables: $(MAKE_TERMOUT) and $(MAKE_TERMERR) are set to non-empty
+  values if stdout or stderr, respectively, are believed to be writing to a
+  terminal.  These variables are exported by default.
 
 * Allow a no-text-argument form of the $(file ...) function.  Without a text
   argument nothing is written to the file: it is simply opened in the
@@ -1219,7 +1219,7 @@ Version 3.05
 (Changes from versions 1 through 3.05 were never recorded.  Sorry.)
 
 -------------------------------------------------------------------------------
-Copyright (C) 1988-2013 Free Software Foundation, Inc.
+Copyright (C) 1988-2014 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the
