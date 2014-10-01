@@ -350,7 +350,7 @@ char *strsignal (int signum);
 # include <malloc.h>
 # define pipe(_p)        _pipe((_p), 512, O_BINARY)
 # define kill(_pid,_sig) w32_kill((_pid),(_sig))
-/* MSVC doesn't have ftruncate.  */
+/* MSVC and Watcom C don't have ftruncate.  */
 # if defined(_MSC_VER) || defined(__WATCOMC__)
 #  define ftruncate(_fd,_len) _chsize(_fd,_len)
 # endif
