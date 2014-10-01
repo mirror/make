@@ -1639,14 +1639,18 @@ start_job_command (struct child *child)
       sync_Path_environment ();
 
 #ifndef NO_OUTPUT_SYNC
-          /* Divert child output if output_sync in use.  Don't capture
-             recursive make output unless we are synchronizing "make" mode.  */
-          if (child->output.syncout)
-            hPID = process_easy (argv, child->environment,
-                                 child->output.out, child->output.err);
-          else
+      /* Divert child output if output_sync in use.  */
+      if (child->output.syncout)
+        {
+          if (child->output.out >= 0)
+            outfd = child->output.out;
+          if (child->output.err >= 0)
+            errfd = child->output.err;
+        }
+#else
+      outfd = errfd = -1;
 #endif
-            hPID = process_easy (argv, child->environment, -1, -1);
+      hPID = process_easy (argv, child->environment, outfd, errfd);
 
       if (hPID != INVALID_HANDLE_VALUE)
         child->pid = (pid_t) hPID;

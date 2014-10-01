@@ -1454,7 +1454,7 @@ int shell_function_pid = 0, shell_function_completed;
 
 
 int
-windows32_openpipe (int *pipedes, pid_t *pid_p, char **command_argv, char **envp)
+windows32_openpipe (int *pipedes, int errfd, pid_t *pid_p, char **command_argv, char **envp)
 {
   SECURITY_ATTRIBUTES saAttr;
   HANDLE hIn = INVALID_HANDLE_VALUE;
@@ -1500,7 +1500,7 @@ windows32_openpipe (int *pipedes, pid_t *pid_p, char **command_argv, char **envp
           return -1;
         }
     }
-  tmpErr = GetStdHandle (STD_ERROR_HANDLE);
+  tmpErr = (HANDLE)_get_osfhandle (errfd);
   if (DuplicateHandle (GetCurrentProcess (), tmpErr,
                        GetCurrentProcess (), &hErr,
                        0, TRUE, DUPLICATE_SAME_ACCESS) == FALSE)
@@ -1729,7 +1729,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
       return o;
     }
 #elif defined(WINDOWS32)
-  windows32_openpipe (pipedes, &pid, command_argv, envp);
+  windows32_openpipe (pipedes, errfd, &pid, command_argv, envp);
   /* Restore the value of just_print_flag.  */
   just_print_flag = j_p_f;
 
