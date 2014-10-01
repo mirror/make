@@ -890,7 +890,7 @@ find_and_set_default_shell (const char *token)
   int sh_found = 0;
   char *atoken = 0;
   const char *search_token;
-  char *tokend;
+  const char *tokend;
   PATH_VAR(sh_path);
   extern const char *default_shell;
 
@@ -1032,8 +1032,8 @@ main (int argc, char **argv, char **envp)
   unsigned int restarts = 0;
   unsigned int syncing = 0;
 #ifdef WINDOWS32
-  char *unix_path = NULL;
-  char *windows32_path = NULL;
+  const char *unix_path = NULL;
+  const char *windows32_path = NULL;
 
   SetUnhandledExceptionFilter (handle_runtime_exceptions);
 

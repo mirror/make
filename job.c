@@ -2703,7 +2703,9 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
 #endif
   int i;
   char *p;
+#ifndef NDEBUG
   char *end;
+#endif
   char *ap;
   const char *cap;
   const char *cp;
@@ -2807,7 +2809,9 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
 
   /* All the args can fit in a buffer as big as LINE is.   */
   ap = new_argv[0] = argstr = xmalloc (i);
+#ifndef NDEBUG
   end = ap + i;
+#endif
 
   /* I is how many complete arguments have been found.  */
   i = 0;
