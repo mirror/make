@@ -171,8 +171,11 @@ consistent (that's why we don't finalize the Git tag, etc. until the end).
     "Fixed Release" ID number.
   * Run "make distcheck" to be sure it all works.
   * Run "make check-alt-config" to be sure alternative configurations work
-  * Run "make update-www" to get a copy of the GNU make web pages
-  * Update the web page boilerplate if necessary
+  * Run "make update-makeweb" to get a copy of the GNU make web pages
+  * Run "make update-gnuweb" to get a copy of the GNU website boilerplate pages
+  * Update the web page boilerplate if necessary:
+      ../gnu-www/www/server/standards/patch-from-parent ../make-web/make.html \
+            ../gnu-www/www/server/standards/boilerplate.html
   * Run "make gendocs" (requires gnulib) to generate the manual files for
     the GNU make web pages.
   * Follow the directions from gendocs for the web page repository

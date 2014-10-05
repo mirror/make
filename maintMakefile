@@ -286,7 +286,7 @@ po-check:
 ## Generate docs.  ##
 ## --------------- ##
 
-.PHONY: update-www gendocs
+.PHONY: update-makeweb gendocs
 
 CVS = cvs
 
@@ -318,7 +318,7 @@ gendocs: update-gnuweb update-makeweb
 	find '$(MAKEWEBDIR)'/manual \( -name CVS -prune \) -o \( -name '[!.]*' -type f -exec rm -f '{}' \; \)
 	cp -r doc/manual '$(MAKEWEBDIR)'
 	@echo 'Status of $(MAKEWEBDIR) repo:' && cd '$(MAKEWEBDIR)' \
-	    && cvs -q -n update \
+	    && cvs -q -n update | grep -v '^M ' \
 	    && echo '- cvs add <new files>' \
 	    && echo '- cvs remove <deleted files>' \
 	    && echo '- cvs commit' \

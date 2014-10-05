@@ -1,6 +1,6 @@
 GNU make NEWS                                               -*-indented-text-*-
   History of user-visible changes.
-  30 Sep 2014
+  05 Oct 2014
 
 See the end of this file for copyrights and conditions.
 
@@ -9,7 +9,7 @@ manual, which is contained in this distribution as the file doc/make.texi.
 See the README file and the GNU make manual for instructions for
 reporting bugs.
 
-Version 4.0.90 (30 Sep 2014)
+Version 4.1 (05 Oct 2014)
 
 A complete list of bugs fixed in this version is available here:
 
