@@ -359,6 +359,12 @@ sub set_more_defaults
    elsif ($osname =~ m%OS/2%) {
      $port_type = 'OS/2';
    }
+
+   # VMS has a GNV Unix mode or a DCL mode.
+   # The SHELL environment variable should not be defined in VMS-DCL mode.
+   elsif ($osname eq 'VMS' && !defined $ENV{"SHELL"}) {
+     $port_type = 'VMS-DCL';
+   }
    # Everything else, right now, is UNIX.  Note that we should integrate
    # the VOS support into this as well and get rid of $vos; we'll do
    # that next time.
@@ -377,6 +383,7 @@ sub set_more_defaults
    # Find the full pathname of Make.  For DOS systems this is more
    # complicated, so we ask make itself.
    if ($osname eq 'VMS') {
+     $port_type = 'VMS-DCL' unless defined $ENV{"SHELL"};
      # On VMS pre-setup make to be found with simply 'make'.
      $make_path = 'make';
    } else {

@@ -238,18 +238,18 @@ $!
 $ if no_gnv .or. no_perl then exit 44
 $!
 $!
-$ make := $bin:make.exe
 $ default = f$environment("DEFAULT")
+$ default_dev = f$element(0, ":", default) + ":"
 $ this = f$environment("PROCEDURE")
 $ on error then goto all_error
-$ set default 'f$parse(this,,,"DEVICE")''f$parse(this,,,"DIRECTORY")'
+$ set default 'default_dev''f$parse(this,,,"DIRECTORY")'
 $!
 $! Need to make sure that the config-flags.pm exists.
 $ if f$search("config-flags.pm") .eqs. ""
 $ then
 $   @config_flags_pm.com
 $ endif
-$ define/user bin 'default',gnv$gnu:[bin]
+$ define/user bin 'default_dev'[-],gnv$gnu:[bin]
 $ define/user decc$filename_unix_noversion enable
 $ define/user decc$filename_unix_report enable
 $ define/user decc$readdir_dropdotnotype enable
