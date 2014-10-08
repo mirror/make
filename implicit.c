@@ -266,12 +266,15 @@ pattern_search (struct file *file, int archive,
       /* Set LASTSLASH to point at the last slash in FILENAME
          but not counting any slash at the end.  (foo/bar/ counts as
          bar/ in directory foo/, not empty in directory foo/bar/.)  */
-#ifdef VMS
-      lastslash = strrchr (filename, ']');
-      if (lastslash == 0)
-        lastslash = strrchr (filename, ':');
-#else
       lastslash = strrchr (filename, '/');
+#ifdef VMS
+      if (lastslash == NULL)
+        lastslash = strrchr (filename, ']');
+      if (lastslash == NULL)
+        lastslash = strrchr (filename, '>');
+      if (lastslash == NULL)
+        lastslash = strrchr (filename, ':');
+#endif
 #ifdef HAVE_DOS_PATHS
       /* Handle backslashes (possibly mixed with forward slashes)
          and the case of "d:file".  */
@@ -282,7 +285,6 @@ pattern_search (struct file *file, int archive,
         if (lastslash == 0 && filename[0] && filename[1] == ':')
           lastslash = filename + 1;
       }
-#endif
 #endif
       if (lastslash != 0 && lastslash[1] == '\0')
         lastslash = 0;
@@ -339,10 +341,10 @@ pattern_search (struct file *file, int archive,
           if (lastslash)
             {
 #ifdef VMS
-              check_lastslash = (strchr (target, ']') == 0
-                                 && strchr (target, ':') == 0);
+              check_lastslash = strpbrk (target, "/]>:") == NULL;
 #else
               check_lastslash = strchr (target, '/') == 0;
+#endif
 #ifdef HAVE_DOS_PATHS
               /* Didn't find it yet: check for DOS-type directories.  */
               if (check_lastslash)
@@ -350,7 +352,6 @@ pattern_search (struct file *file, int archive,
                   char *b = strchr (target, '\\');
                   check_lastslash = !(b || (target[0] && target[1] == ':'));
                 }
-#endif
 #endif
             }
           if (check_lastslash)

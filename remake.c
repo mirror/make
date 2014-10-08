@@ -1325,6 +1325,8 @@ f_mtime (struct file *file, int search)
               || (file->name[0] == '-' && file->name[1] == 'l'
                   && (name = library_search (file->name, &mtime)) != 0))
             {
+              int name_len;
+
               if (mtime != UNKNOWN_MTIME)
                 /* vpath_search and library_search store UNKNOWN_MTIME
                    if they didn't need to do a stat call for their work.  */
@@ -1333,7 +1335,14 @@ f_mtime (struct file *file, int search)
               /* If we found it in VPATH, see if it's in GPATH too; if so,
                  change the name right now; if not, defer until after the
                  dependencies are updated. */
-              if (gpath_search (name, strlen (name) - strlen (file->name) - 1))
+#ifndef VMS
+              name_len = strlen (name) - strlen (file->name) - 1;
+#else
+              name_len = strlen (name) - strlen (file->name);
+              if (name[name_len - 1] == '/')
+                  name_len--;
+#endif
+              if (gpath_search (name, name_len))
                 {
                   rename_file (file, name);
                   check_renamed (file);

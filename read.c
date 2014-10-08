@@ -241,7 +241,8 @@ read_all_makefiles (const char **makefiles)
       static const char *default_makefiles[] =
 #ifdef VMS
         /* all lower case since readdir() (the vms version) 'lowercasifies' */
-        { "makefile.vms", "gnumakefile.", "makefile.", 0 };
+        /* TODO: Above is not always true, this needs more work */
+        { "makefile.vms", "gnumakefile", "makefile", 0 };
 #else
 #ifdef _AMIGA
         { "GNUmakefile", "Makefile", "SMakefile", 0 };
@@ -3099,12 +3100,15 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
       /* Strip leading "this directory" references.  */
       if (NONE_SET (flags, PARSEFS_NOSTRIP))
 #ifdef VMS
-        /* Skip leading '[]'s.  */
-        while (p - s > 2 && s[0] == '[' && s[1] == ']')
-#else
+        /* Skip leading '[]'s. should only be one set or bug somwhere else */
+        if (p - s > 2 && s[0] == '[' && s[1] == ']')
+            s += 2;
+        /* Skip leading '<>'s. should only be one set or bug somwhere else */
+        if (p - s > 2 && s[0] == '<' && s[1] == '>')
+            s += 2;
+#endif
         /* Skip leading './'s.  */
         while (p - s > 2 && s[0] == '.' && s[1] == '/')
-#endif
           {
             /* Skip "./" and all following slashes.  */
             s += 2;
@@ -3118,9 +3122,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
       if (s == p)
         {
         /* The name was stripped to empty ("./"). */
-#if defined(VMS)
-          continue;
-#elif defined(_AMIGA)
+#if defined(_AMIGA)
           /* PDS-- This cannot be right!! */
           tp[0] = '\0';
           nlen = 0;
