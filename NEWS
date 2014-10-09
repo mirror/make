@@ -9,6 +9,13 @@ manual, which is contained in this distribution as the file doc/make.texi.
 See the README file and the GNU make manual for instructions for
 reporting bugs.
 
+Version 4.1.90 (05 Oct 2014)
+
+A complete list of bugs fixed in this version is available here:
+
+http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=106&set=custom
+
+
 Version 4.1 (05 Oct 2014)
 
 A complete list of bugs fixed in this version is available here:

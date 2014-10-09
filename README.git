@@ -195,7 +195,9 @@ Manage the Savannah project for GNU make:
     Release" fields:
       - Value: SCM
       - Rank:  20
-      - Descr: Fixed in Git; will be available in the next version of Make.
+      - Descr: Issues found in code retrieved from Source Code Management (Git), rather than a distributed version. Please include the SHA you are working with.
+
+      - Descr: Fixed in Source Code Management (Git). The fix will be included in the next release of GNU make.
 
 Start the next release:
 
