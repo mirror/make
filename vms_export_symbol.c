@@ -64,7 +64,11 @@ LIB$DELETE_SYMBOL (const struct dsc$descriptor_s * symbol,
                    const unsigned long * table);
 
 #define MAX_DCL_SYMBOL_LEN (255)
-#define MAX_DCL_SYMBOL_VALUE (1024)
+#if __CRTL_VER >= 70302000 && !defined(__VAX)
+# define MAX_DCL_SYMBOL_VALUE (8192)
+#else
+# define MAX_DCL_SYMBOL_VALUE (1024)
+#endif
 
 struct dcl_symbol
 {

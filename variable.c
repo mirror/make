@@ -205,11 +205,39 @@ define_variable_in_set (const char *name, unsigned int length,
   var_key.name = (char *) name;
   var_key.length = length;
   var_slot = (struct variable **) hash_find_slot (&set->table, &var_key);
+  v = *var_slot;
+
+#ifdef VMS
+  /* VMS does not populate envp[] with DCL symbols and logical names which
+     historically are mapped to environent variables.
+     If the variable is not yet defined, then we need to check if getenv()
+     can find it.  Do not do this for origin == o_env to avoid infinte
+     recursion */
+  if (HASH_VACANT (v) && (origin != o_env))
+    {
+      struct variable * vms_variable;
+      char * vname = alloca (length + 1);
+      char * vvalue;
+
+      strncpy (vname, name, length);
+      vvalue = getenv(vname);
+
+      /* Values starting with '$' are probably foreign commands.
+         We want to treat them as Shell aliases and not look them up here */
+      if ((vvalue != NULL) && (vvalue[0] != '$'))
+        {
+          vms_variable =  lookup_variable(name, length);
+          /* Refresh the slot */
+          var_slot = (struct variable **) hash_find_slot (&set->table,
+                                                          &var_key);
+          v = *var_slot;
+        }
+    }
+#endif
 
   if (env_overrides && origin == o_env)
     origin = o_env_override;
 
-  v = *var_slot;
   if (! HASH_VACANT (v))
     {
       if (env_overrides && v->origin == o_env)
@@ -450,8 +478,8 @@ lookup_variable (const char *name, unsigned int length)
     }
 
 #ifdef VMS
-  /* since we don't read envp[] on startup, try to get the
-     variable via getenv() here.  */
+  /* VMS does not populate envp[] with DCL symbols and logical names which
+     historically are mapped to enviroment varables and returned by getenv() */
   {
     char *vname = alloca (length + 1);
     char *value;
@@ -900,15 +928,7 @@ define_automatic_variables (void)
   /* Define the magic D and F variables in terms of
      the automatic variables they are variations of.  */
 
-#ifdef VMS
-  define_variable_cname ("@D", "$(dir $@)", o_automatic, 1);
-  define_variable_cname ("%D", "$(dir $%)", o_automatic, 1);
-  define_variable_cname ("*D", "$(dir $*)", o_automatic, 1);
-  define_variable_cname ("<D", "$(dir $<)", o_automatic, 1);
-  define_variable_cname ("?D", "$(dir $?)", o_automatic, 1);
-  define_variable_cname ("^D", "$(dir $^)", o_automatic, 1);
-  define_variable_cname ("+D", "$(dir $+)", o_automatic, 1);
-#elif defined(__MSDOS__) || defined(WINDOWS32)
+#if defined(__MSDOS__) || defined(WINDOWS32)
   /* For consistency, remove the trailing backslash as well as slash.  */
   define_variable_cname ("@D", "$(patsubst %/,%,$(patsubst %\\,%,$(dir $@)))",
                          o_automatic, 1);

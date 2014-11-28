@@ -38,9 +38,15 @@ decc$exit (int status);
 
 #if __CRTL_VER >= 70302000 && !defined(__VAX)
 # define MAX_DCL_LINE_LENGTH 4095
+# define MAX_DCL_CMD_LINE_LENGTH 8192
 #else
-# define MAX_DCL_LINE_LENGTH 1023
+# define MAX_DCL_LINE_LENGTH 255
+# define MAX_DCL_CMD_LINE_LENGTH 1024
 #endif
+#define MAX_DCL_TOKEN_LENGTH 255
+#define MAX_DCL_TOKENS 127
+
+enum auto_pipe { nopipe, add_pipe, dcl_pipe };
 
 char *vmsify (char *name, int type);
 
@@ -50,11 +56,7 @@ static int vms_jobsefnmask = 0;
 int
 _is_unixy_shell (const char *path)
 {
-  if (path == NULL)
-      return 0;
-
-  /* When in doubt assume a unix like shell */
-  return 1;
+  return vms_gnv_shell;
 }
 
 #define VMS_GETMSG_MAX 256
@@ -95,72 +97,6 @@ vmsWaitForChildren (int *status)
   return;
 }
 
-/* Set up IO redirection.  */
-
-static char *
-vms_redirect (struct dsc$descriptor_s *desc, char *fname, char *ibuf)
-{
-  char *fptr;
-  char saved;
-
-  ibuf++;
-  while (isspace ((unsigned char)*ibuf))
-    ibuf++;
-  fptr = ibuf;
-  while (*ibuf && !isspace ((unsigned char)*ibuf))
-    ibuf++;
-  saved = *ibuf;
-  *ibuf = 0;
-  if (strcmp (fptr, "/dev/null") != 0)
-    {
-      strcpy (fname, vmsify (fptr, 0));
-      if (strchr (fname, '.') == 0)
-        strcat (fname, ".");
-    }
-  desc->dsc$w_length = strlen (fname);
-  desc->dsc$a_pointer = fname;
-  desc->dsc$b_dtype = DSC$K_DTYPE_T;
-  desc->dsc$b_class = DSC$K_CLASS_S;
-
-  if (*fname == 0)
-    printf (_("Warning: Empty redirection\n"));
-  if (saved=='\0')
-    return ibuf;
-  *ibuf = saved;
-  return --ibuf;
-}
-
-
-/* found apostrophe at (p-1)
-   inc p until after closing apostrophe.
-*/
-
-static char *
-vms_handle_apos (char *p)
-{
-  int alast;
-  alast = 0;
-
-  while (*p != 0)
-    if (*p == '"')
-      if (alast)
-        {
-          alast = 0;
-          p++;
-        }
-      else
-        {
-          p++;
-          if (*p!='"')
-            break;
-          alast = 1;
-        }
-    else
-      p++;
-
-  return p;
-}
-
 static int ctrlYPressed= 0;
 /* This is called at main or AST level. It is at AST level for DONTWAITFORCHILD
    and at main level otherwise. In any case it is called when a child process
@@ -168,15 +104,21 @@ static int ctrlYPressed= 0;
    inner mode level AST.
 */
 static int
-vmsHandleChildTerm(struct child *child)
+vmsHandleChildTerm (struct child *child)
 {
   int exit_code;
   register struct child *lastc, *c;
   int child_failed;
 
-  vms_jobsefnmask &= ~(1 << (child->efn - 32));
+  /* The child efn is 0 when a built-in or null command is executed
+     successfully with out actually creating a child.
+  */
+  if (child->efn > 0)
+  {
+    vms_jobsefnmask &= ~(1 << (child->efn - 32));
 
-  lib$free_ef (&child->efn);
+    lib$free_ef (&child->efn);
+  }
   if (child->comname)
     {
       if (!ISDB (DB_JOBS) && !ctrlYPressed)
@@ -202,7 +144,8 @@ vmsHandleChildTerm(struct child *child)
 
   /* Search for a child matching the deceased one.  */
   lastc = 0;
-#if defined(RECURSIVEJOBS) /* I've had problems with recursive stuff and process handling */
+#if defined(RECURSIVEJOBS)
+  /* I've had problems with recursive stuff and process handling */
   for (c = children; c != 0 && c != child; lastc = c, c = c->next)
     ;
 #else
@@ -307,47 +250,584 @@ tryToSetupYAst(void)
     chan = loc_chan;
 }
 
-static int
-nextnl(char *cmd, int l)
+/* Check if a token is too long */
+#define INC_TOKEN_LEN_OR_RETURN(x) {token->length++; \
+  if (token->length >= MAX_DCL_TOKEN_LENGTH) \
+    { token->cmd_errno = ERANGE; return x; }}
+
+#define INC_TOKEN_LEN_OR_BREAK {token->length++; \
+  if (token->length >= MAX_DCL_TOKEN_LENGTH) \
+    { token->cmd_errno = ERANGE; break; }}
+
+#define ADD_TOKEN_LEN_OR_RETURN(add_len, x) {token->length += add_len; \
+  if (token->length >= MAX_DCL_TOKEN_LENGTH) \
+    { token->cmd_errno = ERANGE; return x; }}
+
+/* Check if we are out of space for more tokens */
+#define NEXT_TOKEN { if (cmd_tkn_index < MAX_DCL_TOKENS) \
+  cmd_tokens[++cmd_tkn_index] = NULL; \
+  else { token.cmd_errno = E2BIG; break; } \
+  token.length = 0;}
+
+
+#define UPDATE_TOKEN {cmd_tokens[cmd_tkn_index] = strdup(token.text); \
+  NEXT_TOKEN;}
+
+#define EOS_ERROR(x) { if (*x == 0) { token->cmd_errno = ERANGE; break; }}
+
+struct token_info
+  {
+    char *text;       /* Parsed text */
+    int length;       /* Length of parsed text */
+    char *src;        /* Pointer to source text */
+    int cmd_errno;    /* Error status of parse */
+    int use_cmd_file; /* Force use of a command file */
+  };
+
+
+/* Extract a Posix single quoted string from input line */
+static char *
+posix_parse_sq (struct token_info *token)
 {
-  int instring;
-  instring = 0;
-  while (cmd[l])
+  /* A Posix quoted string with no expansion unless in a string
+     Unix simulation means no lexical functions present.
+  */
+  char * q;
+  char * p;
+  q = token->text;
+  p = token->src;
+
+  *q++ = '"';
+  p++;
+  INC_TOKEN_LEN_OR_RETURN (p);
+
+  while (*p != '\'' && (token->length < MAX_DCL_TOKEN_LENGTH))
     {
-      if (cmd[l]=='"')
-        instring = !instring;
-      else if (cmd[l]=='\n' && !instring)
-        return ++l;
-      ++l;
+      EOS_ERROR (p);
+      if (*p == '"')
+        {
+          /* Embedded double quotes need to be doubled */
+          *q++ = '"';
+          INC_TOKEN_LEN_OR_BREAK;
+          *q = '"';
+        }
+      else
+        *q = *p;
+
+      q++;
+      p++;
+      INC_TOKEN_LEN_OR_BREAK;
     }
-  return l;
+  *q++ = '"';
+  p++;
+  INC_TOKEN_LEN_OR_RETURN (p);
+  *q = 0;
+  return p;
 }
+
+/* Extract a Posix double quoted string from input line */
+static char *
+posix_parse_dq (struct token_info *token)
+{
+  /* Unix mode:  Any imbedded \" becomes doubled.
+                 \t is tab, \\, \$ leading character stripped.
+                 $ character replaced with \' unless escaped.
+  */
+  char * q;
+  char * p;
+  q = token->text;
+  p = token->src;
+  *q++ = *p++;
+  INC_TOKEN_LEN_OR_RETURN (p);
+  while (*p != 0)
+    {
+      if (*p == '\\')
+        {
+          switch(p[1])
+            {
+            case 't':     /* Convert tabs */
+              *q = '\t';
+              p++;
+              break;
+            case '\\':     /* Just remove leading backslash */
+            case '$':
+              p++;
+              *q = *p;
+              break;
+            case '"':
+              p++;
+              *q = *p;
+              *q++ = '"';
+              INC_TOKEN_LEN_OR_BREAK;
+            default:      /* Pass through unchanged */
+              *q++ = *p++;
+              INC_TOKEN_LEN_OR_BREAK;
+            }
+          INC_TOKEN_LEN_OR_BREAK;
+        }
+      else if (*p == '$' && isalpha (p[1]))
+        {
+          /* A symbol we should be able to substitute */
+          *q++ = '\'';
+          INC_TOKEN_LEN_OR_BREAK;
+          *q = '\'';
+          INC_TOKEN_LEN_OR_BREAK;
+          token->use_cmd_file = 1;
+        }
+      else
+        {
+          *q = *p;
+          INC_TOKEN_LEN_OR_BREAK;
+          if (*p == '"')
+            {
+              p++;
+              q++;
+              break;
+            }
+        }
+      p++;
+      q++;
+    }
+  *q = 0;
+  return p;
+}
+
+/* Extract a VMS quoted string or substitution string from input line */
+static char *
+vms_parse_quotes (struct token_info *token)
+{
+  /* VMS mode, the \' means that a symbol substitution is starting
+     so while you might think you can just copy until the next
+     \'.  Unfortunately the substitution can be a lexical function
+     which can contain embedded strings and lexical functions.
+     Messy, so both types need to be handled together.
+  */
+  char * q;
+  char * p;
+  q = token->text;
+  p = token->src;
+  int parse_level[MAX_DCL_TOKENS + 1];
+  int nest = 0;
+
+  parse_level[0] = *p;
+  if (parse_level[0] == '\'')
+    token->use_cmd_file = 1;
+
+  *q++ = *p++;
+  INC_TOKEN_LEN_OR_RETURN (p);
+
+
+  /* Copy everything until after the next single quote at nest == 0 */
+  while (token->length < MAX_DCL_TOKEN_LENGTH)
+    {
+      EOS_ERROR (p);
+      *q = *p;
+      INC_TOKEN_LEN_OR_BREAK;
+      if ((*p == parse_level[nest]) && (p[1] != '"'))
+        {
+          if (nest == 0)
+            {
+              *q++ = *p++;
+              break;
+            }
+          nest--;
+        }
+      else
+        {
+          switch(*p)
+            {
+            case '\\':
+              /* Handle continuation on to next line */
+              if (p[1] != '\n')
+                break;
+              p++;
+              p++;
+              *q = *p;
+              break;
+            case '(':
+              /* Parenthesis only in single quote level */
+              if (parse_level[nest] == '\'')
+                {
+                  nest++;
+                  parse_level[nest] == ')';
+                }
+              break;
+            case '"':
+              /* Double quotes only in parenthesis */
+              if (parse_level[nest] == ')')
+                {
+                  nest++;
+                  parse_level[nest] == '"';
+                }
+              break;
+            case '\'':
+              /* Symbol substitution ony in double quotes */
+              if ((p[1] == '\'') && (parse_level[nest] == '"'))
+                {
+                  nest++;
+                  parse_level[nest] == '\'';
+                  *p++ = *q++;
+                  token->use_cmd_file = 1;
+                  INC_TOKEN_LEN_OR_BREAK;
+                  break;
+                }
+              *q = *p;
+            }
+        }
+      p++;
+      q++;
+      /* Pass through doubled double quotes */
+      if ((*p == '"') && (p[1] == '"') && (parse_level[nest] == '"'))
+      {
+        *p++ = *q++;
+        INC_TOKEN_LEN_OR_BREAK;
+        *p++ = *q++;
+        INC_TOKEN_LEN_OR_BREAK;
+      }
+    }
+  *q = 0;
+  return p;
+}
+
+/* Extract a $ string from the input line */
+static char *
+posix_parse_dollar (struct token_info *token)
+{
+  /* $foo becomes 'foo' */
+  char * q;
+  char * p;
+  q = token->text;
+  p = token->src;
+  token->use_cmd_file = 1;
+
+  p++;
+  *q++ = '\'';
+  INC_TOKEN_LEN_OR_RETURN (p);
+
+  while ((isalnum (*p)) || (*p == '_'))
+    {
+      *q++ = *p++;
+      INC_TOKEN_LEN_OR_BREAK;
+    }
+  *q++ = '\'';
+  while (1)
+    {
+      INC_TOKEN_LEN_OR_BREAK;
+      break;
+    }
+  *q = 0;
+  return p;
+}
+
+const char *vms_filechars = "0123456789abcdefghijklmnopqrstuvwxyz" \
+   "ABCDEFGHIJKLMNOPQRSTUVWXYZ[]<>:/_-.$";
+
+/* Simple text copy */
+static char *
+parse_text (struct token_info *token, int assignment_hack)
+{
+  char * q;
+  char * p;
+  int str_len;
+  q = token->text;
+  p = token->src;
+
+  /* If assignment hack, then this text needs to be double quoted. */
+  if (vms_unix_simulation && (assignment_hack == 2))
+    {
+      *q++ = '"';
+      INC_TOKEN_LEN_OR_RETURN (p);
+    }
+
+  *q++ = *p++;
+  INC_TOKEN_LEN_OR_RETURN (p);
+
+  while (*p != 0)
+    {
+      str_len = strspn (p, vms_filechars);
+      if (str_len == 0)
+        {
+          /* Pass through backslash escapes in Unix simulation
+             probably will not work anyway.
+             All any character after a ^ otherwise to support EFS.
+          */
+          if (vms_unix_simulation && (p[0] == '\\') && (p[1] != 0))
+            str_len = 2;
+          else if ((p[0] == '^') && (p[1] != 0))
+            str_len = 2;
+          else if (!vms_unix_simulation && (p[0] == ';'))
+            str_len = 1;
+
+          if (str_len == 0)
+            {
+              /* If assignment hack, then this needs to be double quoted. */
+              if (vms_unix_simulation && (assignment_hack == 2))
+              {
+                *q++ = '"';
+                INC_TOKEN_LEN_OR_RETURN (p);
+              }
+              *q = 0;
+              return p;
+            }
+        }
+      if (str_len > 0)
+        {
+          ADD_TOKEN_LEN_OR_RETURN (str_len, p);
+          strncpy (q, p, str_len);
+          p += str_len;
+          q += str_len;
+          *q = 0;
+        }
+    }
+  /* If assignment hack, then this text needs to be double quoted. */
+  if (vms_unix_simulation && (assignment_hack == 2))
+    {
+      *q++ = '"';
+      INC_TOKEN_LEN_OR_RETURN (p);
+    }
+  return p;
+}
+
+/* single character copy */
+static char *
+parse_char (struct token_info *token, int count)
+{
+  char * q;
+  char * p;
+  q = token->text;
+  p = token->src;
+
+  while (count > 0)
+    {
+      *q++ = *p++;
+      INC_TOKEN_LEN_OR_RETURN (p);
+      count--;
+    }
+  *q = 0;
+  return p;
+}
+
+/* Build a command string from the collected tokens
+   and process built-ins now
+*/
+static struct dsc$descriptor_s *
+build_vms_cmd (char **cmd_tokens,
+               enum auto_pipe use_pipe_cmd,
+               int append_token)
+{
+  struct dsc$descriptor_s *cmd_dsc;
+  int cmd_tkn_index;
+  char * cmd;
+  int cmd_len;
+  int semicolon_seen;
+
+  cmd_tkn_index = 0;
+  cmd_dsc = xmalloc (sizeof (struct dsc$descriptor_s));
+
+  /* Empty command? */
+  if (cmd_tokens[0] == NULL)
+    {
+      cmd_dsc->dsc$a_pointer = NULL;
+      cmd_dsc->dsc$w_length = 0;
+      return cmd_dsc;
+    }
+
+  /* Max DCL command + 1 extra token and trailing space */
+  cmd = xmalloc (MAX_DCL_CMD_LINE_LENGTH + 256);
+
+  cmd[0] = '$';
+  cmd[1] = 0;
+  cmd_len = 1;
+
+  /* Handle real or auto-pipe */
+  if (use_pipe_cmd == add_pipe)
+    {
+      /* We need to auto convert to a pipe command */
+      strcat (cmd, "pipe ");
+      cmd_len += 5;
+    }
+
+  semicolon_seen = 0;
+  while (cmd_tokens[cmd_tkn_index] != NULL)
+    {
+
+      /* Check for buffer overflow */
+      if (cmd_len > MAX_DCL_CMD_LINE_LENGTH)
+        {
+          errno = E2BIG;
+          break;
+        }
+
+      /* Eliminate double ';' */
+      if (semicolon_seen && (cmd_tokens[cmd_tkn_index][0] == ';'))
+        {
+          semicolon_seen = 0;
+          free (cmd_tokens[cmd_tkn_index++]);
+          if (cmd_tokens[cmd_tkn_index] == NULL)
+            break;
+        }
+
+      /* Special handling for CD built-in */
+      if (strncmp (cmd_tokens[cmd_tkn_index], "builtin_cd", 11) == 0)
+        {
+          int result;
+          semicolon_seen = 0;
+          free (cmd_tokens[cmd_tkn_index]);
+          cmd_tkn_index++;
+          if (cmd_tokens[cmd_tkn_index] == NULL)
+            break;
+          DB(DB_JOBS, (_("BUILTIN CD %s\n"), cmd_tokens[cmd_tkn_index]));
+
+          /* TODO: chdir fails with some valid syntaxes */
+          result = chdir (cmd_tokens[cmd_tkn_index]);
+          if (result != 0)
+            {
+              /* TODO: Handle failure better */
+              free (cmd);
+              while (cmd_tokens[cmd_tkn_index] == NULL)
+                free (cmd_tokens[cmd_tkn_index++]);
+              cmd_dsc->dsc$w_length = -1;
+              cmd_dsc->dsc$a_pointer = NULL;
+              return cmd_dsc;
+            }
+        }
+      else if (strncmp (cmd_tokens[cmd_tkn_index], "exit", 5) == 0)
+        {
+          /* Copy the exit command */
+          semicolon_seen = 0;
+          strcpy (&cmd[cmd_len], cmd_tokens[cmd_tkn_index]);
+          cmd_len += strlen (cmd_tokens[cmd_tkn_index]);
+          free (cmd_tokens[cmd_tkn_index++]);
+          if (cmd_len > MAX_DCL_CMD_LINE_LENGTH)
+            {
+              errno = E2BIG;
+              break;
+            }
+
+          /* Optional whitespace */
+          if (isspace (cmd_tokens[cmd_tkn_index][0]))
+            {
+              strcpy (&cmd[cmd_len], cmd_tokens[cmd_tkn_index]);
+              cmd_len += strlen (cmd_tokens[cmd_tkn_index]);
+              free (cmd_tokens[cmd_tkn_index++]);
+              if (cmd_len > MAX_DCL_CMD_LINE_LENGTH)
+              {
+                errno = E2BIG;
+                break;
+              }
+            }
+
+          /* There should be a status, but it is optional */
+          if (cmd_tokens[cmd_tkn_index][0] == ';')
+            continue;
+
+          /* If Unix simulation, add '((' */
+          if (vms_unix_simulation)
+            {
+              strcpy (&cmd[cmd_len], "((");
+              cmd_len += 2;
+              if (cmd_len > MAX_DCL_CMD_LINE_LENGTH)
+                {
+                  errno = E2BIG;
+                  break;
+                }
+            }
+
+          /* Add the parameter */
+          strcpy (&cmd[cmd_len], cmd_tokens[cmd_tkn_index]);
+          cmd_len += strlen (cmd_tokens[cmd_tkn_index]);
+          free (cmd_tokens[cmd_tkn_index++]);
+          if (cmd_len > MAX_DCL_CMD_LINE_LENGTH)
+            {
+              errno = E2BIG;
+              break;
+            }
+
+          /* Add " * 8) .and. %x7f8) .or. %x1035a002" */
+          if (vms_unix_simulation)
+            {
+              const char *end_str = " * 8) .and. %x7f8) .or. %x1035a002";
+              strcpy (&cmd[cmd_len], end_str);
+              cmd_len += strlen (end_str);
+              if (cmd_len > MAX_DCL_CMD_LINE_LENGTH)
+                {
+                  errno = E2BIG;
+                  break;
+                }
+            }
+          continue;
+        }
+
+      /* auto pipe needs spaces before semicolon */
+      if (use_pipe_cmd == add_pipe)
+        if (cmd_tokens[cmd_tkn_index][0] == ';')
+          {
+            cmd[cmd_len++] = ' ';
+            semicolon_seen = 1;
+            if (cmd_len > MAX_DCL_CMD_LINE_LENGTH)
+              {
+                errno = E2BIG;
+                break;
+              }
+          }
+        else
+          {
+            char ch;
+            ch = cmd_tokens[cmd_tkn_index][0];
+            if (!(ch == ' ' || ch == '\t'))
+              semicolon_seen = 0;
+          }
+
+      strcpy (&cmd[cmd_len], cmd_tokens[cmd_tkn_index]);
+      cmd_len += strlen (cmd_tokens[cmd_tkn_index]);
+
+      free (cmd_tokens[cmd_tkn_index++]);
+
+      /* Skip the append tokens if they exist */
+      if (cmd_tkn_index == append_token)
+        {
+          free (cmd_tokens[cmd_tkn_index++]);
+          if (isspace (cmd_tokens[cmd_tkn_index][0]))
+            free (cmd_tokens[cmd_tkn_index++]);
+          free (cmd_tokens[cmd_tkn_index++]);
+        }
+    }
+
+  cmd[cmd_len] = 0;
+  cmd_dsc->dsc$w_length = cmd_len;
+  cmd_dsc->dsc$a_pointer = cmd;
+  cmd_dsc->dsc$b_dtype = DSC$K_DTYPE_T;
+  cmd_dsc->dsc$b_class = DSC$K_CLASS_S;
+
+  return cmd_dsc;
+}
+
 int
 child_execute_job (char *argv, struct child *child)
 {
   int i;
-  static struct dsc$descriptor_s cmddsc;
-  static struct dsc$descriptor_s pnamedsc;
-  static struct dsc$descriptor_s ifiledsc;
-  static struct dsc$descriptor_s ofiledsc;
-  static struct dsc$descriptor_s efiledsc;
-  int have_redirection = 0;
-  int have_append = 0;
-  int have_newline = 0;
 
+  static struct dsc$descriptor_s *cmd_dsc;
+  static struct dsc$descriptor_s pnamedsc;
   int spflags = CLI$M_NOWAIT;
   int status;
-  char *cmd = alloca (strlen (argv) + 512), *p, *q;
-  char ifile[256], ofile[256], efile[256];
   int comnamelen;
   char procname[100];
-  int in_string;
+
+  char *p;
+  char *cmd_tokens[(MAX_DCL_TOKENS * 2) + 1]; /* whitespace does not count */
+  char token_str[MAX_DCL_TOKEN_LENGTH + 1];
+  struct token_info token;
+  int cmd_tkn_index;
+  int paren_level = 0;
+  enum auto_pipe use_pipe_cmd = nopipe;
+  int append_token = -1;
+  char *append_file = NULL;
+  int unix_echo_cmd = 0;  /* Special handle Unix echo command */
+  int assignment_hack = 0; /* Handle x=y command as piped command */
 
   /* Parse IO redirection.  */
 
-  ifile[0] = 0;
-  ofile[0] = 0;
-  efile[0] = 0;
   child->comname = NULL;
 
   DB (DB_JOBS, ("child_execute_job (%s)\n", argv));
@@ -356,311 +836,422 @@ child_execute_job (char *argv, struct child *child)
     argv++;
 
   if (*argv == 0)
-    return 0;
+    {
+      /* Only a built-in or a null command - Still need to run term AST */
+      child->cstatus = VMS_POSIX_EXIT_MASK;
+      child->vms_launch_status = SS$_NORMAL;
+      /* TODO what is this "magic number" */
+      child->pid = 270163; /* Special built-in */
+      child->efn = 0;
+      vmsHandleChildTerm (child);
+      return 1;
+    }
 
   sprintf (procname, "GMAKE_%05x", getpid () & 0xfffff);
-  pnamedsc.dsc$w_length = strlen(procname);
+  pnamedsc.dsc$w_length = strlen (procname);
   pnamedsc.dsc$a_pointer = procname;
   pnamedsc.dsc$b_dtype = DSC$K_DTYPE_T;
   pnamedsc.dsc$b_class = DSC$K_CLASS_S;
 
-  in_string = 0;
+  /* Old */
   /* Handle comments and redirection.
      For ONESHELL, the redirection must be on the first line. Any other
      redirection token is handled by DCL, that is, the pipe command with
      redirection can be used, but it should not be used on the first line
      for ONESHELL. */
-  for (p = argv, q = cmd; *p; p++, q++)
+
+  /* VMS parser notes:
+     1. A token is any of DCL verbs, qualifiers, parameters, or punctuation.
+     2. Only MAX_DCL_TOKENS per line in both one line or command file mode.
+     3. Each token limited to MAC_DCL_TOKEN_LENGTH
+     4. If the line to DCL is greater than MAX_DCL_LINE_LENGTH then a
+        command file must be used.
+     5. Currently a command file must be used symbol substitution is to
+        be performed.
+     6. Currently limiting command files to 2 * MAX_DCL_TOKENS.
+
+     Build both a command file token list and command line token list
+     until it is determined that the command line limits are exceeded.
+  */
+
+  cmd_tkn_index = 0;
+  cmd_tokens[cmd_tkn_index] = NULL;
+  p = argv;
+
+  token.text = token_str;
+  token.length = 0;
+  token.cmd_errno = 0;
+  token.use_cmd_file = 0;
+
+  while (*p != 0)
     {
-      if (*p == '"')
-        in_string = !in_string;
-      if (in_string)
-        {
-          *q = *p;
-          continue;
-        }
+      /* We can not build this command so give up */
+      if (token.cmd_errno != 0)
+        break;
+
+      token.src = p;
+
       switch (*p)
         {
-        case '#':
-          *p-- = 0;
-          *q-- = 0;
+        case '\'':
+          if (vms_unix_simulation || unix_echo_cmd)
+            {
+              p = posix_parse_sq (&token);
+              UPDATE_TOKEN;
+              break;
+            }
+
+          /* VMS mode, the \' means that a symbol substitution is starting
+             so while you might think you can just copy until the next
+             \'.  Unfortunately the substitution can be a lexical function
+             which can contain embedded strings and lexical functions.
+             Messy.
+          */
+          p = vms_parse_quotes (&token);
+          UPDATE_TOKEN;
+          break;
+        case '"':
+          if (vms_unix_simulation)
+            {
+              p = posix_parse_dq (&token);
+              UPDATE_TOKEN;
+              break;
+            }
+
+          /* VMS quoted string, can contain lexical functions with
+             quoted strings and nested lexical functions.
+          */
+          p = vms_parse_quotes (&token);
+          UPDATE_TOKEN;
+          break;
+
+        case '$':
+          if (vms_unix_simulation)
+            {
+              p = posix_parse_dollar (&token);
+              UPDATE_TOKEN;
+              break;
+            }
+
+          /* Otherwise nothing special */
+          p = parse_text (&token, 0);
+          UPDATE_TOKEN;
           break;
         case '\\':
-          p++;
-          if (*p == '\n')
-            p++;
-          if (isspace ((unsigned char)*p))
+          if (p[1] == '\n')
             {
-              do { p++; } while (isspace ((unsigned char)*p));
-              p--;
+              /* Line continuation, remove it */
+              p += 2;
+              break;
             }
-          *q = *p;
+
+          /* Ordinary character otherwise */
+          if (assignment_hack != 0)
+            assignment_hack++;
+          if (assignment_hack > 2)
+            {
+              assignment_hack = 0;          /* Reset */
+              if (use_pipe_cmd == nopipe)   /* force pipe use */
+                use_pipe_cmd = add_pipe;
+              token_str[0] = ';';              /* add ; token */
+              token_str[1] = 0;
+              UPDATE_TOKEN;
+            }
+          p = parse_text (&token, assignment_hack);
+          UPDATE_TOKEN;
           break;
-        case '<':
-          if (have_newline==0)
+        case '!':
+        case '#':
+          /* Unix '#' is VMS '!' which comments out the rest of the line.
+             Historically the rest of the line has been skipped.
+             Not quite the right thing to do, as the f$verify lexical
+             function works in comments.  But this helps keep the line
+             lengths short.
+          */
+          unix_echo_cmd = 0;
+          while (*p != '\n' && *p != 0)
+            p++;
+          break;
+        case '(':
+          /* Subshell, equation, or lexical function argument start */
+          p = parse_char (&token, 1);
+          UPDATE_TOKEN;
+          paren_level++;
+          break;
+        case ')':
+          /* Close out a paren level */
+          p = parse_char (&token, 1);
+          UPDATE_TOKEN;
+          paren_level--;
+          /* TODO: Should we diagnose if paren_level goes negative? */
+          break;
+        case '&':
+          if (isalpha (p[1]) && !vms_unix_simulation)
             {
-              p = vms_redirect (&ifiledsc, ifile, p);
-              *q = ' ';
-              have_redirection = 1;
+              /* VMS symbol substitution */
+              p = parse_text (&token, 0);
+              token.use_cmd_file = 1;
+              UPDATE_TOKEN;
+              break;
             }
+          if (use_pipe_cmd == nopipe)
+            use_pipe_cmd = add_pipe;
+          if (p[1] != '&')
+            p = parse_char (&token, 1);
           else
-            *q = *p;
+            p = parse_char (&token, 2);
+          UPDATE_TOKEN;
+          break;
+        case '|':
+          if (use_pipe_cmd == nopipe)
+            use_pipe_cmd = add_pipe;
+          if (p[1] != '|')
+            p = parse_char (&token, 1);
+          else
+            p = parse_char (&token, 2);
+          UPDATE_TOKEN;
+          break;
+        case ';':
+          /* Separator - convert to a pipe command. */
+          unix_echo_cmd = 0;
+        case '<':
+          if (use_pipe_cmd == nopipe)
+            use_pipe_cmd = add_pipe;
+          p = parse_char (&token, 1);
+          UPDATE_TOKEN;
           break;
         case '>':
-          if (have_newline==0)
+          if (use_pipe_cmd == nopipe)
+            use_pipe_cmd = add_pipe;
+          if (p[1] == '>')
             {
-              have_redirection = 1;
-              if (*(p-1) == '2')
-                {
-                  q--;
-                  if (strncmp (p, ">&1", 3) == 0)
-                    {
-                      p += 2;
-                      strcpy (efile, "sys$output");
-                      efiledsc.dsc$w_length = strlen(efile);
-                      efiledsc.dsc$a_pointer = efile;
-                      efiledsc.dsc$b_dtype = DSC$K_DTYPE_T;
-                      efiledsc.dsc$b_class = DSC$K_CLASS_S;
-                    }
-                  else
-                    p = vms_redirect (&efiledsc, efile, p);
-                }
-              else
-                {
-                  if (*(p+1) == '>')
-                    {
-                      have_append = 1;
-                      p += 1;
-                    }
-                  p = vms_redirect (&ofiledsc, ofile, p);
-                }
-              *q = ' ';
+              /* Parsing would have been simple until support for the >>
+                 append redirect was added.
+                 Implementation needs:
+                 * if not exist output file create empty
+                 * open/append gnv$make_temp??? output_file
+                 * define/user sys$output gnv$make_temp???
+                 ** And all this done before the command previously tokenized.
+                 * command previously tokenized
+                 * close gnv$make_temp???
+              */
+              p = parse_char (&token, 2);
+              append_token = cmd_tkn_index;
+              token.use_cmd_file = 1;
             }
           else
-            *q = *p;
+            p = parse_char (&token, 1);
+          UPDATE_TOKEN;
           break;
-        case '\n':
-          have_newline++;
-        default:
-          *q = *p;
-          break;
-        }
-    }
-  *q = *p;
-  while (isspace ((unsigned char)*--q))
-    *q = '\0';
-
-
-#define VMS_EMPTY_ECHO "write sys$output \"\""
-  if (have_newline == 0)
-    {
-      /* multiple shells */
-      if (strncmp(cmd, "builtin_", 8) == 0)
-        {
-          child->pid = 270163;
-          child->efn = 0;
-          child->cstatus = 1;
-
-          DB(DB_JOBS, (_("BUILTIN [%s][%s]\n"), cmd, cmd + 8));
-
-          p = cmd + 8;
-
-          if ((*(p) == 'c') && (*(p + 1) == 'd')
-              && ((*(p + 2) == ' ') || (*(p + 2) == '\t')))
+        case '/':
+          /* Unix path or VMS option start, read until non-path symbol */
+          if (assignment_hack != 0)
+            assignment_hack++;
+          if (assignment_hack > 2)
             {
-              p += 3;
-              while ((*p == ' ') || (*p == '\t'))
-                p++;
-              DB(DB_JOBS, (_("BUILTIN CD %s\n"), p));
-              if (chdir(p))
-                return 0;
-              else
-                return 1;
+              assignment_hack = 0;          /* Reset */
+              if (use_pipe_cmd == nopipe)   /* force pipe use */
+                use_pipe_cmd = add_pipe;
+              token_str[0] = ';';              /* add ; token */
+              token_str[1] = 0;
+              UPDATE_TOKEN;
             }
-          else if ((*(p) == 'e')
-              && (*(p+1) == 'c')
-              && (*(p+2) == 'h')
-              && (*(p+3) == 'o')
-              && ((*(p+4) == ' ') || (*(p+4) == '\t') || (*(p+4) == '\0')))
+          p = parse_text (&token, assignment_hack);
+          UPDATE_TOKEN;
+          break;
+        case ':':
+          if ((p[1] == 0) || isspace (p[1]))
             {
-              /* This is not a real builtin, it is a built in pre-processing
-                 for the VMS/DCL echo (write sys$output) to ensure the to be echoed
-                 string is correctly quoted (with the DCL quote character '"'). */
-              char *vms_echo;
-              p += 4;
-              if (*p == '\0')
-                cmd = VMS_EMPTY_ECHO;
-              else
+              /* Unix Null command - treat as comment until next command */
+              unix_echo_cmd = 0;
+              p++;
+              while (*p != 0)
                 {
+                  if (*p == ';')
+                    {
+                      /* Remove Null command from pipeline */
+                      p++;
+                      break;
+                    }
                   p++;
-                  while ((*p == ' ') || (*p == '\t'))
-                    p++;
-                  if (*p == '\0')
-                    cmd = VMS_EMPTY_ECHO;
-                  else
-                    {
-                      vms_echo = alloca(strlen(p) + sizeof VMS_EMPTY_ECHO);
-                      strcpy(vms_echo, VMS_EMPTY_ECHO);
-                      vms_echo[sizeof VMS_EMPTY_ECHO - 2] = '\0';
-                      strcat(vms_echo, p);
-                      strcat(vms_echo, "\"");
-                      cmd = vms_echo;
-                    }
                 }
-              DB (DB_JOBS, (_("BUILTIN ECHO %s->%s\n"), p, cmd));
+              break;
             }
+
+          /* String assignment */
+          /* := :== or : */
+          if (p[1] != '=')
+            p = parse_char (&token, 1);
+          else if (p[2] != '=')
+            p = parse_char (&token, 2);
           else
+            p = parse_char (&token, 3);
+          UPDATE_TOKEN;
+          break;
+        case '=':
+          /* = or == */
+          /* If this is not an echo statement, this could be a shell
+             assignment.  VMS requires the target to be quoted if it
+             is not a macro substitution */
+          if (!unix_echo_cmd && vms_unix_simulation && (assignment_hack == 0))
+            assignment_hack = 1;
+          if (p[1] != '=')
+            p = parse_char (&token, 1);
+          else
+            p = parse_char (&token, 2);
+          UPDATE_TOKEN;
+          break;
+        case '+':
+        case '-':
+        case '*':
+          p = parse_char (&token, 1);
+          UPDATE_TOKEN;
+          break;
+        case '.':
+          /* .xxx. operation, VMS does not require the trailing . */
+          p = parse_text (&token, 0);
+          UPDATE_TOKEN;
+          break;
+        default:
+          /* Skip repetitive whitespace */
+          if (isspace (*p))
             {
-              printf(_("Unknown builtin command '%s'\n"), cmd);
-              fflush(stdout);
-              return 0;
+              p = parse_char (&token, 1);
+
+              /* Force to a space or a tab */
+              if ((token_str[0] != ' ') ||
+                  (token_str[0] != '\t'))
+                token_str[0] = ' ';
+              UPDATE_TOKEN;
+
+              while (isspace (*p))
+                p++;
+              if (assignment_hack != 0)
+                assignment_hack++;
+              break;
             }
+
+          if (assignment_hack != 0)
+            assignment_hack++;
+          if (assignment_hack > 2)
+            {
+              assignment_hack = 0;          /* Reset */
+              if (use_pipe_cmd == nopipe)   /* force pipe use */
+                use_pipe_cmd = add_pipe;
+              token_str[0] = ';';              /* add ; token */
+              token_str[1] = 0;
+              UPDATE_TOKEN;
+            }
+          p = parse_text (&token, assignment_hack);
+          if (strncasecmp (token.text, "echo", 4) == 0)
+            unix_echo_cmd = 1;
+          else if (strncasecmp (token.text, "pipe", 4) == 0)
+            use_pipe_cmd = dcl_pipe;
+          UPDATE_TOKEN;
+          break;
         }
-      /* expand ':' aka 'do nothing' builtin for bash and friends */
-      else if (cmd[0]==':')
-        cmd[0] = '!';
-    }
-  else
-    {
-      /* todo: expand ':' aka 'do nothing' builtin for bash and friends */
-      /* For 'one shell' expand all the
-           builtin_echo
-         to
-           write sys$output ""
-         where one is  ......7 bytes longer.
-         At the same time ensure that the echo string is properly terminated.
-         For that, allocate a command buffer big enough for all possible expansions
-         (have_newline is the count), then expand, copy and terminate. */
-      char *tmp_cmd;
-      int nloff = 0;
-      int vlen = 0;
-      int clen = 0;
-      int inecho;
-
-      tmp_cmd = alloca(strlen(cmd) + (have_newline + 1) * 7 + 1);
-      tmp_cmd[0] = '\0';
-      inecho = 0;
-      while (cmd[nloff])
-        {
-          if (inecho)
-            {
-              if (clen < nloff - 1)
-                {
-                  memcpy(&tmp_cmd[vlen], &cmd[clen], nloff - clen - 1);
-                  vlen += nloff - clen - 1;
-                  clen = nloff;
-                }
-              inecho = 0;
-              tmp_cmd[vlen] = '"';
-              vlen++;
-              tmp_cmd[vlen] = '\n';
-              vlen++;
-            }
-          if (strncmp(&cmd[nloff], "builtin_", 8) == 0)
-            {
-              /* ??? */
-              child->pid = 270163;
-              child->efn = 0;
-              child->cstatus = 1;
-
-              DB (DB_JOBS, (_("BUILTIN [%s][%s]\n"), &cmd[nloff], &cmd[nloff+8]));
-              p = &cmd[nloff + 8];
-              if ((*(p) ==        'e')
-                  && (*(p + 1) == 'c')
-                  && (*(p + 2) == 'h')
-                  && (*(p + 3) == 'o')
-                  && ((*(p + 4) == ' ') || (*(p + 4) == '\t') || (*(p + 4) == '\0')))
-                {
-                  if (clen < nloff - 1)
-                    {
-                      memcpy(&tmp_cmd[vlen], &cmd[clen], nloff - clen - 1);
-                      vlen += nloff - clen - 1;
-                      clen = nloff;
-                      if (inecho)
-                        {
-                          inecho = 0;
-                          tmp_cmd[vlen] = '"';
-                          vlen++;
-                        }
-                      tmp_cmd[vlen] = '\n';
-                      vlen++;
-                    }
-                  inecho = 1;
-                  p += 4;
-                  while ((*p == ' ') || (*p == '\t'))
-                    p++;
-                  clen = p - cmd;
-                  memcpy(&tmp_cmd[vlen], VMS_EMPTY_ECHO,
-                      sizeof VMS_EMPTY_ECHO - 2);
-                  vlen += sizeof VMS_EMPTY_ECHO - 2;
-                }
-              else
-                {
-                  printf (_("Builtin command is unknown or unsupported in .ONESHELL: '%s'\n"), &cmd[nloff]);
-                  fflush(stdout);
-                  return 0;
-                }
-            }
-          nloff = nextnl(cmd, nloff + 1);
-        }
-      if (clen < nloff)
-        {
-          memcpy(&tmp_cmd[vlen], &cmd[clen], nloff - clen);
-          vlen += nloff - clen;
-          clen = nloff;
-          if (inecho)
-            {
-              inecho = 0;
-              tmp_cmd[vlen] = '"';
-              vlen++;
-            }
-        }
-
-      tmp_cmd[vlen] = '\0';
-
-      cmd = tmp_cmd;
     }
 
-  /* Enforce the creation of a command file if "vms_always_use_cmd_file" is
-     non-zero.
-     Then all the make environment variables are written as DCL symbol
-     assignments into the command file as well, so that they are visible
-     in the sub-process but do not affect the current process.
-     Further, this way DCL reads the input stream and therefore does
-     'forced' symbol substitution, which it doesn't do for one-liners when
-     they are 'lib$spawn'ed. */
-
-  /* Otherwise the behavior is: */
-  /* Create a *.com file if either the command is too long for
-     lib$spawn, or the command contains a newline, or if redirection
-     is desired. Forcing commands with newlines into DCLs allows to
-     store search lists on user mode logicals.  */
-  if (vms_always_use_cmd_file || strlen (cmd) > (MAX_DCL_LINE_LENGTH - 30)
-      || (have_redirection != 0)
-      || (have_newline != 0))
+  /* End up here with a list of tokens to build a command line.
+     Deal with errors detected during parsing.
+   */
+  if (token.cmd_errno != 0)
     {
-      FILE *outfile;
-      char c;
-      char *sep;
-      int alevel = 0;   /* apostrophe level */
-      int tmpstrlen;
-      char *tmpstr;
-      if (strlen (cmd) == 0)
+      while (cmd_tokens[cmd_tkn_index] == NULL)
+        free (cmd_tokens[cmd_tkn_index++]);
+      child->cstatus = VMS_POSIX_EXIT_MASK | (MAKE_TROUBLE << 3);
+      child->vms_launch_status = SS$_ABORT;
+      /* TODO what is this "magic number" */
+      child->pid = 270163; /* Special built-in */
+      child->efn = 0;
+      errno = token.cmd_errno;
+      return 0;
+    }
+
+  /* Save any redirection to append file */
+  if (append_token != -1)
+    {
+      int file_token;
+      char * lastdot;
+      char * lastdir;
+      char * raw_append_file;
+      file_token = append_token;
+      file_token++;
+      if (isspace (cmd_tokens[file_token][0]))
+        file_token++;
+      raw_append_file = vmsify (cmd_tokens[file_token], 0);
+      /* VMS DCL needs a trailing dot if null file extension */
+      lastdot = strrchr(raw_append_file, '.');
+      lastdir = strrchr(raw_append_file, ']');
+      if (lastdir == NULL)
+        lastdir = strrchr(raw_append_file, '>');
+      if (lastdir == NULL)
+        lastdir = strrchr(raw_append_file, ':');
+      if ((lastdot == NULL) || (lastdot > lastdir))
         {
-          printf (_("Error, empty command\n"));
-          fflush (stdout);
+          append_file = xmalloc (strlen (raw_append_file) + 1);
+          strcpy (append_file, raw_append_file);
+          strcat (append_file, ".");
+        }
+      else
+        append_file = strdup(raw_append_file);
+    }
+
+  cmd_dsc = build_vms_cmd (cmd_tokens, use_pipe_cmd, append_token);
+  if (cmd_dsc->dsc$a_pointer == NULL)
+    {
+      if (cmd_dsc->dsc$w_length < 0)
+        {
+          free (cmd_dsc);
+          child->cstatus = VMS_POSIX_EXIT_MASK | (MAKE_TROUBLE << 3);
+          child->vms_launch_status = SS$_ABORT;
+          /* TODO what is this "magic number" */
+          child->pid = 270163; /* Special built-in */
+          child->efn = 0;
           return 0;
         }
 
-      outfile = output_tmpfile (&child->comname, "sys$scratch:CMDXXXXXX.COM");
+      /* Only a built-in or a null command - Still need to run term AST */
+      free (cmd_dsc);
+      child->cstatus = VMS_POSIX_EXIT_MASK;
+      child->vms_launch_status = SS$_NORMAL;
+      /* TODO what is this "magic number" */
+      child->pid = 270163; /* Special built-in */
+      child->efn = 0;
+      vmsHandleChildTerm (child);
+      return 1;
+    }
+
+  if (cmd_dsc->dsc$w_length > MAX_DCL_LINE_LENGTH)
+    token.use_cmd_file = 1;
+
+  DB(DB_JOBS, (_("DCL: %s\n"), cmd_dsc->dsc$a_pointer));
+
+  /* Enforce the creation of a command file if "vms_always_use_cmd_file" is
+     non-zero.
+     Further, this way DCL reads the input stream and therefore does
+     'forced' symbol substitution, which it doesn't do for one-liners when
+     they are 'lib$spawn'ed.
+
+     Otherwise the behavior is:
+
+     Create a *.com file if either the command is too long for
+     lib$spawn, or if a redirect appending to a file is desired, or
+     symbol substitition.
+  */
+
+  if (vms_always_use_cmd_file || token.use_cmd_file)
+    {
+      FILE *outfile;
+      int cmd_len;
+
+      outfile = output_tmpfile (&child->comname,
+                                "sys$scratch:gnv$make_cmdXXXXXX.com");
       /*                                          012345678901234567890 */
-#define TMP_OFFSET 12
-#define TMP_LEN 9
       if (outfile == 0)
         pfatal_with_name (_("fopen (temporary file)"));
       comnamelen = strlen (child->comname);
-      tmpstr = &child->comname[TMP_OFFSET];
-      tmpstrlen = TMP_LEN;
+
       /* The whole DCL "script" is executed as one action, and it behaves as
          any DCL "script", that is errors stop it but warnings do not. Usually
          the command on the last line, defines the exit code.  However, with
@@ -674,158 +1265,72 @@ child_execute_job (char *argv, struct child *child)
          verify". However, the prolog and epilog commands are not shown. Also,
          if output redirection is used, the verification output is redirected
          into that file as well. */
-      fprintf (outfile, "$ %.*s_1 = \"''f$verify(0)'\"\n", tmpstrlen, tmpstr);
-      if (ifile[0])
+      fprintf (outfile, "$ gnv$$make_verify = \"''f$verify(0)'\"\n");
+      fprintf (outfile, "$ gnv$$make_pid = f$getjpi(\"\",\"pid\")\n");
+      fprintf (outfile, "$ on error then $ goto gnv$$make_error\n");
+
+      /* Handle append redirection */
+      if (append_file != NULL)
         {
-          fprintf (outfile, "$ assign/user %s sys$input\n", ifile);
-          DB (DB_JOBS, (_("Redirected input from %s\n"), ifile));
-          ifiledsc.dsc$w_length = 0;
+          /* If file does not exist, create it */
+          fprintf (outfile,
+                   "$ gnv$$make_al = \"gnv$$make_append''gnv$$make_pid'\"\n");
+          fprintf (outfile,
+                   "$ if f$search(\"%s\") .eqs. \"\" then create %s\n",
+                   append_file, append_file);
+
+          fprintf (outfile,
+                   "$ open/append 'gnv$$make_al' %s\n", append_file);
+
+          /* define sys$output to that file */
+          fprintf (outfile,
+                   "$ define/user sys$output 'gnv$$make_al'\n");
+          DB (DB_JOBS, (_("Append output to %s\n"), append_file));
+          free(append_file);
         }
 
-      if (efile[0])
-        {
-          fprintf (outfile, "$ define sys$error %s\n", efile);
-          DB (DB_JOBS, (_("Redirected error to %s\n"), efile));
-          efiledsc.dsc$w_length = 0;
-        }
+      fprintf (outfile, "$ gnv$$make_verify = f$verify(gnv$$make_verify)\n");
 
-      if (ofile[0])
-        if (have_append)
-          {
-            fprintf (outfile, "$ define sys$output %.*s\n", comnamelen-3, child->comname);
-            fprintf (outfile, "$ on error then $ goto %.*s\n", tmpstrlen, tmpstr);
-            DB (DB_JOBS, (_("Append output to %s\n"), ofile));
-            ofiledsc.dsc$w_length = 0;
-          }
-        else
-          {
-            fprintf (outfile, "$ define sys$output %s\n", ofile);
-            DB (DB_JOBS, (_("Redirected output to %s\n"), ofile));
-            ofiledsc.dsc$w_length = 0;
-          }
-
-      /* Export the child environment into DCL symbols */
-      if (vms_always_use_cmd_file || (child->environment != 0))
-        {
-          char **ep = child->environment;
-          char *valstr;
-          while (*ep != 0)
-            {
-              valstr = strchr(*ep, '=');
-              if (valstr == NULL)
-                continue;
-              fprintf(outfile, "$ %.*s=\"%s\"\n", valstr - *ep, *ep,
-                  valstr + 1);
-              ep++;
-            }
-        }
-
-      fprintf (outfile, "$ %.*s_ = f$verify(%.*s_1)\n", tmpstrlen, tmpstr, tmpstrlen, tmpstr);
-
-      /* TODO: give 78 a name! Whether 78 is a good number is another question.
-         Trim, split and write the command lines.
-         Splitting of a command is done after 78 output characters at an
-         appropriate place (after strings, after comma or space and
-         before slash): appending a hyphen indicates that the DCL command
-         is being continued.
-         Trimming is to skip any whitespace around - including - a
-         leading $ from the command to ensure writing exactly one "$ "
-         at the beginning of the line of the output file. Trimming is
-         done when a new command is seen, indicated by a '\n' (outside
-         of a string).
-         The buffer so far is written and reset, when a new command is
-         seen, when a split was done and at the end of the command.
+      /* TODO:
          Only for ONESHELL there will be several commands separated by
-         '\n'. But there can always be multiple continuation lines. */
-      p = sep = q = cmd;
-      for (c = '\n'; c; c = *q++)
-        {
-          switch (c)
-          {
-          case '\n':
-            if (q > p)
-              {
-                fwrite(p, 1, q - p, outfile);
-                p = q;
-              }
-            fputc('$', outfile);
-            fputc(' ', outfile);
-            while (isspace((unsigned char) *p))
-              p++;
-            if (*p == '$')
-              p++;
-            while (isspace((unsigned char) *p))
-              p++;
-            q = sep = p;
-            break;
-          case '"':
-            q = vms_handle_apos(q);
-            sep = q;
-            break;
-          case ',':
-          case ' ':
-            sep = q;
-            break;
-          case '/':
-          case '\0':
-            sep = q - 1;
-            break;
-          default:
-            break;
-          }
-          if (sep - p > 78)
-            {
-              /* Enough stuff for a line. */
-              fwrite(p, 1, sep - p, outfile);
-              p = sep;
-              if (*sep)
-                {
-                  /* The command continues.  */
-                  fputc('-', outfile);
-                }
-              fputc('\n', outfile);
-            }
-        }
+         '\n'. But there can always be multiple continuation lines.
+      */
 
-      if (*p)
-        {
-          fwrite(p, 1, --q - p, outfile);
-          fputc('\n', outfile);
-        }
+      fprintf (outfile, "%s\n", cmd_dsc->dsc$a_pointer);
+      fprintf (outfile, "$ gnv$$make_status_2 = $status\n");
+      fprintf (outfile, "$ goto gnv$$make_exit\n");
 
-      if (have_append)
+      /* Exit and clean up */
+      fprintf (outfile, "$ gnv$$make_error: ! 'f$verify(0)\n");
+      fprintf (outfile, "$ gnv$$make_status_2 = $status\n");
+
+      if (append_token != -1)
         {
-          fprintf (outfile, "$ %.*s: ! 'f$verify(0)\n", tmpstrlen, tmpstr);
-          fprintf (outfile, "$ %.*s_2 = $status\n", tmpstrlen, tmpstr);
-          fprintf (outfile, "$ on error then $ exit\n");
           fprintf (outfile, "$ deassign sys$output\n");
-          if (efile[0])
-            fprintf (outfile, "$ deassign sys$error\n");
-          fprintf (outfile, "$ append:=append\n");
-          fprintf (outfile, "$ delete:=delete\n");
-          fprintf (outfile, "$ append/new %.*s %s\n", comnamelen-3, child->comname, ofile);
-          fprintf (outfile, "$ delete %.*s;*\n", comnamelen-3, child->comname);
-          fprintf (outfile, "$ exit '%.*s_2 + (0*f$verify(%.*s_1))\n", tmpstrlen, tmpstr, tmpstrlen, tmpstr);
-          DB (DB_JOBS, (_("Append %.*s and cleanup\n"), comnamelen-3, child->comname));
+          fprintf (outfile, "$ close 'gnv$$make_al'\n");
+
+          DB (DB_JOBS,
+              (_("Append %.*s and cleanup\n"), comnamelen-3, child->comname));
         }
+      fprintf (outfile, "$ gnv$$make_exit: ! 'f$verify(0)\n");
+      fprintf (outfile,
+             "$ exit 'gnv$$make_status_2' + (0*f$verify(gnv$$make_verify))\n");
 
       fclose (outfile);
 
-      sprintf (cmd, "$ @%s", child->comname);
+      free (cmd_dsc->dsc$a_pointer);
+      cmd_dsc->dsc$a_pointer = xmalloc (256 + 4);
+      sprintf (cmd_dsc->dsc$a_pointer, "$ @%s", child->comname);
+      cmd_dsc->dsc$w_length = strlen (cmd_dsc->dsc$a_pointer);
 
-      DB (DB_JOBS, (_("Executing %s instead\n"), cmd));
+      DB (DB_JOBS, (_("Executing %s instead\n"), child->comname));
     }
-
-  cmddsc.dsc$w_length = strlen(cmd);
-  cmddsc.dsc$a_pointer = cmd;
-  cmddsc.dsc$b_dtype = DSC$K_DTYPE_T;
-  cmddsc.dsc$b_class = DSC$K_CLASS_S;
 
   child->efn = 0;
   while (child->efn < 32 || child->efn > 63)
     {
-      status = lib$get_ef ((unsigned long *)&child->efn);
-      if (!(status & 1))
+      status = LIB$GET_EF ((unsigned long *)&child->efn);
+      if (!$VMS_STATUS_SUCCESS (status))
         {
           if (child->comname)
             {
@@ -837,12 +1342,12 @@ child_execute_job (char *argv, struct child *child)
         }
     }
 
-  sys$clref (child->efn);
+  SYS$CLREF (child->efn);
 
   vms_jobsefnmask |= (1 << (child->efn - 32));
 
   /* Export the child environment into DCL symbols */
-  if (!vms_always_use_cmd_file && child->environment != 0)
+  if (child->environment != 0)
     {
       char **ep = child->environment;
       while (*ep != 0)
@@ -904,9 +1409,9 @@ child_execute_job (char *argv, struct child *child)
 
   if (!setupYAstTried)
     tryToSetupYAst();
-  child->vms_launch_status = lib$spawn (&cmddsc,               /* cmd-string */
-                     (ifiledsc.dsc$w_length == 0)?0:&ifiledsc, /* input-file */
-                     (ofiledsc.dsc$w_length == 0)?0:&ofiledsc, /* output-file */
+  child->vms_launch_status = lib$spawn (cmd_dsc,               /* cmd-string */
+                     NULL, /* input-file */
+                     NULL, /* output-file */
                      &spflags,                                 /* flags */
                      &pnamedsc,                                /* proc name */
                      &child->pid, &child->cstatus, &child->efn,
@@ -920,9 +1425,9 @@ child_execute_job (char *argv, struct child *child)
       vmsHandleChildTerm (child);
     }
 #else
-  child->vms_launch_status = lib$spawn (&cmddsc,
-                      (ifiledsc.dsc$w_length == 0)?0:&ifiledsc,
-                      (ofiledsc.dsc$w_length == 0)?0:&ofiledsc,
+  child->vms_launch_status = lib$spawn (cmd_dsc,
+                      NULL,
+                      NULL,
                       &spflags,
                       &pnamedsc,
                       &child->pid, &child->cstatus, &child->efn,
@@ -930,6 +1435,11 @@ child_execute_job (char *argv, struct child *child)
                       0, 0, 0);
    status = child->vms_launch_status;
 #endif
+
+  /* Free the pointer if not a command file */
+  if (!vms_always_use_cmd_file && !token.use_cmd_file)
+    free (cmd_dsc->dsc$a_pointer);
+  free (cmd_dsc);
 
   if (!$VMS_STATUS_SUCCESS (status))
     {
@@ -944,7 +1454,7 @@ child_execute_job (char *argv, struct child *child)
     }
 
   /* Restore the VMS symbols that were changed */
-  if (!vms_always_use_cmd_file && child->environment != 0)
+  if (child->environment != 0)
     {
       char **ep = child->environment;
       while (*ep != 0)

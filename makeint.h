@@ -213,6 +213,10 @@ unsigned int get_path_max (void);
 
 extern int vms_use_mcr_command;
 extern int vms_always_use_cmd_file;
+extern int vms_gnv_shell;
+extern int vms_comma_separator;
+extern int vms_legacy_behavior;
+extern int vms_unix_simulation;
 #endif
 
 #ifndef __attribute__
@@ -346,7 +350,7 @@ char *strsignal (int signum);
 # define PATH_SEPARATOR_CHAR ';'
 #elif !defined(PATH_SEPARATOR_CHAR)
 # if defined (VMS)
-#  define PATH_SEPARATOR_CHAR ','
+#  define PATH_SEPARATOR_CHAR (vms_comma_separator ? ',' : ':')
 # else
 #  define PATH_SEPARATOR_CHAR ':'
 # endif

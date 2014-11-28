@@ -50,6 +50,37 @@ int __stack = 20000; /* Make sure we have 20K of stack space */
 #ifdef VMS
 int vms_use_mcr_command = 0;
 int vms_always_use_cmd_file = 0;
+int vms_gnv_shell = 0;
+int vms_legacy_behavior = 0;
+int vms_comma_separator = 0;
+int vms_unix_simulation = 0;
+int vms_report_unix_paths = 0;
+
+/* Evaluates if a VMS environment option is set, only look at first character */
+static int
+get_vms_env_flag (const char *name, int default_value)
+{
+char * value;
+char x;
+
+  value = getenv (name);
+  if (value == NULL)
+    return default_value;
+
+  x = toupper (value[0]);
+  switch (x)
+    {
+    case '1':
+    case 'T':
+    case 'E':
+      return 1;
+      break;
+    case '0':
+    case 'F':
+    case 'D':
+      return 0;
+    }
+}
 #endif
 
 void init_dir (void);
@@ -632,7 +663,9 @@ initialize_stopchar_map ()
 
   stopchar_map[(int)'/'] = MAP_DIRSEP;
 #if defined(VMS)
+  stopchar_map[(int)':'] = MAP_COLON | MAP_DIRSEP;
   stopchar_map[(int)']'] = MAP_DIRSEP;
+  stopchar_map[(int)'>'] = MAP_DIRSEP;
 #elif defined(HAVE_DOS_PATHS)
   stopchar_map[(int)'\\'] = MAP_DIRSEP;
 #endif
@@ -1021,6 +1054,9 @@ msdos_return_to_initial_directory (void)
 }
 #endif  /* __MSDOS__ */
 
+
+
+
 #ifdef _AMIGA
 int
 main (int argc, char **argv)
@@ -1198,25 +1234,45 @@ main (int argc, char **argv, char **envp)
       set_program_name (argv[0]);
       program = program_name;
       {
-        const char *value;
-        value = getenv ("GNV$MAKE_USE_MCR");
-        if (value != NULL)
-          vms_use_mcr_command = 1;
+        const char *shell;
+        char pwdbuf[256];
+        char *pwd;
+        shell = getenv ("SHELL");
+        if (shell != NULL)
+          vms_gnv_shell = 1;
 
-        value = getenv ("GNV$MAKE_USE_CMD_FILE");
-        if (value != NULL)
-          switch (value[0])
-            {
-            case '1':
-            case 'T':
-            case 't':
-            case 'e':
-            case 'E':
-              vms_always_use_cmd_file = 1;
-              break;
-            default:
-              vms_always_use_cmd_file = 0;
-            }
+        /* Need to know if CRTL set to report UNIX paths.  Use getcwd as
+           it works on all versions of VMS. */
+        pwd = getcwd(pwdbuf, 256);
+        if (pwd[0] == '/')
+          vms_report_unix_paths = 1;
+
+        vms_use_mcr_command = get_vms_env_flag ("GNV$MAKE_USE_MCR", 0);
+
+        vms_always_use_cmd_file = get_vms_env_flag ("GNV$MAKE_USE_CMD_FILE", 0);
+
+        /* Legacy behavior is on VMS is older behavior that needed to be
+           changed to be compatible with standard make behavior.
+           For now only completely disable when running under a Bash shell.
+           TODO: Update VMS built in recipes and macros to not need this
+           behavior, at which time the default may change. */
+        vms_legacy_behavior = get_vms_env_flag ("GNV$MAKE_OLD_VMS",
+                                                !vms_gnv_shell);
+
+        /* VMS was changed to use a comma separator in the past, but that is
+           incompatible with built in functions that expect space separated
+           lists.  Allow this to be selectively turned off. */
+        vms_comma_separator = get_vms_env_flag ("GNV$MAKE_COMMA",
+                                                vms_legacy_behavior);
+
+        /* Some Posix shell syntax options are incompatible with VMS syntax.
+           VMS requires double quotes for strings and escapes quotes
+           differently.  When this option is active, VMS will try
+           to simulate Posix shell simulations instead of using
+           VMS DCL behavior. */
+        vms_unix_simulation = get_vms_env_flag ("GNV$MAKE_SHELL_SIM",
+                                                !vms_legacy_behavior);
+
       }
       if (need_vms_symbol () && !vms_use_mcr_command)
         create_foreign_command (program_name, argv[0]);
@@ -1683,6 +1739,9 @@ main (int argc, char **argv, char **envp)
          a reference to this hidden variable is written instead. */
       define_variable_cname ("MAKEOVERRIDES", "${-*-command-variables-*-}",
                              o_env, 1);
+#ifdef VMS
+      vms_export_dcl_symbol ("MAKEOVERRIDES", "${-*-command-variables-*-}");
+#endif
     }
 
   /* If there were -C flags, move ourselves about.  */
@@ -2401,9 +2460,6 @@ main (int argc, char **argv, char **envp)
                     *p = alloca (40);
                     sprintf (*p, "MAKE_RESTARTS=%s%u",
                              OUTPUT_IS_TRACED () ? "-" : "", restarts);
-#ifdef VMS
-                    vms_putenv_symbol (*p);
-#endif
                     restarts = 0;
                   }
               }
@@ -2428,9 +2484,6 @@ main (int argc, char **argv, char **envp)
               sprintf (b, "MAKE_RESTARTS=%s%u",
                        OUTPUT_IS_TRACED () ? "-" : "", restarts);
               putenv (b);
-#ifdef __VMS
-              vms_putenv_symbol (b);
-#endif
             }
 
           fflush (stdout);
@@ -2671,6 +2724,31 @@ handle_non_switch_argument (const char *arg, int env)
     /* Ignore plain '-' for compatibility.  */
     return;
 
+#ifdef VMS
+  {
+    /* VMS DCL quoting can result in foo="bar baz" showing up here.
+       Need to remove the double quotes from the value. */
+    char * eq_ptr;
+    char * new_arg;
+    eq_ptr = strchr (arg, '=');
+    if ((eq_ptr != NULL) && (eq_ptr[1] == '"'))
+      {
+         int len;
+         int seg1;
+         int seg2;
+         len = strlen(arg);
+         new_arg = alloca(len);
+         seg1 = eq_ptr - arg + 1;
+         strncpy(new_arg, arg, (seg1));
+         seg2 = len - seg1 - 1;
+         strncpy(&new_arg[seg1], &eq_ptr[2], seg2);
+         new_arg[seg1 + seg2] = 0;
+         if (new_arg[seg1 + seg2 - 1] == '"')
+           new_arg[seg1 + seg2 - 1] = 0;
+         arg = new_arg;
+      }
+  }
+#endif
   v = try_variable_definition (0, arg, o_command, 0);
   if (v != 0)
     {

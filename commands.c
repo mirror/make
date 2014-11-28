@@ -26,7 +26,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #if VMS
-# define FILE_LIST_SEPARATOR ','
+# define FILE_LIST_SEPARATOR (vms_comma_separator ? ',' : ' ')
 #else
 # define FILE_LIST_SEPARATOR ' '
 #endif

@@ -566,10 +566,12 @@ func_notdir_suffix (char *o, char **argv, const char *funcname)
       if (is_notdir || p >= p2)
         {
 #ifdef VMS
-          o = variable_buffer_output (o, ",", 1);
-#else
-          o = variable_buffer_output (o, " ", 1);
+          if (vms_comma_separator)
+            o = variable_buffer_output (o, ",", 1);
+          else
 #endif
+          o = variable_buffer_output (o, " ", 1);
+
           doneany = 1;
         }
     }
@@ -596,7 +598,7 @@ func_basename_dir (char *o, char **argv, const char *funcname)
   int stop = MAP_DIRSEP | (is_basename ? MAP_DOT : 0) | MAP_NUL;
 #ifdef VMS
   /* As in func_notdir_suffix ... */
-  char *vms_p3 = alloca(strlen(p3) + 1);
+  char *vms_p3 = alloca (strlen(p3) + 1);
   int i;
   for (i = 0; p3[i]; i++)
     if (p3[i] == ',')
@@ -624,7 +626,12 @@ func_basename_dir (char *o, char **argv, const char *funcname)
 #endif
       else if (is_dir)
 #ifdef VMS
-        o = variable_buffer_output (o, "[]", 2);
+        {
+          if (vms_report_unix_paths)
+            o = variable_buffer_output (o, "./", 2);
+          else
+            o = variable_buffer_output (o, "[]", 2);
+        }
 #else
 #ifndef _AMIGA
       o = variable_buffer_output (o, "./", 2);
@@ -637,10 +644,12 @@ func_basename_dir (char *o, char **argv, const char *funcname)
         o = variable_buffer_output (o, p2, len);
 
 #ifdef VMS
-      o = variable_buffer_output (o, ",", 1);
-#else
-      o = variable_buffer_output (o, " ", 1);
+      if (vms_comma_separator)
+        o = variable_buffer_output (o, ",", 1);
+      else
 #endif
+        o = variable_buffer_output (o, " ", 1);
+
       doneany = 1;
     }
 
@@ -1440,11 +1449,8 @@ fold_newlines (char *buffer, unsigned int *length, int trim_newlines)
   *length = last_nonnl - buffer;
 }
 
-
-
 pid_t shell_function_pid = 0;
 int shell_function_completed;
-
 
 #ifdef WINDOWS32
 /*untested*/
