@@ -1442,7 +1442,8 @@ fold_newlines (char *buffer, unsigned int *length, int trim_newlines)
 
 
 
-int shell_function_pid = 0, shell_function_completed;
+pid_t shell_function_pid = 0;
+int shell_function_completed;
 
 
 #ifdef WINDOWS32

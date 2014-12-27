@@ -563,7 +563,8 @@ child_handler (int sig UNUSED)
   */
 }
 
-extern int shell_function_pid, shell_function_completed;
+extern pid_t shell_function_pid;
+extern int shell_function_completed;
 
 /* Reap all dead children, storing the returned status and the new command
    state ('cs_finished') in the 'file' member of the 'struct child' for the
