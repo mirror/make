@@ -2890,6 +2890,10 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
           else if (instring == '"' && strchr ("\\$`", *p) != 0 && unixy_shell)
             goto slow;
 #ifdef WINDOWS32
+	  /* Quoted wildcard characters must be passed quoted to the
+	     command, so give up the fast route.  */
+	  else if (instring == '"' && strchr ("*?", *p) != 0 && !unixy_shell)
+	    goto slow;
           else if (instring == '"' && strncmp (p, "\\\"", 2) == 0)
             *ap++ = *++p;
 #endif
