@@ -73,12 +73,6 @@ char * vms_strsignal (int status);
 # define VMS_POSIX_EXIT_MASK (C_FACILITY_NO | 0xA000)
 #endif
 
-
-#elif defined (__riscos__)
-
-const char *default_shell = "";
-int batch_mode_shell = 0;
-
 #else
 
 const char *default_shell = "/bin/sh";
