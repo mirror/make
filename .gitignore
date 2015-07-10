@@ -27,6 +27,12 @@ gmk-default.h
 loadavg
 make
 *.o
+*.exe
+*.dll.a
+*.obj
+*.lib
+*.pdb
+*.sbr
 
 # Distribution artifacts
 .dep_segment
