@@ -542,7 +542,6 @@ void strcache_print_stats (const char *prefix);
 int strcache_iscached (const char *str);
 const char *strcache_add (const char *str);
 const char *strcache_add_len (const char *str, unsigned int len);
-int strcache_setbufsize (unsigned int size);
 
 /* Guile support  */
 int guile_gmake_setup (const gmk_floc *flocp);

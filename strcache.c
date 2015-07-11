@@ -42,8 +42,8 @@ struct strcache {
 #define CACHE_BUFFER_ALLOC(_s)  ((_s) - (2 * sizeof (size_t)))
 #define CACHE_BUFFER_OFFSET     (offsetof (struct strcache, buffer))
 #define CACHE_BUFFER_SIZE(_s)   (CACHE_BUFFER_ALLOC(_s) - CACHE_BUFFER_OFFSET)
+#define BUFSIZE                 CACHE_BUFFER_SIZE (CACHE_BUFFER_BASE)
 
-static sc_buflen_t bufsize = CACHE_BUFFER_SIZE (CACHE_BUFFER_BASE);
 static struct strcache *strcache = NULL;
 static struct strcache *fullcache = NULL;
 
@@ -57,62 +57,73 @@ static unsigned long total_size = 0;
    that this doesn't seem to be much of an issue in practice.
  */
 static struct strcache *
-new_cache ()
+new_cache (struct strcache **head, sc_buflen_t buflen)
 {
-  struct strcache *new;
-  new = xmalloc (bufsize + CACHE_BUFFER_OFFSET);
+  struct strcache *new = xmalloc (buflen + CACHE_BUFFER_OFFSET);
   new->end = 0;
   new->count = 0;
-  new->bytesfree = bufsize;
+  new->bytesfree = buflen;
 
-  new->next = strcache;
-  strcache = new;
+  new->next = *head;
+  *head = new;
 
   ++total_buffers;
   return new;
 }
 
 static const char *
+copy_string (struct strcache *sp, const char *str, unsigned int len)
+{
+  /* Add the string to this cache.  */
+  char *res = &sp->buffer[sp->end];
+
+  memmove (res, str, len);
+  res[len++] = '\0';
+  sp->end += len;
+  sp->bytesfree -= len;
+  ++sp->count;
+
+  return res;
+}
+
+static const char *
 add_string (const char *str, unsigned int len)
 {
-  char *res;
+  const char *res;
   struct strcache *sp;
   struct strcache **spp = &strcache;
   /* We need space for the nul char.  */
   unsigned int sz = len + 1;
 
-  /* If the string we want is too large to fit into a single buffer, then
-     no existing cache is large enough.  Change the maximum size.  */
-  if (sz > bufsize)
-    bufsize = CACHE_BUFFER_SIZE ((((sz + 1) / CACHE_BUFFER_BASE) + 1)
-                                 * CACHE_BUFFER_BASE);
-  else
-    /* Find the first cache with enough free space.  */
-    for (; *spp != NULL; spp = &(*spp)->next)
-      if ((*spp)->bytesfree > sz)
-        break;
+  ++total_strings;
+  total_size += sz;
 
-  /* If nothing is big enough, make a new cache.  */
+  /* If the string we want is too large to fit into a single buffer, then
+     no existing cache is large enough.  Add it directly to the fullcache.  */
+  if (sz > BUFSIZE)
+    {
+      sp = new_cache (&fullcache, sz);
+      return copy_string (sp, str, len);
+    }
+
+  /* Find the first cache with enough free space.  */
+  for (; *spp != NULL; spp = &(*spp)->next)
+    if ((*spp)->bytesfree > sz)
+      break;
+
+  /* If nothing is big enough, make a new cache at the front.  */
   sp = *spp;
   if (sp == NULL)
     {
-      sp = new_cache ();
+      sp = new_cache (&strcache, BUFSIZE);
       spp = &sp;
     }
 
   /* Add the string to this cache.  */
-  res = &sp->buffer[sp->end];
-  memmove (res, str, len);
-  res[len] = '\0';
-  sp->end += sz;
-  sp->bytesfree -= sz;
-  ++sp->count;
+  res = copy_string (sp, str, len);
 
   /* If the amount free in this cache is less than the average string size,
      consider it full and move it to the full list.  */
-  ++total_strings;
-  total_size += sz;
-
   if (sp->bytesfree < (total_size / total_strings) + 1)
     {
       *spp = (*spp)->next;
@@ -207,14 +218,6 @@ strcache_add_len (const char *str, unsigned int len)
   return add_hash (str, len);
 }
 
-int
-strcache_setbufsize (unsigned int size)
-{
-  if (size > bufsize)
-    bufsize = size;
-  return bufsize;
-}
-
 void
 strcache_init (void)
 {
@@ -229,7 +232,7 @@ strcache_print_stats (const char *prefix)
 {
   const struct strcache *sp;
   unsigned long numbuffs = 0, fullbuffs = 0;
-  unsigned long totfree = 0, maxfree = 0, minfree = bufsize;
+  unsigned long totfree = 0, maxfree = 0, minfree = BUFSIZE;
 
   if (! strcache)
     {
@@ -268,12 +271,13 @@ strcache_print_stats (const char *prefix)
           (total_size / total_strings));
 
   printf (_("%s current buf: size = %hu B / used = %hu B / count = %hu / avg = %hu B\n"),
-          prefix, bufsize, strcache->end, strcache->count,
+          prefix, (sc_buflen_t)BUFSIZE, strcache->end, strcache->count,
           (strcache->end / strcache->count));
 
   if (numbuffs)
     {
-      unsigned long sz = total_size - bufsize;
+      /* Show information about non-current buffers.  */
+      unsigned long sz = total_size - strcache->end;
       unsigned long cnt = total_strings - strcache->count;
       sc_buflen_t avgfree = totfree / numbuffs;
 
