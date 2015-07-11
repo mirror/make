@@ -349,7 +349,7 @@ update_file (struct file *file, unsigned int depth)
           {
             enum update_status new = update_file (d->file, depth + 1);
             if (new > status)
-              new = status;
+              status = new;
           }
       }
 
