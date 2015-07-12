@@ -1110,10 +1110,12 @@ set_child_handler_action_flags (int set_handler, int set_alarm)
   sa.sa_handler = child_handler;
   sa.sa_flags = set_handler ? 0 : SA_RESTART;
 #if defined SIGCHLD
-  sigaction (SIGCHLD, &sa, NULL);
+  if (sigaction (SIGCHLD, &sa, NULL) < 0)
+    pfatal_with_name ("sigaction: SIGCHLD");
 #endif
 #if defined SIGCLD && SIGCLD != SIGCHLD
-  sigaction (SIGCLD, &sa, NULL);
+  if (sigaction (SIGCLD, &sa, NULL) < 0)
+    pfatal_with_name ("sigaction: SIGCLD");
 #endif
 #if defined SIGALRM
   if (set_alarm)
@@ -1125,7 +1127,8 @@ set_child_handler_action_flags (int set_handler, int set_alarm)
         {
           sa.sa_handler = job_noop;
           sa.sa_flags = 0;
-          sigaction (SIGALRM, &sa, NULL);
+          if (sigaction (SIGALRM, &sa, NULL) < 0)
+            pfatal_with_name ("sigaction: SIGALRM");
           alarm (1);
         }
       else
@@ -1133,7 +1136,8 @@ set_child_handler_action_flags (int set_handler, int set_alarm)
           alarm (0);
           sa.sa_handler = SIG_DFL;
           sa.sa_flags = 0;
-          sigaction (SIGALRM, &sa, NULL);
+          if (sigaction (SIGALRM, &sa, NULL) < 0)
+            pfatal_with_name ("sigaction: SIGALRM");
         }
     }
 #endif
@@ -2884,10 +2888,10 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
           else if (instring == '"' && strchr ("\\$`", *p) != 0 && unixy_shell)
             goto slow;
 #ifdef WINDOWS32
-	  /* Quoted wildcard characters must be passed quoted to the
-	     command, so give up the fast route.  */
-	  else if (instring == '"' && strchr ("*?", *p) != 0 && !unixy_shell)
-	    goto slow;
+          /* Quoted wildcard characters must be passed quoted to the
+             command, so give up the fast route.  */
+          else if (instring == '"' && strchr ("*?", *p) != 0 && !unixy_shell)
+            goto slow;
           else if (instring == '"' && strncmp (p, "\\\"", 2) == 0)
             *ap++ = *++p;
 #endif
