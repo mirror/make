@@ -1563,7 +1563,7 @@ name_mtime (const char *name)
             mtime = ltime;
 
           /* Set up to check the file pointed to by this link.  */
-          EINTRLOOP (llen, readlink (lpath, lbuf, GET_PATH_MAX));
+          EINTRLOOP (llen, readlink (lpath, lbuf, GET_PATH_MAX - 1));
           if (llen < 0)
             {
               /* Eh?  Just take what we have.  */
