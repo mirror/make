@@ -2343,6 +2343,10 @@ unescape_char (char *string, int c)
               /* It's not; just take it all without unescaping.  */
               memmove (p, s, l);
               p += l;
+
+              // If we hit the end of the string, we're done
+              if (*e == '\0')
+                break;
             }
           else if (l > 1)
             {
@@ -2351,6 +2355,7 @@ unescape_char (char *string, int c)
               memmove (p, s, l);
               p += l;
             }
+
           s = e;
         }
 
