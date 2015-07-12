@@ -2262,6 +2262,10 @@ find_char_unquote (char *string, int map)
         {
           char openparen = p[1];
 
+          /* Check if '$' is the last character in the string.  */
+          if (openparen == '\0')
+            break;
+
           p += 2;
 
           /* Skip the contents of a non-quoted, multi-char variable ref.  */
@@ -2735,6 +2739,8 @@ get_next_mword (char *buffer, char *delim, char **startp, unsigned int *length)
           c = *(p++);
           if (c == '$')
             break;
+          if (c == '\0')
+            goto done_word;
 
           /* This is a variable reference, so note that it's expandable.
              Then read it to the matching close paren.  */

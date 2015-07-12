@@ -1445,6 +1445,8 @@ parse_variable_definition (const char *p, struct variable *var)
             closeparen = ')';
           else if (c == '{')
             closeparen = '}';
+          else if (c == '\0')
+            return NULL;
           else
             /* '$$' or '$X'.  Either way, nothing special to do here.  */
             continue;
