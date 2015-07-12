@@ -126,8 +126,8 @@ guile.$(OBJEXT): gmk-default.h
 gmk-default.h: $(srcdir)/gmk-default.scm
 	(echo 'static const char *const GUILE_module_defn = " '\\ \
 	  && sed -e 's/;.*//' -e '/^[ \t]*$$/d' -e 's/"/\\"/g' -e 's/$$/ \\/' \
-	         $(srcdir)/gmk-default.scm \
-          && echo '";') > $@
+		 $(srcdir)/gmk-default.scm \
+	  && echo '";') > $@
 
 # --------------- Local DIST Section
 
@@ -175,6 +175,7 @@ MAKETESTFLAGS =
 
 check-regression: tests/config-flags.pm
 	@if test -f '$(srcdir)/tests/run_make_tests'; then \
+	  ulimit -n 128; \
 	  if $(PERL) -v >/dev/null 2>&1; then \
 	    case `cd '$(srcdir)'; pwd` in `pwd`) : ;; \
 	      *) test -d tests || mkdir tests; \
@@ -189,9 +190,9 @@ check-regression: tests/config-flags.pm
 	  else \
 	    echo "Can't find a working Perl ($(PERL)); the test suite requires Perl."; \
 	  fi; \
-	 else \
+	else \
 	  echo "Can't find the GNU Make test suite ($(srcdir)/tests)."; \
-	 fi
+	fi
 
 
 # --------------- Maintainer's Section
