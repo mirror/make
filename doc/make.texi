@@ -5669,7 +5669,7 @@ endif
 @end example
 
 The shell assignment operator @samp{!=} can be used to execute a
-program and set a variable to its output.  This operator first
+shell script and set a variable to its output.  This operator first
 evaluates the right-hand side, then passes that result to the shell
 for execution.  If the result of the execution ends in a newline, that
 one newline is removed; all other newlines are replaced by spaces.
@@ -5693,6 +5693,9 @@ Function}.  For example:
 hash := $(shell printf '\043')
 var := $(shell find . -name "*.c")
 @end example
+
+As with the @code{shell} function, the exit status of the just-invoked
+shell script is stored in the @code{.SHELLSTATUS} variable.
 
 
 @node Appending, Override Directive, Setting, Using Variables
@@ -8023,6 +8026,10 @@ spawning a new shell, you should carefully consider the performance
 implications of using the @code{shell} function within recursively
 expanded variables vs.@: simply expanded variables (@pxref{Flavors, ,The
 Two Flavors of Variables}).
+
+@vindex .SHELLSTATUS
+After the @code{shell} function or @samp{!=} assignment operator is
+used, its exit status is placed in the @code{.SHELLSTATUS} variable.
 
 Here are some examples of the use of the @code{shell} function:
 

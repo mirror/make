@@ -558,7 +558,6 @@ child_handler (int sig UNUSED)
 }
 
 extern pid_t shell_function_pid;
-extern int shell_function_completed;
 
 /* Reap all dead children, storing the returned status and the new command
    state ('cs_finished') in the 'file' member of the 'struct child' for the
@@ -816,11 +815,7 @@ reap_children (int block, int err)
       /* Check if this is the child of the 'shell' function.  */
       if (!remote && pid == shell_function_pid)
         {
-          /* It is.  Leave an indicator for the 'shell' function.  */
-          if (exit_sig == 0 && exit_code == 127)
-            shell_function_completed = -1;
-          else
-            shell_function_completed = 1;
+          shell_completed (exit_code, exit_sig);
           break;
         }
 

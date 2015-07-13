@@ -1450,7 +1450,22 @@ fold_newlines (char *buffer, unsigned int *length, int trim_newlines)
 }
 
 pid_t shell_function_pid = 0;
-int shell_function_completed;
+static int shell_function_completed;
+
+void
+shell_completed (int exit_code, int exit_sig)
+{
+  char buf[256];
+
+  shell_function_pid = 0;
+  if (exit_sig == 0 && exit_code == 127)
+    shell_function_completed = -1;
+  else
+    shell_function_completed = 1;
+
+  sprintf (buf, "%d", exit_code);
+  define_variable_cname (".SHELLSTATUS", buf, o_override, 0);
+}
 
 #ifdef WINDOWS32
 /*untested*/
@@ -1630,14 +1645,15 @@ msdos_openpipe (int* pipedes, int *pidp, char *text)
         errno = EINTR;
       else if (errno == 0)
         errno = ENOMEM;
-      shell_function_completed = -1;
+      if (fpipe)
+        pclose (fpipe);
+      shell_completed (127, 0);
     }
   else
     {
       pipedes[0] = fileno (fpipe);
       *pidp = 42; /* Yes, the Meaning of Life, the Universe, and Everything! */
       errno = e;
-      shell_function_completed = 1;
     }
   return fpipe;
 }
@@ -1696,7 +1712,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
 #endif
       return o;
     }
-#endif
+#endif /* !__MSDOS__ */
 
   /* Using a target environment for 'shell' loses in cases like:
        export var = $(shell echo foobie)
@@ -1743,7 +1759,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
   if (pipedes[0] < 0)
     {
       /* Open of the pipe failed, mark as failed execution.  */
-      shell_function_completed = -1;
+      shell_completed (127, 0);
       perror_with_name (error_prefix, "pipe");
       return o;
     }
@@ -1824,7 +1840,10 @@ func_shell_base (char *o, char **argv, int trim_newlines)
       /* Close the read side of the pipe.  */
 #ifdef  __MSDOS__
       if (fpipe)
-        (void) pclose (fpipe);
+        {
+          int st = pclose (fpipe);
+          shell_completed (st, 0);
+        }
 #else
       (void) close (pipedes[0]);
 #endif
@@ -1843,9 +1862,9 @@ func_shell_base (char *o, char **argv, int trim_newlines)
         }
       shell_function_pid = 0;
 
-      /* The child_handler function will set shell_function_completed
-         to 1 when the child dies normally, or to -1 if it
-         dies with status 127, which is most likely an exec fail.  */
+      /* shell_completed() will set shell_function_completed to 1 when the
+         child dies normally, or to -1 if it dies with status 127, which is
+         most likely an exec fail.  */
 
       if (shell_function_completed == -1)
         {

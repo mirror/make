@@ -134,7 +134,7 @@ char *patsubst_expand_pat (char *o, const char *text, const char *pattern,
                            const char *replace_percent);
 char *patsubst_expand (char *o, const char *text, char *pattern, char *replace);
 char *func_shell_base (char *o, char **argv, int trim_newlines);
-
+void shell_completed (int exit_code, int exit_sig);
 
 /* expand.c */
 char *recursively_expand_for_file (struct variable *v, struct file *file);
