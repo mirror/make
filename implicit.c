@@ -864,9 +864,10 @@ pattern_search (struct file *file, int archive,
 
           /* We don't want to delete an intermediate file that happened
              to be a prerequisite of some (other) target. Mark it as
-             precious.  */
+             secondary.  We don't want it to be precious as that disables
+             DELETE_ON_ERROR etc.  */
           if (f != 0)
-            f->precious = 1;
+            f->secondary = 1;
           else
             f = enter_file (imf->name);
 
