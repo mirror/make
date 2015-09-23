@@ -721,9 +721,26 @@ process_begin(
                 if (!shell_name
                     && batch_file_with_spaces(exec_fname)
                     && _stricmp(exec_path, argv[0]) == 0) {
+                        char *new_argv, *p;
+                        char **argvi;
+                        int arglen, i;
                         pass_null_exec_path = 1;
+                        /* Rewrite argv[] replacing argv[0] with exec_fname.  */
+                        for (argvi = argv + 1, arglen = strlen(exec_fname) + 1;
+                             *argvi;
+                             argvi++) {
+                                arglen += strlen(*argvi) + 1;
+                        }
+                        new_argv = xmalloc(arglen);
+                        p = strcpy(new_argv, exec_fname) + strlen(exec_fname) + 1;
+                        for (argvi = argv + 1, i = 1; *argvi; argvi++, i++) {
+                                strcpy(p, *argvi);
+                                argv[i] = p;
+                                p += strlen(*argvi) + 1;
+                        }
+                        argv[i] = NULL;
                         free (argv[0]);
-                        argv[0] = xstrdup(exec_fname);
+                        argv[0] = new_argv;
                 }
                 command_line = make_command_line( shell_name, exec_fname, argv);
         }
