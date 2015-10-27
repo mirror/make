@@ -602,10 +602,21 @@ static const char *default_variables[] =
     "COMPILE.m", "$(OBJC) $(OBJCFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c",
     "LINK.m", "$(OBJC) $(OBJCFLAGS) $(CPPFLAGS) $(LDFLAGS) $(TARGET_ARCH)",
     "COMPILE.cc", "$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c",
+#ifndef HAVE_CASE_INSENSITIVE_FS
+    /* On case-insensitive filesystems, treat *.C files as *.c files,
+       to avoid erroneously compiling C sources as C++, which will
+       probably fail.  */
     "COMPILE.C", "$(COMPILE.cc)",
+#else
+    "COMPILE.C", "$(COMPILE.c)",
+#endif
     "COMPILE.cpp", "$(COMPILE.cc)",
     "LINK.cc", "$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) $(TARGET_ARCH)",
+#ifndef HAVE_CASE_INSENSITIVE_FS
     "LINK.C", "$(LINK.cc)",
+#else
+    "LINK.C", "$(LINK.c)",
+#endif
     "LINK.cpp", "$(LINK.cc)",
     "YACC.y", "$(YACC) $(YFLAGS)",
     "LEX.l", "$(LEX) $(LFLAGS) -t",
