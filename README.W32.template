@@ -2,7 +2,7 @@ This version of GNU make has been tested on
 Microsoft Windows 2000/XP/2003/Vista/7/2008.
 It has also been used on Windows 95/98/NT, and on OS/2.
 
-It builds with the MinGW port of GCC (tested with GCC 3.4.2).
+It builds with the MinGW port of GCC (tested with GCC 3.4.2 and 4.8.1).
 
 It also builds with MSVC 2.x, 4.x, 5.x, 6.x, and 2003 as well as
 with .NET 7.x and .NET 2003.
@@ -13,16 +13,17 @@ itself, its dependency libraries and the pkg-config program.  The
 latter is used to figure out which compilation and link switches and
 libraries need to be mentioned on the compiler command lines to
 correctly link with Guile.  A Windows port of pkg-config can be found
-on the Windows download page of the GTK+ project:
+on ezwinports site:
 
-  http://www.gtk.org/download/win32.php
+  http://sourceforge.net/projects/ezwinports/
 
 The libraries on which Guile depends can vary depending on your
 version and build of Guile.  At the very least, the Boehm's GC library
 will be needed, and typically also GNU MP, libffi, libunistring, and
 libtool's libltdl.  Whoever built the port of Guile you have should
 also provide you with these dependencies or a URL where to download
-them.
+them.  A precompiled 32-bit Windows build of Guile is available from
+the ezwinports site mentioned above.
 
 The Windows 32-bit port of GNU make is maintained jointly by various
 people.  It was originally made by Rob Tulloh.
@@ -31,14 +32,12 @@ people.  It was originally made by Rob Tulloh.
 Do this first, regardless of the build method you choose:
 ---------------------------------------------------------
 
- 1. At the Windows command prompt run:
-
-      if not exist NMakefile copy NMakefile.template NMakefile
-      if not exist config.h copy config.h.W32 config.h
-
-    Then edit config.h to your liking (especially the few shell-related
+ 1. Edit config.h.W32 to your liking (especially the few shell-related
     defines near the end, or HAVE_CASE_INSENSITIVE_FS which corresponds
-    to './configure --enable-case-insensitive-file-system').
+    to './configure --enable-case-insensitive-file-system').  (We don't
+    recommend to define HAVE_CASE_INSENSITIVE_FS, but you may wish to
+    consider that if you have a lot of files whose names are in upper
+    case, while Makefile rules are written for lower-case versions.)
 
 
 Using make_msvc_net2003.vcproj
