@@ -6636,12 +6636,12 @@ effective; otherwise, the @var{text-if-false}, if any, is effective.
 
 @item ifdef @var{variable-name}
 The @code{ifdef} form takes the @emph{name} of a variable as its
-argument, not a reference to a variable.  The value of that variable
-has a non-empty value, the @var{text-if-true} is effective; otherwise,
-the @var{text-if-false}, if any, is effective.  Variables that have
-never been defined have an empty value.  The text @var{variable-name}
-is expanded, so it could be a variable or function that expands
-to the name of a variable.  For example:
+argument, not a reference to a variable.  If the value of that
+variable has a non-empty value, the @var{text-if-true} is effective;
+otherwise, the @var{text-if-false}, if any, is effective.  Variables
+that have never been defined have an empty value.  The text
+@var{variable-name} is expanded, so it could be a variable or function
+that expands to the name of a variable.  For example:
 
 @example
 bar = true
