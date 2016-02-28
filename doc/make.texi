@@ -4970,27 +4970,24 @@ beginning with a recipe prefix character to define an empty recipe,
 but this would be confusing because such a line looks empty.
 
 @findex .DEFAULT@r{, and empty recipes}
-You may be wondering why you would want to define a recipe that
-does nothing.  The only reason this is useful is to prevent a target
-from getting implicit recipes (from implicit rules or the
-@code{.DEFAULT} special target; @pxref{Implicit Rules} and
-@pxref{Last Resort, ,Defining Last-Resort Default Rules}).@refill
+You may be wondering why you would want to define a recipe that does
+nothing.  One reason this is useful is to prevent a target from
+getting implicit recipes (from implicit rules or the @code{.DEFAULT}
+special target; @pxref{Implicit Rules} and @pxref{Last Resort,
+,Defining Last-Resort Default Rules}).@refill
 
-@c !!! another reason is for canonical stamp files:
-@ignore
-@example
-foo: stamp-foo ;
-stamp-foo: foo.in
-        create foo frm foo.in
-        touch $@
-@end example
-@end ignore
+Empty recipes can also be used to avoid errors for targets that will
+be created as a side-effect of another recipe: if the target does not
+exist the empty recipe ensures that @code{make} won't complain that it
+doesn't know how to build the target, and @code{make} will assume the
+target is out of date.
 
-You may be inclined to define empty recipes for targets that are
-not actual files, but only exist so that their prerequisites can be
+You may be inclined to define empty recipes for targets that are not
+actual files, but only exist so that their prerequisites can be
 remade.  However, this is not the best way to do that, because the
-prerequisites may not be remade properly if the target file actually does exist.
-@xref{Phony Targets, ,Phony Targets}, for a better way to do this.
+prerequisites may not be remade properly if the target file actually
+does exist.  @xref{Phony Targets, ,Phony Targets}, for a better way to
+do this.
 
 @node Using Variables, Conditionals, Recipes, Top
 @chapter How to Use Variables
