@@ -134,6 +134,26 @@ add_string (const char *str, unsigned int len)
   return res;
 }
 
+/* For strings too large for the strcache, we just save them in a list.  */
+struct hugestring {
+  struct hugestring *next;  /* The next string.  */
+  char buffer[1];           /* The string.  */
+};
+
+static struct hugestring *hugestrings = NULL;
+
+static const char *
+add_hugestring (const char *str, unsigned int len)
+{
+  struct hugestring *new = xmalloc (sizeof (struct hugestring) + len);
+  memcpy (new->buffer, str, len);
+  new->buffer[len] = '\0';
+
+  new->next = hugestrings;
+  hugestrings = new;
+
+  return new->buffer;
+}
 
 /* Hash table of strings in the cache.  */
 
@@ -159,11 +179,19 @@ static struct hash_table strings;
 static unsigned long total_adds = 0;
 
 static const char *
-add_hash (const char *str, int len)
+add_hash (const char *str, unsigned int len)
 {
+  char *const *slot;
+  const char *key;
+
+  /* If it's too large for the string cache, just copy it.
+     We don't bother trying to match these.  */
+  if (len > USHRT_MAX - 1)
+    return add_hugestring (str, len);
+
   /* Look up the string in the hash.  If it's there, return it.  */
-  char *const *slot = (char *const *) hash_find_slot (&strings, str);
-  const char *key = *slot;
+  slot = (char *const *) hash_find_slot (&strings, str);
+  key = *slot;
 
   /* Count the total number of add operations we performed.  */
   ++total_adds;
@@ -189,6 +217,13 @@ strcache_iscached (const char *str)
   for (sp = fullcache; sp != 0; sp = sp->next)
     if (str >= sp->buffer && str < sp->buffer + sp->end)
       return 1;
+
+  {
+    struct hugestring *hp;
+    for (hp = hugestrings; hp != 0; hp = hp->next)
+      if (str == hp->buffer)
+        return 1;
+  }
 
   return 0;
 }
