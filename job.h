@@ -109,6 +109,7 @@ struct child
     unsigned int  noerror:1;    /* Nonzero if commands contained a '-'.  */
     unsigned int  good_stdin:1; /* Nonzero if this child has a good stdin.  */
     unsigned int  deleted:1;    /* Nonzero if targets have been deleted.  */
+    unsigned int  recursive:1;  /* Nonzero for recursive command ('+' etc.)  */
     unsigned int  dontcare:1;   /* Saved dontcare flag.  */
   };
 

@@ -819,8 +819,6 @@ reap_children (int block, int err)
           break;
         }
 
-      child_failed = exit_sig != 0 || exit_code != 0;
-
       /* Search for a child matching the deceased one.  */
       lastc = 0;
       for (c = children; c != 0; lastc = c, c = c->next)
@@ -831,6 +829,15 @@ reap_children (int block, int err)
         /* An unknown child died.
            Ignore it; it was inherited from our invoker.  */
         continue;
+
+      /* Determine the failure status: 0 for success, 1 for updating target in
+         question mode, 2 for anything else.  */
+      if (exit_sig == 0 && exit_code == 0)
+        child_failed = MAKE_SUCCESS;
+      else if (exit_sig == 0 && exit_code == 1 && question_flag && c->recursive)
+        child_failed = MAKE_TROUBLE;
+      else
+        child_failed = MAKE_FAILURE;
 
       DB (DB_JOBS, (child_failed
                     ? _("Reaping losing child %p PID %s %s\n")
@@ -867,10 +874,10 @@ reap_children (int block, int err)
              delete non-precious targets, and abort.  */
           static int delete_on_error = -1;
 
-          if (!dontcare)
+          if (!dontcare && child_failed == MAKE_FAILURE)
             child_error (c, exit_code, exit_sig, coredump, 0);
 
-          c->file->update_status = us_failed;
+          c->file->update_status = child_failed == MAKE_FAILURE ? us_failed : us_question;
           if (delete_on_error == -1)
             {
               struct file *f = lookup_file (".DELETE_ON_ERROR");
@@ -982,7 +989,7 @@ reap_children (int block, int err)
       if (!err && child_failed && !dontcare && !keep_going_flag &&
           /* fatal_error_signal will die with the right signal.  */
           !handling_fatal_signal)
-        die (MAKE_FAILURE);
+        die (child_failed);
 
       /* Only block for one child.  */
       block = 0;
@@ -1188,14 +1195,15 @@ start_job_command (struct child *child)
       ++p;
     }
 
+  child->recursive = ((flags & COMMANDS_RECURSE) != 0);
+
   /* Update the file's command flags with any new ones we found.  We only
      keep the COMMANDS_RECURSE setting.  Even this isn't 100% correct; we are
      now marking more commands recursive than should be in the case of
      multiline define/endef scripts where only one line is marked "+".  In
      order to really fix this, we'll have to keep a lines_flags for every
      actual line, after expansion.  */
-  child->file->cmds->lines_flags[child->command_line - 1]
-    |= flags & COMMANDS_RECURSE;
+  child->file->cmds->lines_flags[child->command_line - 1] |= flags & COMMANDS_RECURSE;
 
   /* POSIX requires that a recipe prefix after a backslash-newline should
      be ignored.  Remove it now so the output is correct.  */
