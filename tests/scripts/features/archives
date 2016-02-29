@@ -33,37 +33,51 @@ my $ar = $CONFIG_FLAGS{AR};
 # which does not run configure.
 $ar = 'ar' if $ar eq '';
 
-my $redir = " 2>&1";
-$redir = "" if $osname eq 'VMS';
+my $redir = '2>&1';
+$redir = '' if $osname eq 'VMS';
+
+my $arflags = 'rv';
+my $arvar = "AR=$ar";
+
+# Newer versions of binutils can be built with --enable-deterministic-archives
+# which forces all timestamps (among other things) to always be 0, defeating
+# GNU make's archive support.  See if ar supports the U option to disable it.
+unlink('libxx.a');
+$_ = `$ar U$arflags libxx.a a1.o $redir`;
+if ($? == 0) {
+    $arflags = 'Urv';
+    $arvar = "$arvar ARFLAGS=$arflags";
+}
 
 # Some versions of ar print different things on creation.  Find out.
-my $created = `$ar rv libxx.a a1.o $redir`;
+unlink('libxx.a');
+my $created = `$ar $arflags libxx.a a1.o $redir`;
 
 # Some versions of ar print different things on add.  Find out.
-my $add = `$ar rv libxx.a a2.o $redir`;
+my $add = `$ar $arflags libxx.a a2.o $redir`;
 $add =~ s/a2\.o/#OBJECT#/g;
 
 # Some versions of ar print different things on replacement.  Find out.
-my $repl = `$ar rv libxx.a a2.o $redir`;
+my $repl = `$ar $arflags libxx.a a2.o $redir`;
 $repl =~ s/a2\.o/#OBJECT#/g;
 
 unlink('libxx.a');
 
 # Very simple
-my $answer = "$ar rv libxx.a a1.o\n$created";
+my $answer = "$ar $arflags libxx.a a1.o\n$created";
 if ($port_type eq 'VMS-DCL') {
   $answer = 'library /replace libxx.a a1.o';
 }
-run_make_test('all: libxx.a(a1.o)', "AR=$ar", $answer);
+run_make_test('all: libxx.a(a1.o)', $arvar, $answer);
 
 # Multiple .o's.  Add a new one to the existing library
 ($_ = $add) =~ s/#OBJECT#/a2.o/g;
 
-$answer = "$ar rv libxx.a a2.o\n$_";
+$answer = "$ar $arflags libxx.a a2.o\n$_";
 if ($port_type eq 'VMS-DCL') {
   $answer = 'library /replace libxx.a a2.o';
 }
-run_make_test('all: libxx.a(a1.o a2.o)', "AR=$ar", $answer);
+run_make_test('all: libxx.a(a1.o a2.o)', $arvar, $answer);
 
 # Touch one of the .o's so it's rebuilt
 if ($port_type eq 'VMS-DCL') {
@@ -80,15 +94,15 @@ if ($port_type eq 'VMS-DCL') {
 }
 
 ($_ = $repl) =~ s/#OBJECT#/a1.o/g;
-$answer = "$ar rv libxx.a a1.o\n$_";
+$answer = "$ar $arflags libxx.a a1.o\n$_";
 if ($port_type eq 'VMS-DCL') {
   $answer = 'library /replace libxx.a a1.o';
 }
-run_make_test(undef, "AR=$ar", $answer);
+run_make_test(undef, $arvar, $answer);
 
 # Use wildcards
 $answer = "#MAKE#: Nothing to be done for 'all'.\n";
-run_make_test('all: libxx.a(*.o)', "AR=$ar", $answer);
+run_make_test('all: libxx.a(*.o)', $arvar, $answer);
 
 # Touch one of the .o's so it's rebuilt
 if ($port_type eq 'VMS-DCL') {
@@ -102,11 +116,11 @@ if ($port_type eq 'VMS-DCL') {
   utouch(-30, 'a1.o');
 }
 ($_ = $repl) =~ s/#OBJECT#/a1.o/g;
-$answer = "$ar rv libxx.a a1.o\n$_";
+$answer = "$ar $arflags libxx.a a1.o\n$_";
 if ($port_type eq 'VMS-DCL') {
   $answer = 'library /replace libxx.a a1.o';
 }
-run_make_test(undef, "AR=$ar", $answer);
+run_make_test(undef, $arvar, $answer);
 
 # Use both wildcards and simple names
 if ($port_type eq 'VMS-DCL') {
@@ -119,14 +133,14 @@ if ($port_type eq 'VMS-DCL') {
   utouch(-50, 'a2.o');
 }
 ($_ = $add) =~ s/#OBJECT#/a3.o/g;
-$_ .= "$ar rv libxx.a a2.o\n";
+$_ .= "$ar $arflags libxx.a a2.o\n";
 ($_ .= $repl) =~ s/#OBJECT#/a2.o/g;
-$answer = "$ar rv libxx.a a3.o\n$_";
+$answer = "$ar $arflags libxx.a a3.o\n$_";
 if ($port_type eq 'VMS-DCL') {
   $answer = 'library /replace libxx.a a3.o';
 }
 
-run_make_test('all: libxx.a(a3.o *.o)', "AR=$ar", $answer);
+run_make_test('all: libxx.a(a3.o *.o)', $arvar, $answer);
 
 # Check whitespace handling
 if ($port_type eq 'VMS-DCL') {
@@ -139,11 +153,11 @@ if ($port_type eq 'VMS-DCL') {
   utouch(-40, 'a2.o');
 }
 ($_ = $repl) =~ s/#OBJECT#/a2.o/g;
-$answer = "$ar rv libxx.a a2.o\n$_";
+$answer = "$ar $arflags libxx.a a2.o\n$_";
 if ($port_type eq 'VMS-DCL') {
   $answer = 'library /replace libxx.a a2.o';
 }
-run_make_test('all: libxx.a(  a3.o    *.o     )', "AR=$ar", $answer);
+run_make_test('all: libxx.a(  a3.o    *.o     )', $arvar, $answer);
 
 rmfiles(qw(a1.c1 a2.c1 a3.c1 a1.o a2.o a3.o libxx.a));
 
@@ -158,7 +172,7 @@ if ($port_type eq 'VMS-DCL') {
     $mk_string =~ s/echo/write sys\$\$output/;
     $mk_string =~ s/\'/\"/g;
 }
-run_make_test($mk_string, "AR=$ar", "foo(bar).baz\n");
+run_make_test($mk_string, $arvar, "foo(bar).baz\n");
 
 # Check renaming of archive targets.
 # See Savannah bug #38442
@@ -184,9 +198,9 @@ if ($port_type eq 'VMS-DCL') {
   $mk_string =~ s#\@ \$\(\*F\)#\@ \$\(\*F\)\.#;
   $mk_string =~ s#>/dev/null 2>&1 ##;
 }
-run_make_test($mk_string, "AR=$ar", "");
+run_make_test($mk_string, $arvar, "");
 
-run_make_test(undef, "AR=$ar", "#MAKE#: Nothing to be done for 'default'.\n");
+run_make_test(undef, $arvar, "#MAKE#: Nothing to be done for 'default'.\n");
 
 unlink('foo.vhd');
 if ($osname eq 'VMS') {
