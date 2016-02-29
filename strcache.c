@@ -110,13 +110,13 @@ add_string (const char *str, unsigned int len)
   for (; *spp != NULL; spp = &(*spp)->next)
     if ((*spp)->bytesfree > sz)
       break;
+  sp = *spp;
 
   /* If nothing is big enough, make a new cache at the front.  */
-  sp = *spp;
   if (sp == NULL)
     {
       sp = new_cache (&strcache, BUFSIZE);
-      spp = &sp;
+      spp = &strcache;
     }
 
   /* Add the string to this cache.  */
@@ -124,9 +124,9 @@ add_string (const char *str, unsigned int len)
 
   /* If the amount free in this cache is less than the average string size,
      consider it full and move it to the full list.  */
-  if (sp->bytesfree < (total_size / total_strings) + 1)
+  if (total_strings > 20 && sp->bytesfree < (total_size / total_strings) + 1)
     {
-      *spp = (*spp)->next;
+      *spp = sp->next;
       sp->next = fullcache;
       fullcache = sp;
     }
