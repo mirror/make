@@ -441,7 +441,7 @@ output_tmpfile (char **name, const char *template)
 
 # ifdef HAVE_FDOPEN
   /* Can't use mkstemp(), but guard against a race condition.  */
-  fd = open (*name, O_CREAT|O_EXCL|O_WRONLY, 0600);
+  EINTRLOOP (fd, open (*name, O_CREAT|O_EXCL|O_WRONLY, 0600));
   if (fd == -1)
     return 0;
   return fdopen (fd, "w");

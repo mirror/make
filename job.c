@@ -685,7 +685,7 @@ reap_children (int block, int err)
                 pid = WAIT_NOHANG (&status);
               else
 #endif
-                EINTRLOOP(pid, wait (&status));
+                EINTRLOOP (pid, wait (&status));
 #endif /* !VMS */
             }
           else
@@ -1999,7 +1999,7 @@ new_job (struct file *file)
         if (job_rfd < 0)
           {
             DB (DB_JOBS, ("Duplicate the job FD\n"));
-            job_rfd = dup (job_fds[0]);
+            EINTRLOOP (job_rfd, dup (job_fds[0]));
           }
 #endif
 
@@ -2036,7 +2036,7 @@ new_job (struct file *file)
 #else
         /* Set interruptible system calls, and read() for a job token.  */
         set_child_handler_action_flags (1, waiting_jobs != NULL);
-        got_token = read (job_rfd, &token, 1);
+        EINTRLOOP (got_token, read (job_rfd, &token, 1));
         saved_errno = errno;
         set_child_handler_action_flags (0, waiting_jobs != NULL);
 #endif
@@ -2352,17 +2352,19 @@ void
 child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
                    char **argv, char **envp)
 {
+  int r;
+
   /* For any redirected FD, dup2() it to the standard FD then close it.  */
   if (stdin_fd != FD_STDIN)
     {
-      dup2 (stdin_fd, FD_STDIN);
+      EINTRLOOP (r, dup2 (stdin_fd, FD_STDIN));
       close (stdin_fd);
     }
 
   if (stdout_fd != FD_STDOUT)
-    dup2 (stdout_fd, FD_STDOUT);
+    EINTRLOOP (r, dup2 (stdout_fd, FD_STDOUT));
   if (stderr_fd != FD_STDERR)
-    dup2 (stderr_fd, FD_STDERR);
+    EINTRLOOP (r, dup2 (stderr_fd, FD_STDERR));
 
   if (stdout_fd != FD_STDOUT)
     close (stdout_fd);
@@ -3690,7 +3692,7 @@ dup2 (int old, int new)
   int fd;
 
   (void) close (new);
-  fd = dup (old);
+  EINTRLOOP (fd, dup (old));
   if (fd != new)
     {
       (void) close (fd);

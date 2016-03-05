@@ -3488,8 +3488,14 @@ clean_jobserver (int status)
       /* Close the write side, so the read() won't hang.  */
       close (job_fds[1]);
 
-      while (read (job_fds[0], &token, 1) == 1)
-        ++tcnt;
+      while (1)
+        {
+          int r;
+          EINTRLOOP (r, read (job_fds[0], &token, 1));
+          if (r != 1)
+            break;
+          ++tcnt;
+        }
 #endif
 
       if (tcnt != master_job_slots)

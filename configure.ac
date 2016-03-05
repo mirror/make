@@ -75,15 +75,10 @@ AC_C_CONST
 AC_TYPE_SIGNAL
 AC_TYPE_UID_T
 AC_TYPE_PID_T
-
-# Find some definition for uintmax_t
-
-AC_CHECK_TYPE([uintmax_t],[],
-[ uintmax_t="unsigned long"
-  AC_CHECK_TYPE([unsigned long long],[uintmax_t="unsigned long long"])
-  AC_DEFINE_UNQUOTED([uintmax_t], [$uintmax_t],
-    [Define uintmax_t if not defined in <stdint.h> or <inttypes.h>.])
-])
+AC_TYPE_OFF_T
+AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
+AC_TYPE_UINTMAX_T
 
 # Find out whether our struct stat returns nanosecond resolution timestamps.
 

@@ -1158,8 +1158,9 @@ touch_file (struct file *file)
   else
 #endif
     {
-      int fd = open (file->name, O_RDWR | O_CREAT, 0666);
+      int fd;
 
+      EINTRLOOP (fd, open (file->name, O_RDWR | O_CREAT, 0666));
       if (fd < 0)
         TOUCH_ERROR ("touch: open: ");
       else
@@ -1172,18 +1173,24 @@ touch_file (struct file *file)
           if (e < 0)
             TOUCH_ERROR ("touch: fstat: ");
           /* Rewrite character 0 same as it already is.  */
-          if (read (fd, &buf, 1) < 0)
+          EINTRLOOP (e, read (fd, &buf, 1));
+          if (e < 0)
             TOUCH_ERROR ("touch: read: ");
-          if (lseek (fd, 0L, 0) < 0L)
-            TOUCH_ERROR ("touch: lseek: ");
-          if (write (fd, &buf, 1) < 0)
+          {
+            off_t o;
+            EINTRLOOP (o, lseek (fd, 0L, 0));
+            if (o < 0L)
+              TOUCH_ERROR ("touch: lseek: ");
+          }
+          EINTRLOOP (e, write (fd, &buf, 1));
+          if (e < 0)
             TOUCH_ERROR ("touch: write: ");
-          /* If file length was 0, we just
-             changed it, so change it back.  */
+
+          /* If file length was 0, we just changed it, so change it back.  */
           if (statbuf.st_size == 0)
             {
               (void) close (fd);
-              fd = open (file->name, O_RDWR | O_TRUNC, 0666);
+              EINTRLOOP (fd, open (file->name, O_RDWR | O_TRUNC, 0666));
               if (fd < 0)
                 TOUCH_ERROR ("touch: open: ");
             }
