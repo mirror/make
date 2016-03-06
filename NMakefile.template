@@ -107,6 +107,7 @@ OBJS = \
 	$(OUTDIR)/dirent.obj \
 	$(OUTDIR)/pathstuff.obj \
 	$(OUTDIR)/posixfcn.obj \
+	$(OUTDIR)/w32os.obj \
 	$(guile)
 
 $(OUTDIR)/make.exe: $(OUTDIR) $(OBJS)
@@ -126,4 +127,6 @@ $(OUTDIR)/dirent.obj : w32/compat/dirent.c
 $(OUTDIR)/posixfcn.obj : w32/compat/posixfcn.c
 	$(CC) $(CFLAGS) /c $?
 $(OUTDIR)/pathstuff.obj : w32/pathstuff.c
+	$(CC) $(CFLAGS) /c $?
+$(OUTDIR)/w32os.obj : w32/w32os.c
 	$(CC) $(CFLAGS) /c $?

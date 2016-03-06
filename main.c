@@ -15,6 +15,7 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "makeint.h"
+#include "os.h"
 #include "filedef.h"
 #include "dep.h"
 #include "variable.h"
@@ -270,15 +271,12 @@ static unsigned int inf_jobs = 0;
 
 /* File descriptors for the jobs pipe.  */
 
-char *jobserver_fds = 0;
-
-int job_fds[2] = { -1, -1 };
-int job_rfd = -1;
+char *jobserver_fds = NULL;
 
 /* Handle for the mutex used on Windows to synchronize output of our
    children under -O.  */
 
-char *sync_mutex = 0;
+char *sync_mutex = NULL;
 
 /* Maximum load average at which multiple jobs will be run.
    Negative values mean unlimited, while zero means limit to
@@ -600,7 +598,7 @@ struct output make_sync;
 
 /* Mask of signals that are being caught with fatal_error_signal.  */
 
-#ifdef  POSIX
+#ifdef POSIX
 sigset_t fatal_signal_set;
 #else
 # ifdef HAVE_SIGSETMASK
@@ -1597,85 +1595,33 @@ main (int argc, char **argv, char **envp)
   starting_directory = current_directory;
 
 #ifdef MAKE_JOBSERVER
-  /* If the jobserver-fds option is seen, make sure that -j is reasonable.
+  /* If the jobserver_fds option is seen, make sure that -j is reasonable.
      This can't be usefully set in the makefile, and we want to verify the
      FDs are valid before any other aspect of make has a chance to start
      using them for something else.  */
 
   if (jobserver_fds)
     {
-      /* Make sure the jobserver option has the proper format.  */
-      const char *cp = jobserver_fds;
-
-#ifdef WINDOWS32
-      if (! open_jobserver_semaphore (cp))
-        {
-          DWORD err = GetLastError ();
-          const char *estr = map_windows32_error_to_string (err);
-          fatal (NILF, strlen (cp) + INTSTR_LENGTH + strlen (estr),
-                 _("internal error: unable to open jobserver semaphore '%s': (Error %ld: %s)"),
-                 cp, err, estr);
-        }
-      DB (DB_JOBS, (_("Jobserver client (semaphore %s)\n"), cp));
-#else
-      if (sscanf (cp, "%d,%d", &job_fds[0], &job_fds[1]) != 2)
-        OS (fatal, NILF,
-            _("internal error: invalid --jobserver-fds string '%s'"), cp);
-
-      DB (DB_JOBS,
-          (_("Jobserver client (fds %d,%d)\n"), job_fds[0], job_fds[1]));
-#endif
-
-      /* The combination of a pipe + !job_slots means we're using the
-         jobserver.  If !job_slots and we don't have a pipe, we can start
-         infinite jobs.  If we see both a pipe and job_slots >0 that means the
+      /* The combination of jobserver_fds and !job_slots means we're using the
+         jobserver.  If !job_slots and no jobserver_fds, we can start infinite
+         jobs.  If we see both jobserver_fds and job_slots >0 that means the
          user set -j explicitly.  This is broken; in this case obey the user
-         (ignore the jobserver pipe for this make) but print a message.
-         If we've restarted, we already printed this the first time.  */
+         (ignore the jobserver for this make) but print a message.  If we've
+         restarted, we already printed this the first time.  */
+
+      if (!job_slots)
+        jobserver_parse_arg (jobserver_fds);
+
+      else if (! restarts)
+        O (error, NILF,
+           _("warning: -jN forced in submake: disabling jobserver mode."));
 
       if (job_slots > 0)
         {
-          if (! restarts)
-            O (error, NILF,
-               _("warning: -jN forced in submake: disabling jobserver mode."));
-        }
-#ifndef WINDOWS32
-#ifdef HAVE_FCNTL
-# define FD_OK(_f) ((fcntl ((_f), F_GETFD) != -1) || (errno != EBADF))
-#else
-# define FD_OK(_f) 1
-#endif
-      /* Create a duplicate pipe, that will be closed in the SIGCHLD
-         handler.  If this fails with EBADF, the parent has closed the pipe
-         on us because it didn't think we were a submake.  If so, print a
-         warning then default to -j1.  */
-      else if (!FD_OK (job_fds[0]) || !FD_OK (job_fds[1])
-               || (job_rfd = dup (job_fds[0])) < 0)
-        {
-          if (errno != EBADF)
-            pfatal_with_name (_("dup jobserver"));
-
-          O (error, NILF,
-             _("warning: jobserver unavailable: using -j1.  Add '+' to parent make rule."));
-          job_slots = 1;
-          job_fds[0] = job_fds[1] = -1;
-        }
-#endif
-
-      if (job_slots > 0)
-        {
-#ifdef WINDOWS32
-          free_jobserver_semaphore ();
-#else
-          if (job_fds[0] >= 0)
-            close (job_fds[0]);
-          if (job_fds[1] >= 0)
-            close (job_fds[1]);
-#endif
-          job_fds[0] = job_fds[1] = -1;
-
+          /* If job_slots is set now then we're not using jobserver */
+          jobserver_clear ();
           free (jobserver_fds);
-          jobserver_fds = 0;
+          jobserver_fds = NULL;
         }
     }
 #endif
@@ -1902,7 +1848,7 @@ main (int argc, char **argv, char **envp)
     }
 
 #ifndef __EMX__ /* Don't use a SIGCHLD handler for OS/2 */
-#if defined(MAKE_JOBSERVER) || !defined(HAVE_WAIT_NOHANG)
+#if !defined(HAVE_WAIT_NOHANG) || defined(MAKE_JOBSERVER)
   /* Set up to handle children dying.  This must be done before
      reading in the makefiles so that 'shell' function calls will work.
 
@@ -1910,9 +1856,9 @@ main (int argc, char **argv, char **envp)
      functionality here and rely on the signal handler and counting
      children.
 
-     If we're using the jobs pipe we need a signal handler so that
-     SIGCHLD is not ignored; we need it to interrupt the read(2) of the
-     jobserver pipe in job.c if we're waiting for a token.
+     If we're using the jobs pipe we need a signal handler so that SIGCHLD is
+     not ignored; we need it to interrupt the read(2) of the jobserver pipe if
+     we're waiting for a token.
 
      If none of these are true, we don't need a signal handler at all.  */
   {
@@ -2074,66 +2020,23 @@ main (int argc, char **argv, char **envp)
 #endif
 
 #ifdef MAKE_JOBSERVER
-  /* If we have >1 slot but no jobserver-fds, then we're a top-level make.
-     Set up the pipe and install the fds option for our children.  */
-
   if (job_slots > 1)
     {
-#ifdef WINDOWS32
-      /* sub_proc.c cannot wait for more than MAXIMUM_WAIT_OBJECTS objects
-       * and one of them is the job-server semaphore object.  Limit the
-       * number of available job slots to (MAXIMUM_WAIT_OBJECTS - 1). */
+      /* If we have >1 slot at this point, then we're a top-level make.
+         Set up the jobserver.
 
-      if (job_slots >= MAXIMUM_WAIT_OBJECTS)
-        {
-          job_slots = MAXIMUM_WAIT_OBJECTS - 1;
-          DB (DB_JOBS, (_("Jobserver slots limited to %d\n"), job_slots));
-        }
-
-      if (! create_jobserver_semaphore (job_slots - 1))
-        {
-          DWORD err = GetLastError ();
-          const char *estr = map_windows32_error_to_string (err);
-          ONS (fatal, NILF,
-               _("creating jobserver semaphore: (Error %ld: %s)"), err, estr);
-        }
-#else
-      char c = '+';
-
-      if (pipe (job_fds) < 0 || (job_rfd = dup (job_fds[0])) < 0)
-        pfatal_with_name (_("creating jobs pipe"));
-#endif
-
-      /* Every make assumes that it always has one job it can run.  For the
+         Every make assumes that it always has one job it can run.  For the
          submakes it's the token they were given by their parent.  For the
-         top make, we just subtract one from the number the user wants.  We
-         want job_slots to be 0 to indicate we're using the jobserver.  */
+         top make, we just subtract one from the number the user wants.  */
 
+      jobserver_setup (job_slots - 1);
+
+      /* We're using the jobserver so set job_slots to 0.  */
       master_job_slots = job_slots;
-
-#ifdef WINDOWS32
-      /* We're using the jobserver so set job_slots to 0. */
       job_slots = 0;
-#else
-      while (--job_slots)
-        {
-          int r;
-
-          EINTRLOOP (r, write (job_fds[1], &c, 1));
-          if (r != 1)
-            pfatal_with_name (_("init jobserver pipe"));
-        }
-#endif
 
       /* Fill in the jobserver_fds for our children.  */
-
-#ifdef WINDOWS32
-      jobserver_fds = xmalloc (MAX_PATH + 1);
-      strcpy (jobserver_fds, get_jobserver_semaphore_name ());
-#else
-      jobserver_fds = xmalloc ((INTSTR_LENGTH * 2) + 2);
-      sprintf (jobserver_fds, "%d,%d", job_fds[0], job_fds[1]);
-#endif
+      jobserver_fds = jobserver_get_arg ();
     }
 #endif
 
@@ -2488,10 +2391,6 @@ main (int argc, char **argv, char **envp)
 
           fflush (stdout);
           fflush (stderr);
-
-          /* Close the dup'd jobserver pipe if we opened one.  */
-          if (job_rfd >= 0)
-            close (job_rfd);
 
 #ifdef _AMIGA
           exec_command (nargv);
@@ -3444,13 +3343,7 @@ clean_jobserver (int status)
      have written all our tokens so do that now.  If tokens are left
      after any other error code, that's bad.  */
 
-#ifdef WINDOWS32
-  if (has_jobserver_semaphore () && jobserver_tokens)
-#else
-  char token = '+';
-
-  if (job_fds[0] != -1 && jobserver_tokens)
-#endif
+  if (jobserver_enabled() && jobserver_tokens)
     {
       if (status != 2)
         ON (error, NILF,
@@ -3459,18 +3352,7 @@ clean_jobserver (int status)
       else
         /* Don't write back the "free" token */
         while (--jobserver_tokens)
-          {
-#ifdef WINDOWS32
-            if (! release_jobserver_semaphore ())
-              perror_with_name ("release_jobserver_semaphore", "");
-#else
-            int r;
-
-            EINTRLOOP (r, write (job_fds[1], &token, 1));
-            if (r != 1)
-              perror_with_name ("write", "");
-#endif
-          }
+          jobserver_release (0);
     }
 
 
@@ -3479,42 +3361,21 @@ clean_jobserver (int status)
   if (master_job_slots)
     {
       /* We didn't write one for ourself, so start at 1.  */
-      unsigned int tcnt = 1;
+      unsigned int tokens = 1 + jobserver_acquire_all ();
 
-#ifdef WINDOWS32
-      while (acquire_jobserver_semaphore ())
-          ++tcnt;
-#else
-      /* Close the write side, so the read() won't hang.  */
-      close (job_fds[1]);
-
-      while (1)
-        {
-          int r;
-          EINTRLOOP (r, read (job_fds[0], &token, 1));
-          if (r != 1)
-            break;
-          ++tcnt;
-        }
-#endif
-
-      if (tcnt != master_job_slots)
+      if (tokens != master_job_slots)
         ONN (error, NILF,
              "INTERNAL: Exiting with %u jobserver tokens available; should be %u!",
-             tcnt, master_job_slots);
+             tokens, master_job_slots);
 
-#ifdef WINDOWS32
-      free_jobserver_semaphore ();
-#else
-      close (job_fds[0]);
-#endif
+      jobserver_clear ();
 
       /* Clean out jobserver_fds so we don't pass this information to any
          sub-makes.  Also reset job_slots since it will be put on the command
          line, not in MAKEFLAGS.  */
       job_slots = default_job_slots;
       free (jobserver_fds);
-      jobserver_fds = 0;
+      jobserver_fds = NULL;
     }
 }
 

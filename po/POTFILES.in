@@ -32,6 +32,7 @@ load.c
 main.c
 misc.c
 output.c
+posixos.c
 read.c
 remake.c
 remote-cstms.c
@@ -43,3 +44,4 @@ variable.h
 vmsfunctions.c
 vmsjobs.c
 vpath.c
+w32/w32os.c

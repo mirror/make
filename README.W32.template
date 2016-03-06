@@ -1,11 +1,12 @@
-This version of GNU make has been tested on
-Microsoft Windows 2000/XP/2003/Vista/7/2008.
+This version of GNU make has been tested on:
+  Microsoft Windows 2000/XP/2003/Vista/7/8/10
 It has also been used on Windows 95/98/NT, and on OS/2.
 
-It builds with the MinGW port of GCC (tested with GCC 3.4.2 and 4.8.1).
+It builds with the MinGW port of GCC (tested with GCC 3.4.2, 4.8.1,
+and 4.9.3).
 
-It also builds with MSVC 2.x, 4.x, 5.x, 6.x, and 2003 as well as
-with .NET 7.x and .NET 2003.
+It also builds with MSVC 2.x, 4.x, 5.x, 6.x, 2003, and 14 (2015) as
+well as with .NET 7.x and .NET 2003.
 
 As of version 4.0, a build with Guile is supported (tested with Guile
 2.0.3).  To build with Guile, you will need, in addition to Guile
@@ -25,8 +26,9 @@ also provide you with these dependencies or a URL where to download
 them.  A precompiled 32-bit Windows build of Guile is available from
 the ezwinports site mentioned above.
 
-The Windows 32-bit port of GNU make is maintained jointly by various
-people.  It was originally made by Rob Tulloh.
+The Windows port of GNU make is maintained jointly by various people.
+It was originally made by Rob Tulloh.
+It is currently maintained by Eli Zaretskii.
 
 
 Do this first, regardless of the build method you choose:
@@ -56,7 +58,9 @@ Building with (MinGW-)GCC using build_w32.bat
 
         build_w32.bat gcc
 
-    This produces gnumake.exe in the current directory.
+    This produces gnumake.exe in the GccRel directory.
+    If you want a version of GNU make built with debugging enabled,
+    add the --debug option.
 
     The batch file will probe for Guile installation, and will build
     gnumake.exe with Guile if it finds it.  If you have Guile
@@ -76,7 +80,9 @@ Building with (MSVC++-)cl using build_w32.bat or NMakefile
 
         build_w32.bat
 
-    (this produces WinDebug/gnumake.exe and WinRel/gnumake.exe)
+    This produces gnumake.exe in the WinRel directory.
+    If you want a version of GNU make built with debugging enabled,
+    add the --debug option.
 
     ... OR ...
 

@@ -118,7 +118,7 @@ closedir (DIR *dir)
       struct FAB *dfab = &dir->fab;
       struct NAM *dnam = (struct NAM *)(dfab->fab$l_nam);
       if (dnam != NULL)
-	free (dnam->nam$l_esa);
+        free (dnam->nam$l_esa);
       free (dnam);
       free (dir);
     }

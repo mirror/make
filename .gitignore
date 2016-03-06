@@ -34,6 +34,12 @@ make
 *.pdb
 *.sbr
 
+# Windows build artifacts
+/WinDebug/
+/WinRel/
+/GccDebug/
+/GccRel/
+
 # Distribution artifacts
 .dep_segment
 .check-git-HEAD

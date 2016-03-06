@@ -23,6 +23,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "filedef.h"
 #include "commands.h"
 #include "variable.h"
+#include "os.h"
 #include "debug.h"
 
 #include <string.h>
@@ -541,11 +542,7 @@ child_handler (int sig UNUSED)
 {
   ++dead_children;
 
-  if (job_rfd >= 0)
-    {
-      close (job_rfd);
-      job_rfd = -1;
-    }
+  jobserver_signal ();
 
 #ifdef __EMX__
   /* The signal handler must called only once! */
@@ -1012,35 +1009,12 @@ free_child (struct child *child)
   /* If we're using the jobserver and this child is not the only outstanding
      job, put a token back into the pipe for it.  */
 
-#ifdef WINDOWS32
-  if (has_jobserver_semaphore () && jobserver_tokens > 1)
+  if (jobserver_enabled () && jobserver_tokens > 1)
     {
-      if (! release_jobserver_semaphore ())
-        {
-          DWORD err = GetLastError ();
-          const char *estr = map_windows32_error_to_string (err);
-          ONS (fatal, NILF,
-               _("release jobserver semaphore: (Error %ld: %s)"), err, estr);
-        }
-
-      DB (DB_JOBS, (_("Released token for child %p (%s).\n"), child, child->file->name));
-    }
-#else
-  if (job_fds[1] >= 0 && jobserver_tokens > 1)
-    {
-      char token = '+';
-      int r;
-
-      /* Write a job token back to the pipe.  */
-
-      EINTRLOOP (r, write (job_fds[1], &token, 1));
-      if (r != 1)
-        pfatal_with_name (_("write jobserver"));
-
+      jobserver_release (1);
       DB (DB_JOBS, (_("Released token for child %p (%s).\n"),
                     child, child->file->name));
     }
-#endif
 
   --jobserver_tokens;
 
@@ -1089,60 +1063,6 @@ unblock_sigs (void)
   sigset_t empty;
   sigemptyset (&empty);
   sigprocmask (SIG_SETMASK, &empty, (sigset_t *) 0);
-}
-#endif
-
-#if defined(MAKE_JOBSERVER) && !defined(WINDOWS32)
-RETSIGTYPE
-job_noop (int sig UNUSED)
-{
-}
-/* Set the child handler action flags to FLAGS.  */
-static void
-set_child_handler_action_flags (int set_handler, int set_alarm)
-{
-  struct sigaction sa;
-
-#ifdef __EMX__
-  /* The child handler must be turned off here.  */
-  signal (SIGCHLD, SIG_DFL);
-#endif
-
-  memset (&sa, '\0', sizeof sa);
-  sa.sa_handler = child_handler;
-  sa.sa_flags = set_handler ? 0 : SA_RESTART;
-#if defined SIGCHLD
-  if (sigaction (SIGCHLD, &sa, NULL) < 0)
-    pfatal_with_name ("sigaction: SIGCHLD");
-#endif
-#if defined SIGCLD && SIGCLD != SIGCHLD
-  if (sigaction (SIGCLD, &sa, NULL) < 0)
-    pfatal_with_name ("sigaction: SIGCLD");
-#endif
-#if defined SIGALRM
-  if (set_alarm)
-    {
-      /* If we're about to enter the read(), set an alarm to wake up in a
-         second so we can check if the load has dropped and we can start more
-         work.  On the way out, turn off the alarm and set SIG_DFL.  */
-      if (set_handler)
-        {
-          sa.sa_handler = job_noop;
-          sa.sa_flags = 0;
-          if (sigaction (SIGALRM, &sa, NULL) < 0)
-            pfatal_with_name ("sigaction: SIGALRM");
-          alarm (1);
-        }
-      else
-        {
-          alarm (0);
-          sa.sa_handler = SIG_DFL;
-          sa.sa_flags = 0;
-          if (sigaction (SIGALRM, &sa, NULL) < 0)
-            pfatal_with_name ("sigaction: SIGALRM");
-        }
-    }
-#endif
 }
 #endif
 
@@ -1516,13 +1436,8 @@ start_job_command (struct child *child)
 # ifdef __EMX__
       /* If we aren't running a recursive command and we have a jobserver
          pipe, close it before exec'ing.  */
-      if (!(flags & COMMANDS_RECURSE) && job_fds[0] >= 0)
-        {
-          CLOSE_ON_EXEC (job_fds[0]);
-          CLOSE_ON_EXEC (job_fds[1]);
-        }
-      if (job_rfd >= 0)
-        CLOSE_ON_EXEC (job_rfd);
+      if (!(flags & COMMANDS_RECURSE) && jobserver_enabled ())
+        jobserver_pre_child ();
 
       /* Never use fork()/exec() here! Use spawn() instead in exec_command() */
       child->pid = child_execute_job (child->good_stdin ? FD_STDIN : bad_stdin,
@@ -1537,13 +1452,8 @@ start_job_command (struct child *child)
         }
 
       /* undo CLOSE_ON_EXEC() after the child process has been started */
-      if (!(flags & COMMANDS_RECURSE) && job_fds[0] >= 0)
-        {
-          fcntl (job_fds[0], F_SETFD, 0);
-          fcntl (job_fds[1], F_SETFD, 0);
-        }
-      if (job_rfd >= 0)
-        fcntl (job_rfd, F_SETFD, 0);
+      if (!(flags & COMMANDS_RECURSE) && jobserver_enabled ())
+        jobserver_post_child ();
 
 #else  /* !__EMX__ */
 
@@ -1554,15 +1464,10 @@ start_job_command (struct child *child)
           /* We are the child side.  */
           unblock_sigs ();
 
-          /* If we aren't running a recursive command and we have a jobserver
-             pipe, close it before exec'ing.  */
-          if (!(flags & COMMANDS_RECURSE) && job_fds[0] >= 0)
-            {
-              close (job_fds[0]);
-              close (job_fds[1]);
-            }
-          if (job_rfd >= 0)
-            close (job_rfd);
+          /* If we AREN'T running a recursive command and we have a jobserver,
+             clear it before exec'ing.  */
+          if (!(flags & COMMANDS_RECURSE) && jobserver_enabled ())
+            jobserver_clear ();
 
 #ifdef SET_STACK_SIZE
           /* Reset limits, if necessary.  */
@@ -1952,18 +1857,10 @@ new_job (struct file *file)
      just once).  Also more thought needs to go into the entire algorithm;
      this is where the old parallel job code waits, so...  */
 
-#ifdef WINDOWS32
-  else if (has_jobserver_semaphore ())
-#else
-  else if (job_fds[0] >= 0)
-#endif
+  else if (jobserver_enabled ())
     while (1)
       {
         int got_token;
-#ifndef WINDOWS32
-        char token;
-        int saved_errno;
-#endif
 
         DB (DB_JOBS, ("Need a job token; we %shave children\n",
                       children ? "" : "don't "));
@@ -1972,36 +1869,8 @@ new_job (struct file *file)
         if (!jobserver_tokens)
           break;
 
-#ifndef WINDOWS32
-        /* Read a token.  As long as there's no token available we'll block.
-           We enable interruptible system calls before the read(2) so that if
-           we get a SIGCHLD while we're waiting, we'll return with EINTR and
-           we can process the death(s) and return tokens to the free pool.
-
-           Once we return from the read, we immediately reinstate restartable
-           system calls.  This allows us to not worry about checking for
-           EINTR on all the other system calls in the program.
-
-           There is one other twist: there is a span between the time
-           reap_children() does its last check for dead children and the time
-           the read(2) call is entered, below, where if a child dies we won't
-           notice.  This is extremely serious as it could cause us to
-           deadlock, given the right set of events.
-
-           To avoid this, we do the following: before we reap_children(), we
-           dup(2) the read FD on the jobserver pipe.  The read(2) call below
-           uses that new FD.  In the signal handler, we close that FD.  That
-           way, if a child dies during the section mentioned above, the
-           read(2) will be invoked with an invalid FD and will return
-           immediately with EBADF.  */
-
-        /* Make sure we have a dup'd FD.  */
-        if (job_rfd < 0)
-          {
-            DB (DB_JOBS, ("Duplicate the job FD\n"));
-            EINTRLOOP (job_rfd, dup (job_fds[0]));
-          }
-#endif
+        /* Prepare for jobserver token acquisition.  */
+        jobserver_pre_acquire ();
 
         /* Reap anything that's currently waiting.  */
         reap_children (0, 0);
@@ -2010,8 +1879,7 @@ new_job (struct file *file)
            can run now (i.e., waiting for load). */
         start_waiting_jobs ();
 
-        /* If our "free" slot has become available, use it; we don't need an
-           actual token.  */
+        /* If our "free" slot is available, use it; we don't need a token.  */
         if (!jobserver_tokens)
           break;
 
@@ -2020,26 +1888,8 @@ new_job (struct file *file)
         if (!children)
           O (fatal, NILF, "INTERNAL: no children as we go to sleep on read\n");
 
-#ifdef WINDOWS32
-        /* On Windows we simply wait for the jobserver semaphore to become
-         * signalled or one of our child processes to terminate.
-         */
-        got_token = wait_for_semaphore_or_child_process ();
-        if (got_token < 0)
-          {
-            DWORD err = GetLastError ();
-            const char *estr = map_windows32_error_to_string (err);
-            ONS (fatal, NILF,
-                 _("semaphore or child process wait: (Error %ld: %s)"),
-                 err, estr);
-          }
-#else
-        /* Set interruptible system calls, and read() for a job token.  */
-        set_child_handler_action_flags (1, waiting_jobs != NULL);
-        EINTRLOOP (got_token, read (job_rfd, &token, 1));
-        saved_errno = errno;
-        set_child_handler_action_flags (0, waiting_jobs != NULL);
-#endif
+        /* Get a token.  */
+        got_token = jobserver_acquire (waiting_jobs != NULL);
 
         /* If we got one, we're done here.  */
         if (got_token == 1)
@@ -2048,16 +1898,6 @@ new_job (struct file *file)
                           c, c->file->name));
             break;
           }
-
-#ifndef WINDOWS32
-        /* If the error _wasn't_ expected (EINTR or EBADF), punt.  Otherwise,
-           go back and reap_children(), and try again.  */
-        errno = saved_errno;
-        if (errno != EINTR && errno != EBADF)
-          pfatal_with_name (_("read jobs pipe"));
-        if (errno == EBADF)
-          DB (DB_JOBS, ("Read returned EBADF.\n"));
-#endif
       }
 #endif
 

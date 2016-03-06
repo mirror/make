@@ -115,6 +115,8 @@ struct child
 
 extern struct child *children;
 
+/* A signal handler for SIGCHLD, if needed.  */
+RETSIGTYPE child_handler (int sig);
 int is_bourne_compatible_shell(const char *path);
 void new_job (struct file *file);
 void reap_children (int block, int err);

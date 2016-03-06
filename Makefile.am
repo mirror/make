@@ -41,14 +41,14 @@ endif
 
 make_SOURCES =	ar.c arscan.c commands.c default.c dir.c expand.c file.c \
 		function.c getopt.c getopt1.c guile.c implicit.c job.c load.c \
-		loadapi.c main.c misc.c output.c read.c remake.c rule.c \
-		signame.c strcache.c variable.c version.c vpath.c hash.c \
-		$(remote)
+		loadapi.c main.c misc.c output.c posixos.c read.c remake.c \
+		rule.c signame.c strcache.c variable.c version.c vpath.c \
+		hash.c $(remote)
 
 EXTRA_make_SOURCES = vmsjobs.c remote-stub.c remote-cstms.c
 
 noinst_HEADERS = commands.h dep.h filedef.h job.h makeint.h rule.h variable.h \
-		debug.h getopt.h gettext.h hash.h output.h
+		debug.h getopt.h gettext.h hash.h output.h os.h
 
 make_LDADD =	@LIBOBJS@ @ALLOCA@ $(GLOBLIB) @GETLOADAVG_LIBS@ @LIBINTL@ \
 		$(GUILE_LIBS)

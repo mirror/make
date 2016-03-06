@@ -276,7 +276,7 @@ changelog-check:
 po-check:
 	if test -f po/POTFILES.in; then \
 	  grep '^[^#]' po/POTFILES.in | sort > $@-1; \
-	  $(PERL) -wn -e 'if (/\b_\(/) { $$ARGV eq "makeint.h" || print "$$ARGV\n" and close ARGV }' *.c *.h | sort > $@-2; \
+	  $(PERL) -wn -e 'if (/\b_\(/) { $$ARGV eq "./makeint.h" || print "$$ARGV\n" and close ARGV }' `find . -name '*.[ch]'` | sed 's,^\./,,' | sort > $@-2; \
 	  diff -u $@-1 $@-2 || exit 1; \
 	  rm -f $@-1 $@-2; \
 	fi
