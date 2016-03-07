@@ -248,9 +248,9 @@ struct directory_contents
      * qualified name of the directory. Beware though, this is also
      * unreliable. I'm open to suggestion on a better way to emulate inode.  */
     char *path_key;
-    int   ctime;
-    int   mtime;        /* controls check for stale directory cache */
-    int   fs_flags;     /* FS_FAT, FS_NTFS, ... */
+    time_t ctime;
+    time_t mtime;        /* controls check for stale directory cache */
+    int fs_flags;     /* FS_FAT, FS_NTFS, ... */
 # define FS_FAT      0x1
 # define FS_NTFS     0x2
 # define FS_UNKNOWN  0x4
@@ -405,7 +405,7 @@ static unsigned int open_directories = 0;
 struct dirfile
   {
     const char *name;           /* Name of the file.  */
-    short length;
+    size_t length;
     short impossible;           /* This file is impossible.  */
   };
 

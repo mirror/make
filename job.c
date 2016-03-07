@@ -589,7 +589,7 @@ reap_children (int block, int err)
   while ((children != 0 || shell_function_pid != 0)
          && (block || REAP_MORE))
     {
-      int remote = 0;
+      unsigned int remote = 0;
       pid_t pid;
       int exit_code, exit_sig, coredump;
       struct child *lastc, *c;
@@ -3109,7 +3109,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
                 /* Write another line into the batch file.  */
                 if (t > tstart)
                   {
-                    int c = *t;
+                    char c = *t;
                     *t = '\0';
                     fputs (tstart, batch);
                     DB (DB_JOBS, ("\t%s", tstart));

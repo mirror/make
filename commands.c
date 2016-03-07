@@ -411,7 +411,7 @@ chop_commands (struct commands *cmds)
 
   for (idx = 0; idx < nlines; ++idx)
     {
-      int flags = 0;
+      unsigned char flags = 0;
       const char *p = lines[idx];
 
       while (isblank (*p) || *p == '-' || *p == '@' || *p == '+')

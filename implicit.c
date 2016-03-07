@@ -317,7 +317,7 @@ pattern_search (struct file *file, int archive,
         {
           const char *target = rule->targets[ti];
           const char *suffix = rule->suffixes[ti];
-          int check_lastslash;
+          char check_lastslash;
 
           /* Rules that can match any filename and are not terminal
              are ignored if we're recursing, so that they cannot be
@@ -438,7 +438,7 @@ pattern_search (struct file *file, int archive,
       for (ri = 0; ri < nrules; ri++)
         {
           struct dep *dep;
-          int check_lastslash;
+          char check_lastslash;
           unsigned int failed = 0;
           int file_variables_set = 0;
           unsigned int deps_found = 0;

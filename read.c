@@ -2467,7 +2467,7 @@ find_percent_cached (const char **string)
    Since we aren't really reading from a file, don't bother with linenumbers.
  */
 
-static unsigned long
+static long
 readstring (struct ebuffer *ebuf)
 {
   char *eol;
@@ -3013,12 +3013,12 @@ tilde_expand (const char *name)
         PARSEFS_NOCACHE - Do not add filenames to the strcache (caller frees)
   */
 
+void dir_setup_glob (glob_t *glob);
+
 void *
 parse_file_seq (char **stringp, unsigned int size, int stopmap,
                 const char *prefix, int flags)
 {
-  extern void dir_setup_glob (glob_t *glob);
-
   /* tmp points to tmpbuf after the prefix, if any.
      tp is the end of the buffer. */
   static char *tmpbuf = NULL;
