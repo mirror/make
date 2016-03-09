@@ -337,5 +337,13 @@ foo: $(OBJS) ; echo $(or $(filter %.o,$^),$(error fail))
 !,
               '-O', "#MAKEFILE#:2: *** fail.  Stop.\n", 512);
 
+# SV 47365: Make sure exec failure error messages are shown
+# Is "127" not always the same everywhere?  We may have to detect it?
+
+run_make_test(q!
+all:: ; @./foo bar baz
+!,
+              '-O', "#MAKE#: ./foo: Command not found\n#MAKEFILE#:2: recipe for target 'all' failed\n#MAKE#: *** [all] Error 127\n", 512);
+
 # This tells the test driver that the perl test script executed properly.
 1;
