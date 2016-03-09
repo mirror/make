@@ -21,6 +21,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
+#if defined(HAVE_PSELECT) && defined(HAVE_SYS_SELECT_H)
+# include <sys/select.h>
+#endif
 
 #include "debug.h"
 #include "job.h"
@@ -33,7 +36,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* These track the state of the jobserver pipe.  Passed to child instances.  */
 static int job_fds[2] = { -1, -1 };
 
-/* Used to signal read() that a SIGCHLD happened.  Always CLOEXEC.  */
+/* Used to signal read() that a SIGCHLD happened.  Always CLOEXEC.
+   If we use pselect() this will never be created and always -1.
+ */
 static int job_rfd = -1;
 
 /* Token written to the pipe (could be any character...)  */
@@ -42,11 +47,16 @@ static char token = '+';
 static int
 make_job_rfd ()
 {
+#ifdef HAVE_PSELECT
+  /* Pretend we succeeded.  */
+  return 0;
+#else
   EINTRLOOP (job_rfd, dup (job_fds[0]));
   if (job_rfd >= 0)
     CLOSE_ON_EXEC (job_rfd);
 
   return job_rfd;
+#endif
 }
 
 void
@@ -80,19 +90,21 @@ jobserver_parse_arg (const char* arg)
   DB (DB_JOBS,
       (_("Jobserver client (fds %d,%d)\n"), job_fds[0], job_fds[1]));
 
-#ifdef HAVE_FCNTL
-# define FD_OK(_f) ((fcntl ((_f), F_GETFD) != -1) || (errno != EBADF))
+#ifdef HAVE_FCNTL_H
+# define FD_OK(_f) (fcntl ((_f), F_GETFD) != -1)
 #else
 # define FD_OK(_f) 1
 #endif
 
-  /* Create a duplicate pipe, that will be closed in the SIGCHLD handler.  If
-     this fails with EBADF, the parent has closed the pipe on us because it
-     didn't think we were a submake.  If so, warn then default to -j1.  */
+  /* Make sure our pipeline is valid, and (possibly) create a duplicate pipe,
+     that will be closed in the SIGCHLD handler.  If this fails with EBADF,
+     the parent has closed the pipe on us because it didn't think we were a
+     submake.  If so, warn and default to -j1.  */
+
   if (!FD_OK (job_fds[0]) || !FD_OK (job_fds[1]) || make_job_rfd () < 0)
     {
       if (errno != EBADF)
-        pfatal_with_name (_("dup jobserver"));
+        pfatal_with_name (_("jobserver pipeline"));
 
       O (error, NILF,
          _("warning: jobserver unavailable: using -j1.  Add '+' to parent make rule."));
@@ -186,7 +198,85 @@ void jobserver_post_child ()
 #endif
 }
 
-/* The acquire algorithm goes like this (from job.c):
+void
+jobserver_signal ()
+{
+  if (job_rfd >= 0)
+    {
+      close (job_rfd);
+      job_rfd = -1;
+    }
+}
+
+void
+jobserver_pre_acquire ()
+{
+  /* Make sure we have a dup'd FD.  */
+  if (job_rfd < 0 && job_fds[0] >= 0 && make_job_rfd () < 0)
+    pfatal_with_name (_("duping jobs pipe"));
+}
+
+#ifdef HAVE_PSELECT
+
+/* Use pselect() to atomically wait for both a signal and a file descriptor.
+   It also provides a timeout facility so we don't need to use SIGALRM.
+
+   This method relies on the fact that SIGCHLD will be blocked everywhere,
+   and only unblocked (atomically) within the pselect() call, so we can
+   never miss a SIGCHLD.
+ */
+int
+jobserver_acquire (int timeout)
+{
+  sigset_t empty;
+  fd_set readfds;
+  struct timespec spec;
+  struct timespec *specp = NULL;
+  int r;
+  char intake;
+
+  sigemptyset (&empty);
+
+  FD_ZERO (&readfds);
+  FD_SET (job_fds[0], &readfds);
+
+  if (timeout)
+    {
+      /* Alarm after one second (is this too granular?)  */
+      spec.tv_sec = 1;
+      spec.tv_nsec = 0;
+      specp = &spec;
+    }
+
+  r = pselect (job_fds[0]+1, &readfds, NULL, NULL, specp, &empty);
+
+  if (r == -1)
+    {
+      /* Better be SIGCHLD.  */
+      if (errno != EINTR)
+        pfatal_with_name (_("pselect jobs pipe"));
+      return 0;
+    }
+
+  if (r == 0)
+    /* Timeout.  */
+    return 0;
+
+  /* The read FD is ready: read it!  */
+  EINTRLOOP (r, read (job_fds[0], &intake, 1));
+  if (r < 0)
+    pfatal_with_name (_("read jobs pipe"));
+
+  /* What does it mean if read() returns 0?  It shouldn't happen because only
+     the master make can reap all the tokens and close the write side...??  */
+  return r;
+}
+
+#else
+
+/* This method uses a "traditional" UNIX model for waiting on both a signal
+   and a file descriptor.  However, it's complex and since we have a SIGCHLD
+   handler installed we need to check ALL system calls for EINTR: painful!
 
    Read a token.  As long as there's no token available we'll block.  We
    enable interruptible system calls before the read(2) so that if we get a
@@ -264,28 +354,6 @@ set_child_handler_action_flags (int set_handler, int set_alarm)
 #endif
 }
 
-void
-jobserver_signal ()
-{
-  if (job_rfd >= 0)
-    {
-      close (job_rfd);
-      job_rfd = -1;
-    }
-}
-
-void
-jobserver_pre_acquire ()
-{
-  /* Make sure we have a dup'd FD.  */
-  if (job_rfd < 0 && job_fds[0] >= 0)
-    {
-      DB (DB_JOBS, ("Duplicate the job FD\n"));
-      if (make_job_rfd () < 0)
-        pfatal_with_name (_("duping jobs pipe"));
-    }
-}
-
 int
 jobserver_acquire (int timeout)
 {
@@ -316,5 +384,7 @@ jobserver_acquire (int timeout)
 
   return 0;
 }
+
+#endif
 
 #endif /* MAKE_JOBSERVER */

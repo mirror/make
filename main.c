@@ -1870,6 +1870,18 @@ main (int argc, char **argv, char **envp)
     bsd_signal (SIGCLD, child_handler);
 # endif
   }
+
+#ifdef HAVE_PSELECT
+  /* If we have pselect() then we need to block SIGCHLD so it's deferred.  */
+  {
+    sigset_t block;
+    sigemptyset (&block);
+    sigaddset (&block, SIGCHLD);
+    if (sigprocmask (SIG_SETMASK, &block, NULL) < 0)
+      pfatal_with_name ("sigprocmask(SIG_SETMASK, SIGCHLD)");
+  }
+#endif
+
 #endif
 #endif
 

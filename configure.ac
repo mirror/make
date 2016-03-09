@@ -18,7 +18,7 @@
 
 AC_INIT([GNU make],[4.1.90],[bug-make@gnu.org])
 
-AC_PREREQ([2.62])
+AC_PREREQ([2.69])
 
 # Autoconf setup
 AC_CONFIG_AUX_DIR([config])
@@ -29,7 +29,7 @@ AC_CONFIG_HEADERS([config.h])
 # We have to enable "foreign" because ChangeLog is auto-generated
 # We cannot enable -Werror because gettext 0.18.1 has invalid content
 # When we update gettext to 0.18.3 or better we can add it again.
-AM_INIT_AUTOMAKE([1.11.1 silent-rules foreign -Wall])
+AM_INIT_AUTOMAKE([1.15 foreign -Werror -Wall])
 
 # Checks for programs.
 AC_USE_SYSTEM_EXTENSIONS
@@ -51,7 +51,7 @@ AC_ISC_POSIX
 AC_MINIX
 
 # Enable gettext, in "external" mode.
-AM_GNU_GETTEXT_VERSION([0.18.1])
+AM_GNU_GETTEXT_VERSION([0.19.4])
 AM_GNU_GETTEXT([external])
 
 # This test must come as early as possible after the compiler configuration
@@ -68,7 +68,8 @@ AC_HEADER_DIRENT
 AC_HEADER_STAT
 AC_HEADER_TIME
 AC_CHECK_HEADERS([stdlib.h locale.h unistd.h limits.h fcntl.h string.h \
-                  memory.h sys/param.h sys/resource.h sys/time.h sys/timeb.h])
+                  memory.h sys/param.h sys/resource.h sys/time.h sys/timeb.h \
+                  sys/select.h])
 
 AM_PROG_CC_C_O
 AC_C_CONST
@@ -135,7 +136,7 @@ AC_CHECK_FUNCS([strdup strndup mkstemp mktemp fdopen fileno \
                 dup dup2 getcwd realpath sigsetmask sigaction \
                 getgroups seteuid setegid setlinebuf setreuid setregid \
                 getrlimit setrlimit setvbuf pipe strerror strsignal \
-                lstat readlink atexit isatty ttyname])
+                lstat readlink atexit isatty ttyname pselect])
 
 # We need to check declarations, not just existence, because on Tru64 this
 # function is not declared without special flags, which themselves cause

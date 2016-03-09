@@ -46,7 +46,7 @@ unsigned int stdio_traced = 0;
 
 #define OUTPUT_ISSET(_out) ((_out)->out >= 0 || (_out)->err >= 0)
 
-#ifdef HAVE_FCNTL
+#ifdef HAVE_FCNTL_H
 # define STREAM_OK(_s) ((fcntl (fileno (_s), F_GETFD) != -1) || (errno != EBADF))
 #else
 # define STREAM_OK(_s) 1

@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AUTOMAKE_OPTIONS = 1.8 dist-bzip2 check-news
-ACLOCAL_AMFLAGS	=  -I config
+AUTOMAKE_OPTIONS = dist-bzip2 silent-rules std-options
+ACLOCAL_AMFLAGS = -I config
 
 MAKE_HOST =	@MAKE_HOST@
 
