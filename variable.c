@@ -29,6 +29,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #include "hash.h"
 
+/* Incremented every time we add or remove a global variable.  */
+static unsigned int variable_changenum;
+
 /* Chain of all pattern-specific variables.  */
 
 static struct pattern_var *pattern_vars;
@@ -268,6 +271,9 @@ define_variable_in_set (const char *name, unsigned int length,
   v->name = xstrndup (name, length);
   v->length = length;
   hash_insert_at (&set->table, v, var_slot);
+  if (set == &global_variable_set)
+    ++variable_changenum;
+
   v->value = xstrdup (value);
   if (flocp != 0)
     v->fileinfo = *flocp;
@@ -350,12 +356,14 @@ undefine_variable_in_set (const char *name, unsigned int length,
            before the switches were parsed, it wasn't affected by -e.  */
         v->origin = o_env_override;
 
-      /* If the definition is from a stronger source than this one, don't
-         undefine it.  */
+      /* Undefine only if this undefinition is from an equal or stronger
+         source than the variable definition.  */
       if ((int) origin >= (int) v->origin)
         {
           hash_delete_at (&set->table, var_slot);
           free_variable_name_and_value (v);
+          if (set == &global_variable_set)
+            ++variable_changenum;
         }
     }
 }
@@ -373,7 +381,7 @@ undefine_variable_in_set (const char *name, unsigned int length,
 static struct variable *
 lookup_special_var (struct variable *var)
 {
-  static unsigned long last_var_count = 0;
+  static unsigned long last_changenum = 0;
 
 
   /* This one actually turns out to be very hard, due to the way the parser
@@ -401,8 +409,7 @@ lookup_special_var (struct variable *var)
   else
   */
 
-  if (streq (var->name, ".VARIABLES")
-      && global_variable_set.table.ht_fill != last_var_count)
+  if (variable_changenum != last_changenum && streq (var->name, ".VARIABLES"))
     {
       unsigned long max = EXPANSION_INCREMENT (strlen (var->value));
       unsigned long len;
@@ -438,11 +445,8 @@ lookup_special_var (struct variable *var)
           }
       *(p-1) = '\0';
 
-      /* Remember how many variables are in our current count.  Since we never
-         remove variables from the list, this is a reliable way to know whether
-         the list is up to date or needs to be recomputed.  */
-
-      last_var_count = global_variable_set.table.ht_fill;
+      /* Remember the current variable change number.  */
+      last_changenum = variable_changenum;
     }
 
   return var;
@@ -753,6 +757,8 @@ merge_variable_sets (struct variable_set *to_set,
   struct variable **from_var_slot = (struct variable **) from_set->table.ht_vec;
   struct variable **from_var_end = from_var_slot + from_set->table.ht_size;
 
+  int inc = to_set == &global_variable_set ? 1 : 0;
+
   for ( ; from_var_slot < from_var_end; from_var_slot++)
     if (! HASH_VACANT (*from_var_slot))
       {
@@ -760,7 +766,10 @@ merge_variable_sets (struct variable_set *to_set,
         struct variable **to_var_slot
           = (struct variable **) hash_find_slot (&to_set->table, *from_var_slot);
         if (HASH_VACANT (*to_var_slot))
-          hash_insert_at (&to_set->table, from_var, to_var_slot);
+          {
+            hash_insert_at (&to_set->table, from_var, to_var_slot);
+            variable_changenum += inc;
+          }
         else
           {
             /* GKM FIXME: delete in from_set->table */
