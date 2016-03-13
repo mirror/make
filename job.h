@@ -24,7 +24,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* How to set close-on-exec for a file descriptor.  */
 
-#if !defined F_SETFD
+#if !defined(F_SETFD) || !defined(F_GETFD)
 # ifdef WINDOWS32
 #  define CLOSE_ON_EXEC(_d)  process_noinherit(_d)
 # else
@@ -124,20 +124,16 @@ void start_waiting_jobs (void);
 
 char **construct_command_argv (char *line, char **restp, struct file *file,
                                int cmd_flags, char** batch_file);
+
 #ifdef VMS
-int child_execute_job (char *argv, struct child *child);
+int child_execute_job (struct child *child, char *argv);
 #else
 # define FD_STDIN       (fileno (stdin))
 # define FD_STDOUT      (fileno (stdout))
 # define FD_STDERR      (fileno (stderr))
-# if defined(__EMX__)
-int child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
-                       char **argv, char **envp);
-# else
-void child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
-                        char **argv, char **envp) __attribute__ ((noreturn));
-# endif
+int child_execute_job (struct output *out, int good_stdin, char **argv, char **envp);
 #endif
+
 #ifdef _AMIGA
 void exec_command (char **argv) __attribute__ ((noreturn));
 #elif defined(__EMX__)

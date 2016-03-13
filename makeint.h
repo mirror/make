@@ -138,6 +138,13 @@ extern int errno;
 # define SA_RESTART 0
 #endif
 
+#ifdef HAVE_VFORK_H
+# include <vfork.h>
+#endif
+#if !HAVE_WORKING_VFORK
+# define vfork fork
+#endif
+
 #ifdef  HAVE_LIMITS_H
 # include <limits.h>
 #endif

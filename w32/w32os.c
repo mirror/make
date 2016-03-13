@@ -148,11 +148,11 @@ jobserver_signal ()
 {
 }
 
-void jobserver_pre_child ()
+void jobserver_pre_child (int recursive)
 {
 }
 
-void jobserver_post_child ()
+void jobserver_post_child (int recursive)
 {
 }
 

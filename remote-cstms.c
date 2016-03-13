@@ -222,7 +222,7 @@ start_remote_job (char **argv, char **envp, int stdin_fd,
     fflush (stderr);
   }
 
-  pid = fork ();
+  pid = vfork ();
   if (pid < 0)
     {
       /* The fork failed!  */

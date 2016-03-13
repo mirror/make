@@ -174,27 +174,31 @@ jobserver_acquire_all ()
     }
 }
 
-/* This is really only invoked on OS/2.
-   On POSIX we just call jobserver_clear() in the child process.  */
-void jobserver_pre_child ()
+/* Prepare the jobserver to start a child process.  */
+void jobserver_pre_child (int recursive)
 {
-  CLOSE_ON_EXEC (job_fds[0]);
-  CLOSE_ON_EXEC (job_fds[1]);
+  /* If it's not a recursive make, avoid polutting the jobserver pipes.  */
+  if (!recursive && job_fds[0] >= 0)
+    {
+      CLOSE_ON_EXEC (job_fds[0]);
+      CLOSE_ON_EXEC (job_fds[1]);
+    }
 }
 
-void jobserver_post_child ()
+void jobserver_post_child (int recursive)
 {
 #if defined(F_GETFD) && defined(F_SETFD)
-  for (int i = 0; i < 2; ++i)
-    {
-      int flags;
-      EINTRLOOP (flags, fcntl (job_fds[i], F_GETFD));
-      if (flags >= 0)
-        {
-          int r;
-          EINTRLOOP (r, fcntl (job_fds[i], F_SETFD, flags & ~FD_CLOEXEC));
-        }
-    }
+  if (!recursive && job_fds[0] >= 0)
+    for (int i = 0; i < 2; ++i)
+      {
+        int flags;
+        EINTRLOOP (flags, fcntl (job_fds[i], F_GETFD));
+        if (flags >= 0)
+          {
+            int r;
+            EINTRLOOP (r, fcntl (job_fds[i], F_SETFD, flags & ~FD_CLOEXEC));
+          }
+      }
 #endif
 }
 
@@ -388,3 +392,33 @@ jobserver_acquire (int timeout)
 #endif
 
 #endif /* MAKE_JOBSERVER */
+
+/* Create a "bad" file descriptor for stdin when parallel jobs are run.  */
+int
+get_bad_stdin ()
+{
+  static int bad_stdin = -1;
+
+  /* Set up a bad standard input that reads from a broken pipe.  */
+
+  if (bad_stdin == -1)
+    {
+      /* Make a file descriptor that is the read end of a broken pipe.
+         This will be used for some children's standard inputs.  */
+      int pd[2];
+      if (pipe (pd) == 0)
+        {
+          /* Close the write side.  */
+          (void) close (pd[1]);
+          /* Save the read side.  */
+          bad_stdin = pd[0];
+
+          /* Set the descriptor to close on exec, so it does not litter any
+             child's descriptor table.  When it is dup2'd onto descriptor 0,
+             that descriptor will not close on exec.  */
+          CLOSE_ON_EXEC (bad_stdin);
+        }
+    }
+
+  return bad_stdin;
+}

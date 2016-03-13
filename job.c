@@ -1074,17 +1074,12 @@ unblock_sigs (void)
 static void
 start_job_command (struct child *child)
 {
-#if !defined(_AMIGA) && !defined(WINDOWS32)
-  static int bad_stdin = -1;
-#endif
   int flags;
   char *p;
 #ifdef VMS
   char *argv;
 #else
   char **argv;
-  int outfd = FD_STDOUT;
-  int errfd = FD_STDERR;
 #endif
 
   /* If we have a completely empty commandset, stop now.  */
@@ -1328,32 +1323,6 @@ start_job_command (struct child *child)
   fflush (stdout);
   fflush (stderr);
 
-#ifndef VMS
-#if !defined(WINDOWS32) && !defined(_AMIGA) && !defined(__MSDOS__)
-
-  /* Set up a bad standard input that reads from a broken pipe.  */
-
-  if (bad_stdin == -1)
-    {
-      /* Make a file descriptor that is the read end of a broken pipe.
-         This will be used for some children's standard inputs.  */
-      int pd[2];
-      if (pipe (pd) == 0)
-        {
-          /* Close the write side.  */
-          (void) close (pd[1]);
-          /* Save the read side.  */
-          bad_stdin = pd[0];
-
-          /* Set the descriptor to close on exec, so it does not litter any
-             child's descriptor table.  When it is dup2'd onto descriptor 0,
-             that descriptor will not close on exec.  */
-          CLOSE_ON_EXEC (bad_stdin);
-        }
-    }
-
-#endif /* !WINDOWS32 && !_AMIGA && !__MSDOS__ */
-
   /* Decide whether to give this child the 'good' standard input
      (one that points to the terminal or whatever), or the 'bad' one
      that points to the read side of a broken pipe.  */
@@ -1361,8 +1330,6 @@ start_job_command (struct child *child)
   child->good_stdin = !good_stdin_used;
   if (child->good_stdin)
     good_stdin_used = 1;
-
-#endif /* !VMS */
 
   child->deleted = 0;
 
@@ -1380,7 +1347,7 @@ start_job_command (struct child *child)
     {
       int is_remote, id, used_stdin;
       if (start_remote_job (argv, child->environment,
-                            child->good_stdin ? 0 : bad_stdin,
+                            child->good_stdin ? 0 : get_bad_stdin (),
                             &is_remote, &id, &used_stdin))
         /* Don't give up; remote execution may fail for various reasons.  If
            so, simply run the job locally.  */
@@ -1409,7 +1376,7 @@ start_job_command (struct child *child)
       child->remote = 0;
 
 #ifdef VMS
-      if (!child_execute_job (argv, child))
+      if (!child_execute_job (child, argv))
         {
           /* Fork failed!  */
           perror_with_name ("fork", "");
@@ -1420,68 +1387,20 @@ start_job_command (struct child *child)
 
       parent_environ = environ;
 
-#ifndef NO_OUTPUT_SYNC
-      /* Divert child output if output_sync in use.  */
-      if (child->output.syncout)
-        {
-          if (child->output.out >= 0)
-            outfd = child->output.out;
-          if (child->output.err >= 0)
-            errfd = child->output.err;
-        }
-#endif
-# ifdef __EMX__
-      /* If we aren't running a recursive command and we have a jobserver
-         pipe, close it before exec'ing.  */
-      if (!(flags & COMMANDS_RECURSE) && jobserver_enabled ())
-        jobserver_pre_child ();
+      jobserver_pre_child (flags & COMMANDS_RECURSE);
 
-      /* Never use fork()/exec() here! Use spawn() instead in exec_command() */
-      child->pid = child_execute_job (child->good_stdin ? FD_STDIN : bad_stdin,
-                                      outfd, errfd,
-                                      argv, child->environment);
-      if (child->pid < 0)
-        {
-          /* spawn failed!  */
-          unblock_sigs ();
-          perror_with_name ("spawn", "");
-          goto error;
-        }
+      child->pid = child_execute_job (&child->output, child->good_stdin, argv, child->environment);
 
-      /* undo CLOSE_ON_EXEC() after the child process has been started */
-      if (!(flags & COMMANDS_RECURSE) && jobserver_enabled ())
-        jobserver_post_child ();
-
-#else  /* !__EMX__ */
-
-      child->pid = fork ();
       environ = parent_environ; /* Restore value child may have clobbered.  */
-      if (child->pid == 0)
-        {
-          /* We are the child side.  */
-          unblock_sigs ();
+      jobserver_post_child (flags & COMMANDS_RECURSE);
 
-          /* If we AREN'T running a recursive command and we have a jobserver,
-             clear it before exec'ing.  */
-          if (!(flags & COMMANDS_RECURSE) && jobserver_enabled ())
-            jobserver_clear ();
-
-#ifdef SET_STACK_SIZE
-          /* Reset limits, if necessary.  */
-          if (stack_limit.rlim_cur)
-            setrlimit (RLIMIT_STACK, &stack_limit);
-#endif
-          child_execute_job (child->good_stdin ? FD_STDIN : bad_stdin,
-                             outfd, errfd, argv, child->environment);
-        }
-      else if (child->pid < 0)
+      if (child->pid < 0)
         {
           /* Fork failed!  */
           unblock_sigs ();
           perror_with_name ("fork", "");
           goto error;
         }
-# endif  /* !__EMX__ */
 #endif /* !VMS */
     }
 
@@ -1557,6 +1476,8 @@ start_job_command (struct child *child)
   {
       HANDLE hPID;
       char* arg0;
+      int outfd = FD_STDOUT;
+      int errfd = FD_STDERR;
 
       /* make UNC paths safe for CreateProcess -- backslash format */
       arg0 = argv[0];
@@ -2098,82 +2019,95 @@ start_waiting_jobs (void)
 /* EMX: Start a child process. This function returns the new pid.  */
 # if defined __EMX__
 int
-child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
-                   char **argv, char **envp)
+child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
 {
   int pid;
-  int save_stdin = -1;
-  int save_stdout = -1;
-  int save_stderr = -1;
+  int fdin = good_stdin ? FD_STDIN : get_bad_stdin ();
+  int fdout = FD_STDOUT;
+  int fderr = FD_STDERR;
+  int save_fdin = -1;
+  int save_fdout = -1;
+  int save_fderr = -1;
+
+#ifndef NO_OUTPUT_SYNC
+  /* Divert child output if output_sync in use.  */
+  if (out && out->syncout)
+    {
+      if (out->out >= 0)
+        fdout = out->out;
+      if (out->err >= 0)
+        fderr = out->err;
+    }
+#endif
 
   /* For each FD which needs to be redirected first make a dup of the standard
      FD to save and mark it close on exec so our child won't see it.  Then
      dup2() the standard FD to the redirect FD, and also mark the redirect FD
      as close on exec. */
-  if (stdin_fd != FD_STDIN)
+  if (fdin != FD_STDIN)
     {
-      save_stdin = dup (FD_STDIN);
-      if (save_stdin < 0)
+      save_fdin = dup (FD_STDIN);
+      if (save_fdin < 0)
         O (fatal, NILF, _("no more file handles: could not duplicate stdin\n"));
-      CLOSE_ON_EXEC (save_stdin);
+      CLOSE_ON_EXEC (save_fdin);
 
-      dup2 (stdin_fd, FD_STDIN);
-      CLOSE_ON_EXEC (stdin_fd);
+      dup2 (fdin, FD_STDIN);
+      CLOSE_ON_EXEC (fdin);
     }
 
-  if (stdout_fd != FD_STDOUT)
+  if (fdout != FD_STDOUT)
     {
-      save_stdout = dup (FD_STDOUT);
-      if (save_stdout < 0)
+      save_fdout = dup (FD_STDOUT);
+      if (save_fdout < 0)
         O (fatal, NILF,
            _("no more file handles: could not duplicate stdout\n"));
-      CLOSE_ON_EXEC (save_stdout);
+      CLOSE_ON_EXEC (save_fdout);
 
-      dup2 (stdout_fd, FD_STDOUT);
-      CLOSE_ON_EXEC (stdout_fd);
+      dup2 (fdout, FD_STDOUT);
+      CLOSE_ON_EXEC (fdout);
     }
 
-  if (stderr_fd != FD_STDERR)
+  if (fderr != FD_STDERR)
     {
-      if (stderr_fd != stdout_fd)
+      if (fderr != fdout)
         {
-          save_stderr = dup (FD_STDERR);
-          if (save_stderr < 0)
+          save_fderr = dup (FD_STDERR);
+          if (save_fderr < 0)
             O (fatal, NILF,
                _("no more file handles: could not duplicate stderr\n"));
-          CLOSE_ON_EXEC (save_stderr);
+          CLOSE_ON_EXEC (save_fderr);
         }
 
-      dup2 (stderr_fd, FD_STDERR);
-      CLOSE_ON_EXEC (stderr_fd);
+      dup2 (fderr, FD_STDERR);
+      CLOSE_ON_EXEC (fderr);
     }
 
   /* Run the command.  */
   pid = exec_command (argv, envp);
 
   /* Restore stdout/stdin/stderr of the parent and close temporary FDs.  */
-  if (save_stdin >= 0)
+  if (save_fdin >= 0)
     {
-      if (dup2 (save_stdin, FD_STDIN) != FD_STDIN)
+      if (dup2 (save_fdin, FD_STDIN) != FD_STDIN)
         O (fatal, NILF, _("Could not restore stdin\n"));
       else
-        close (save_stdin);
+        close (save_fdin);
     }
 
-  if (save_stdout >= 0)
+  if (save_fdout >= 0)
     {
-      if (dup2 (save_stdout, FD_STDOUT) != FD_STDOUT)
+      if (dup2 (save_fdout, FD_STDOUT) != FD_STDOUT)
         O (fatal, NILF, _("Could not restore stdout\n"));
       else
-        close (save_stdout);
+        close (save_fdout);
     }
 
-  if (save_stderr >= 0)
+  if (save_fderr >= 0)
     {
-      if (dup2 (save_stderr, FD_STDERR) != FD_STDERR)
+      if (dup2 (save_fderr, FD_STDERR) != FD_STDERR)
         O (fatal, NILF, _("Could not restore stderr\n"));
       else
-        close (save_stderr);
+        close (save_fderr);
     }
 
   return pid;
@@ -2181,32 +2115,50 @@ child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
 
 #elif !defined (_AMIGA) && !defined (__MSDOS__) && !defined (VMS)
 
-/* UNIX:
-   Replace the current process with one executing the command in ARGV.
-   STDIN_FD/STDOUT_FD/STDERR_FD are used as the process's stdin/stdout/stderr;
-   ENVP is the environment of the new program.  This function does not return.  */
-void
-child_execute_job (int stdin_fd, int stdout_fd, int stderr_fd,
-                   char **argv, char **envp)
+/* POSIX:
+   Create a child process executing the command in ARGV.
+   ENVP is the environment of the new program.  Returns the PID or -1.  */
+int
+child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
 {
   int r;
+  int pid;
+  int fdin = good_stdin ? FD_STDIN : get_bad_stdin ();
+  int fdout = FD_STDOUT;
+  int fderr = FD_STDERR;
 
-  /* For any redirected FD, dup2() it to the standard FD then close it.  */
-  if (stdin_fd != FD_STDIN)
+#ifndef NO_OUTPUT_SYNC
+  /* Divert child output if output_sync in use.  */
+  if (out && out->syncout)
     {
-      EINTRLOOP (r, dup2 (stdin_fd, FD_STDIN));
-      close (stdin_fd);
+      if (out->out >= 0)
+        fdout = out->out;
+      if (out->err >= 0)
+        fderr = out->err;
     }
+#endif
 
-  if (stdout_fd != FD_STDOUT)
-    EINTRLOOP (r, dup2 (stdout_fd, FD_STDOUT));
-  if (stderr_fd != FD_STDERR)
-    EINTRLOOP (r, dup2 (stderr_fd, FD_STDERR));
+  pid = vfork();
+  if (pid != 0)
+    return pid;
 
-  if (stdout_fd != FD_STDOUT)
-    close (stdout_fd);
-  if (stderr_fd != FD_STDERR && stderr_fd != stdout_fd)
-    close (stderr_fd);
+  /* We are the child.  */
+  unblock_sigs ();
+
+#ifdef SET_STACK_SIZE
+  /* Reset limits, if necessary.  */
+  if (stack_limit.rlim_cur)
+    setrlimit (RLIMIT_STACK, &stack_limit);
+#endif
+
+  /* For any redirected FD, dup2() it to the standard FD.
+     They are all marked close-on-exec already.  */
+  if (fdin != FD_STDIN)
+    EINTRLOOP (r, dup2 (fdin, FD_STDIN));
+  if (fdout != FD_STDOUT)
+    EINTRLOOP (r, dup2 (fdout, FD_STDOUT));
+  if (fderr != FD_STDERR)
+    EINTRLOOP (r, dup2 (fderr, FD_STDERR));
 
   /* Run the command.  */
   exec_command (argv, envp);

@@ -69,9 +69,16 @@ int jobserver_acquire (int timeout);
 #define jobserver_release(_fatal) (void)(0)
 #define jobserver_acquire_all()   (0)
 #define jobserver_signal()        (void)(0)
-#define jobserver_pre_child()     (void)(0)
-#define jobserver_post_child()    (void)(0)
+#define jobserver_pre_child(_r)   (void)(0)
+#define jobserver_post_child(_r)  (void)(0)
 #define jobserver_pre_acquire()   (void)(0)
 #define jobserver_acquire(_tmout) (0)
 
+#endif
+
+/* Create a "bad" file descriptor for stdin when parallel jobs are run.  */
+#if !defined(VMD) && !defined(WINDOWS32) && !defined(_AMIGA) && !defined(__MSDOS__)
+int get_bad_stdin ();
+#else
+# define get_bad_stdin() (-1)
 #endif

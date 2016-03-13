@@ -144,6 +144,8 @@ AC_CHECK_FUNCS([strdup strndup mkstemp mktemp fdopen fileno \
 AC_CHECK_DECLS([bsd_signal], [], [], [[#define _GNU_SOURCE 1
 #include <signal.h>]])
 
+AC_FUNC_FORK
+
 AC_FUNC_SETVBUF_REVERSED
 
 # Rumor has it that strcasecmp lives in -lresolv on some odd systems.

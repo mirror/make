@@ -803,7 +803,7 @@ build_vms_cmd (char **cmd_tokens,
 }
 
 int
-child_execute_job (char *argv, struct child *child)
+child_execute_job (struct child *child, char *argv)
 {
   int i;
 
