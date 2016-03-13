@@ -1316,6 +1316,7 @@ main (int argc, char **argv, char **envp)
   /* define_variable_cname (".TARGETS", "", o_default, 0)->special = 1; */
   define_variable_cname (".RECIPEPREFIX", "", o_default, 0)->special = 1;
   define_variable_cname (".SHELLFLAGS", "-c", o_default, 0);
+  define_variable_cname (".LOADED", "", o_default, 0);
 
   /* Set up .FEATURES
      Use a separate variable because define_variable_cname() is a macro and
