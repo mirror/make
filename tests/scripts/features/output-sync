@@ -204,11 +204,9 @@ bar: end
 #MAKE#[1]: Entering directory '#PWD#/foo'
 foo-fail: start
 foo-fail: end
-Makefile:20: recipe for target 'foo-fail' failed
-#MAKE#[1]: *** [foo-fail] Error 1
+#MAKE#[1]: *** [Makefile:20: foo-fail] Error 1
 #MAKE#[1]: Leaving directory '#PWD#/foo'
-#MAKEFILE#:4: recipe for target 'make-foo-fail' failed
-#MAKE#: *** [make-foo-fail] Error 2\n",
+#MAKE#: *** [#MAKEFILE#:4: make-foo-fail] Error 2\n",
 512);
 
 # Test the per-job synchronization.
@@ -326,7 +324,7 @@ run_make_test(qq!
 all: t1
 t1: ; -\@\$(MAKE) -f $m1
 !,
-              "-j -Oline", "#MAKE#[1]: Entering directory '#PWD#'\nd1 stderr\nd1 stdout\n$m1:3: *** d1 failed.  Stop.\n#MAKE#[1]: Leaving directory '#PWD#'\n#MAKEFILE#:3: recipe for target 't1' failed\n#MAKE#: [t1] Error 2 (ignored)\n");
+              "-j -Oline", "#MAKE#[1]: Entering directory '#PWD#'\nd1 stderr\nd1 stdout\n$m1:3: *** d1 failed.  Stop.\n#MAKE#[1]: Leaving directory '#PWD#'\n#MAKE#: [#MAKEFILE#:3: t1] Error 2 (ignored)\n");
 
 rmfiles($m1);
 
@@ -343,7 +341,7 @@ foo: $(OBJS) ; echo $(or $(filter %.o,$^),$(error fail))
 run_make_test(q!
 all:: ; @./foo bar baz
 !,
-              '-O', "#MAKE#: ./foo: Command not found\n#MAKEFILE#:2: recipe for target 'all' failed\n#MAKE#: *** [all] Error 127\n", 512);
+              '-O', "#MAKE#: ./foo: Command not found\n#MAKE#: *** [#MAKEFILE#:2: all] Error 127\n", 512);
 
 # This tells the test driver that the perl test script executed properly.
 1;

@@ -39,9 +39,9 @@ all:;@:
 # X1 := $(sort $(.TARGETS))
 
 # all: foo
-#       @echo X1 = $(X1)
-#       @echo X2 = $(X2)
-#       @echo LAST = $(sort $(.TARGETS))
+#	@echo X1 = $(X1)
+#	@echo X2 = $(X2)
+#	@echo LAST = $(sort $(.TARGETS))
 
 # X2 := $(sort $(.TARGETS))
 
@@ -64,16 +64,16 @@ define foo
 : foo-one\
 foo-two
 : foo-three
-        : foo-four
+	: foo-four
 endef
 
 orig: ; : orig-one
-        : orig-two \
+	: orig-two \
 orig-three \
-        orig-four \
-                orig-five \\\\
-        : orig-six
-        $(foo)
+	orig-four \
+		orig-five \\\\
+	: orig-six
+	$(foo)
 
 .RECIPEPREFIX = >
 test: ; : test-one
@@ -86,19 +86,19 @@ test-three \
 
 .RECIPEPREFIX =
 reset: ; : reset-one
-        : reset-two \
+	: reset-two \
 reset-three \
-        reset-four \
-                reset-five \\\\
-        : reset-six
-        $(foo)
+	reset-four \
+		reset-five \\\\
+	: reset-six
+	$(foo)
 ',
                'orig test reset',
                ': orig-one
 : orig-two \
 orig-three \
 orig-four \
-        orig-five \\\\
+	orig-five \\\\
 : orig-six
 : foo-one foo-two
 : foo-three
@@ -107,7 +107,7 @@ orig-four \
 : test-two \
 test-three \
 test-four \
-        test-five \\\\
+	test-five \\\\
 : test-six
 : foo-one foo-two
 : foo-three
@@ -116,7 +116,7 @@ test-four \
 : reset-two \
 reset-three \
 reset-four \
-        reset-five \\\\
+	reset-five \\\\
 : reset-six
 : foo-one foo-two
 : foo-three
