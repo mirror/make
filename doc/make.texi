@@ -5614,7 +5614,7 @@ Several variables have constant initial values.
 @cindex !=
 
 To set a variable from the makefile, write a line starting with the
-variable name followed by @samp{=} @samp{:=}, or @samp{::=}.  Whatever
+variable name followed by @samp{=}, @samp{:=}, or @samp{::=}.  Whatever
 follows the @samp{=}, @samp{:=}, or @samp{::=} on the line becomes the
 value.  For example,
 
