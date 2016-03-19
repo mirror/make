@@ -30,7 +30,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "hash.h"
 
 /* Incremented every time we add or remove a global variable.  */
-static unsigned int variable_changenum;
+static unsigned long variable_changenum;
 
 /* Chain of all pattern-specific variables.  */
 
