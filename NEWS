@@ -20,6 +20,10 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=106&set
   successful or not "0" if not successful.  The variable value is unset if no
   != or $(shell ...) function has been invoked.
 
+* The $(file ...) function can now read from a file with $(file <FILE).
+  The function is expanded to the contents of the file.  The contents are
+  expanded verbatim except that the final newline, if any, is stripped.
+
 * VMS-specific changes:
 
   * Perl test harness now works.
