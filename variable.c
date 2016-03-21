@@ -1431,7 +1431,7 @@ parse_variable_definition (const char *p, struct variable *var)
   int wspace = 0;
   const char *e = NULL;
 
-  p = next_token (p);
+  NEXT_TOKEN (p);
   var->name = (char *)p;
   var->length = 0;
 
@@ -1448,7 +1448,7 @@ parse_variable_definition (const char *p, struct variable *var)
           /* This begins a variable expansion reference.  Make sure we don't
              treat chars inside the reference as assignment tokens.  */
           char closeparen;
-          int count;
+
           c = *p++;
           if (c == '(')
             closeparen = ')';
@@ -1462,26 +1462,25 @@ parse_variable_definition (const char *p, struct variable *var)
 
           /* P now points past the opening paren or brace.
              Count parens or braces until it is matched.  */
-          count = 0;
-          for (; *p != '\0'; ++p)
+          for (unsigned int count = 1; *p != '\0'; ++p)
             {
-              if (*p == c)
-                ++count;
-              else if (*p == closeparen && --count < 0)
+              if (*p == closeparen && --count == 0)
                 {
                   ++p;
                   break;
                 }
+              if (*p == c)
+                ++count;
             }
           continue;
         }
 
       /* If we find whitespace skip it, and remember we found it.  */
-      if (isblank ((unsigned char)c))
+      if (ISBLANK (c))
         {
           wspace = 1;
           e = p - 1;
-          p = next_token (p);
+          NEXT_TOKEN (p);
           c = *p;
           if (c == '\0')
             return NULL;

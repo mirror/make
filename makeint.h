@@ -95,10 +95,6 @@ char *alloca ();
 extern int errno;
 #endif
 
-#ifndef isblank
-# define isblank(c)     ((c) == ' ' || (c) == '\t')
-#endif
-
 #ifdef __VMS
 /* In strict ANSI mode, VMS compilers should not be defining the
    VMS macro.  Define it here instead of a bulk edit for the correct code.
@@ -348,21 +344,6 @@ char *strsignal (int signum);
 #define N_(msgid)           gettext_noop (msgid)
 #define S_(msg1,msg2,num)   ngettext (msg1,msg2,num)
 
-/* Handle other OSs.
-   To overcome an issue parsing paths in a DOS/Windows environment when
-   built in a unix based environment, override the PATH_SEPARATOR_CHAR
-   definition unless being built for Cygwin. */
-#if defined(HAVE_DOS_PATHS) && !defined(__CYGWIN__)
-# undef PATH_SEPARATOR_CHAR
-# define PATH_SEPARATOR_CHAR ';'
-#elif !defined(PATH_SEPARATOR_CHAR)
-# if defined (VMS)
-#  define PATH_SEPARATOR_CHAR (vms_comma_separator ? ',' : ':')
-# else
-#  define PATH_SEPARATOR_CHAR ':'
-# endif
-#endif
-
 /* This is needed for getcwd() and chdir(), on some W32 systems.  */
 #if defined(HAVE_DIRECT_H)
 # include <direct.h>
@@ -398,7 +379,7 @@ extern int unixy_shell;
 # endif
 
 /* Include only the minimal stuff from windows.h.   */
-#define WIN32_LEAN_AND_MEAN
+# define WIN32_LEAN_AND_MEAN
 #endif  /* WINDOWS32 */
 
 #define ANY_SET(_v,_m)  (((_v)&(_m)) != 0)
@@ -406,7 +387,7 @@ extern int unixy_shell;
 
 #define MAP_NUL         0x0001
 #define MAP_BLANK       0x0002
-#define MAP_SPACE       0x0004
+#define MAP_NEWLINE     0x0004
 #define MAP_COMMENT     0x0008
 #define MAP_SEMI        0x0010
 #define MAP_EQUALS      0x0020
@@ -429,7 +410,40 @@ extern int unixy_shell;
 # define MAP_VMSCOMMA   0x0000
 #endif
 
-#define STOP_SET(_v,_m) ANY_SET (stopchar_map[(unsigned char)(_v)],(_m))
+#define MAP_SPACE       (MAP_BLANK|MAP_NEWLINE)
+
+/* Handle other OSs.
+   To overcome an issue parsing paths in a DOS/Windows environment when
+   built in a unix based environment, override the PATH_SEPARATOR_CHAR
+   definition unless being built for Cygwin. */
+#if defined(HAVE_DOS_PATHS) && !defined(__CYGWIN__)
+# undef PATH_SEPARATOR_CHAR
+# define PATH_SEPARATOR_CHAR ';'
+# define MAP_PATHSEP    MAP_SEMI
+#elif !defined(PATH_SEPARATOR_CHAR)
+# if defined (VMS)
+#  define PATH_SEPARATOR_CHAR (vms_comma_separator ? ',' : ':')
+#  define MAP_PATHSEP    (vms_comma_separator ? MAP_COMMA : MAP_SEMI)
+# else
+#  define PATH_SEPARATOR_CHAR ':'
+#  define MAP_PATHSEP    MAP_COLON
+# endif
+#elif PATH_SEPARATOR_CHAR == ':'
+# define MAP_PATHSEP     MAP_COLON
+#elif PATH_SEPARATOR_CHAR == ';'
+# define MAP_PATHSEP     MAP_SEMI
+#elif PATH_SEPARATOR_CHAR == ','
+# define MAP_PATHSEP     MAP_COMMA
+#else
+# error "Unknown PATH_SEPARATOR_CHAR"
+#endif
+
+#define STOP_SET(_v,_m) ANY_SET(stopchar_map[(unsigned char)(_v)],(_m))
+
+#define ISBLANK(c)      STOP_SET((c),MAP_BLANK)
+#define ISSPACE(c)      STOP_SET((c),MAP_SPACE)
+#define NEXT_TOKEN(s)   while (ISSPACE (*(s))) ++(s)
+#define END_OF_TOKEN(s) while (! STOP_SET (*(s), MAP_SPACE|MAP_NUL)) ++(s)
 
 #if defined(HAVE_SYS_RESOURCE_H) && defined(HAVE_GETRLIMIT) && defined(HAVE_SETRLIMIT)
 # define SET_STACK_SIZE

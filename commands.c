@@ -414,7 +414,7 @@ chop_commands (struct commands *cmds)
       unsigned char flags = 0;
       const char *p = lines[idx];
 
-      while (isblank (*p) || *p == '-' || *p == '@' || *p == '+')
+      while (ISBLANK (*p) || *p == '-' || *p == '@' || *p == '+')
         switch (*(p++))
           {
           case '+':
@@ -451,7 +451,7 @@ execute_file_commands (struct file *file)
      the commands are nothing but whitespace.  */
 
   for (p = file->cmds->commands; *p != '\0'; ++p)
-    if (!isspace ((unsigned char)*p) && *p != '-' && *p != '@')
+    if (!ISSPACE (*p) && *p != '-' && *p != '@' && *p != '+')
       break;
   if (*p == '\0')
     {

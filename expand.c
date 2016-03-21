@@ -384,7 +384,7 @@ variable_expand_string (char *line, const char *string, long length)
           break;
 
         default:
-          if (isblank ((unsigned char)p[-1]))
+          if (ISSPACE (p[-1]))
             break;
 
           /* A $ followed by a random char is a variable reference:

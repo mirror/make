@@ -511,7 +511,7 @@ parse_var_assignment (const char *line, struct vmodifiers *vmod)
   memset (vmod, '\0', sizeof (*vmod));
 
   /* Find the start of the next token.  If there isn't one we're done.  */
-  line = next_token (line);
+  NEXT_TOKEN (line);
   if (*line == '\0')
     return (char *)line;
 
@@ -720,8 +720,7 @@ eval (struct ebuffer *ebuf, int set_default)
 
       /* Get rid if starting space (including formfeed, vtab, etc.)  */
       p = collapsed;
-      while (isspace ((unsigned char)*p))
-        ++p;
+      NEXT_TOKEN (p);
 
       /* See if this is a variable assignment.  We need to do this early, to
          allow variables with names like 'ifdef', 'export', 'private', etc.  */
@@ -769,7 +768,7 @@ eval (struct ebuffer *ebuf, int set_default)
 
       p2 = end_of_token (p);
       wlen = p2 - p;
-      p2 = next_token (p2);
+      NEXT_TOKEN (p2);
 
       /* If we're in an ignored define, skip this line (but maybe get out).  */
       if (in_ignored_define)
@@ -1242,8 +1241,7 @@ eval (struct ebuffer *ebuf, int set_default)
            The rule is that it's only a target, if there are TWO :'s
            OR a space around the :.
         */
-        if (p && !(isspace ((unsigned char)p[1]) || !p[1]
-                   || isspace ((unsigned char)p[-1])))
+        if (p && !(ISSPACE (p[1]) || !p[1] || ISSPACE (p[-1])))
           p = 0;
 #endif
 #ifdef HAVE_DOS_PATHS
@@ -1436,7 +1434,7 @@ do_undefine (char *name, enum variable_origin origin, struct ebuffer *ebuf)
   if (*name == '\0')
     O (fatal, &ebuf->floc, _("empty variable name"));
   p = name + strlen (name) - 1;
-  while (p > name && isblank ((unsigned char)*p))
+  while (p > name && ISBLANK (*p))
     --p;
   p[1] = '\0';
 
@@ -1481,7 +1479,7 @@ do_define (char *name, enum variable_origin origin, struct ebuffer *ebuf)
   if (name[0] == '\0')
     O (fatal, &defstart, _("empty variable name"));
   p = name + strlen (name) - 1;
-  while (p > name && isblank ((unsigned char)*p))
+  while (p > name && ISBLANK (*p))
     --p;
   p[1] = '\0';
 
@@ -1509,13 +1507,13 @@ do_define (char *name, enum variable_origin origin, struct ebuffer *ebuf)
           len = strlen (p);
 
           /* If this is another 'define', increment the level count.  */
-          if ((len == 6 || (len > 6 && isblank ((unsigned char)p[6])))
+          if ((len == 6 || (len > 6 && ISBLANK (p[6])))
               && strneq (p, "define", 6))
             ++nlevels;
 
           /* If this is an 'endef', decrement the count.  If it's now 0,
              we've found the last one.  */
-          else if ((len == 5 || (len > 5 && isblank ((unsigned char)p[5])))
+          else if ((len == 5 || (len > 5 && ISBLANK (p[5])))
                    && strneq (p, "endef", 5))
             {
               p += 5;
@@ -1591,7 +1589,8 @@ conditional_line (char *line, int len, const gmk_floc *flocp)
     return -2;
 
   /* Found one: skip past it and any whitespace after it.  */
-  line = next_token (line + len);
+  line += len;
+  NEXT_TOKEN (line);
 
 #define EXTRATEXT() OS (error, flocp, _("extraneous text after '%s' directive"), cmdname)
 #define EXTRACMD()  OS (fatal, flocp, _("extraneous '%s'"), cmdname)
@@ -1712,7 +1711,7 @@ conditional_line (char *line, int len, const gmk_floc *flocp)
       /* Make sure there's only one variable name to test.  */
       p = end_of_token (var);
       i = p - var;
-      p = next_token (p);
+      NEXT_TOKEN (p);
       if (*p != '\0')
         return -1;
 
@@ -1758,7 +1757,7 @@ conditional_line (char *line, int len, const gmk_floc *flocp)
         {
           /* Strip blanks after the first string.  */
           char *p = line++;
-          while (isblank ((unsigned char)p[-1]))
+          while (ISBLANK (p[-1]))
             --p;
           *p = '\0';
         }
@@ -1774,7 +1773,7 @@ conditional_line (char *line, int len, const gmk_floc *flocp)
 
       if (termin != ',')
         /* Find the start of the second string.  */
-        line = next_token (line);
+        NEXT_TOKEN (line);
 
       termin = termin == ',' ? ')' : *line;
       if (termin != ')' && termin != '"' && termin != '\'')
@@ -1809,8 +1808,8 @@ conditional_line (char *line, int len, const gmk_floc *flocp)
       if (*line == '\0')
         return -1;
 
-      *line = '\0';
-      line = next_token (++line);
+      *(line++) = '\0';
+      NEXT_TOKEN (line);
       if (*line != '\0')
         EXTRATEXT ();
 
@@ -2641,7 +2640,7 @@ get_next_mword (char *buffer, char *delim, char **startp, unsigned int *length)
   char c;
 
   /* Skip any leading whitespace.  */
-  while (isblank ((unsigned char)*p))
+  while (ISBLANK (*p))
     ++p;
 
   beg = p;
@@ -3076,7 +3075,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
       int i;
 
       /* Skip whitespace; at the end of the string or STOPCHAR we're done.  */
-      p = next_token (p);
+      NEXT_TOKEN (p);
       if (STOP_SET (*p, stopmap))
         break;
 
@@ -3091,8 +3090,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
 #endif
 #ifdef _AMIGA
       if (p && STOP_SET (*p, stopmap & MAP_COLON)
-          && !(isspace ((unsigned char)p[1]) || !p[1]
-               || isspace ((unsigned char)p[-1])))
+          && !(ISSPACE (p[1]) || !p[1] || ISSPACE (p[-1])))
         p = find_char_unquote (p+1, stopmap|MAP_VMSCOMMA|MAP_BLANK);
 #endif
 #ifdef HAVE_DOS_PATHS
@@ -3101,7 +3099,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
        Note that tokens separated by spaces should be treated as separate
        tokens since make doesn't allow path names with spaces */
     if (stopmap | MAP_COLON)
-      while (p != 0 && !isspace ((unsigned char)*p) &&
+      while (p != 0 && !ISSPACE (*p) &&
              (p[1] == '\\' || p[1] == '/') && isalpha ((unsigned char)p[-1]))
         p = find_char_unquote (p + 1, stopmap|MAP_VMSCOMMA|MAP_BLANK);
 #endif
@@ -3196,7 +3194,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
               do
                 {
                   const char *o = e;
-                  e = next_token (e);
+                  NEXT_TOKEN (e);
                   /* Find the end of this word.  We don't want to unquote and
                      we don't care about quoting since we're looking for the
                      last char in the word. */

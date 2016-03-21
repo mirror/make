@@ -208,7 +208,7 @@ construct_vpath_list (char *pattern, char *dirpath)
 #endif
 
   /* Skip over any initial separators and blanks.  */
-  while (*dirpath == PATH_SEPARATOR_CHAR || isblank ((unsigned char)*dirpath))
+  while (STOP_SET (*dirpath, MAP_BLANK|MAP_PATHSEP))
     ++dirpath;
 
   /* Figure out the maximum number of VPATH entries and put it in
@@ -218,7 +218,7 @@ construct_vpath_list (char *pattern, char *dirpath)
   maxelem = 2;
   p = dirpath;
   while (*p != '\0')
-    if (*p++ == PATH_SEPARATOR_CHAR || isblank ((unsigned char)*p))
+    if (STOP_SET (*p++, MAP_BLANK|MAP_PATHSEP))
       ++maxelem;
 
   vpath = xmalloc (maxelem * sizeof (const char *));
@@ -244,7 +244,7 @@ construct_vpath_list (char *pattern, char *dirpath)
 #else
              && *p != PATH_SEPARATOR_CHAR
 #endif
-             && !isblank ((unsigned char)*p))
+             && !ISBLANK (*p))
         ++p;
 
       len = p - v;
@@ -266,7 +266,7 @@ construct_vpath_list (char *pattern, char *dirpath)
         }
 
       /* Skip over separators and blanks between entries.  */
-      while (*p == PATH_SEPARATOR_CHAR || isblank ((unsigned char)*p))
+      while (STOP_SET (*p, MAP_BLANK|MAP_PATHSEP))
         ++p;
     }
 

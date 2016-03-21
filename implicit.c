@@ -72,8 +72,7 @@ get_next_word (const char *buffer, unsigned int *length)
   char c;
 
   /* Skip any leading whitespace.  */
-  while (isblank ((unsigned char)*p))
-    ++p;
+  NEXT_TOKEN (p);
 
   beg = p;
   c = *(p++);

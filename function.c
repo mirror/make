@@ -115,8 +115,8 @@ subst_expand (char *o, const char *text, const char *subst, const char *replace,
       /* If we're substituting only by fully matched words,
          or only at the ends of words, check that this case qualifies.  */
       if (by_word
-          && ((p > text && !isblank ((unsigned char)p[-1]))
-              || ! STOP_SET (p[slen], MAP_BLANK|MAP_NUL)))
+          && ((p > text && !ISSPACE (p[-1]))
+              || ! STOP_SET (p[slen], MAP_SPACE|MAP_NUL)))
         /* Struck out.  Output the rest of the string that is
            no longer to be replaced.  */
         o = variable_buffer_output (o, subst, slen);
@@ -754,9 +754,9 @@ func_words (char *o, char **argv, const char *funcname UNUSED)
 char *
 strip_whitespace (const char **begpp, const char **endpp)
 {
-  while (*begpp <= *endpp && isspace ((unsigned char)**begpp))
+  while (*begpp <= *endpp && ISSPACE (**begpp))
     (*begpp) ++;
-  while (*endpp >= *begpp && isspace ((unsigned char)**endpp))
+  while (*endpp >= *begpp && ISSPACE (**endpp))
     (*endpp) --;
   return (char *)*begpp;
 }
@@ -869,8 +869,12 @@ func_foreach (char *o, char **argv, const char *funcname UNUSED)
   unsigned int len;
   struct variable *var;
 
+  /* Clean up the variable name by removing whitespace.  */
+  char *vp = next_token (varname);
+  end_of_token (vp)[0] = '\0';
+
   push_new_variable_scope ();
-  var = define_variable (varname, strlen (varname), "", o_automatic, 0);
+  var = define_variable (vp, strlen (vp), "", o_automatic, 0);
 
   /* loop through LIST,  put the value in VAR and expand BODY */
   while ((p = find_next_token (&list_iterator, &len)) != 0)
@@ -1080,10 +1084,9 @@ func_strip (char *o, char **argv, const char *funcname UNUSED)
       int i=0;
       const char *word_start;
 
-      while (isspace ((unsigned char)*p))
-        ++p;
+      NEXT_TOKEN (p);
       word_start = p;
-      for (i=0; *p != '\0' && !isspace ((unsigned char)*p); ++p, ++i)
+      for (i=0; *p != '\0' && !ISSPACE (*p); ++p, ++i)
         {}
       if (!i)
         break;
@@ -1614,8 +1617,7 @@ msdos_openpipe (int* pipedes, int *pidp, char *text)
   extern int dos_command_running, dos_status;
 
   /* Make sure not to bother processing an empty line.  */
-  while (isblank ((unsigned char)*text))
-    ++text;
+  NEXT_TOKEN (text);
   if (*text == '\0')
     return 0;
 
@@ -2001,8 +2003,7 @@ func_not (char *o, char **argv, char *funcname UNUSED)
 {
   const char *s = argv[0];
   int result = 0;
-  while (isspace ((unsigned char)*s))
-    s++;
+  NEXT_TOKEN (s);
   result = ! (*s);
   o = variable_buffer_output (o,  result ? "1" : "", result);
   return o;
@@ -2206,7 +2207,7 @@ func_file (char *o, char **argv, const char *funcname UNUSED)
           mode = "a";
           ++fn;
         }
-      fn = next_token (fn);
+      NEXT_TOKEN (fn);
 
       if (fn[0] == '\0')
         O (fatal, *expanding_var, _("file: missing filename"));
@@ -2231,7 +2232,8 @@ func_file (char *o, char **argv, const char *funcname UNUSED)
       char *preo = o;
       FILE *fp;
 
-      fn = next_token (++fn);
+      ++fn;
+      NEXT_TOKEN (fn);
       if (fn[0] == '\0')
         O (fatal, *expanding_var, _("file: missing filename"));
 
@@ -2441,7 +2443,8 @@ handle_function (char **op, const char **stringp)
   /* We found a builtin function.  Find the beginning of its arguments (skip
      whitespace after the name).  */
 
-  beg = next_token (beg + entry_p->len);
+  beg += entry_p->len;
+  NEXT_TOKEN (beg);
 
   /* Find the end of the function invocation, counting nested use of
      whichever kind of parens we use.  Since we're looking, count commas
@@ -2541,7 +2544,6 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
 {
   static int max_args = 0;
   char *fname;
-  char *cp;
   char *body;
   int flen;
   int i;
@@ -2549,16 +2551,9 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
   const struct function_table_entry *entry_p;
   struct variable *v;
 
-  /* There is no way to define a variable with a space in the name, so strip
-     leading and trailing whitespace as a favor to the user.  */
-  fname = argv[0];
-  while (isspace ((unsigned char)*fname))
-    ++fname;
-
-  cp = fname + strlen (fname) - 1;
-  while (cp > fname && isspace ((unsigned char)*cp))
-    --cp;
-  cp[1] = '\0';
+  /* Clean up the name of the variable to be invoked.  */
+  fname = next_token (argv[0]);
+  end_of_token (fname)[0] = '\0';
 
   /* Calling nothing is a no-op */
   if (*fname == '\0')

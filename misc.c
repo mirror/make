@@ -91,12 +91,13 @@ collapse_continuations (char *line)
         {
           /* Backslash/newline handling:
              In traditional GNU make all trailing whitespace, consecutive
-             backslash/newlines, and any leading whitespace on the next line
-             is reduced to a single space.
+             backslash/newlines, and any leading non-newline whitespace on the
+             next line is reduced to a single space.
              In POSIX, each backslash/newline and is replaced by a space.  */
-          in = next_token (in);
+          while (ISBLANK (*in))
+            ++in;
           if (! posix_pedantic)
-            while (out > line && isblank ((unsigned char)out[-1]))
+            while (out > line && ISBLANK (out[-1]))
               --out;
           *out++ = ' ';
         }
@@ -314,8 +315,7 @@ lindex (const char *s, const char *limit, int c)
 char *
 end_of_token (const char *s)
 {
-  while (! STOP_SET (*s, MAP_BLANK|MAP_NUL))
-    ++s;
+  END_OF_TOKEN (s);
   return (char *)s;
 }
 
@@ -324,8 +324,7 @@ end_of_token (const char *s)
 char *
 next_token (const char *s)
 {
-  while (isblank ((unsigned char)*s))
-    ++s;
+  NEXT_TOKEN (s);
   return (char *)s;
 }
 

@@ -661,21 +661,22 @@ initialize_stopchar_map ()
 
   stopchar_map[(int)'/'] = MAP_DIRSEP;
 #if defined(VMS)
-  stopchar_map[(int)':'] = MAP_COLON | MAP_DIRSEP;
-  stopchar_map[(int)']'] = MAP_DIRSEP;
-  stopchar_map[(int)'>'] = MAP_DIRSEP;
+  stopchar_map[(int)':'] |= MAP_DIRSEP;
+  stopchar_map[(int)']'] |= MAP_DIRSEP;
+  stopchar_map[(int)'>'] |= MAP_DIRSEP;
 #elif defined(HAVE_DOS_PATHS)
-  stopchar_map[(int)'\\'] = MAP_DIRSEP;
+  stopchar_map[(int)'\\'] |= MAP_DIRSEP;
 #endif
 
   for (i = 1; i <= UCHAR_MAX; ++i)
     {
-      if (isblank(i))
-        stopchar_map[i] = MAP_BLANK;
-      if (isspace(i))
-        stopchar_map[i] |= MAP_SPACE;
-      if (isalnum(i))
-        stopchar_map[i] = MAP_USERFUNC;
+      if (isblank (i))
+        stopchar_map[i] |= MAP_BLANK;
+      else if (isspace (i))
+        /* Don't mark blank characters as newline characters.  */
+        stopchar_map[i] |= MAP_NEWLINE;
+      else if (isalnum (i))
+        stopchar_map[i] |= MAP_USERFUNC;
     }
 }
 
@@ -2985,7 +2986,7 @@ decode_env_switches (const char *envar, unsigned int len)
   value = variable_expand (varref);
 
   /* Skip whitespace, and check for an empty value.  */
-  value = next_token (value);
+  NEXT_TOKEN (value);
   len = strlen (value);
   if (len == 0)
     return;
@@ -3008,14 +3009,14 @@ decode_env_switches (const char *envar, unsigned int len)
     {
       if (*value == '\\' && value[1] != '\0')
         ++value;                /* Skip the backslash.  */
-      else if (isblank ((unsigned char)*value))
+      else if (ISBLANK (*value))
         {
           /* End of the word.  */
           *p++ = '\0';
           argv[++argc] = p;
           do
             ++value;
-          while (isblank ((unsigned char)*value));
+          while (ISBLANK (*value));
           continue;
         }
       *p++ = *value++;
@@ -3046,7 +3047,7 @@ quote_for_env (char *out, const char *in)
     {
       if (*in == '$')
         *out++ = '$';
-      else if (isblank ((unsigned char)*in) || *in == '\\')
+      else if (ISBLANK (*in) || *in == '\\')
         *out++ = '\\';
       *out++ = *in++;
     }

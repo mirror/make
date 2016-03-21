@@ -1099,7 +1099,8 @@ start_job_command (struct child *child)
         flags |= COMMANDS_RECURSE;
       else if (*p == '-')
         child->noerror = 1;
-      else if (!isblank ((unsigned char)*p))
+      /* Don't skip newlines.  */
+      else if (!ISBLANK (*p))
         break;
       ++p;
     }
@@ -1137,7 +1138,7 @@ start_job_command (struct child *child)
     /* Skip any leading whitespace */
     while (*p)
       {
-        if (!isspace(*p))
+        if (!ISSPACE (*p))
           {
             if (*p != '\\')
               break;
@@ -1712,14 +1713,13 @@ new_job (struct file *file)
                         *out++ = *in++;
                       else
                         {
-                          /* Skip the backslash, newline and
-                             any following whitespace.  */
-                          in = next_token (in + 2);
+                          /* Skip the backslash, newline, and whitespace.  */
+                          in += 2;
+                          NEXT_TOKEN (in);
 
                           /* Discard any preceding whitespace that has
                              already been written to the output.  */
-                          while (out > outref
-                                 && isblank ((unsigned char)out[-1]))
+                          while (out > outref && ISBLANK (out[-1]))
                             --out;
 
                           /* Replace it all with a single space.  */
@@ -2553,8 +2553,8 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
   if (restp != NULL)
     *restp = NULL;
 
-  /* Make sure not to bother processing an empty line.  */
-  while (isblank ((unsigned char)*line))
+  /* Make sure not to bother processing an empty line but stop at newline.  */
+  while (ISBLANK (*line))
     ++line;
   if (*line == '\0')
     return 0;
@@ -2729,15 +2729,16 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
                 /* Throw out the backslash and newline.  */
                 ++p;
 
-                /* If there's nothing in this argument yet, skip any
-                   whitespace before the start of the next word.  */
+                /* At the beginning of the argument, skip any whitespace other
+                   than newline before the start of the next word.  */
                 if (ap == new_argv[i])
-                  p = next_token (p + 1) - 1;
+                  while (ISBLANK (p[1]))
+                    ++p;
               }
 #ifdef WINDOWS32
             /* Backslash before whitespace is not special if our shell
                is not Unixy.  */
-            else if (isspace (p[1]) && !unixy_shell)
+            else if (ISSPACE (p[1]) && !unixy_shell)
               {
                 *ap++ = *p;
                 break;
@@ -2764,7 +2765,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
                 else
 #endif
                   if (p[1] != '\\' && p[1] != '\''
-                      && !isspace ((unsigned char)p[1])
+                      && !ISSPACE (p[1])
                       && strchr (sh_chars_sh, p[1]) == 0)
                     /* back up one notch, to copy the backslash */
                     --p;
@@ -2828,8 +2829,9 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
                   }
               }
 
-            /* Ignore multiple whitespace chars.  */
-            p = next_token (p) - 1;
+            /* Skip whitespace chars, but not newlines.  */
+            while (ISBLANK (p[1]))
+              ++p;
             break;
 
           default:
@@ -2922,8 +2924,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
    */
 
   /* Make sure not to bother processing an empty line.  */
-  while (isspace ((unsigned char)*line))
-    ++line;
+  NEXT_TOKEN (line);
   if (*line == '\0')
     return 0;
 #endif /* WINDOWS32 */
@@ -2983,9 +2984,9 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
               {
                 int esc = 0;
 
-                /* This is the start of a new recipe line.
-                   Skip whitespace and prefix characters.  */
-                while (isblank (*f) || *f == '-' || *f == '@' || *f == '+')
+                /* This is the start of a new recipe line.  Skip whitespace
+                   and prefix characters but not newlines.  */
+                while (ISBLANK (*f) || *f == '-' || *f == '@' || *f == '+')
                   ++f;
 
                 /* Copy until we get to the next logical recipe line.  */
@@ -3035,21 +3036,21 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
                [@+-]: they're meaningless in .ONESHELL mode.  */
             while (*f != '\0')
               {
-                /* This is the start of a new recipe line.
-                   Skip whitespace and prefix characters.  */
-                while (isblank (*f) || *f == '-' || *f == '@' || *f == '+')
+                /* This is the start of a new recipe line.  Skip whitespace
+                   and prefix characters but not newlines.  */
+                while (ISBLANK (*f) || *f == '-' || *f == '@' || *f == '+')
                   ++f;
 
                 /* Copy until we get to the next logical recipe line.  */
                 while (*f != '\0')
                   {
-                    /* Remove the escaped newlines in the command, and
-                       the whitespace that follows them.  Windows
-                       shells cannot handle escaped newlines.  */
+                    /* Remove the escaped newlines in the command, and the
+                       blanks that follow them.  Windows shells cannot handle
+                       escaped newlines.  */
                     if (*f == '\\' && f[1] == '\n')
                       {
                         f += 2;
-                        while (isblank (*f))
+                        while (ISBLANK (*f))
                           ++f;
                       }
                     *(t++) = *(f++);
@@ -3161,7 +3162,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
         /* DOS shells don't know about backslash-escaping.  */
         if (unixy_shell && !batch_mode_shell &&
             (*p == '\\' || *p == '\'' || *p == '"'
-             || isspace ((unsigned char)*p)
+             || ISSPACE (*p)
              || strchr (sh_chars, *p) != 0))
           *ap++ = '\\';
 #ifdef __MSDOS__
@@ -3366,13 +3367,11 @@ construct_command_argv (char *line, char **restp, struct file *file,
   cptr = line;
   for (;;)
     {
-      while ((*cptr != 0)
-             && (isspace ((unsigned char)*cptr)))
+      while ((*cptr != 0) && (ISSPACE (*cptr)))
         cptr++;
       if (*cptr == 0)
         break;
-      while ((*cptr != 0)
-             && (!isspace ((unsigned char)*cptr)))
+      while ((*cptr != 0) && (!ISSPACE (*cptr)))
         cptr++;
       argc++;
     }
@@ -3385,15 +3384,13 @@ construct_command_argv (char *line, char **restp, struct file *file,
   argc = 0;
   for (;;)
     {
-      while ((*cptr != 0)
-             && (isspace ((unsigned char)*cptr)))
+      while ((*cptr != 0) && (ISSPACE (*cptr)))
         cptr++;
       if (*cptr == 0)
         break;
       DB (DB_JOBS, ("argv[%d] = [%s]\n", argc, cptr));
       argv[argc++] = cptr;
-      while ((*cptr != 0)
-             && (!isspace ((unsigned char)*cptr)))
+      while ((*cptr != 0) && (!ISSPACE (*cptr)))
         cptr++;
       if (*cptr != 0)
         *cptr++ = 0;
