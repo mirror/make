@@ -465,6 +465,8 @@ sub set_more_defaults
 
    # Set up for valgrind, if requested.
 
+   $make_command = $make_path;
+
    if ($valgrind) {
      my $args = $valgrind_args;
      open(VALGRIND, "> valgrind.out")
