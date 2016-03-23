@@ -362,6 +362,7 @@ undefine_variable_in_set (const char *name, unsigned int length,
         {
           hash_delete_at (&set->table, var_slot);
           free_variable_name_and_value (v);
+          free (v);
           if (set == &global_variable_set)
             ++variable_changenum;
         }
@@ -1069,7 +1070,7 @@ target_environment (struct file *file)
           }
     }
 
-  makelevel_key.name = xstrdup (MAKELEVEL_NAME);
+  makelevel_key.name = (char *)MAKELEVEL_NAME;
   makelevel_key.length = MAKELEVEL_LENGTH;
   hash_delete (&table, &makelevel_key);
 
