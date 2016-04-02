@@ -26,6 +26,9 @@ if WINDOWSENV
   MAYBE_W32 =	w32
   W32INC =	-I $(top_srcdir)/w32/include
   W32LIB =	-Lw32 -lw32
+  ossrc =
+else
+  ossrc =	posixos.c
 endif
 
 SUBDIRS =	glob config po doc $(MAYBE_W32)
@@ -41,7 +44,7 @@ endif
 
 make_SOURCES =	ar.c arscan.c commands.c default.c dir.c expand.c file.c \
 		function.c getopt.c getopt1.c guile.c implicit.c job.c load.c \
-		loadapi.c main.c misc.c output.c posixos.c read.c remake.c \
+		loadapi.c main.c misc.c $(ossrc) output.c read.c remake.c \
 		rule.c signame.c strcache.c variable.c version.c vpath.c \
 		hash.c $(remote)
 
