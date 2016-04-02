@@ -101,6 +101,7 @@ Cover art by Etienne Suvasa.
                                   based on their file names.
 * Archives::                    How @code{make} can update library archives.
 * Extending make::              Using extensions to @code{make}.
+* Integrating make::            Integrating @code{make} with other tools.
 * Features::                    Features GNU @code{make} has over other @code{make}s.
 * Missing::                     What GNU @code{make} lacks from other @code{make}s.
 * Makefile Conventions::        Conventions for writing makefiles for
@@ -356,6 +357,16 @@ Loading Dynamic Objects
 * Remaking Loaded Objects::     How loaded objects get remade.
 * Loaded Object API::           Programmatic interface for loaded objects.
 * Loaded Object Example::       Example of a loaded object
+
+Integrating GNU @code{make}
+
+* Job Slots::                   Share job slots with GNU @code{make}.
+* Terminal Output::             Control output to terminals.
+
+Sharing Job Slots with GNU @code{make}
+
+* POSIX Jobserver::             Using the jobserver on POSIX systems.
+* Windows Jobserver::           Using the jobserver on Windows systems.
 
 @end detailmenu
 @end menu
@@ -10706,7 +10717,7 @@ in the normal way (@pxref{Suffix Rules}).  Thus a double-suffix rule
 @w{@samp{.@var{x}.a}} produces two pattern rules: @samp{@w{(%.o):}
 @w{%.@var{x}}} and @samp{@w{%.a}: @w{%.@var{x}}}.@refill
 
-@node Extending make, Features, Archives, Top
+@node Extending make, Integrating make, Archives, Top
 @chapter Extending GNU @code{make}
 @cindex make extensions
 
@@ -11347,7 +11358,225 @@ cc -shared -fPIC -o mk_temp.so mk_temp.c
 Temporary filename: tmpfile.A7JEwd
 @end example
 
-@node Features, Missing, Extending make, Top
+@node Integrating make, Features, Extending make, Top
+@chapter Integrating GNU @code{make}
+@cindex make integration
+
+GNU @code{make} is often one component in a larger system of tools,
+including integrated development environments, compiler toolchains,
+and others.  The role of @code{make} is to start commands and
+determine whether they succeeded or not: no special integration is
+needed to accomplish that.  However, sometimes it is convenient to
+bind @code{make} more tightly with other parts of the system, both
+higher-level (tools that invoke @code{make}) and lower-level (tools
+that @code{make} invokes).
+
+@menu
+* Job Slots::                   Share job slots with GNU @code{make}.
+* Terminal Output::             Control output to terminals.
+@end menu
+
+@node Job Slots, Terminal Output, Integrating make, Integrating make
+@section Sharing Job Slots with GNU @code{make}
+@cindex job slots, sharing
+@cindex tools, sharing job slots
+
+GNU @code{make} has the ability to run multiple recipes in parallel
+(@pxref{Parallel, ,Parallel Execution}) and to cap the total number of
+parallel jobs even across recursive invocations of @code{make}
+(@pxref{Options/Recursion, ,Communicating Options to a
+Sub-@code{make}}).  Tools that @code{make} invokes which are also able
+to run multiple operations in parallel, either using multiple threads
+or multiple processes, can be enhanced to participate in GNU
+@code{make}'s job management facility to ensure that the total number
+of active threads/processes running on the system does not exceed the
+maximum number of slots provided to GNU @code{make}. @refill
+
+@cindex jobserver
+GNU @code{make} uses a method called the ``jobserver'' to control the
+number of active jobs across recursive invocations.  The actual
+implementation of the jobserver varies across different operating
+systems, but some fundamental aspects are always true.
+
+First, only command lines that @code{make} understands to be recursive
+invocations of @code{make} (@pxref{MAKE Variable, ,How the @code{MAKE}
+Variable Works}) will have access to the jobserver.  When writing
+makefiles you must be sure to mark the command as recursive (most
+commonly by prefixing the command line with the @code{+} indicator
+(@pxref{Recursion, ,Recursive Use of @code{make}}).
+
+Second, @code{make} will provide information necessary for accessing
+the jobserver through the environment to its children, in the
+@code{MAKEFLAGS} environment variable.  Tools which want to
+participate in the jobserver protocol will need to parse this
+environment variable, as described in subsequent sections.
+
+Third, every command @code{make} starts has one implicit job slot
+reserved for it before it starts.  Any tool which wants to participate
+in the jobserver protocol should assume it can always run one job
+without having to contact the jobserver at all.
+
+Finally, it's critical that tools that participate in the jobserver
+protocol return the exact number of slots they obtained from the
+jobserver back to the jobserver before they exit, even under error
+conditions.  Remember that the implicit job slot should @strong{not}
+be returned to the jobserver!  Returning too few slots means that
+those slots will be lost for the rest of the build process; returning
+too many slots means that extra slots will be available.  The
+top-level @code{make} command will print an error message at the end
+of the build if it detects an incorrect number of slots available in
+the jobserver.
+
+As an example, suppose you are implementing a linker which provides
+for multithreaded operation.  You would like to enhance the linker so
+that if it is invoked by GNU @code{make} it can participate in the
+jobserver protocol to control how many threads are used during link.
+First you will need to modify the linker to determine if the
+@code{MAKEFLAGS} environment variable is set.  Next you will need to
+parse the value of that variable to determine if the jobserver is
+available, and how to access it.  If it is available then you can
+access it to obtain job slots controlling how much parallelism your
+tool can use.  Once done your tool must return those job slots back to
+the jobserver.
+
+@menu
+* POSIX Jobserver::             Using the jobserver on POSIX systems.
+* Windows Jobserver::           Using the jobserver on Windows systems.
+@end menu
+
+@node POSIX Jobserver, Windows Jobserver, Job Slots, Job Slots
+@subsection POSIX Jobserver Interaction
+@cindex jobserver on POSIX
+
+On POSIX systems the jobserver is implemented as a simple UNIX pipe.
+The pipe will be pre-loaded with one single-character token for each
+available job.  To obtain an extra slot you must read a single
+character from the jobserver pipe; to release a slot you must write a
+single character back into the jobserver pipe.
+
+To access the pipe you must parse the @code{MAKEFLAGS} variable and
+look for the argument string @code{--jobserver-auth=R,W} where
+@samp{R} and @samp{W} are non-negative integers representing file
+descriptors: @samp{R} is the read file descriptor and @samp{W} is the
+write file descriptor.
+
+It's important that when you release the job slot, you write back the
+same character you read from the pipe for that slot.  Don't assume
+that all tokens are the same character; different characters may have
+different meanings to GNU @code{make}.  The order is not important,
+since @code{make} has no idea in what order jobs will complete anyway.
+
+There are various error conditions you must consider to ensure your
+implementation is robust:
+
+@itemize @bullet
+@item
+Usually you will have a command-line argument controlling the parallel
+operation of your tool.  Consider whether your tool should detect
+situations where both the jobserver and the command-line argument are
+specified, and how it should react.
+
+@item
+If your tool determines that the @code{--jobserver-auth} option is
+available in @code{MAKEFLAGS} but that the file descriptors specified
+are closed, this means that the calling @code{make} process did not
+think that your tool was a recursive @code{make} invocation (e.g., the
+command line was not prefixed with a @code{+} character).  You should
+notify your users of this situation.
+
+@item
+Your tool should also examine the first word of the @code{MAKEFLAGS}
+variable and look for the character @code{n}.  If this character is
+present then @code{make} was invoked with the @samp{-n} option and
+your tool should stop without performing any operations.
+
+@item
+Your tool should be sure to write back the tokens it read, even under
+error conditions.  This includes not only errors in your tool but also
+outside influences such as interrupts (@code{SIGINT}), etc.  You may
+want to install signal handlers to manage this write-back.
+@end itemize
+
+@node Windows Jobserver,  , POSIX Jobserver, Job Slots
+@subsection Windows Jobserver Interaction
+@cindex jobserver on Windows
+
+On Windows systems the jobserver is implemented as a named semaphore.
+The semaphore will be set with an initial count equal to the number of
+available slots; to obtain a slot you must wait on the semaphore (with
+or without a timeout).  To release a slot, release the semaphore.
+
+To access the semaphore you must parse the @code{MAKEFLAGS} variable and
+look for the argument string @code{--jobserver-auth=NAME} where
+@samp{NAME} is the name of the named semaphore.  Use this name with
+@code{OpenSemaphore} to create a handle to the semaphore.
+
+There are various error conditions you must consider to ensure your
+implementation is robust:
+
+@itemize @bullet
+@item
+Usually you will have a command-line argument controlling the parallel
+operation of your tool.  Consider whether your tool should detect
+situations where both the jobserver and the command-line argument are
+specified, and how it should react.
+
+@item
+Your tool should be sure to release the semaphore for the tokens it
+read, even under error conditions.  This includes not only errors in
+your tool but also outside influences such as interrupts
+(@code{SIGINT}), etc.  You may want to install signal handlers to
+manage this write-back.
+@end itemize
+
+@node Terminal Output,  , Job Slots, Integrating make
+@section Synchronized Terminal Output
+@cindex parallel output to terminal
+@cindex terminal, output to
+
+Normally GNU @code{make} will invoke all commands with access to the
+same standard and error outputs that @code{make} itself was started
+with.  A number of tools will detect whether the output is a terminal
+or not-a-terminal, and use this information to change the output
+style.  For example if the output goes to a terminal the tool may add
+control characters that set color, or even change the location of the
+cursor.  If the output is not going to a terminal then these special
+control characters are not emitted so that they don't corrupt log
+files, etc.
+
+The @code{--output-sync} (@pxref{Parallel Output, ,Output During
+Parallel Output}) option will defeat the terminal detection.  When
+output synchronization is enabled GNU @code{make} arranges for all
+command output to be written to a file, so that its output can be
+written as a block without interference from other commands.  This
+means that all tools invoked by @code{make} will believe that their
+output is not going to be displayed on a terminal, even when it will
+be (because @code{make} will display it there after the command is
+completed).
+
+In order to facilitate tools which would like to determine whether or
+not their output will be displayed on a terminal, GNU @code{make} will
+set the @code{MAKE_TERMOUT} and @code{MAKE_TERMERR} environment
+variables before invoking any commands.  Tools which would like to
+determine whether standard or error output (respectively) will be
+displayed on a terminal can check these environment variables to
+determine if they exist and contain a non-empty value.  If so the tool
+can assume that the output will (eventually) be displayed on a
+terminal.  If the variables are not set or have an empty value, then
+the tool should fall back to its normal methods of detecting whether
+output is going to a terminal or not.
+
+The content of the variables can be parsed to determine the type of
+terminal which will be used to display the output.
+
+Similarly, environments which invoke @code{make} and would like to
+capture the output and eventually display it on a terminal (or some
+display which can interpret terminal control characters) can set these
+variables before invoking @code{make}.  GNU @code{make} will not
+modify these environment variables if they already exist when it
+starts.
+
+@node Features, Missing, Integrating make, Top
 @chapter Features of GNU @code{make}
 @cindex features of GNU @code{make}
 @cindex portability
