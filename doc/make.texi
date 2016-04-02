@@ -12332,9 +12332,9 @@ variable has no effect on the operation of @code{make}.@*
 
 @item CURDIR
 
-Set to the pathname of the current working directory (after all
-@code{-C} options are processed, if any).  Setting this variable has no
-effect on the operation of @code{make}.@*
+Set to the absolute pathname of the current working directory (after
+all @code{-C} options are processed, if any).  Setting this variable
+has no effect on the operation of @code{make}.@*
 @xref{Recursion, ,Recursive Use of @code{make}}.
 
 @item SUFFIXES
