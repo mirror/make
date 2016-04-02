@@ -269,9 +269,9 @@ static unsigned int master_job_slots = 0;
 
 static unsigned int inf_jobs = 0;
 
-/* File descriptors for the jobs pipe.  */
+/* Authorization for the jobserver.  */
 
-char *jobserver_fds = NULL;
+char *jobserver_auth = NULL;
 
 /* Handle for the mutex used on Windows to synchronize output of our
    children under -O.  */
@@ -471,7 +471,7 @@ static const struct command_switch switches[] =
 
     /* These are long-style options.  */
     { CHAR_MAX+1, strlist, &db_flags, 1, 1, 0, "basic", 0, "debug" },
-    { CHAR_MAX+2, string, &jobserver_fds, 1, 1, 0, 0, 0, "jobserver-fds" },
+    { CHAR_MAX+2, string, &jobserver_auth, 1, 1, 0, 0, 0, "jobserver-auth" },
     { CHAR_MAX+3, flag, &trace_flag, 1, 1, 0, 0, 0, "trace" },
     { CHAR_MAX+4, flag, &inhibit_print_directory_flag, 1, 1, 0, 0, 0,
       "no-print-directory" },
@@ -1597,22 +1597,22 @@ main (int argc, char **argv, char **envp)
   starting_directory = current_directory;
 
 #ifdef MAKE_JOBSERVER
-  /* If the jobserver_fds option is seen, make sure that -j is reasonable.
+  /* If the jobserver_auth option is seen, make sure that -j is reasonable.
      This can't be usefully set in the makefile, and we want to verify the
-     FDs are valid before any other aspect of make has a chance to start
-     using them for something else.  */
+     authorization is valid before any other aspect of make has a chance to
+     start using it for something else.  */
 
-  if (jobserver_fds)
+  if (jobserver_auth)
     {
-      /* The combination of jobserver_fds and !job_slots means we're using the
-         jobserver.  If !job_slots and no jobserver_fds, we can start infinite
-         jobs.  If we see both jobserver_fds and job_slots >0 that means the
-         user set -j explicitly.  This is broken; in this case obey the user
-         (ignore the jobserver for this make) but print a message.  If we've
-         restarted, we already printed this the first time.  */
+      /* The combination of jobserver_auth and !job_slots means we're using
+         the jobserver.  If !job_slots and no jobserver_auth, we can start
+         infinite jobs.  If we see both jobserver_auth and job_slots >0 that
+         means the user set -j explicitly.  This is broken; in this case obey
+         the user (ignore the jobserver for this make) but print a message.
+         If we've restarted, we already printed this the first time.  */
 
       if (!job_slots)
-        jobserver_parse_arg (jobserver_fds);
+        jobserver_parse_auth (jobserver_auth);
 
       else if (! restarts)
         O (error, NILF,
@@ -1622,8 +1622,8 @@ main (int argc, char **argv, char **envp)
         {
           /* If job_slots is set now then we're not using jobserver */
           jobserver_clear ();
-          free (jobserver_fds);
-          jobserver_fds = NULL;
+          free (jobserver_auth);
+          jobserver_auth = NULL;
         }
     }
 #endif
@@ -2049,8 +2049,8 @@ main (int argc, char **argv, char **envp)
       master_job_slots = job_slots;
       job_slots = 0;
 
-      /* Fill in the jobserver_fds for our children.  */
-      jobserver_fds = jobserver_get_arg ();
+      /* Fill in the jobserver_auth for our children.  */
+      jobserver_auth = jobserver_get_auth ();
     }
 #endif
 
@@ -3394,12 +3394,12 @@ clean_jobserver (int status)
 
       jobserver_clear ();
 
-      /* Clean out jobserver_fds so we don't pass this information to any
+      /* Clean out jobserver_auth so we don't pass this information to any
          sub-makes.  Also reset job_slots since it will be put on the command
          line, not in MAKEFLAGS.  */
       job_slots = default_job_slots;
-      free (jobserver_fds);
-      jobserver_fds = NULL;
+      free (jobserver_auth);
+      jobserver_auth = NULL;
     }
 }
 

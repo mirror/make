@@ -24,6 +24,12 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=106&set
   The function is expanded to the contents of the file.  The contents are
   expanded verbatim except that the final newline, if any, is stripped.
 
+* The interface to GNU make's "jobserver" is stable as documented in the
+  manual, for tools which may want to access it.
+
+  WARNING: Backward-incompatibility! The internal-only command line option
+  --jobserver-fds has been renamed for publishing, to --jobserver-auth.
+
 * VMS-specific changes:
 
   * Perl test harness now works.

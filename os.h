@@ -26,10 +26,10 @@ unsigned int jobserver_enabled ();
 void jobserver_setup (int job_slots);
 
 /* Called in a child instance to connect to the jobserver.  */
-void jobserver_parse_arg (const char* arg);
+void jobserver_parse_auth (const char* auth);
 
 /* Returns an allocated buffer used to pass to child instances.  */
-char *jobserver_get_arg ();
+char *jobserver_get_auth ();
 
 /* Clear this instance's jobserver configuration.  */
 void jobserver_clear ();
@@ -61,18 +61,18 @@ int jobserver_acquire (int timeout);
 
 #else
 
-#define jobserver_enabled()       (0)
-#define jobserver_setup(_slots)   (void)(0)
-#define jobserver_parse_arg(_arg) (void)(0)
-#define jobserver_get_arg()       (NULL)
-#define jobserver_clear()         (void)(0)
-#define jobserver_release(_fatal) (void)(0)
-#define jobserver_acquire_all()   (0)
-#define jobserver_signal()        (void)(0)
-#define jobserver_pre_child(_r)   (void)(0)
-#define jobserver_post_child(_r)  (void)(0)
-#define jobserver_pre_acquire()   (void)(0)
-#define jobserver_acquire(_tmout) (0)
+#define jobserver_enabled()         (0)
+#define jobserver_setup(_slots)     (void)(0)
+#define jobserver_parse_auth(_auth) (void)(0)
+#define jobserver_get_auth()        (NULL)
+#define jobserver_clear()           (void)(0)
+#define jobserver_release(_fatal)   (void)(0)
+#define jobserver_acquire_all()     (0)
+#define jobserver_signal()          (void)(0)
+#define jobserver_pre_child(_r)     (void)(0)
+#define jobserver_post_child(_r)    (void)(0)
+#define jobserver_pre_acquire()     (void)(0)
+#define jobserver_acquire(_tmout)   (0)
 
 #endif
 

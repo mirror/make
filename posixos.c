@@ -80,12 +80,12 @@ jobserver_setup (int slots)
 }
 
 void
-jobserver_parse_arg (const char* arg)
+jobserver_parse_auth (const char *auth)
 {
   /* Given the command-line parameter, parse it.  */
-  if (sscanf (arg, "%d,%d", &job_fds[0], &job_fds[1]) != 2)
+  if (sscanf (auth, "%d,%d", &job_fds[0], &job_fds[1]) != 2)
     OS (fatal, NILF,
-        _("internal error: invalid --jobserver-fds string '%s'"), arg);
+        _("internal error: invalid --jobserver-auth string '%s'"), auth);
 
   DB (DB_JOBS,
       (_("Jobserver client (fds %d,%d)\n"), job_fds[0], job_fds[1]));
@@ -115,11 +115,11 @@ jobserver_parse_arg (const char* arg)
 }
 
 char *
-jobserver_get_arg ()
+jobserver_get_auth ()
 {
-  char *fds = xmalloc ((INTSTR_LENGTH * 2) + 2);
-  sprintf (fds, "%d,%d", job_fds[0], job_fds[1]);
-  return fds;
+  char *auth = xmalloc ((INTSTR_LENGTH * 2) + 2);
+  sprintf (auth, "%d,%d", job_fds[0], job_fds[1]);
+  return auth;
 }
 
 unsigned int

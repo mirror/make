@@ -12,7 +12,7 @@ if (!$parallel_jobs) {
   return -1;
 }
 
-# Don't put --jobserver-fds into a re-exec'd MAKEFLAGS.
+# Don't put --jobserver-auth into a re-exec'd MAKEFLAGS.
 # We can't test this directly because there's no way a makefile can
 # show the value of MAKEFLAGS we were re-exec'd with.  We can intuit it
 # by looking for "disabling jobserver mode" warnings; we should only
@@ -59,3 +59,7 @@ default: ; @ #MAKEPATH# -f Makefile2
 rmfiles('Makefile2');
 
 1;
+
+### Local Variables:
+### eval: (setq whitespace-action (delq 'auto-cleanup whitespace-action))
+### End:
