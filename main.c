@@ -2148,11 +2148,7 @@ main (int argc, char **argv, char **envp)
       char **aargv = NULL;
       const char **nargv;
       int nargc;
-      int orig_db_level = db_level;
       enum update_status status;
-
-      if (! ISDB (DB_MAKEFILES))
-        db_level = DB_NONE;
 
       DB (DB_BASIC, (_("Updating makefiles....\n")));
 
@@ -2195,6 +2191,7 @@ main (int argc, char **argv, char **envp)
                       break;
                     }
                 }
+
             if (f == NULL || !f->double_colon)
               {
                 makefile_mtimes = xrealloc (makefile_mtimes,
@@ -2210,18 +2207,26 @@ main (int argc, char **argv, char **envp)
       /* Set up 'MAKEFLAGS' specially while remaking makefiles.  */
       define_makeflags (1, 1);
 
-      rebuilding_makefiles = 1;
-      status = update_goal_chain (read_files);
-      rebuilding_makefiles = 0;
+      {
+        int orig_db_level = db_level;
+
+        if (! ISDB (DB_MAKEFILES))
+          db_level = DB_NONE;
+
+        rebuilding_makefiles = 1;
+        status = update_goal_chain (read_files);
+        rebuilding_makefiles = 0;
+
+        db_level = orig_db_level;
+      }
 
       switch (status)
         {
         case us_question:
           /* The only way this can happen is if the user specified -q and asked
-           * for one of the makefiles to be remade as a target on the command
-           * line.  Since we're not actually updating anything with -q we can
-           * treat this as "did nothing".
-           */
+             for one of the makefiles to be remade as a target on the command
+             line.  Since we're not actually updating anything with -q we can
+             treat this as "did nothing".  */
 
         case us_none:
           /* Did nothing.  */
@@ -2368,6 +2373,7 @@ main (int argc, char **argv, char **envp)
               for (p = nargv; *p != 0; ++p)
                 printf (" %s", *p);
               putchar ('\n');
+              fflush (stdout);
             }
 
 #ifndef _AMIGA
@@ -2445,8 +2451,6 @@ main (int argc, char **argv, char **envp)
           free (aargv);
           break;
         }
-
-      db_level = orig_db_level;
 
       /* Free the makefile mtimes.  */
       free (makefile_mtimes);
