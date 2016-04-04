@@ -2026,8 +2026,7 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
   int save_fdout = -1;
   int save_fderr = -1;
 
-#ifndef NO_OUTPUT_SYNC
-  /* Divert child output if output_sync in use.  */
+  /* Divert child output if we want to capture output.  */
   if (out && out->syncout)
     {
       if (out->out >= 0)
@@ -2035,7 +2034,6 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
       if (out->err >= 0)
         fderr = out->err;
     }
-#endif
 
   /* For each FD which needs to be redirected first make a dup of the standard
      FD to save and mark it close on exec so our child won't see it.  Then
@@ -2124,8 +2122,7 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
   int fdout = FD_STDOUT;
   int fderr = FD_STDERR;
 
-#ifndef NO_OUTPUT_SYNC
-  /* Divert child output if output_sync in use.  */
+  /* Divert child output if we want to capture it.  */
   if (out && out->syncout)
     {
       if (out->out >= 0)
@@ -2133,7 +2130,6 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
       if (out->err >= 0)
         fderr = out->err;
     }
-#endif
 
   pid = vfork();
   if (pid != 0)

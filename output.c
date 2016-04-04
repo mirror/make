@@ -344,7 +344,7 @@ setup_tmpfile (struct output *out)
   /* If we failed to create a temp file, disable output sync going forward.  */
  error:
   output_close (out);
-  output_sync = 0;
+  output_sync = OUTPUT_SYNC_NONE;
 }
 
 /* Synchronize the output of jobs in -j mode to keep the results of

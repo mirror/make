@@ -795,6 +795,9 @@ decode_debug_flags (void)
 static void
 decode_output_sync_flags (void)
 {
+#ifdef NO_OUTPUT_SYNC
+  output_sync = OUTPUT_SYNC_NONE;
+#else
   if (output_sync_option)
     {
       if (streq (output_sync_option, "none"))
@@ -812,6 +815,7 @@ decode_output_sync_flags (void)
 
   if (sync_mutex)
     RECORD_SYNC_MUTEX (sync_mutex);
+#endif
 }
 
 #ifdef WINDOWS32
