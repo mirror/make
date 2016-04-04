@@ -230,11 +230,14 @@ check-alt-config: \
 	checkcfg.CPPFLAGS^-DNO_OUTPUT_SYNC \
 	checkcfg.CPPFLAGS^-DNO_ARCHIVES
 
+# Trick GNU make so it doesn't run the submake as a recursive make.
 NR_MAKE = $(MAKE)
 
 # Check builds both with build.sh and with make
 checkcfg.%: distdir
-	@( rm -rf $(distdir)/_build \
+	@echo "Building $@ (output in checkcfg.$*.log)"
+	@exec >'checkcfg.$*.log' 2>&1; \
+	   rm -rf $(distdir)/_build \
 	&& mkdir $(distdir)/_build \
 	&& cd $(distdir)/_build \
 	&& echo "Testing configure with $(subst ^,=,$*)" \
@@ -245,7 +248,7 @@ checkcfg.%: distdir
 	&& ./make $(AM_MAKEFLAGS) check \
 	&& rm -f *.o make \
 	&& $(NR_MAKE) $(AM_MAKEFLAGS) \
-	&& ./make $(AM_MAKEFLAGS) check ) 2>&1 | tee checkcfg.$*.log
+	&& ./make $(AM_MAKEFLAGS) check
 
 
 ## --------------- ##
@@ -381,6 +384,9 @@ UPLOADS = upload-alpha upload-ftp
 $(UPLOADS): $(DIST_ARCHIVES) $(DIST_ARCHIVES_SIG) $(DIST_ARCHIVES_DIRECTIVE)
 	$(FTPPUT) "$(gnu-upload-host)" "$(gnu-upload-dir)/$(@:upload-%=%)" $^
 
+
+# Rebuild Makefile.in if this file is modifed.
+Makefile.in: maintMakefile
 
 # Copyright (C) 1997-2016 Free Software Foundation, Inc.
 # This file is part of GNU Make.
