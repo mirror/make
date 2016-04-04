@@ -33,7 +33,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 static char jobserver_semaphore_name[MAX_PATH + 1];
 static HANDLE jobserver_semaphore = NULL;
 
-void
+unsigned int
 jobserver_setup (int slots)
 {
   /* sub_proc.c cannot wait for more than MAXIMUM_WAIT_OBJECTS objects
@@ -61,15 +61,17 @@ jobserver_setup (int slots)
       ONS (fatal, NILF,
            _("creating jobserver semaphore: (Error %ld: %s)"), err, estr);
     }
+
+  return 1;
 }
 
-void
+unsigned int
 jobserver_parse_auth (const char *auth)
 {
   jobserver_semaphore = OpenSemaphore (
-  SEMAPHORE_ALL_ACCESS,   /* Semaphore access setting */
-    FALSE,                  /* Child processes DON'T inherit */
-    auth);                   /* Semaphore name */
+      SEMAPHORE_ALL_ACCESS,   /* Semaphore access setting */
+      FALSE,                  /* Child processes DON'T inherit */
+      auth);                  /* Semaphore name */
 
   if (jobserver_semaphore == NULL)
     {
@@ -80,6 +82,8 @@ jobserver_parse_auth (const char *auth)
              auth, err, estr);
     }
   DB (DB_JOBS, (_("Jobserver client (semaphore %s)\n"), auth));
+
+  return 1;
 }
 
 char *
@@ -161,7 +165,7 @@ jobserver_pre_acquire ()
 
 /* Returns 1 if we got a token, or 0 if a child has completed.
    The Windows implementation doesn't support load detection.  */
-int
+unsigned int
 jobserver_acquire (int timeout)
 {
     HANDLE handles[MAXIMUM_WAIT_OBJECTS];

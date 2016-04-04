@@ -140,7 +140,7 @@ bar: start
 bar: end
 baz: start
 baz: end
-#MAKE#[1]: Leaving directory '#PWD#/bar'\n", 0, 6);
+#MAKE#[1]: Leaving directory '#PWD#/bar'\n", 0, 10);
 
 # Test per-target synchronization.
 # Note we have to sleep again here after starting the foo makefile before
@@ -171,7 +171,7 @@ foo: end
 #MAKE#[1]: Entering directory '#PWD#/bar'
 baz: start
 baz: end
-#MAKE#[1]: Leaving directory '#PWD#/bar'\n", 0, 6);
+#MAKE#[1]: Leaving directory '#PWD#/bar'\n", 0, 10);
 
 # Rerun but this time suppress the directory tracking
 unlink(@syncfiles);
@@ -183,7 +183,7 @@ bar: end
 foo: start
 foo: end
 baz: start
-baz: end\n", 0, 6);
+baz: end\n", 0, 10);
 
 # Test that messages from make itself are enclosed with
 # "Entering/Leaving directory" messages.
@@ -236,7 +236,7 @@ bar: end
 #MAKE#[1]: Leaving directory '#PWD#/bar'
 #MAKE#[1]: Entering directory '#PWD#/foo'
 foo: end
-#MAKE#[1]: Leaving directory '#PWD#/foo'\n", 0, 6);
+#MAKE#[1]: Leaving directory '#PWD#/foo'\n", 0, 10);
 
 
 # Remove temporary directories and contents.

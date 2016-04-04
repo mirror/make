@@ -259,19 +259,23 @@ struct rlimit stack_limit;
 #endif
 
 
-/* Number of job slots (commands that can be run at once).  */
+/* Number of job slots for parallelism.  */
 
-unsigned int job_slots = 1;
-unsigned int default_job_slots = 1;
+unsigned int job_slots;
+
+#define INVALID_JOB_SLOTS (-1)
 static unsigned int master_job_slots = 0;
+static int arg_job_slots = INVALID_JOB_SLOTS;
+
+static const int default_job_slots = INVALID_JOB_SLOTS;
 
 /* Value of job_slots that means no limit.  */
 
-static unsigned int inf_jobs = 0;
+static const int inf_jobs = 0;
 
 /* Authorization for the jobserver.  */
 
-char *jobserver_auth = NULL;
+static char *jobserver_auth = NULL;
 
 /* Handle for the mutex used on Windows to synchronize output of our
    children under -O.  */
@@ -456,7 +460,7 @@ static const struct command_switch switches[] =
     { 'f', filename, &makefiles, 0, 0, 0, 0, 0, "file" },
     { 'I', filename, &include_directories, 1, 1, 0, 0, 0,
       "include-dir" },
-    { 'j', positive_int, &job_slots, 1, 1, 0, &inf_jobs, &default_job_slots,
+    { 'j', positive_int, &arg_job_slots, 1, 1, 0, &inf_jobs, &default_job_slots,
       "jobs" },
 #ifndef NO_FLOAT
     { 'l', floating, &max_load_average, 1, 1, 0, &default_load_average,
@@ -1057,8 +1061,13 @@ msdos_return_to_initial_directory (void)
 }
 #endif  /* __MSDOS__ */
 
-
-
+static void
+reset_jobserver ()
+{
+  jobserver_clear ();
+  free (jobserver_auth);
+  jobserver_auth = NULL;
+}
 
 #ifdef _AMIGA
 int
@@ -1074,6 +1083,7 @@ main (int argc, char **argv, char **envp)
   PATH_VAR (current_directory);
   unsigned int restarts = 0;
   unsigned int syncing = 0;
+  int argv_slots;
 #ifdef WINDOWS32
   const char *unix_path = NULL;
   const char *windows32_path = NULL;
@@ -1483,24 +1493,34 @@ main (int argc, char **argv, char **envp)
                                  || output_sync == OUTPUT_SYNC_TARGET);
   OUTPUT_SET (&make_sync);
 
-  decode_switches (argc, (const char **)argv, 0);
+  /* Remember the job slots set through the environment vs. command line.  */
+  {
+    int env_slots = arg_job_slots;
+    arg_job_slots = INVALID_JOB_SLOTS;
 
-    /* Set a variable specifying whether stdout/stdin is hooked to a TTY.  */
+    decode_switches (argc, (const char **)argv, 0);
+    argv_slots = arg_job_slots;
+
+    if (arg_job_slots == INVALID_JOB_SLOTS)
+      arg_job_slots = env_slots;
+  }
+
+  /* Set a variable specifying whether stdout/stdin is hooked to a TTY.  */
 #ifdef HAVE_ISATTY
-    if (isatty (fileno (stdout)))
-      if (! lookup_variable (STRING_SIZE_TUPLE ("MAKE_TERMOUT")))
-        {
-          const char *tty = TTYNAME (fileno (stdout));
-          define_variable_cname ("MAKE_TERMOUT", tty ? tty : DEFAULT_TTYNAME,
-                                 o_default, 0)->export = v_export;
-        }
-    if (isatty (fileno (stderr)))
-      if (! lookup_variable (STRING_SIZE_TUPLE ("MAKE_TERMERR")))
-        {
-          const char *tty = TTYNAME (fileno (stderr));
-          define_variable_cname ("MAKE_TERMERR", tty ? tty : DEFAULT_TTYNAME,
-                                 o_default, 0)->export = v_export;
-        }
+  if (isatty (fileno (stdout)))
+    if (! lookup_variable (STRING_SIZE_TUPLE ("MAKE_TERMOUT")))
+      {
+        const char *tty = TTYNAME (fileno (stdout));
+        define_variable_cname ("MAKE_TERMOUT", tty ? tty : DEFAULT_TTYNAME,
+                               o_default, 0)->export = v_export;
+      }
+  if (isatty (fileno (stderr)))
+    if (! lookup_variable (STRING_SIZE_TUPLE ("MAKE_TERMERR")))
+      {
+        const char *tty = TTYNAME (fileno (stderr));
+        define_variable_cname ("MAKE_TERMERR", tty ? tty : DEFAULT_TTYNAME,
+                               o_default, 0)->export = v_export;
+      }
 #endif
 
   /* Reset in case the switches changed our minds.  */
@@ -1600,37 +1620,43 @@ main (int argc, char **argv, char **envp)
   /* We may move, but until we do, here we are.  */
   starting_directory = current_directory;
 
-#ifdef MAKE_JOBSERVER
-  /* If the jobserver_auth option is seen, make sure that -j is reasonable.
-     This can't be usefully set in the makefile, and we want to verify the
-     authorization is valid before any other aspect of make has a chance to
-     start using it for something else.  */
+  /* Set up the job_slots value and the jobserver.  This can't be usefully set
+     in the makefile, and we want to verify the authorization is valid before
+     make has a chance to start using it for something else.  */
 
   if (jobserver_auth)
     {
-      /* The combination of jobserver_auth and !job_slots means we're using
-         the jobserver.  If !job_slots and no jobserver_auth, we can start
-         infinite jobs.  If we see both jobserver_auth and job_slots >0 that
-         means the user set -j explicitly.  This is broken; in this case obey
-         the user (ignore the jobserver for this make) but print a message.
-         If we've restarted, we already printed this the first time.  */
+      if (argv_slots == INVALID_JOB_SLOTS)
+        {
+          if (jobserver_parse_auth (jobserver_auth))
+            {
+              /* Success!  Use the jobserver.  */
+              job_slots = 0;
+              goto job_setup_complete;
+            }
 
-      if (!job_slots)
-        jobserver_parse_auth (jobserver_auth);
+          O (error, NILF, _("warning: jobserver unavailable: using -j1.  Add '+' to parent make rule."));
+          arg_job_slots = 1;
+        }
 
-      else if (! restarts)
+      /* The user provided a -j setting on the command line: use it.  */
+      else if (!restarts)
+        /* If restarts is >0 we already printed this message.  */
         O (error, NILF,
            _("warning: -jN forced in submake: disabling jobserver mode."));
 
-      if (job_slots > 0)
-        {
-          /* If job_slots is set now then we're not using jobserver */
-          jobserver_clear ();
-          free (jobserver_auth);
-          jobserver_auth = NULL;
-        }
+      /* We failed to use our parent's jobserver.  */
+      reset_jobserver ();
+      job_slots = (unsigned int)arg_job_slots;
     }
-#endif
+  else if (arg_job_slots == INVALID_JOB_SLOTS)
+    /* The default is one job at a time.  */
+    job_slots = 1;
+  else
+    /* Use whatever was provided.  */
+    job_slots = (unsigned int)arg_job_slots;
+
+ job_setup_complete:
 
   /* The extra indirection through $(MAKE_COMMAND) is done
      for hysterical raisins.  */
@@ -2024,7 +2050,7 @@ main (int argc, char **argv, char **envp)
   }
 
 #if defined (__MSDOS__) || defined (__EMX__) || defined (VMS)
-  if (job_slots != 1
+  if (arg_job_slots != 1
 # ifdef __EMX__
       && _osmode != OS2_MODE /* turn off -j if we are in DOS mode */
 # endif
@@ -2033,30 +2059,29 @@ main (int argc, char **argv, char **envp)
       O (error, NILF,
          _("Parallel jobs (-j) are not supported on this platform."));
       O (error, NILF, _("Resetting to single job (-j1) mode."));
-      job_slots = 1;
+      arg_job_slots = job_slots = 1;
     }
 #endif
 
-#ifdef MAKE_JOBSERVER
-  if (job_slots > 1)
+  /* If we have >1 slot at this point, then we're a top-level make.
+     Set up the jobserver.
+
+     Every make assumes that it always has one job it can run.  For the
+     submakes it's the token they were given by their parent.  For the top
+     make, we just subtract one from the number the user wants.  */
+
+  if (job_slots > 1 && jobserver_setup (job_slots - 1))
     {
-      /* If we have >1 slot at this point, then we're a top-level make.
-         Set up the jobserver.
-
-         Every make assumes that it always has one job it can run.  For the
-         submakes it's the token they were given by their parent.  For the
-         top make, we just subtract one from the number the user wants.  */
-
-      jobserver_setup (job_slots - 1);
-
-      /* We're using the jobserver so set job_slots to 0.  */
-      master_job_slots = job_slots;
-      job_slots = 0;
-
       /* Fill in the jobserver_auth for our children.  */
       jobserver_auth = jobserver_get_auth ();
+
+      if (jobserver_auth)
+        {
+          /* We're using the jobserver so set job_slots to 0.  */
+          master_job_slots = job_slots;
+          job_slots = 0;
+        }
     }
-#endif
 
   /* If we're not using parallel jobs, then we don't need output sync.
      This is so people can enable output sync in GNUMAKEFLAGS or similar, but
@@ -2364,11 +2389,6 @@ main (int argc, char **argv, char **envp)
             }
 
           ++restarts;
-
-          /* If we're re-exec'ing the first make, put back the number of
-             job slots so define_makefiles() will get it right.  */
-          if (master_job_slots)
-            job_slots = master_job_slots;
 
           if (ISDB (DB_BASIC))
             {
@@ -3400,14 +3420,7 @@ clean_jobserver (int status)
              "INTERNAL: Exiting with %u jobserver tokens available; should be %u!",
              tokens, master_job_slots);
 
-      jobserver_clear ();
-
-      /* Clean out jobserver_auth so we don't pass this information to any
-         sub-makes.  Also reset job_slots since it will be put on the command
-         line, not in MAKEFLAGS.  */
-      job_slots = default_job_slots;
-      free (jobserver_auth);
-      jobserver_auth = NULL;
+      reset_jobserver ();
     }
 }
 

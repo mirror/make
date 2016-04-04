@@ -59,7 +59,7 @@ make_job_rfd ()
 #endif
 }
 
-void
+unsigned int
 jobserver_setup (int slots)
 {
   int r;
@@ -77,9 +77,11 @@ jobserver_setup (int slots)
       if (r != 1)
         pfatal_with_name (_("init jobserver pipe"));
     }
+
+  return 1;
 }
 
-void
+unsigned int
 jobserver_parse_auth (const char *auth)
 {
   /* Given the command-line parameter, parse it.  */
@@ -106,12 +108,12 @@ jobserver_parse_auth (const char *auth)
       if (errno != EBADF)
         pfatal_with_name (_("jobserver pipeline"));
 
-      O (error, NILF,
-         _("warning: jobserver unavailable: using -j1.  Add '+' to parent make rule."));
-
-      job_slots = 1;
       job_fds[0] = job_fds[1] = -1;
+
+      return 0;
     }
+
+  return 1;
 }
 
 char *
@@ -175,7 +177,8 @@ jobserver_acquire_all ()
 }
 
 /* Prepare the jobserver to start a child process.  */
-void jobserver_pre_child (int recursive)
+void
+jobserver_pre_child (int recursive)
 {
   /* If it's not a recursive make, avoid polutting the jobserver pipes.  */
   if (!recursive && job_fds[0] >= 0)
@@ -185,7 +188,8 @@ void jobserver_pre_child (int recursive)
     }
 }
 
-void jobserver_post_child (int recursive)
+void
+jobserver_post_child (int recursive)
 {
 #if defined(F_GETFD) && defined(F_SETFD)
   if (!recursive && job_fds[0] >= 0)
@@ -229,7 +233,7 @@ jobserver_pre_acquire ()
    and only unblocked (atomically) within the pselect() call, so we can
    never miss a SIGCHLD.
  */
-int
+unsigned int
 jobserver_acquire (int timeout)
 {
   sigset_t empty;
@@ -273,7 +277,7 @@ jobserver_acquire (int timeout)
 
   /* What does it mean if read() returns 0?  It shouldn't happen because only
      the master make can reap all the tokens and close the write side...??  */
-  return r;
+  return r > 0;
 }
 
 #else
@@ -358,7 +362,7 @@ set_child_handler_action_flags (int set_handler, int set_alarm)
 #endif
 }
 
-int
+unsigned int
 jobserver_acquire (int timeout)
 {
   char intake;

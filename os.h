@@ -23,10 +23,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 unsigned int jobserver_enabled ();
 
 /* Called in the master instance to set up the jobserver initially.  */
-void jobserver_setup (int job_slots);
+unsigned int jobserver_setup (int job_slots);
 
 /* Called in a child instance to connect to the jobserver.  */
-void jobserver_parse_auth (const char* auth);
+unsigned int jobserver_parse_auth (const char* auth);
 
 /* Returns an allocated buffer used to pass to child instances.  */
 char *jobserver_get_auth ();
@@ -57,13 +57,13 @@ void jobserver_pre_acquire ();
    in this case we won't wait forever, so we can check the load.
    Returns 1 if we got a token, or 0 if we stopped waiting due to a child
    exiting or a timeout.    */
-int jobserver_acquire (int timeout);
+unsigned int jobserver_acquire (int timeout);
 
 #else
 
 #define jobserver_enabled()         (0)
-#define jobserver_setup(_slots)     (void)(0)
-#define jobserver_parse_auth(_auth) (void)(0)
+#define jobserver_setup(_slots)     (0)
+#define jobserver_parse_auth(_auth) (0)
 #define jobserver_get_auth()        (NULL)
 #define jobserver_clear()           (void)(0)
 #define jobserver_release(_fatal)   (void)(0)

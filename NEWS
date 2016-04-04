@@ -30,6 +30,10 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=106&set
   WARNING: Backward-incompatibility! The internal-only command line option
   --jobserver-fds has been renamed for publishing, to --jobserver-auth.
 
+* The amount of parallelism can be determined by querying MAKEFLAGS, even when
+  the job server is enabled (previously MAKEFLAGS would always contain only
+  "-j" when job server was enabled).
+
 * VMS-specific changes:
 
   * Perl test harness now works.

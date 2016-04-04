@@ -4721,9 +4721,9 @@ doesn't count against the total jobs (otherwise we could get @samp{N}
 sub-@code{make}s running and have no slots left over for any real work!)
 
 If your operating system doesn't support the above communication, then
-@samp{-j 1} is always put into @code{MAKEFLAGS} instead of the value you
-specified.  This is because if the @w{@samp{-j}} option were passed down
-to sub-@code{make}s, you would get many more jobs running in parallel
+no @samp{-j} is added to @code{MAKEFLAGS}, so that sub-@code{make}s
+run in non-parallel mode.  If the @w{@samp{-j}} option were passed down
+to sub-@code{make}s you would get many more jobs running in parallel
 than you asked for.  If you give @samp{-j} with no numeric argument,
 meaning to run as many jobs as possible in parallel, this is passed
 down, since multiple infinities are no more than one.@refill
