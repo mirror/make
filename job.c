@@ -481,7 +481,7 @@ child_error (struct child *child,
   const struct file *f = child->file;
   const gmk_floc *flocp = &f->cmds->fileinfo;
   const char *nm;
-  size_t l = strlen (f->name);
+  size_t l;
 
   if (ignored && silent_flag)
     return;
@@ -504,9 +504,9 @@ child_error (struct child *child,
       nm = a;
     }
 
-  OUTPUT_SET (&child->output);
+  l = strlen (pre) + strlen (nm) + strlen (f->name) + strlen (post);
 
-  l += strlen (pre) + strlen (post);
+  OUTPUT_SET (&child->output);
 
   if (exit_sig == 0)
     error (NILF, l + INTSTR_LENGTH,
