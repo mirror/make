@@ -503,7 +503,7 @@ static struct option long_option_aliases[] =
 
 /* List of goal targets.  */
 
-static struct dep *goals, *lastgoal;
+static struct goaldep *goals, *lastgoal;
 
 /* List of variables which were defined on the command line
    (or, equivalently, in MAKEFLAGS).  */
@@ -1079,7 +1079,7 @@ main (int argc, char **argv, char **envp)
 {
   static char *stdin_nm = 0;
   int makefile_status = MAKE_SUCCESS;
-  struct dep *read_files;
+  struct goaldep *read_files;
   PATH_VAR (current_directory);
   unsigned int restarts = 0;
   unsigned int syncing = 0;
@@ -2106,7 +2106,7 @@ main (int argc, char **argv, char **envp)
 
   define_makeflags (1, 0);
 
-  /* Make each 'struct dep' point at the 'struct file' for the file
+  /* Make each 'struct goaldep' point at the 'struct file' for the file
      depended on.  Also do magic for special targets.  */
 
   snap_deps ();
@@ -2184,7 +2184,7 @@ main (int argc, char **argv, char **envp)
       /* Remove any makefiles we don't want to try to update.
          Also record the current modtimes so we can compare them later.  */
       {
-        register struct dep *d, *last;
+        register struct goaldep *d, *last;
         last = 0;
         d = read_files;
         while (d != 0)
@@ -2213,7 +2213,7 @@ main (int argc, char **argv, char **envp)
                         last->next = d->next;
 
                       /* Free the storage.  */
-                      free_dep (d);
+                      free_goaldep (d);
 
                       d = last == 0 ? read_files : last->next;
 
@@ -2270,7 +2270,7 @@ main (int argc, char **argv, char **envp)
                in updating or could not be found at all.  */
             int any_failed = 0;
             unsigned int i;
-            struct dep *d;
+            struct goaldep *d;
 
             for (i = 0, d = read_files; d != 0; ++i, d = d->next)
               {
@@ -2287,7 +2287,7 @@ main (int argc, char **argv, char **envp)
                         any_remade |= (file_mtime_no_search (d->file)
                                        != makefile_mtimes[i]);
                       }
-                    else if (! (d->changed & RM_DONTCARE))
+                    else if (! (d->flags & RM_DONTCARE))
                       {
                         FILE_TIMESTAMP mtime;
                         /* The update failed and this makefile was not
@@ -2302,13 +2302,13 @@ main (int argc, char **argv, char **envp)
                   }
                 else
                   /* This makefile was not found at all.  */
-                  if (! (d->changed & RM_DONTCARE))
+                  if (! (d->flags & RM_DONTCARE))
                     {
                       const char *dnm = dep_name (d);
                       size_t l = strlen (dnm);
 
                       /* This is a makefile we care about.  See how much.  */
-                      if (d->changed & RM_INCLUDED)
+                      if (d->flags & RM_INCLUDED)
                         /* An included makefile.  We don't need to die, but we
                            do want to complain.  */
                         error (NILF, l,
@@ -2544,7 +2544,7 @@ main (int argc, char **argv, char **envp)
 
           if (f)
             {
-              goals = alloc_dep ();
+              goals = alloc_goaldep ();
               goals->file = f;
             }
         }
@@ -2730,12 +2730,12 @@ handle_non_switch_argument (const char *arg, int env)
 
       if (goals == 0)
         {
-          goals = alloc_dep ();
+          goals = alloc_goaldep ();
           lastgoal = goals;
         }
       else
         {
-          lastgoal->next = alloc_dep ();
+          lastgoal->next = alloc_goaldep ();
           lastgoal = lastgoal->next;
         }
 

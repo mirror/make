@@ -132,9 +132,9 @@ const gmk_floc *reading_file = 0;
 
 /* The chain of files read by read_all_makefiles.  */
 
-static struct dep *read_files = 0;
+static struct goaldep *read_files = 0;
 
-static int eval_makefile (const char *filename, int flags);
+static struct goaldep *eval_makefile (const char *filename, int flags);
 static void eval (struct ebuffer *buffer, int flags);
 
 static long readline (struct ebuffer *ebuf);
@@ -167,7 +167,7 @@ static char *unescape_char (char *string, int c);
 
 /* Read in all the makefiles and return a chain of targets to rebuild.  */
 
-struct dep *
+struct goaldep *
 read_all_makefiles (const char **makefiles)
 {
   unsigned int num_makefiles = 0;
@@ -217,16 +217,10 @@ read_all_makefiles (const char **makefiles)
   if (makefiles != 0)
     while (*makefiles != 0)
       {
-        struct dep *tail = read_files;
-        struct dep *d;
+        struct goaldep *d = eval_makefile (*makefiles, 0);
 
-        if (! eval_makefile (*makefiles, 0))
+        if (errno)
           perror_with_name ("", *makefiles);
-
-        /* Find the first element eval_makefile() added to read_files.  */
-        d = read_files;
-        while (d->next != tail)
-          d = d->next;
 
         /* Reuse the storage allocated for the read_file.  */
         *makefiles = dep_name (d);
@@ -260,25 +254,25 @@ read_all_makefiles (const char **makefiles)
 
       if (*p != 0)
         {
-          if (! eval_makefile (*p, 0))
+          eval_makefile (*p, 0);
+          if (errno)
             perror_with_name ("", *p);
         }
       else
         {
           /* No default makefile was found.  Add the default makefiles to the
              'read_files' chain so they will be updated if possible.  */
-          struct dep *tail = read_files;
+          struct goaldep *tail = read_files;
           /* Add them to the tail, after any MAKEFILES variable makefiles.  */
           while (tail != 0 && tail->next != 0)
             tail = tail->next;
           for (p = default_makefiles; *p != 0; ++p)
             {
-              struct dep *d = alloc_dep ();
+              struct goaldep *d = alloc_goaldep ();
               d->file = enter_file (strcache_add (*p));
-              d->dontcare = 1;
               /* Tell update_goal_chain to bail out as soon as this file is
                  made, and main not to die if we can't make this file.  */
-              d->changed = RM_DONTCARE;
+              d->flags = RM_DONTCARE;
               if (tail == 0)
                 read_files = d;
               else
@@ -319,10 +313,10 @@ restore_conditionals (struct conditionals *saved)
   conditionals = saved;
 }
 
-static int
+static struct goaldep *
 eval_makefile (const char *filename, int flags)
 {
-  struct dep *deps;
+  struct goaldep *deps;
   struct ebuffer ebuf;
   const gmk_floc *curfile;
   char *expanded = 0;
@@ -401,16 +395,14 @@ eval_makefile (const char *filename, int flags)
   filename = strcache_add (filename);
 
   /* Add FILENAME to the chain of read makefiles.  */
-  deps = alloc_dep ();
+  deps = alloc_goaldep ();
   deps->next = read_files;
   read_files = deps;
   deps->file = lookup_file (filename);
   if (deps->file == 0)
     deps->file = enter_file (filename);
   filename = deps->file->name;
-  deps->changed = flags;
-  if (flags & RM_DONTCARE)
-    deps->dontcare = 1;
+  deps->flags = flags;
 
   free (expanded);
 
@@ -419,10 +411,10 @@ eval_makefile (const char *filename, int flags)
   if (ebuf.fp == 0)
     {
       /* If we did some searching, errno has the error from the last
-         attempt, rather from FILENAME itself.  Restore it in case the
+         attempt, rather from FILENAME itself.  Store it in case the
          caller wants to use it in a message.  */
       errno = makefile_errno;
-      return 0;
+      return deps;
     }
 
   /* Set close-on-exec to avoid leaking the makefile to children, such as
@@ -452,7 +444,8 @@ eval_makefile (const char *filename, int flags)
   free (ebuf.bufstart);
   alloca (0);
 
-  return 1;
+  errno = 0;
+  return deps;
 }
 
 void
@@ -903,21 +896,20 @@ eval (struct ebuffer *ebuf, int set_default)
           while (files != 0)
             {
               struct nameseq *next = files->next;
-              const char *name = files->name;
-              int r;
+              int flags = (RM_INCLUDED | RM_NO_TILDE
+                           | (noerror ? RM_DONTCARE : 0)
+                           | (set_default ? 0 : RM_NO_DEFAULT_GOAL));
+
+              struct goaldep *d = eval_makefile (files->name, flags);
+
+              if (errno)
+                {
+                  d->error = (unsigned short)errno;
+                  d->floc = *fstart;
+                }
 
               free_ns (files);
               files = next;
-
-              r = eval_makefile (name,
-                                 (RM_INCLUDED | RM_NO_TILDE
-                                  | (noerror ? RM_DONTCARE : 0)
-                                  | (set_default ? 0 : RM_NO_DEFAULT_GOAL)));
-              if (!r && !noerror)
-                {
-                  const char *err = strerror (errno);
-                  OSS (error, fstart, "%s: %s", name, err);
-                }
             }
 
           /* Restore conditional state.  */
@@ -957,7 +949,7 @@ eval (struct ebuffer *ebuf, int set_default)
             {
               struct nameseq *next = files->next;
               const char *name = files->name;
-              struct dep *deps;
+              struct goaldep *deps;
               int r;
 
               /* Load the file.  0 means failure.  */
@@ -973,7 +965,7 @@ eval (struct ebuffer *ebuf, int set_default)
                 continue;
 
               /* It succeeded, so add it to the list "to be rebuilt".  */
-              deps = alloc_dep ();
+              deps = alloc_goaldep ();
               deps->next = read_files;
               read_files = deps;
               deps->file = lookup_file (name);

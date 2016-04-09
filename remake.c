@@ -55,6 +55,10 @@ extern int try_implicit_rule (struct file *file, unsigned int depth);
 /* Incremented when a command is started (under -n, when one would be).  */
 unsigned int commands_started = 0;
 
+/* Set to the goal dependency.  Mostly needed for remaking makefiles.  */
+static struct goaldep *goal_list;
+static struct dep *goal_dep;
+
 /* Current value for pruning the scan of the goal chain (toggle 0/1).  */
 static unsigned int considered;
 
@@ -77,31 +81,22 @@ static const char *library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr);
    one goal whose 'changed' member is nonzero is successfully made.  */
 
 enum update_status
-update_goal_chain (struct dep *goals)
+update_goal_chain (struct goaldep *goaldeps)
 {
   int t = touch_flag, q = question_flag, n = just_print_flag;
   enum update_status status = us_none;
 
-#define MTIME(file) (rebuilding_makefiles ? file_mtime_no_search (file) \
-                     : file_mtime (file))
-
   /* Duplicate the chain so we can remove things from it.  */
 
-  goals = copy_dep_chain (goals);
+  struct dep *goals = copy_dep_chain ((struct dep *)goaldeps);
 
-  {
-    /* Clear the 'changed' flag of each goal in the chain.
-       We will use the flag below to notice when any commands
-       have actually been run for a target.  When no commands
-       have been run, we give an "up to date" diagnostic.  */
-
-    struct dep *g;
-    for (g = goals; g != 0; g = g->next)
-      g->changed = 0;
-  }
+  goal_list = rebuilding_makefiles ? goaldeps : NULL;
 
   /* All files start with the considered bit 0, so the global value is 1.  */
   considered = 1;
+
+#define MTIME(file) (rebuilding_makefiles ? file_mtime_no_search (file) \
+                     : file_mtime (file))
 
   /* Update all the goals until they are all finished.  */
 
@@ -125,6 +120,8 @@ update_goal_chain (struct dep *goals)
           struct file *file;
           int stop = 0, any_not_updated = 0;
 
+          goal_dep = g;
+
           for (file = g->file->double_colon ? g->file->double_colon : g->file;
                file != NULL;
                file = file->prev)
@@ -132,7 +129,7 @@ update_goal_chain (struct dep *goals)
               unsigned int ocommands_started;
               enum update_status fail;
 
-              file->dontcare = g->dontcare;
+              file->dontcare = ANY_SET (g->flags, RM_DONTCARE);
 
               check_renamed (file);
               if (rebuilding_makefiles)
@@ -268,6 +265,28 @@ update_goal_chain (struct dep *goals)
   return status;
 }
 
+/* If we're rebuilding an included makefile that failed, and we care
+   about errors, show an error message the first time.  */
+
+void
+show_goal_error ()
+{
+  if ((goal_dep->flags & (RM_INCLUDED|RM_DONTCARE)) != RM_INCLUDED)
+    return;
+
+  for (struct goaldep *goal = goal_list; goal; goal = goal->next)
+    if (goal_dep->file == goal->file)
+      {
+        if (goal->error)
+          {
+            OSS (error, &goal->floc, "%s: %s",
+                 goal->file->name, strerror ((int)goal->error));
+            goal->error = 0;
+          }
+        return;
+      }
+}
+
 /* If FILE is not up to date, execute the commands for it.
    Return 0 if successful, non-0 if unsuccessful;
    but with some flag settings, just call 'exit' if unsuccessful.
@@ -380,29 +399,28 @@ complain (struct file *file)
 
   if (d == 0)
     {
+      show_goal_error ();
+
       /* Didn't find any dependencies to complain about. */
       if (file->parent)
         {
           size_t l = strlen (file->name) + strlen (file->parent->name) + 4;
+          const char *m = _("%sNo rule to make target '%s', needed by '%s'%s");
 
           if (!keep_going_flag)
-            fatal (NILF, l,
-                   _("%sNo rule to make target '%s', needed by '%s'%s"),
-                   "", file->name, file->parent->name, "");
+            fatal (NILF, l, m, "", file->name, file->parent->name, "");
 
-          error (NILF, l, _("%sNo rule to make target '%s', needed by '%s'%s"),
-                 "*** ", file->name, file->parent->name, ".");
+          error (NILF, l, m, "*** ", file->name, file->parent->name, ".");
         }
       else
         {
           size_t l = strlen (file->name) + 4;
+          const char *m = _("%sNo rule to make target '%s'%s");
 
           if (!keep_going_flag)
-            fatal (NILF, l,
-                   _("%sNo rule to make target '%s'%s"), "", file->name, "");
+            fatal (NILF, l, m, "", file->name, "");
 
-          error (NILF, l,
-                 _("%sNo rule to make target '%s'%s"), "*** ", file->name, ".");
+          error (NILF, l, m, "*** ", file->name, ".");
         }
 
       file->no_diag = 0;

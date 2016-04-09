@@ -376,19 +376,6 @@ copy_dep_chain (const struct dep *d)
   return firstnew;
 }
 
-/* Free a chain of 'struct dep'.  */
-
-void
-free_dep_chain (struct dep *d)
-{
-  while (d != 0)
-    {
-      struct dep *df = d;
-      d = d->next;
-      free_dep (df);
-    }
-}
-
 /* Free a chain of struct nameseq.
    For struct dep chains use free_dep_chain.  */
 
@@ -399,7 +386,7 @@ free_ns_chain (struct nameseq *ns)
     {
       struct nameseq *t = ns;
       ns = ns->next;
-      free (t);
+      free_ns (t);
     }
 }
 
