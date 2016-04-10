@@ -557,6 +557,8 @@ void child_access (void);
 
 char *strip_whitespace (const char **begpp, const char **endpp);
 
+void show_goal_error ();
+
 /* String caching  */
 void strcache_init (void);
 void strcache_print_stats (const char *prefix);
