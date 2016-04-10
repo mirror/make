@@ -24,6 +24,10 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=106&set
   The function is expanded to the contents of the file.  The contents are
   expanded verbatim except that the final newline, if any, is stripped.
 
+* The makefile line numbers shown by GNU make now point directly to the
+  specific line in the recipe where the failure or warning occurred.
+  Sample changes suggested by Brian Vandenberg <phantall@gmail.com>
+
 * The interface to GNU make's "jobserver" is stable as documented in the
   manual, for tools which may want to access it.
 
@@ -32,7 +36,7 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=106&set
 
 * The amount of parallelism can be determined by querying MAKEFLAGS, even when
   the job server is enabled (previously MAKEFLAGS would always contain only
-  "-j" when job server was enabled).
+  "-j", with no number, when job server was enabled).
 
 * VMS-specific changes:
 

@@ -44,4 +44,17 @@ export HI = $(shell echo hi)
 all: ; @echo $$HI
     ','','hi');
 
+# Test shell errors in recipes including offset
+run_make_test('
+all:
+	@echo hi
+	$(shell ./basdfdfsed there)
+	@echo there
+',
+              '', "#MAKE#: ./basdfdfsed: Command not found\nhi\nthere\n");
+
 1;
+
+### Local Variables:
+### eval: (setq whitespace-action (delq 'auto-cleanup whitespace-action))
+### End:

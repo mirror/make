@@ -1734,7 +1734,8 @@ func_shell_base (char *o, char **argv, int trim_newlines)
   if (reading_file && reading_file->filenm)
     {
       char *p = alloca (strlen (reading_file->filenm)+11+4);
-      sprintf (p, "%s:%lu: ", reading_file->filenm, reading_file->lineno);
+      sprintf (p, "%s:%lu: ", reading_file->filenm,
+               reading_file->lineno + reading_file->offset);
       error_prefix = p;
     }
   else

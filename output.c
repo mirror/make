@@ -651,7 +651,7 @@ error (const gmk_floc *flocp, size_t len, const char *fmt, ...)
   p = get_buffer (len);
 
   if (flocp && flocp->filenm)
-    sprintf (p, "%s:%lu: ", flocp->filenm, flocp->lineno);
+    sprintf (p, "%s:%lu: ", flocp->filenm, flocp->lineno + flocp->offset);
   else if (makelevel == 0)
     sprintf (p, "%s: ", program);
   else
@@ -683,7 +683,7 @@ fatal (const gmk_floc *flocp, size_t len, const char *fmt, ...)
   p = get_buffer (len);
 
   if (flocp && flocp->filenm)
-    sprintf (p, "%s:%lu: *** ", flocp->filenm, flocp->lineno);
+    sprintf (p, "%s:%lu: *** ", flocp->filenm, flocp->lineno + flocp->offset);
   else if (makelevel == 0)
     sprintf (p, "%s: *** ", program);
   else

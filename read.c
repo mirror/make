@@ -324,6 +324,7 @@ eval_makefile (const char *filename, int flags)
 
   ebuf.floc.filenm = filename; /* Use the original file name.  */
   ebuf.floc.lineno = 1;
+  ebuf.floc.offset = 0;
 
   if (ISDB (DB_VERBOSE))
     {
@@ -470,6 +471,7 @@ eval_buffer (char *buffer, const gmk_floc *floc)
     {
       ebuf.floc.filenm = NULL;
       ebuf.floc.lineno = 1;
+      ebuf.floc.offset = 0;
     }
 
   curfile = reading_file;
@@ -592,6 +594,7 @@ eval (struct ebuffer *ebuf, int set_default)
       if (filenames != 0)                                                     \
         {                                                                     \
           fi.lineno = tgts_started;                                           \
+          fi.offset = 0;                                                      \
           record_files (filenames, pattern, pattern_percent, depstr,          \
                         cmds_started, commands, commands_idx, two_colon,      \
                         prefix, &fi);                                         \
@@ -1958,6 +1961,7 @@ record_files (struct nameseq *filenames, const char *pattern,
       cmds = xmalloc (sizeof (struct commands));
       cmds->fileinfo.filenm = flocp->filenm;
       cmds->fileinfo.lineno = cmds_started;
+      cmds->fileinfo.offset = 0;
       cmds->commands = xstrndup (commands, commands_idx);
       cmds->command_lines = 0;
       cmds->recipe_prefix = prefix;

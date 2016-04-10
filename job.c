@@ -500,7 +500,7 @@ child_error (struct child *child,
   else
     {
       char *a = alloca (strlen (flocp->filenm) + 1 + 11 + 1);
-      sprintf (a, "%s:%lu", flocp->filenm, flocp->lineno);
+      sprintf (a, "%s:%lu", flocp->filenm, flocp->lineno + flocp->offset);
       nm = a;
     }
 
@@ -1745,10 +1745,12 @@ new_job (struct file *file)
         memmove (out, in, strlen (in) + 1);
 
       /* Finally, expand the line.  */
+      cmds->fileinfo.offset = i;
       lines[i] = allocated_variable_expand_for_file (cmds->command_lines[i],
                                                      file);
     }
 
+  cmds->fileinfo.offset = 0;
   c->command_lines = lines;
 
   /* Fetch the first command line to be run.  */
@@ -1873,12 +1875,15 @@ job_next_command (struct child *child)
         {
           /* There are no more lines to be expanded.  */
           child->command_ptr = 0;
+          child->file->cmds->fileinfo.offset = 0;
           return 0;
         }
       else
         /* Get the next line to run.  */
         child->command_ptr = child->command_lines[child->command_line++];
     }
+
+  child->file->cmds->fileinfo.offset = child->command_line - 1;
   return 1;
 }
 

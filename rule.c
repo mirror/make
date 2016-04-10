@@ -380,6 +380,7 @@ install_pattern_rule (struct pspec *p, int terminal)
       r->cmds = xmalloc (sizeof (struct commands));
       r->cmds->fileinfo.filenm = 0;
       r->cmds->fileinfo.lineno = 0;
+      r->cmds->fileinfo.offset = 0;
       /* These will all be string literals, but we malloc space for them
          anyway because somebody might want to free them later.  */
       r->cmds->commands = xstrdup (p->commands);
