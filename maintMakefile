@@ -39,6 +39,10 @@ MTEMPLATES = Makefile.DOS SMakefile
 # These are built as a side-effect of the dist rule
 #all-am: $(TEMPLATES) $(MTEMPLATES) build.sh.in
 
+# Create preprocessor output files--GCC specific!
+%.i : %.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) -E -dD -o $@ $<
+
 # General rule for turning a .template into a regular file.
 #
 $(TEMPLATES) : % : %.template Makefile
