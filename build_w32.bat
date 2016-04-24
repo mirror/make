@@ -157,7 +157,7 @@ goto :EOF
 :GccCompile
 :: GCC Compile
 echo on
-gcc -mthreads -Wall -gdwarf-2 -g3 %OPTS% -I%OUTDIR% -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H %EXTRAS% -o %OUTDIR%\%1.o -c %1.c
+gcc -mthreads -Wall -std=gnu99 -gdwarf-2 -g3 %OPTS% -I%OUTDIR% -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H %EXTRAS% -o %OUTDIR%\%1.o -c %1.c
 @echo off
 goto :EOF
 
