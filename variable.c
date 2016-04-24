@@ -1449,6 +1449,7 @@ parse_variable_definition (const char *p, struct variable *var)
           /* This begins a variable expansion reference.  Make sure we don't
              treat chars inside the reference as assignment tokens.  */
           char closeparen;
+          unsigned int count;
 
           c = *p++;
           if (c == '(')
@@ -1463,7 +1464,7 @@ parse_variable_definition (const char *p, struct variable *var)
 
           /* P now points past the opening paren or brace.
              Count parens or braces until it is matched.  */
-          for (unsigned int count = 1; *p != '\0'; ++p)
+          for (count = 1; *p != '\0'; ++p)
             {
               if (*p == closeparen && --count == 0)
                 {

@@ -271,10 +271,12 @@ update_goal_chain (struct goaldep *goaldeps)
 void
 show_goal_error ()
 {
+  struct goaldep *goal;
+
   if ((goal_dep->flags & (RM_INCLUDED|RM_DONTCARE)) != RM_INCLUDED)
     return;
 
-  for (struct goaldep *goal = goal_list; goal; goal = goal->next)
+  for (goal = goal_list; goal; goal = goal->next)
     if (goal_dep->file == goal->file)
       {
         if (goal->error)

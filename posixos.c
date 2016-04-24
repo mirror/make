@@ -193,16 +193,19 @@ jobserver_post_child (int recursive)
 {
 #if defined(F_GETFD) && defined(F_SETFD)
   if (!recursive && job_fds[0] >= 0)
-    for (int i = 0; i < 2; ++i)
-      {
-        int flags;
-        EINTRLOOP (flags, fcntl (job_fds[i], F_GETFD));
-        if (flags >= 0)
-          {
-            int r;
-            EINTRLOOP (r, fcntl (job_fds[i], F_SETFD, flags & ~FD_CLOEXEC));
-          }
-      }
+    {
+      unsigned int i;
+      for (i = 0; i < 2; ++i)
+        {
+          int flags;
+          EINTRLOOP (flags, fcntl (job_fds[i], F_GETFD));
+          if (flags >= 0)
+            {
+              int r;
+              EINTRLOOP (r, fcntl (job_fds[i], F_SETFD, flags & ~FD_CLOEXEC));
+            }
+        }
+    }
 #endif
 }
 
