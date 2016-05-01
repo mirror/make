@@ -84,18 +84,6 @@ char x;
 }
 #endif
 
-void init_dir (void);
-void remote_setup (void);
-void remote_cleanup (void);
-RETSIGTYPE fatal_error_signal (int sig);
-
-void print_variable_data_base (void);
-void print_dir_data_base (void);
-void print_rule_data_base (void);
-void print_vpath_data_base (void);
-
-void verify_file_data_base (void);
-
 #if defined HAVE_WAITPID || defined HAVE_WAIT3
 # define HAVE_WAIT_NOHANG
 #endif
@@ -645,7 +633,7 @@ initialize_global_hash_tables (void)
    Each element is true if we should stop parsing on that character.  */
 
 static void
-initialize_stopchar_map ()
+initialize_stopchar_map (void)
 {
   int i;
 
@@ -1063,7 +1051,7 @@ msdos_return_to_initial_directory (void)
 #endif  /* __MSDOS__ */
 
 static void
-reset_jobserver ()
+reset_jobserver (void)
 {
   jobserver_clear ();
   free (jobserver_auth);
@@ -1895,7 +1883,6 @@ main (int argc, char **argv, char **envp)
 
      If none of these are true, we don't need a signal handler at all.  */
   {
-    RETSIGTYPE child_handler (int sig);
 # if defined SIGCHLD
     bsd_signal (SIGCHLD, child_handler);
 # endif
@@ -3369,7 +3356,7 @@ print_version (void)
 /* Print a bunch of information about this and that.  */
 
 static void
-print_data_base ()
+print_data_base (void)
 {
   time_t when = time ((time_t *) 0);
 

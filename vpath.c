@@ -52,7 +52,7 @@ static struct vpath *gpaths;
    variable.  */
 
 void
-build_vpath_lists ()
+build_vpath_lists (void)
 {
   register struct vpath *new = 0;
   register struct vpath *old, *nexto;

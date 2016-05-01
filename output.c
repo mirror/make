@@ -174,7 +174,7 @@ static sync_handle_t sync_handle = -1;
 
 /* Set up the sync handle.  Disables output_sync on error.  */
 static int
-sync_init ()
+sync_init (void)
 {
   int combined_output = 0;
 
@@ -283,7 +283,7 @@ release_semaphore (void *sem)
 /* Returns a file descriptor to a temporary file.  The file is automatically
    closed/deleted on exit.  Don't use a FILE* stream.  */
 int
-output_tmpfd ()
+output_tmpfd (void)
 {
   int fd = -1;
   FILE *tfile = tmpfile ();
@@ -558,7 +558,7 @@ output_close (struct output *out)
 
 /* We're about to generate output: be sure it's set up.  */
 void
-output_start ()
+output_start (void)
 {
 #ifndef NO_OUTPUT_SYNC
   /* If we're syncing output make sure the temporary file is set up.  */

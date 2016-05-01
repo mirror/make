@@ -45,7 +45,7 @@ static int job_rfd = -1;
 static char token = '+';
 
 static int
-make_job_rfd ()
+make_job_rfd (void)
 {
 #ifdef HAVE_PSELECT
   /* Pretend we succeeded.  */
@@ -117,7 +117,7 @@ jobserver_parse_auth (const char *auth)
 }
 
 char *
-jobserver_get_auth ()
+jobserver_get_auth (void)
 {
   char *auth = xmalloc ((INTSTR_LENGTH * 2) + 2);
   sprintf (auth, "%d,%d", job_fds[0], job_fds[1]);
@@ -125,13 +125,13 @@ jobserver_get_auth ()
 }
 
 unsigned int
-jobserver_enabled ()
+jobserver_enabled (void)
 {
   return job_fds[0] >= 0;
 }
 
 void
-jobserver_clear ()
+jobserver_clear (void)
 {
   if (job_fds[0] >= 0)
     close (job_fds[0]);
@@ -157,7 +157,7 @@ jobserver_release (int is_fatal)
 }
 
 unsigned int
-jobserver_acquire_all ()
+jobserver_acquire_all (void)
 {
   unsigned int tokens = 0;
 
@@ -210,7 +210,7 @@ jobserver_post_child (int recursive)
 }
 
 void
-jobserver_signal ()
+jobserver_signal (void)
 {
   if (job_rfd >= 0)
     {
@@ -220,7 +220,7 @@ jobserver_signal ()
 }
 
 void
-jobserver_pre_acquire ()
+jobserver_pre_acquire (void)
 {
   /* Make sure we have a dup'd FD.  */
   if (job_rfd < 0 && job_fds[0] >= 0 && make_job_rfd () < 0)
@@ -402,7 +402,7 @@ jobserver_acquire (int timeout)
 
 /* Create a "bad" file descriptor for stdin when parallel jobs are run.  */
 int
-get_bad_stdin ()
+get_bad_stdin (void)
 {
   static int bad_stdin = -1;
 

@@ -547,7 +547,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
         int long_name = 0;
 #endif
         long int eltsize;
-        int eltmode;
+        unsigned int eltmode;
         long int fnval;
         off_t o;
 
@@ -872,7 +872,7 @@ static long int
 ar_member_pos (int desc UNUSED, const char *mem, int truncated,
                long int hdrpos, long int datapos UNUSED, long int size UNUSED,
                long int date UNUSED, int uid UNUSED, int gid UNUSED,
-               int mode UNUSED, const void *name)
+               unsigned int mode UNUSED, const void *name)
 {
   if (!ar_name_equal (name, mem, truncated))
     return 0;
@@ -957,7 +957,8 @@ ar_member_touch (const char *arname, const char *memname)
 long int
 describe_member (int desc, const char *name, int truncated,
                  long int hdrpos, long int datapos, long int size,
-                 long int date, int uid, int gid, int mode, const void *arg)
+                 long int date, int uid, int gid, unsigned int mode,
+                 const void *arg)
 {
   extern char *ctime ();
 

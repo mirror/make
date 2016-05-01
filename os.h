@@ -20,7 +20,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef MAKE_JOBSERVER
 
 /* Returns 1 if the jobserver is enabled, else 0.  */
-unsigned int jobserver_enabled ();
+unsigned int jobserver_enabled (void);
 
 /* Called in the master instance to set up the jobserver initially.  */
 unsigned int jobserver_setup (int job_slots);
@@ -29,28 +29,28 @@ unsigned int jobserver_setup (int job_slots);
 unsigned int jobserver_parse_auth (const char* auth);
 
 /* Returns an allocated buffer used to pass to child instances.  */
-char *jobserver_get_auth ();
+char *jobserver_get_auth (void);
 
 /* Clear this instance's jobserver configuration.  */
-void jobserver_clear ();
+void jobserver_clear (void);
 
 /* Recover all the jobserver tokens and return the number we got.  */
-unsigned int jobserver_acquire_all ();
+unsigned int jobserver_acquire_all (void);
 
 /* Release a jobserver token.  If it fails and is_fatal is 1, fatal.  */
 void jobserver_release (int is_fatal);
 
 /* Notify the jobserver that a child exited.  */
-void jobserver_signal ();
+void jobserver_signal (void);
 
 /* Get ready to start a non-recursive child.  */
-void jobserver_pre_child ();
+void jobserver_pre_child (int);
 
 /* Complete starting a non-recursive child.  */
-void jobserver_post_child ();
+void jobserver_post_child (int);
 
 /* Set up to acquire a new token.  */
-void jobserver_pre_acquire ();
+void jobserver_pre_acquire (void);
 
 /* Wait until we can acquire a jobserver token.
    TIMEOUT is 1 if we have other jobs waiting for the load to go down;
@@ -78,7 +78,7 @@ unsigned int jobserver_acquire (int timeout);
 
 /* Create a "bad" file descriptor for stdin when parallel jobs are run.  */
 #if !defined(VMD) && !defined(WINDOWS32) && !defined(_AMIGA) && !defined(__MSDOS__)
-int get_bad_stdin ();
+int get_bad_stdin (void);
 #else
 # define get_bad_stdin() (-1)
 #endif

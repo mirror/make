@@ -450,6 +450,8 @@ extern int unixy_shell;
 extern struct rlimit stack_limit;
 #endif
 
+#include <glob.h>
+
 #define NILF ((gmk_floc *)0)
 
 #define CSTRLEN(_s)           (sizeof (_s)-1)
@@ -518,7 +520,8 @@ time_t ar_member_date (const char *);
 typedef long int (*ar_member_func_t) (int desc, const char *mem, int truncated,
                                       long int hdrpos, long int datapos,
                                       long int size, long int date, int uid,
-                                      int gid, int mode, const void *arg);
+                                      int gid, unsigned int mode,
+                                      const void *arg);
 
 long int ar_scan (const char *archive, ar_member_func_t function, const void *arg);
 int ar_name_equal (const char *name, const char *mem, int truncated);
@@ -532,6 +535,8 @@ int file_exists_p (const char *);
 int file_impossible_p (const char *);
 void file_impossible (const char *);
 const char *dir_name (const char *);
+void print_dir_data_base (void);
+void dir_setup_glob (glob_t *);
 void hash_init_directories (void);
 
 void define_default_variables (void);
@@ -554,7 +559,7 @@ void child_access (void);
 
 char *strip_whitespace (const char **begpp, const char **endpp);
 
-void show_goal_error ();
+void show_goal_error (void);
 
 /* String caching  */
 void strcache_init (void);
@@ -581,16 +586,16 @@ long int atol ();
 long int lseek ();
 # endif
 
-#endif  /* Not GNU C library or POSIX.  */
-
-#ifdef  HAVE_GETCWD
-# if !defined(VMS) && !defined(__DECC)
+# ifdef  HAVE_GETCWD
+#  if !defined(VMS) && !defined(__DECC)
 char *getcwd ();
-# endif
-#else
+#  endif
+# else
 char *getwd ();
-# define getcwd(buf, len)       getwd (buf)
-#endif
+#  define getcwd(buf, len)       getwd (buf)
+# endif
+
+#endif  /* Not GNU C library or POSIX.  */
 
 #if !HAVE_STRCASECMP
 # if HAVE_STRICMP
@@ -619,10 +624,11 @@ int strncasecmp (const char *s1, const char *s2, int n);
 #define OUTPUT_SYNC_TARGET  2
 #define OUTPUT_SYNC_RECURSE 3
 
+/* Non-GNU systems may not declare this in unistd.h.  */
+extern char **environ;
+
 extern const gmk_floc *reading_file;
 extern const gmk_floc **expanding_var;
-
-extern char **environ;
 
 extern unsigned short stopchar_map[];
 
@@ -633,6 +639,8 @@ extern int print_version_flag, print_directory_flag, check_symlink_flag;
 extern int warn_undefined_variables_flag, trace_flag, posix_pedantic;
 extern int not_parallel, second_expansion, clock_skew_detected;
 extern int rebuilding_makefiles, one_shell, output_sync, verify_flag;
+
+extern const char *default_shell;
 
 /* can we run commands via 'sh -c xxx' or must we use batch files? */
 extern int batch_mode_shell;
@@ -684,6 +692,17 @@ void
 vms_restore_symbol (const char *string);
 
 #endif
+
+void remote_setup (void);
+void remote_cleanup (void);
+int start_remote_job_p (int);
+int start_remote_job (char **, char **, int, int *, int *, int *);
+int remote_status (int *, int *, int *, int);
+void block_remote_children (void);
+void unblock_remote_children (void);
+int remote_kill (int id, int sig);
+void print_variable_data_base (void);
+void print_vpath_data_base (void);
 
 extern char *starting_directory;
 extern unsigned int makelevel;

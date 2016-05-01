@@ -55,3 +55,4 @@ void install_pattern_rule (struct pspec *p, int terminal);
 void create_pattern_rule (const char **targets, const char **target_percents,
                           unsigned int num, int terminal, struct dep *deps,
                           struct commands *commands, int override);
+void print_rule_data_base (void);

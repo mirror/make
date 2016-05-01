@@ -31,8 +31,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define FILE_LIST_SEPARATOR ' '
 #endif
 
-int remote_kill (int id, int sig);
-
 #ifndef HAVE_UNISTD_H
 int getpid ();
 #endif

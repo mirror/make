@@ -1169,8 +1169,6 @@ print_dir_data_base (void)
 
 /* Hooks for globbing.  */
 
-#include <glob.h>
-
 /* Structure describing state of iterating through a directory hash table.  */
 
 struct dirstream
@@ -1263,7 +1261,9 @@ read_dirstream (__ptr_t stream)
  */
 #if !defined(stat) && !defined(WINDOWS32) || defined(VMS)
 # ifndef VMS
+#  ifndef HAVE_SYS_STAT_H
 int stat (const char *path, struct stat *sbuf);
+#  endif
 # else
     /* We are done with the fake stat.  Go back to the real stat */
 #   ifdef stat

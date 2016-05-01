@@ -18,8 +18,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <assert.h>
 
-#include <glob.h>
-
 #include "filedef.h"
 #include "dep.h"
 #include "job.h"
@@ -2920,7 +2918,6 @@ tilde_expand (const char *name)
 #ifndef VMS
   if (name[1] == '/' || name[1] == '\0')
     {
-      extern char *getenv ();
       char *home_dir;
       int is_variable;
 
@@ -2943,7 +2940,6 @@ tilde_expand (const char *name)
 # if !defined(_AMIGA) && !defined(WINDOWS32)
       if (home_dir == 0 || home_dir[0] == '\0')
         {
-          extern char *getlogin ();
           char *logname = getlogin ();
           home_dir = 0;
           if (logname != 0)
@@ -3007,8 +3003,6 @@ tilde_expand (const char *name)
                           (cannot also set NOGLOB)
         PARSEFS_NOCACHE - Do not add filenames to the strcache (caller frees)
   */
-
-void dir_setup_glob (glob_t *glob);
 
 void *
 parse_file_seq (char **stringp, unsigned int size, int stopmap,

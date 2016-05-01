@@ -24,7 +24,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "commands.h"
 #include "variable.h"
 #include "os.h"
-#include "debug.h"
 
 #include <string.h>
 
@@ -208,14 +207,10 @@ pid2str (pid_t pid)
   return pidstring;
 }
 
+#ifndef HAVE_GETLOADAVG
 int getloadavg (double loadavg[], int nelem);
-int start_remote_job (char **argv, char **envp, int stdin_fd, int *is_remote,
-                      int *id_ptr, int *used_stdin);
-int start_remote_job_p (int);
-int remote_status (int *exit_code_ptr, int *signal_ptr, int *coredump_ptr,
-                   int block);
+#endif
 
-RETSIGTYPE child_handler (int);
 static void free_child (struct child *);
 static void start_job_command (struct child *child);
 static int load_too_high (void);
@@ -2285,7 +2280,6 @@ exec_command (char **argv, char **envp)
     case ENOEXEC:
       {
         /* The file is not executable.  Try it as a shell script.  */
-        extern char *getenv ();
         const char *shell;
         char **new_argv;
         int argc;

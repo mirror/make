@@ -34,6 +34,7 @@ struct commands
 #define COMMANDS_SILENT         2 /* Silent: @.  */
 #define COMMANDS_NOERROR        4 /* No errors: -.  */
 
+RETSIGTYPE fatal_error_signal (int sig);
 void execute_file_commands (struct file *file);
 void print_commands (const struct commands *cmds);
 void delete_child_targets (struct child *child);

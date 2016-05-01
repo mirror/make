@@ -37,8 +37,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <io.h>
 #endif
 
-extern int try_implicit_rule (struct file *file, unsigned int depth);
-
 
 /* The test for circular dependencies is based on the 'updating' bit in
    'struct file'.  However, double colon targets have separate 'struct
@@ -269,7 +267,7 @@ update_goal_chain (struct goaldep *goaldeps)
    about errors, show an error message the first time.  */
 
 void
-show_goal_error ()
+show_goal_error (void)
 {
   struct goaldep *goal;
 

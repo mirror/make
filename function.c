@@ -627,6 +627,7 @@ func_basename_dir (char *o, char **argv, const char *funcname)
       else if (is_dir)
 #ifdef VMS
         {
+          extern int vms_report_unix_paths;
           if (vms_report_unix_paths)
             o = variable_buffer_output (o, "./", 2);
           else
@@ -1975,7 +1976,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
 }
 #endif  /* _AMIGA */
 
-char *
+static char *
 func_shell (char *o, char **argv, const char *funcname UNUSED)
 {
   return func_shell_base (o, argv, 1);
@@ -2653,10 +2654,10 @@ define_new_function (const gmk_floc *flocp, const char *name,
     OS (fatal, flocp, _("Function name too long: %s"), name);
   if (min > 255)
     ONS (fatal, flocp,
-         _("Invalid minimum argument count (%d) for function %s"), min, name);
+         _("Invalid minimum argument count (%u) for function %s"), min, name);
   if (max > 255 || (max && max < min))
     ONS (fatal, flocp,
-         _("Invalid maximum argument count (%d) for function %s"), max, name);
+         _("Invalid maximum argument count (%u) for function %s"), max, name);
 
   ent = xmalloc (sizeof (struct function_table_entry));
   ent->name = name;

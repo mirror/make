@@ -110,6 +110,7 @@ struct pattern_var
 extern char *variable_buffer;
 extern struct variable_set_list *current_variable_set_list;
 extern struct variable *default_goal_var;
+extern struct variable shell_var;
 
 /* expand.c */
 char *variable_buffer_output (char *ptr, const char *string, unsigned int length);
@@ -147,7 +148,6 @@ struct variable_set_list *push_new_variable_scope (void);
 void pop_variable_scope (void);
 void define_automatic_variables (void);
 void initialize_file_variables (struct file *file, int reading);
-void print_file_variables (const struct file *file);
 void print_file_variables (const struct file *file);
 void print_target_variables (const struct file *file);
 void merge_variable_set_lists (struct variable_set_list **to_list,

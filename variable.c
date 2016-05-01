@@ -822,7 +822,6 @@ merge_variable_set_lists (struct variable_set_list **setlist0,
 void
 define_automatic_variables (void)
 {
-  extern const char* default_shell;
   struct variable *v;
   char buf[200];
 
@@ -1049,7 +1048,6 @@ target_environment (struct file *file)
                   /* If this is the SHELL variable and it's not exported,
                      then add the value from our original environment, if
                      the original environment defined a value for SHELL.  */
-                  extern struct variable shell_var;
                   if (streq (v->name, "SHELL") && shell_var.value)
                     {
                       v = &shell_var;
@@ -1136,7 +1134,7 @@ set_special_var (struct variable *var)
  * result. This removes only ONE newline (if any) at the end, for maximum
  * compatibility with the *BSD makes.  If it fails, returns NULL. */
 
-char *
+static char *
 shell_result (const char *p)
 {
   char *buf;
@@ -1739,7 +1737,7 @@ print_variable_data_base (void)
 
   {
     struct pattern_var *p;
-    int rules = 0;
+    unsigned int rules = 0;
 
     for (p = pattern_vars; p != 0; p = p->next)
       {
