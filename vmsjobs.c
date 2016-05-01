@@ -264,14 +264,14 @@ tryToSetupYAst(void)
     { token->cmd_errno = ERANGE; return x; }}
 
 /* Check if we are out of space for more tokens */
-#define NEXT_TOKEN { if (cmd_tkn_index < MAX_DCL_TOKENS) \
+#define V_NEXT_TOKEN { if (cmd_tkn_index < MAX_DCL_TOKENS) \
   cmd_tokens[++cmd_tkn_index] = NULL; \
   else { token.cmd_errno = E2BIG; break; } \
   token.length = 0;}
 
 
 #define UPDATE_TOKEN {cmd_tokens[cmd_tkn_index] = strdup(token.text); \
-  NEXT_TOKEN;}
+  V_NEXT_TOKEN;}
 
 #define EOS_ERROR(x) { if (*x == 0) { token->cmd_errno = ERANGE; break; }}
 

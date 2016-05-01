@@ -677,7 +677,7 @@ process_begin(
         /*
          *  Set up inherited stdin, stdout, stderr for child
          */
-	memset(&startInfo, sizeof(startInfo));
+        memset(&startInfo, '\0', sizeof(startInfo));
         GetStartupInfo(&startInfo);
         startInfo.dwFlags = STARTF_USESTDHANDLES;
         startInfo.lpReserved = 0;

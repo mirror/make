@@ -149,7 +149,7 @@ if "%COMPILER%" == "gcc" goto GccCompile
 
 :: MSVC Compile
 echo on
-cl.exe /nologo /MT /W4 /GX /YX %OPTS% /I %OUTDIR% /I . /I glob /I w32/include /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR%OUTDIR% /Fp%OUTDIR%\%MAKE%.pch /Fo%OUTDIR%\%1.obj /Fd%OUTDIR%\%MAKE%.pdb %EXTRAS% /c %1.c
+cl.exe /nologo /MT /W4 /EHsc %OPTS% /I %OUTDIR% /I . /I glob /I w32/include /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR%OUTDIR% /Fp%OUTDIR%\%MAKE%.pch /Fo%OUTDIR%\%1.obj /Fd%OUTDIR%\%MAKE%.pdb %EXTRAS% /c %1.c
 @echo off
 echo %OUTDIR%\%1.obj >>%OUTDIR%\link.sc
 goto :EOF

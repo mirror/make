@@ -663,6 +663,9 @@ initialize_stopchar_map ()
   stopchar_map[(int)'-'] = MAP_USERFUNC;
   stopchar_map[(int)'_'] = MAP_USERFUNC;
 
+  stopchar_map[(int)' '] = MAP_BLANK;
+  stopchar_map[(int)'\t'] = MAP_BLANK;
+
   stopchar_map[(int)'/'] = MAP_DIRSEP;
 #if defined(VMS)
   stopchar_map[(int)':'] |= MAP_DIRSEP;
@@ -674,9 +677,7 @@ initialize_stopchar_map ()
 
   for (i = 1; i <= UCHAR_MAX; ++i)
     {
-      if (isblank (i))
-        stopchar_map[i] |= MAP_BLANK;
-      else if (isspace (i))
+      if (isspace (i) && NONE_SET (stopchar_map[i], MAP_BLANK))
         /* Don't mark blank characters as newline characters.  */
         stopchar_map[i] |= MAP_NEWLINE;
       else if (isalnum (i))
