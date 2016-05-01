@@ -474,7 +474,7 @@ child_error (struct child *child,
   const char *post = "";
   const char *dump = "";
   const struct file *f = child->file;
-  const gmk_floc *flocp = &f->cmds->fileinfo;
+  const floc *flocp = &f->cmds->fileinfo;
   const char *nm;
   size_t l;
 

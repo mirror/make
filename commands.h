@@ -19,7 +19,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 struct commands
   {
-    gmk_floc fileinfo;          /* Where commands were defined.  */
+    floc fileinfo;              /* Where commands were defined.  */
     char *commands;             /* Commands text.  */
     char **command_lines;       /* Commands chopped up into lines.  */
     unsigned char *lines_flags; /* One set of flag bits for each line.  */

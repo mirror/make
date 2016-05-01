@@ -63,7 +63,7 @@ struct goaldep
   {
     DEP (struct goaldep);
     unsigned short error;
-    gmk_floc floc;
+    floc floc;
   };
 
 /* Options for parsing lists of filenames.  */
@@ -127,5 +127,5 @@ SI void free_goal_chain(struct goaldep *g) { free_dep_chain((struct dep *)g); }
 struct dep *copy_dep_chain (const struct dep *d);
 
 struct goaldep *read_all_makefiles (const char **makefiles);
-void eval_buffer (char *buffer, const gmk_floc *floc);
+void eval_buffer (char *buffer, const floc *floc);
 enum update_status update_goal_chain (struct goaldep *goals);

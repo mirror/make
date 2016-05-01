@@ -26,7 +26,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Initially, any errors reported when expanding strings will be reported
    against the file where the error appears.  */
-const gmk_floc **expanding_var = &reading_file;
+const floc **expanding_var = &reading_file;
 
 /* The next two describe the variable output buffer.
    This buffer is used to hold the variable-expansion of a line of the
@@ -96,8 +96,8 @@ char *
 recursively_expand_for_file (struct variable *v, struct file *file)
 {
   char *value;
-  const gmk_floc *this_var;
-  const gmk_floc **saved_varp;
+  const floc *this_var;
+  const floc **saved_varp;
   struct variable_set_list *save = 0;
   int set_reading = 0;
 
@@ -458,7 +458,7 @@ variable_expand_for_file (const char *line, struct file *file)
 {
   char *result;
   struct variable_set_list *savev;
-  const gmk_floc *savef;
+  const floc *savef;
 
   if (file == 0)
     return variable_expand (line);

@@ -452,7 +452,7 @@ extern struct rlimit stack_limit;
 
 #include <glob.h>
 
-#define NILF ((gmk_floc *)0)
+#define NILF ((floc *)0)
 
 #define CSTRLEN(_s)           (sizeof (_s)-1)
 #define STRING_SIZE_TUPLE(_s) (_s), CSTRLEN(_s)
@@ -468,13 +468,22 @@ extern struct rlimit stack_limit;
 #endif
 
 
+
+/* Specify the location of elements read from makefiles.  */
+typedef struct
+  {
+    const char *filenm;
+    unsigned long lineno;
+    unsigned long offset;
+  } floc;
+
 const char *concat (unsigned int, ...);
 void message (int prefix, size_t length, const char *fmt, ...)
               __attribute__ ((__format__ (__printf__, 3, 4)));
-void error (const gmk_floc *flocp, size_t length, const char *fmt, ...)
+void error (const floc *flocp, size_t length, const char *fmt, ...)
             __attribute__ ((__format__ (__printf__, 3, 4)));
-void fatal (const gmk_floc *flocp, size_t length, const char *fmt, ...)
-                   __attribute__ ((noreturn, __format__ (__printf__, 3, 4)));
+void fatal (const floc *flocp, size_t length, const char *fmt, ...)
+            __attribute__ ((noreturn, __format__ (__printf__, 3, 4)));
 
 #define O(_t,_a,_f)           _t((_a), 0, (_f))
 #define OS(_t,_a,_f,_s)       _t((_a), strlen (_s), (_f), (_s))
@@ -569,11 +578,11 @@ const char *strcache_add (const char *str);
 const char *strcache_add_len (const char *str, unsigned int len);
 
 /* Guile support  */
-int guile_gmake_setup (const gmk_floc *flocp);
+int guile_gmake_setup (const floc *flocp);
 
 /* Loadable object support.  Sets to the strcached name of the loaded file.  */
-typedef int (*load_func_t)(const gmk_floc *flocp);
-int load_file (const gmk_floc *flocp, const char **filename, int noerror);
+typedef int (*load_func_t)(const floc *flocp);
+int load_file (const floc *flocp, const char **filename, int noerror);
 void unload_file (const char *name);
 
 /* We omit these declarations on non-POSIX systems which define _POSIX_VERSION,
@@ -627,8 +636,8 @@ int strncasecmp (const char *s1, const char *s2, int n);
 /* Non-GNU systems may not declare this in unistd.h.  */
 extern char **environ;
 
-extern const gmk_floc *reading_file;
-extern const gmk_floc **expanding_var;
+extern const floc *reading_file;
+extern const floc **expanding_var;
 
 extern unsigned short stopchar_map[];
 

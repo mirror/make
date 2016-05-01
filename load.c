@@ -45,8 +45,8 @@ struct load_list
 static struct load_list *loaded_syms = NULL;
 
 static load_func_t
-load_object (const gmk_floc *flocp, int noerror,
-             const char *ldname, const char *symname)
+load_object (const floc *flocp, int noerror, const char *ldname,
+             const char *symname)
 {
   static void *global_dl = NULL;
   load_func_t symp;
@@ -119,7 +119,7 @@ load_object (const gmk_floc *flocp, int noerror,
 }
 
 int
-load_file (const gmk_floc *flocp, const char **ldname, int noerror)
+load_file (const floc *flocp, const char **ldname, int noerror)
 {
   int nmlen = strlen (*ldname);
   char *new = alloca (nmlen + CSTRLEN (SYMBOL_EXTENSION) + 1);
@@ -249,7 +249,7 @@ unload_file (const char *name)
 #else
 
 int
-load_file (const gmk_floc *flocp, const char **ldname UNUSED, int noerror)
+load_file (const floc *flocp, const char **ldname UNUSED, int noerror)
 {
   if (! noerror)
     O (fatal, flocp,

@@ -640,7 +640,7 @@ message (int prefix, size_t len, const char *fmt, ...)
 /* Print an error message.  */
 
 void
-error (const gmk_floc *flocp, size_t len, const char *fmt, ...)
+error (const floc *flocp, size_t len, const char *fmt, ...)
 {
   va_list args;
   char *p;
@@ -671,7 +671,7 @@ error (const gmk_floc *flocp, size_t len, const char *fmt, ...)
 /* Print an error message and exit.  */
 
 void
-fatal (const gmk_floc *flocp, size_t len, const char *fmt, ...)
+fatal (const floc *flocp, size_t len, const char *fmt, ...)
 {
   va_list args;
   const char *stop = _(".  Stop.\n");

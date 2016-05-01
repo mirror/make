@@ -37,17 +37,29 @@ gmk_free (char *s)
 /* Evaluate a buffer as make syntax.
    Ideally eval_buffer() will take const char *, but not yet.  */
 void
-gmk_eval (const char *buffer, const gmk_floc *floc)
+gmk_eval (const char *buffer, const gmk_floc *gfloc)
 {
   /* Preserve existing variable buffer context.  */
   char *pbuf;
   unsigned int plen;
   char *s;
+  floc fl;
+  floc *flp;
+
+  if (gfloc)
+    {
+      fl.filenm = gfloc->filenm;
+      fl.lineno = gfloc->lineno;
+      fl.offset = 0;
+      flp = &fl;
+    }
+  else
+    flp = NULL;
 
   install_variable_buffer (&pbuf, &plen);
 
   s = xstrdup (buffer);
-  eval_buffer (s, floc);
+  eval_buffer (s, flp);
   free (s);
 
   restore_variable_buffer (pbuf, plen);

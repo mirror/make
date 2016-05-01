@@ -2634,7 +2634,7 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
 }
 
 void
-define_new_function (const gmk_floc *flocp, const char *name,
+define_new_function (const floc *flocp, const char *name,
                      unsigned int min, unsigned int max, unsigned int flags,
                      gmk_func_ptr func)
 {

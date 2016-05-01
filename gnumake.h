@@ -24,7 +24,6 @@ typedef struct
   {
     const char *filenm;
     unsigned long lineno;
-    unsigned long offset;
   } gmk_floc;
 
 typedef char *(*gmk_func_ptr)(const char *nm, unsigned int argc, char **argv);

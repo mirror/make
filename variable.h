@@ -51,7 +51,7 @@ struct variable
   {
     char *name;                 /* Variable name.  */
     char *value;                /* Variable value.  */
-    gmk_floc fileinfo;          /* Where the variable was defined.  */
+    floc fileinfo;              /* Where the variable was defined.  */
     int length;                 /* strlen (name) */
     unsigned int recursive:1;   /* Gets recursively re-evaluated.  */
     unsigned int append:1;      /* Nonzero if an appending target-specific
@@ -152,7 +152,7 @@ void print_file_variables (const struct file *file);
 void print_target_variables (const struct file *file);
 void merge_variable_set_lists (struct variable_set_list **to_list,
                                struct variable_set_list *from_list);
-struct variable *do_variable_definition (const gmk_floc *flocp,
+struct variable *do_variable_definition (const floc *flocp,
                                          const char *name, const char *value,
                                          enum variable_origin origin,
                                          enum variable_flavor flavor,
@@ -160,12 +160,12 @@ struct variable *do_variable_definition (const gmk_floc *flocp,
 char *parse_variable_definition (const char *line,
                                  struct variable *v);
 struct variable *assign_variable_definition (struct variable *v, const char *line);
-struct variable *try_variable_definition (const gmk_floc *flocp, const char *line,
+struct variable *try_variable_definition (const floc *flocp, const char *line,
                                           enum variable_origin origin,
                                           int target_var);
 void init_hash_global_variable_set (void);
 void hash_init_function_table (void);
-void define_new_function(const gmk_floc *flocp, const char *name,
+void define_new_function(const floc *flocp, const char *name,
                          unsigned int min, unsigned int max, unsigned int flags,
                          gmk_func_ptr func);
 struct variable *lookup_variable (const char *name, unsigned int length);
@@ -177,7 +177,7 @@ struct variable *define_variable_in_set (const char *name, unsigned int length,
                                          enum variable_origin origin,
                                          int recursive,
                                          struct variable_set *set,
-                                         const gmk_floc *flocp);
+                                         const floc *flocp);
 
 /* Define a variable in the current variable set.  */
 
