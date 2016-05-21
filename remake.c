@@ -320,7 +320,7 @@ update_file (struct file *file, unsigned int depth)
             && !f->dontcare && f->no_diag))
         {
           DBF (DB_VERBOSE, _("Pruning file '%s'.\n"));
-          return f->command_state == cs_finished ? f->update_status : 0;
+          return f->command_state == cs_finished ? f->update_status : us_success;
         }
     }
 
@@ -344,12 +344,9 @@ update_file (struct file *file, unsigned int depth)
 
       if (f->command_state == cs_running
           || f->command_state == cs_deps_running)
-        {
-          /* Don't run the other :: rules for this
-             file until this rule is finished.  */
-          status = us_success;
-          break;
-        }
+        /* Don't run other :: rules for this target until
+           this rule is finished.  */
+        return us_success;
 
       if (new > status)
         status = new;
@@ -1274,6 +1271,7 @@ FILE_TIMESTAMP
 f_mtime (struct file *file, int search)
 {
   FILE_TIMESTAMP mtime;
+  int propagate_timestamp;
 
   /* File's mtime is not known; must get it from the system.  */
 
@@ -1450,10 +1448,13 @@ f_mtime (struct file *file, int search)
         }
     }
 
-  /* Store the mtime into all the entries for this file.  */
+  /* Store the mtime into all the entries for this file for which it is safe
+     to do so: avoid propagating timestamps to double-colon rules that haven't
+     been examined so they're run or not based on the pre-update timestamp.  */
   if (file->double_colon)
     file = file->double_colon;
 
+  propagate_timestamp = file->updated;
   do
     {
       /* If this file is not implicit but it is intermediate then it was
@@ -1465,7 +1466,8 @@ f_mtime (struct file *file, int search)
           && !file->tried_implicit && file->intermediate)
         file->intermediate = 0;
 
-      file->last_mtime = mtime;
+      if (file->updated == propagate_timestamp)
+        file->last_mtime = mtime;
       file = file->prev;
     }
   while (file != 0);
