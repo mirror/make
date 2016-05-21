@@ -35,10 +35,10 @@ make
 *.sbr
 
 # Windows build artifacts
-/WinDebug/
-/WinRel/
-/GccDebug/
-/GccRel/
+WinDebug/
+WinRel/
+GccDebug/
+GccRel/
 
 # Distribution artifacts
 .dep_segment

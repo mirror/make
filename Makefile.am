@@ -74,7 +74,7 @@ endif
 
 # Extra stuff to include in the distribution.
 
-EXTRA_DIST =	README build.sh.in $(man_MANS) \
+EXTRA_DIST =	ChangeLog README build.sh.in $(man_MANS) \
 		README.customs README.OS2 \
 		SCOPTIONS SMakefile \
 		README.Amiga Makefile.ami config.ami make.lnk amiga.c amiga.h \

@@ -243,7 +243,8 @@ work on it:
 Where to Announce
 -----------------
 
-Create the announcement in a text file, then sign it with GPG.
+Create the announcement in a text file, using 'git shortlog',
+then sign it with GPG:
 
   gpg --clearsign <announcement.txt>
 
