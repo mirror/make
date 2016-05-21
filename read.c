@@ -724,9 +724,6 @@ eval (struct ebuffer *ebuf, int set_default)
           struct variable *v;
           enum variable_origin origin = vmod.override_v ? o_override : o_file;
 
-          /* Variable assignment ends the previous rule.  */
-          record_waiting_files ();
-
           /* If we're ignoring then we're done now.  */
           if (ignoring)
             {
@@ -734,6 +731,9 @@ eval (struct ebuffer *ebuf, int set_default)
                 in_ignored_define = 1;
               continue;
             }
+
+          /* Variable assignment ends the previous rule.  */
+          record_waiting_files ();
 
           if (vmod.undefine_v)
           {
