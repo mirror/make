@@ -2454,6 +2454,11 @@ main (int argc, char **argv, char **envp)
             exit (WIFEXITED(r) ? WEXITSTATUS(r) : EXIT_FAILURE);
           }
 #else
+#ifdef SET_STACK_SIZE
+          /* Reset limits, if necessary.  */
+          if (stack_limit.rlim_cur)
+            setrlimit (RLIMIT_STACK, &stack_limit);
+#endif
           exec_command ((char **)nargv, environ);
 #endif
           free (aargv);
