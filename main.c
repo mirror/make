@@ -2262,10 +2262,6 @@ main (int argc, char **argv, char **envp)
 
             for (i = 0, d = read_files; d != 0; ++i, d = d->next)
               {
-                /* Reset the considered flag; we may need to look at the file
-                   again to print an error.  */
-                d->file->considered = 0;
-
                 if (d->file->updated)
                   {
                     /* This makefile was updated.  */
