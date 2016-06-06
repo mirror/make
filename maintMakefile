@@ -144,7 +144,7 @@ ChangeLog: .check-git-HEAD
 ## ---------------- ##
 ## Updating files.  ##
 ## ---------------- ##
-
+RSYNC = rsync -Lrtvz
 WGET = wget --passive-ftp -np -nv
 ftp-gnu = ftp://ftp.gnu.org/gnu
 
@@ -165,13 +165,14 @@ move_if_change =  if test -r $(target) && cmp -s $(target).t $(target); then \
 
 po_wget_flags =	--recursive --level=1 --no-directories --no-check-certificate
 po_repo = http://translationproject.org/latest/$(PACKAGE)
+po_sync = translationproject.org::tp/latest/$(PACKAGE)/
+
 .PHONY: do-po-update po-update
 do-po-update:
 	tmppo="/tmp/po-$(PACKAGE)-$(VERSION).$$$$" \
 	  && rm -rf "$$tmppo" \
 	  && mkdir "$$tmppo" \
-	  && (cd "$$tmppo" \
-		&& $(WGET) $(po_wget_flags) -A '*.po' $(po_repo)) \
+	  && $(RSYNC) $(po_sync)  "$$tmppo" \
 	  && cp "$$tmppo"/*.po $(top_srcdir)/po \
 	  && rm -rf "$$tmppo"
 	cd po && $(MAKE) update-po
