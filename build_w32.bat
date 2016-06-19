@@ -15,6 +15,7 @@ rem
 rem You should have received a copy of the GNU General Public License along
 rem with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+setlocal
 call :Reset
 
 if "%1" == "-h" goto Usage
@@ -22,13 +23,17 @@ if "%1" == "--help" goto Usage
 
 set MAKE=gnumake
 set GUILE=Y
-set COMPILER=msvc
+set COMPILER=cl.exe
+set ARCH=x64
+set DEBUG=N
 
 :ParseSW
 if "%1" == "--debug" goto SetDebug
 if "%1" == "--without-guile" goto NoGuile
+if "%1" == "--x86" goto Set32Bit
 if "%1" == "gcc" goto SetCC
 if "%1" == "" goto DoneSW
+goto Usage
 
 :SetDebug
 set DEBUG=Y
@@ -41,6 +46,11 @@ echo Building without Guile
 shift
 goto ParseSW
 
+:Set32Bit
+set ARCH=x86
+shift
+goto ParseSW
+
 :SetCC
 set COMPILER=gcc
 echo Building with GCC
@@ -50,11 +60,65 @@ goto ParseSW
 rem Build with Guile is supported only on NT and later versions
 :DoneSW
 echo.
-echo Creating GNU Make for Windows 9X/NT/2K/XP/Vista/7/8
+echo Creating GNU Make for Windows 9X/NT/2K/XP/Vista/7/8/10
 if "%DEBUG%" == "Y" echo Building without compiler optimizations
 
 if "%COMPILER%" == "gcc" goto GccBuild
 
+rem Make sure we can find a compiler
+%COMPILER% >nul 2>&1
+if not ERRORLEVEL 1 goto FoundMSVC
+
+set "VSVARS=%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat"
+call :CheckMSVC
+if not ERRORLEVEL 1 goto FoundMSVC
+
+set "VSVARS=%VS120COMNTOOLS%\..\..\VC\vcvarsall.bat"
+call :CheckMSVC
+if not ERRORLEVEL 1 goto FoundMSVC
+
+set "VSVARS=%VS110COMNTOOLS%\..\..\VC\vcvarsall.bat"
+call :CheckMSVC
+if not ERRORLEVEL 1 goto FoundMSVC
+
+set "VSVARS=%VS100COMNTOOLS%\..\..\VC\vcvarsall.bat"
+call :CheckMSVC
+if not ERRORLEVEL 1 goto FoundMSVC
+
+set "VSVARS=%VS90COMNTOOLS%\..\..\VC\vcvarsall.bat"
+call :CheckMSVC
+if not ERRORLEVEL 1 goto FoundMSVC
+
+set "VSVARS=%VS80COMNTOOLS%\..\..\VC\vcvarsall.bat"
+call :CheckMSVC
+if not ERRORLEVEL 1 goto FoundMSVC
+
+set "VSVARS=%VS71COMNTOOLS%\..\..\VC\vcvarsall.bat"
+call :CheckMSVC
+if not ERRORLEVEL 1 goto FoundMSVC
+
+set "VSVARS=%VS70COMNTOOLS%\..\..\VC\vcvarsall.bat"
+call :CheckMSVC
+if not ERRORLEVEL 1 goto FoundMSVC
+
+set "VSVARS=%V6TOOLS%\VC98\Bin\vcvars32.bat"
+call :CheckMSVC
+if not ERRORLEVEL 1 goto FoundMSVC
+
+set "VSVARS=%V6TOOLS%\VC97\Bin\vcvars32.bat"
+call :CheckMSVC
+if not ERRORLEVEL 1 goto FoundMSVC
+
+set "VSVARS=%V5TOOLS%\VC\Bin\vcvars32.bat"
+call :CheckMSVC
+if not ERRORLEVEL 1 goto FoundMSVC
+
+rem We did not find anything--fail
+echo No MSVC compiler available.
+echo Please run vcvarsall.bat and/or configure your Path.
+exit /b 1
+
+:FoundMSVC
 set OUTDIR=.\WinRel
 set "OPTS=/O2 /D NDEBUG"
 set LINKOPTS=
@@ -149,7 +213,7 @@ if "%COMPILER%" == "gcc" goto GccCompile
 
 :: MSVC Compile
 echo on
-cl.exe /nologo /MT /W4 /EHsc %OPTS% /I %OUTDIR% /I . /I glob /I w32/include /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR%OUTDIR% /Fp%OUTDIR%\%MAKE%.pch /Fo%OUTDIR%\%1.obj /Fd%OUTDIR%\%MAKE%.pdb %EXTRAS% /c %1.c
+%COMPILER% /nologo /MT /W4 /EHsc %OPTS% /I %OUTDIR% /I . /I glob /I w32/include /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR%OUTDIR% /Fp%OUTDIR%\%MAKE%.pch /Fo%OUTDIR%\%1.obj /Fd%OUTDIR%\%MAKE%.pdb %EXTRAS% /c %1.c
 @echo off
 echo %OUTDIR%\%1.obj >>%OUTDIR%\link.sc
 goto :EOF
@@ -226,16 +290,25 @@ echo Guile found, building with Guile
 set "GUILECFLAGS=%GUILECFLAGS% -DHAVE_GUILE"
 goto :EOF
 
+:CheckMSVC
+if not exist "%VSVARS%" exit /b 1
+call "%VSVARS%" %ARCH%
+if ERRORLEVEL 1 exit /b 1
+%COMPILER% >nul 2>&1
+if ERRORLEVEL 1 exit /b 1
+goto :EOF
+
 :Usage
 echo Usage: %0 [options] [gcc]
 echo Options:
-echo.  --debug           For GCC only, make a debug build
-echo.                    (MSVC build always makes both debug and release)
 echo.  --without-guile   Do not compile Guile support even if found
+echo.  --debug           Make a Debug build--default is Release
+echo.  --x86             Make a 32bit binary--default is 64bit
 echo.  --help            Display these instructions and exit
 goto :EOF
 
 :Reset
+set ARCH=
 set COMPILER=
 set DEBUG=
 set GUILE=
@@ -247,4 +320,5 @@ set NOGUILE=
 set OPTS=
 set OUTDIR=
 set PKGMSC=
+set VSVARS=
 goto :EOF
