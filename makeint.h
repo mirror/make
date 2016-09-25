@@ -156,11 +156,11 @@ extern int errno;
 
 #ifdef  PATH_MAX
 # define GET_PATH_MAX   PATH_MAX
-# define PATH_VAR(var)  char var[PATH_MAX]
+# define PATH_VAR(var)  char var[PATH_MAX+1]
 #else
 # define NEED_GET_PATH_MAX 1
 # define GET_PATH_MAX   (get_path_max ())
-# define PATH_VAR(var)  char *var = alloca (GET_PATH_MAX)
+# define PATH_VAR(var)  char *var = alloca (GET_PATH_MAX+1)
 unsigned int get_path_max (void);
 #endif
 

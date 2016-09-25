@@ -353,23 +353,6 @@ update_file (struct file *file, unsigned int depth)
         status = new;
     }
 
-  /* Process the remaining rules in the double colon chain so they're marked
-     considered.  Start their prerequisites, too.  */
-  if (file->double_colon)
-    for (; f != 0 ; f = f->prev)
-      {
-        struct dep *d;
-
-        f->considered = considered;
-
-        for (d = f->deps; d != 0; d = d->next)
-          {
-            enum update_status new = update_file (d->file, depth + 1);
-            if (new > status)
-              status = new;
-          }
-      }
-
   return status;
 }
 
@@ -1510,7 +1493,7 @@ name_mtime (const char *name)
 #ifndef S_ISLNK
 # define S_ISLNK(_m)     (((_m)&S_IFMT)==S_IFLNK)
 #endif
-  if (check_symlink_flag)
+  if (check_symlink_flag && strlen (name) <= GET_PATH_MAX)
     {
       PATH_VAR (lpath);
 

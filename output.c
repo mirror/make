@@ -52,6 +52,14 @@ unsigned int stdio_traced = 0;
 # define STREAM_OK(_s) 1
 #endif
 
+#if defined(HAVE_UMASK)
+# define UMASK(_m)  umask (_m)
+# define MODE_T     mode_t
+#else
+# define UMASK(_m)  0
+# define MODE_T     int
+#endif
+
 /* Write a string to the current STDOUT or STDERR.  */
 static void
 _outputs (struct output *out, int is_err, const char *msg)
@@ -160,7 +168,10 @@ set_append_mode (int fd)
 #if defined(F_GETFL) && defined(F_SETFL) && defined(O_APPEND)
   int flags = fcntl (fd, F_GETFL, 0);
   if (flags >= 0)
-    fcntl (fd, F_SETFL, flags | O_APPEND);
+    {
+      int r;
+      EINTRLOOP(r, fcntl (fd, F_SETFL, flags | O_APPEND));
+    }
 #endif
 }
 
@@ -285,6 +296,7 @@ release_semaphore (void *sem)
 int
 output_tmpfd (void)
 {
+  MODE_T mask = UMASK (0077);
   int fd = -1;
   FILE *tfile = tmpfile ();
 
@@ -299,6 +311,8 @@ output_tmpfd (void)
   fclose (tfile);
 
   set_append_mode (fd);
+
+  UMASK (mask);
 
   return fd;
 }
@@ -414,11 +428,15 @@ char *mktemp (char *template);
 FILE *
 output_tmpfile (char **name, const char *template)
 {
+  FILE *file;
 #ifdef HAVE_FDOPEN
   int fd;
 #endif
 
-#if defined HAVE_MKSTEMP || defined HAVE_MKTEMP
+  /* Preserve the current umask, and set a restrictive one for temp files.  */
+  MODE_T mask = UMASK (0077);
+
+#if defined(HAVE_MKSTEMP) || defined(HAVE_MKTEMP)
 # define TEMPLATE_LEN   strlen (template)
 #else
 # define TEMPLATE_LEN   L_tmpnam
@@ -426,12 +444,13 @@ output_tmpfile (char **name, const char *template)
   *name = xmalloc (TEMPLATE_LEN + 1);
   strcpy (*name, template);
 
-#if defined HAVE_MKSTEMP && defined HAVE_FDOPEN
+#if defined(HAVE_MKSTEMP) && defined(HAVE_FDOPEN)
   /* It's safest to use mkstemp(), if we can.  */
-  fd = mkstemp (*name);
+  EINTRLOOP (fd, mkstemp (*name));
   if (fd == -1)
-    return 0;
-  return fdopen (fd, "w");
+    file = NULL;
+  else
+    file = fdopen (fd, "w");
 #else
 # ifdef HAVE_MKTEMP
   (void) mktemp (*name);
@@ -444,12 +463,16 @@ output_tmpfile (char **name, const char *template)
   EINTRLOOP (fd, open (*name, O_CREAT|O_EXCL|O_WRONLY, 0600));
   if (fd == -1)
     return 0;
-  return fdopen (fd, "w");
+  file = fdopen (fd, "w");
 # else
   /* Not secure, but what can we do?  */
-  return fopen (*name, "w");
+  file = fopen (*name, "w");
 # endif
 #endif
+
+  UMASK (mask);
+
+  return file;
 }
 
 

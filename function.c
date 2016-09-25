@@ -1120,6 +1120,7 @@ func_error (char *o, char **argv, const char *funcname)
     len += strlen (*argvp) + 2;
 
   p = msg = alloca (len + 1);
+  msg[0] = '\0';
 
   for (argvp=argv; argvp[1] != 0; ++argvp)
     {

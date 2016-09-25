@@ -118,7 +118,6 @@ git-very-clean: git-clean
 	-$(GIT) clean -fd
 
 
-
 ## ---------------------- ##
 ## Generating ChangeLog.  ##
 ## ---------------------- ##
@@ -332,6 +331,55 @@ gendocs: update-gnuweb update-makeweb
 	    && echo '- cvs commit' \
 	    && echo '- cvs tag make-$(subst .,-,$(VERSION))'
 
+
+## --------------------------------------------- ##
+## Submitting Coverity cov-build results to Scan ##
+## --------------------------------------------- ##
+
+# Note you must have set COVERITY_TOKEN and COVERITY_EMAIL properly
+# to submit results.  COVERITY_PATH can be set to the root of the
+# cov-build tools if it's not already on your PATH.
+
+COV_BUILD_FILE := cov-build.tgz
+
+.PHONY: cov-build cov-submit
+
+cov-build: $(COV_BUILD_FILE)
+
+$(COV_BUILD_FILE): $(filter %.c %.h,$(DISTFILES))
+	$(MAKE) distdir
+	@echo "Running Coverity cov-build"
+	rm -rf '$(distdir)'/_build
+	mkdir '$(distdir)'/_build
+	cd '$(distdir)'/_build \
+	    && ../configure --srcdir=.. \
+		$(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS) \
+		CFLAGS='$(AM_CFLAGS)'
+	PATH="$${COVERITY_PATH:+$$COVERITY_PATH/bin:}$$PATH"; \
+	    cd '$(distdir)'/_build \
+		&& cov-build --dir cov-int ./build.sh
+	rm -f '$@'
+	(cd '$(distdir)'/_build && tar czf - cov-int) > '$@'
+
+cov-submit: $(COV_BUILD_FILE)-submitted
+
+$(COV_BUILD_FILE)-submitted: $(COV_BUILD_FILE)
+	@[ -n "$(COVERITY_TOKEN)" ] || { echo 'COVERITY_TOKEN not set'; exit 1; }
+	@[ -n "$(COVERITY_EMAIL)" ] || { echo 'COVERITY_EMAIL not set'; exit 1; }
+	rm -f '$@'
+	case '$(VERSION)' in \
+	    (*.*.9*) type="daily build"; ext=".$$(date +%Y%m%d)" ;; \
+	    (*)      type="release"; ext= ;; \
+	esac; \
+	curl --form token='$(COVERITY_TOKEN)' \
+	     --form email='$(COVERITY_EMAIL)' \
+	     --form file='@$<' \
+	     --form version="$(VERSION)$$ext" \
+	     --form description="GNU make $$type" \
+	     'https://scan.coverity.com/builds?project=gmake'
+	cp '$<' '$@'
+
+
 ## ------------------------- ##
 ## Make release targets.     ##
 ## ------------------------- ##
@@ -343,6 +391,7 @@ tag-release:
 	    (*)      message= ;; \
 	esac; \
 	$(GIT) tag -m "GNU Make release$$message $(VERSION)" -u '$(GPG_FINGERPRINT)' '$(VERSION)'
+
 
 ## ------------------------- ##
 ## GNU FTP upload artifacts. ##

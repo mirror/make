@@ -2172,47 +2172,43 @@ main (int argc, char **argv, char **envp)
 
       DB (DB_BASIC, (_("Updating makefiles....\n")));
 
-      /* Remove any makefiles we don't want to try to update.
-         Also record the current modtimes so we can compare them later.  */
+      /* Remove any makefiles we don't want to try to update.  Record the
+         current modtimes of the others so we can compare them later.  */
       {
         register struct goaldep *d, *last;
         last = 0;
         d = read_files;
         while (d != 0)
           {
-            struct file *f = d->file;
-            if (f->double_colon)
-              for (f = f->double_colon; f != NULL; f = f->prev)
-                {
-                  if (f->deps == 0 && f->cmds != 0)
-                    {
-                      /* This makefile is a :: target with commands, but
-                         no dependencies.  So, it will always be remade.
-                         This might well cause an infinite loop, so don't
-                         try to remake it.  (This will only happen if
-                         your makefiles are written exceptionally
-                         stupidly; but if you work for Athena, that's how
-                         you write your makefiles.)  */
+            struct file *f;
+            for (f = d->file->double_colon; f != NULL; f = f->prev)
+              if (f->deps == 0 && f->cmds != 0)
+                break;
 
-                      DB (DB_VERBOSE,
-                          (_("Makefile '%s' might loop; not remaking it.\n"),
-                           f->name));
+            if (f)
+              {
+                /* This makefile is a :: target with commands, but no
+                   dependencies.  So, it will always be remade.  This might
+                   well cause an infinite loop, so don't try to remake it.
+                   (This will only happen if your makefiles are written
+                   exceptionally stupidly; but if you work for Athena, that's
+                   how you write your makefiles.)  */
 
-                      if (last == 0)
-                        read_files = d->next;
-                      else
-                        last->next = d->next;
+                DB (DB_VERBOSE,
+                    (_("Makefile '%s' might loop; not remaking it.\n"),
+                     f->name));
 
-                      /* Free the storage.  */
-                      free_goaldep (d);
+                if (last)
+                  last->next = d->next;
+                else
+                  read_files = d->next;
 
-                      d = last == 0 ? read_files : last->next;
+                /* Free the storage.  */
+                free_goaldep (d);
 
-                      break;
-                    }
-                }
-
-            if (f == NULL || !f->double_colon)
+                d = last ? last->next : read_files;
+              }
+            else
               {
                 makefile_mtimes = xrealloc (makefile_mtimes,
                                             (mm_idx+1)

@@ -2524,7 +2524,7 @@ readline (struct ebuffer *ebuf)
   end = p + ebuf->size;
   *p = '\0';
 
-  while (fgets (p, end - p, ebuf->fp) != 0)
+  while (fgets (p, (int)(end - p), ebuf->fp) != 0)
     {
       char *p2;
       unsigned long len;

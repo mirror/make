@@ -2151,7 +2151,7 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
 
   /* For any redirected FD, dup2() it to the standard FD.
      They are all marked close-on-exec already.  */
-  if (fdin != FD_STDIN)
+  if (fdin >= 0 && fdin != FD_STDIN)
     EINTRLOOP (r, dup2 (fdin, FD_STDIN));
   if (fdout != FD_STDOUT)
     EINTRLOOP (r, dup2 (fdout, FD_STDOUT));
