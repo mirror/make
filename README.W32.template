@@ -8,7 +8,7 @@ and 4.9.3).
 It also builds with MSVC 2.x, 4.x, 5.x, 6.x, 2005, 2008, 2010, 2012,
 2013, and 2015 as well as with .NET 7.x and .NET 2003.
 
-Building with Guile is supported (tested with Guile 2.0.3).  To build
+Building with Guile is supported (tested with Guile 2.0.x).  To build
 with Guile, you will need, in addition to Guile itself, its dependency
 libraries and the pkg-config program.  The latter is used to figure out
 which compilation and link switches and libraries need to be mentioned
