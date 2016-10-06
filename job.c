@@ -29,6 +29,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Default shell to use.  */
 #ifdef WINDOWS32
+#include <strings.h>	/* for strcasecmp, strncasecmp */
 #include <windows.h>
 
 const char *default_shell = "sh.exe";
