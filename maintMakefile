@@ -5,7 +5,7 @@
 BUGLIST := bug-make@gnu.org
 
 # These are related to my personal setup.
-GPG_FINGERPRINT := 6338B6D4
+GPG_KEYID := 80CB727A20C79BB2
 
 # SRCROOTDIR is just a handy location to keep source files in
 SRCROOTDIR ?= $(HOME)/src
@@ -390,7 +390,7 @@ tag-release:
 	    (*.*.9*) message=" candidate" ;; \
 	    (*)      message= ;; \
 	esac; \
-	$(GIT) tag -m "GNU Make release$$message $(VERSION)" -u '$(GPG_FINGERPRINT)' '$(VERSION)'
+	$(GIT) tag -m "GNU Make release$$message $(VERSION)" -u '$(GPG_KEYID)' '$(VERSION)'
 
 
 ## ------------------------- ##
@@ -402,7 +402,7 @@ tag-release:
 # you're SOL! :)
 
 GPG = gpg
-GPGFLAGS = -u $(GPG_FINGERPRINT)
+GPGFLAGS = -u $(GPG_KEYID)
 
 DIST_ARCHIVES_SIG = $(addsuffix .sig,$(DIST_ARCHIVES))
 DIST_ARCHIVES_DIRECTIVE = $(addsuffix .directive.asc,$(DIST_ARCHIVES))
@@ -416,9 +416,9 @@ distsign: $(DIST_ARCHIVES_SIG) $(DIST_ARCHIVES_DIRECTIVE)
 	$(GPG) $(GPGFLAGS) -o "$@" -b "$<"
 
 %.directive.asc: %
-	@echo "Creating directive file '$@':"
+	@echo "Creating signed directive file '$@':"
 	@( \
-	   echo 'version: 1.1'; \
+	   echo 'version: 1.2'; \
 	   echo 'directory: make'; \
 	   echo 'filename: $*'; \
 	   echo 'comment: Official upload of GNU make version $(VERSION)'; \
