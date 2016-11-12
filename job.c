@@ -1562,7 +1562,7 @@ start_waiting_job (struct child *c)
   if (!c->remote
       && ((job_slots_used > 0 && load_too_high ())
 #ifdef WINDOWS32
-          || (process_used_slots () >= MAXIMUM_WAIT_OBJECTS)
+          || process_table_full ()
 #endif
           ))
     {
@@ -1937,8 +1937,8 @@ load_too_high (void)
   time_t now;
 
 #ifdef WINDOWS32
-  /* sub_proc.c cannot wait for more than MAXIMUM_WAIT_OBJECTS children */
-  if (process_used_slots () >= MAXIMUM_WAIT_OBJECTS)
+  /* sub_proc.c is limited in the number of objects it can wait for. */
+  if (process_table_full ())
     return 1;
 #endif
 

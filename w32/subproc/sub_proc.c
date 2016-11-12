@@ -14,6 +14,7 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#include <assert.h>
 #include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -35,6 +36,13 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "proc.h"
 #include "w32err.h"
 #include "debug.h"
+#include "os.h"
+
+#define GMAKE_MAXIMUM_WAIT_OBJECTS (MAXIMUM_WAIT_OBJECTS * MAXIMUM_WAIT_OBJECTS)
+
+/* We need to move these special-case return codes out-of-band */
+#define GMAKE_WAIT_TIMEOUT      0xFFFF0102L
+#define GMAKE_WAIT_ABANDONED_0  0x00080000L
 
 static char *make_command_line(char *shell_name, char *exec_path, char **argv);
 
@@ -57,10 +65,72 @@ typedef struct sub_process_t {
 } sub_process;
 
 /* keep track of children so we can implement a waitpid-like routine */
-static sub_process *proc_array[MAXIMUM_WAIT_OBJECTS];
+static sub_process *proc_array[GMAKE_MAXIMUM_WAIT_OBJECTS];
 static int proc_index = 0;
 static int fake_exits_pending = 0;
 
+/*
+ * Address the scalability limit intrisic to WaitForMultipleOjects by
+ * calling WaitForMultipleObjects on 64 element chunks of the input
+ * array with 0 timeout.  Exit with an appropriately conditioned result
+ * or repeat again every 10 ms if no handle has signaled and the
+ * requested timeout was not zero.
+ */
+DWORD process_wait_for_multiple_objects(
+  DWORD nCount,
+  const HANDLE *lpHandles,
+  BOOL bWaitAll,
+  DWORD dwMilliseconds
+)
+{
+  assert(nCount <= GMAKE_MAXIMUM_WAIT_OBJECTS);
+
+  if (nCount <= MAXIMUM_WAIT_OBJECTS) {
+    DWORD retVal =  WaitForMultipleObjects(nCount, lpHandles, bWaitAll, dwMilliseconds);
+    return (retVal == WAIT_TIMEOUT) ? GMAKE_WAIT_TIMEOUT : retVal;
+  } else {
+    for (;;) {
+      DWORD objectCount = nCount;
+      int blockCount  = 0;
+      DWORD retVal;
+
+      assert(bWaitAll == FALSE); /* This logic only works for this use case */
+      assert(dwMilliseconds == 0 || dwMilliseconds == INFINITE); /* No support for timeouts */
+
+      for (; objectCount > 0; blockCount++) {
+	DWORD n = objectCount <= MAXIMUM_WAIT_OBJECTS ? objectCount : MAXIMUM_WAIT_OBJECTS;
+	objectCount -= n;
+	retVal = WaitForMultipleObjects(n, &lpHandles[blockCount * MAXIMUM_WAIT_OBJECTS],
+					    FALSE, 0);
+	switch (retVal) {
+	  case WAIT_TIMEOUT:
+	    retVal = GMAKE_WAIT_TIMEOUT;
+	    continue;
+	    break;
+	  case WAIT_FAILED:
+	    fprintf(stderr,"WaitForMultipleOjbects failed waiting with error %d\n", GetLastError());
+	    break;
+	  default:
+	    if (retVal >= WAIT_ABANDONED_0) {
+	      assert(retVal < WAIT_ABANDONED_0 + MAXIMUM_WAIT_OBJECTS);
+	      retVal += blockCount * MAXIMUM_WAIT_OBJECTS - WAIT_ABANDONED_0 + GMAKE_WAIT_ABANDONED_0;
+	    } else {
+	      assert(retVal < WAIT_OBJECT_0 + MAXIMUM_WAIT_OBJECTS);
+	      retVal += blockCount * MAXIMUM_WAIT_OBJECTS;
+	    }
+	    break;
+	}
+
+	return retVal;
+
+      }
+
+      if (dwMilliseconds == 0) return retVal;
+
+      Sleep(10);  /* Sleep for 10 ms */
+    }
+  }
+}
 
 /*
  * Fill a HANDLE list with handles to wait for.
@@ -114,7 +184,7 @@ process_adjust_wait_state(sub_process* pproc)
 static sub_process *
 process_wait_for_any_private(int block, DWORD* pdwWaitStatus)
 {
-        HANDLE handles[MAXIMUM_WAIT_OBJECTS];
+        HANDLE handles[GMAKE_MAXIMUM_WAIT_OBJECTS];
         DWORD retval, which;
         int i;
 
@@ -131,7 +201,7 @@ process_wait_for_any_private(int block, DWORD* pdwWaitStatus)
 
         /* wait for someone to exit */
         if (!fake_exits_pending) {
-                retval = WaitForMultipleObjects(proc_index, handles, FALSE, (block ? INFINITE : 0));
+                retval = process_wait_for_multiple_objects(proc_index, handles, FALSE, (block ? INFINITE : 0));
                 which = retval - WAIT_OBJECT_0;
         } else {
                 fake_exits_pending--;
@@ -141,10 +211,10 @@ process_wait_for_any_private(int block, DWORD* pdwWaitStatus)
 
         /* If the pointer is not NULL, set the wait status result variable. */
         if (pdwWaitStatus)
-            *pdwWaitStatus = retval;
+                *pdwWaitStatus = (retval == GMAKE_WAIT_TIMEOUT) ? WAIT_TIMEOUT : retval;
 
         /* return pointer to process */
-        if ((retval == WAIT_TIMEOUT) || (retval == WAIT_FAILED)) {
+        if ((retval == GMAKE_WAIT_TIMEOUT) || (retval == WAIT_FAILED)) {
                 return NULL;
         }
         else {
@@ -166,6 +236,37 @@ process_kill(HANDLE proc, int signal)
 }
 
 /*
+ * Returns true when we have no more available slots in our process table.
+ */
+BOOL
+process_table_full()
+{
+  extern int shell_function_pid;
+
+  /* Reserve slots for jobserver_semaphore if we have one and the shell function if not active */
+  return(proc_index >= GMAKE_MAXIMUM_WAIT_OBJECTS - jobserver_enabled() - (shell_function_pid == 0));
+}
+
+/*
+ * Returns the maximum number of job slots we can support when using the jobserver.
+ */
+int
+process_table_usable_size()
+{
+  /* Reserve slots for jobserver_semaphore and shell function */
+  return(GMAKE_MAXIMUM_WAIT_OBJECTS - 2);
+}
+
+/*
+ * Returns the actual size of the process table.
+ */
+int
+process_table_actual_size()
+{
+  return(GMAKE_MAXIMUM_WAIT_OBJECTS);
+}
+
+/*
  * Use this function to register processes you wish to wait for by
  * calling process_file_io(NULL) or process_wait_any(). This must be done
  * because it is possible for callers of this library to reuse the same
@@ -174,17 +275,8 @@ process_kill(HANDLE proc, int signal)
 void
 process_register(HANDLE proc)
 {
-        if (proc_index < MAXIMUM_WAIT_OBJECTS)
-                proc_array[proc_index++] = (sub_process *) proc;
-}
-
-/*
- * Return the number of processes that we are still waiting for.
- */
-int
-process_used_slots(void)
-{
-        return proc_index;
+  assert(proc_index < GMAKE_MAXIMUM_WAIT_OBJECTS);
+  proc_array[proc_index++] = (sub_process *) proc;
 }
 
 /*
@@ -1362,7 +1454,7 @@ process_easy(
   HANDLE hProcess, tmpIn, tmpOut, tmpErr;
   DWORD e;
 
-  if (proc_index >= MAXIMUM_WAIT_OBJECTS) {
+  if (process_table_full()) {
         DB (DB_JOBS, ("process_easy: All process slots used up\n"));
         return INVALID_HANDLE_VALUE;
   }

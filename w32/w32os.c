@@ -36,13 +36,11 @@ static HANDLE jobserver_semaphore = NULL;
 unsigned int
 jobserver_setup (int slots)
 {
-  /* sub_proc.c cannot wait for more than MAXIMUM_WAIT_OBJECTS objects
-   * and one of them is the job-server semaphore object.  Limit the
-   * number of available job slots to (MAXIMUM_WAIT_OBJECTS - 1). */
+  /* sub_proc.c is limited in the number of objects it can wait for. */
 
-  if (slots >= MAXIMUM_WAIT_OBJECTS)
+  if (slots > process_table_usable_size())
     {
-      slots = MAXIMUM_WAIT_OBJECTS - 1;
+      slots = process_table_usable_size();
       DB (DB_JOBS, (_("Jobserver slots limited to %d\n"), slots));
     }
 
@@ -168,9 +166,11 @@ jobserver_pre_acquire ()
 unsigned int
 jobserver_acquire (int timeout)
 {
-    HANDLE handles[MAXIMUM_WAIT_OBJECTS];
+    HANDLE *handles;
     DWORD dwHandleCount;
     DWORD dwEvent;
+
+    handles = xmalloc(process_table_actual_size() * sizeof(HANDLE));
 
     /* Add jobserver semaphore to first slot. */
     handles[0] = jobserver_semaphore;
@@ -178,11 +178,13 @@ jobserver_acquire (int timeout)
     /* Build array of handles to wait for.  */
     dwHandleCount = 1 + process_set_handles (&handles[1]);
 
-    dwEvent = WaitForMultipleObjects (
+    dwEvent = process_wait_for_multiple_objects (
         dwHandleCount,  /* number of objects in array */
         handles,        /* array of objects */
         FALSE,          /* wait for any object */
         INFINITE);      /* wait until object is signalled */
+
+    free(handles);
 
     if (dwEvent == WAIT_FAILED)
       {

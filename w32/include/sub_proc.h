@@ -44,8 +44,11 @@ EXTERN_DECL(void process_register, (HANDLE proc));
 EXTERN_DECL(HANDLE process_easy, (char** argv, char** env,
                                   int outfd, int errfd));
 EXTERN_DECL(BOOL process_kill, (HANDLE proc, int signal));
-EXTERN_DECL(int process_used_slots, (VOID_DECL));
+EXTERN_DECL(BOOL process_table_full, (VOID_DECL));
+EXTERN_DECL(int process_table_usable_size, (VOID_DECL));
+EXTERN_DECL(int process_table_actual_size, (VOID_DECL));
 EXTERN_DECL(DWORD process_set_handles, (HANDLE *handles));
+EXTERN_DECL(DWORD process_wait_for_multiple_objects, (DWORD, const HANDLE*, BOOL, DWORD));
 
 /* support routines */
 EXTERN_DECL(long process_errno, (HANDLE proc));
