@@ -15,6 +15,10 @@ A complete list of bugs fixed in this version is available here:
 
 http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set=custom
 
+* The previous limit of 63 jobs under -jN on MS-Windows is now
+  increased to 4095.  That limit includes the subprocess started by
+  the $(shell) function.
+
 
 Version 4.2.1 (10 Jun 2016)
 
