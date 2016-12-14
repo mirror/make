@@ -3,21 +3,25 @@ This directory contains the %VERSION% release of GNU Make.
 See the file NEWS for the user-visible changes from previous releases.
 In addition, there have been bugs fixed.
 
-Please check the system-specific notes below for any caveats related to
-your operating system.
+Please check the system-specific notes below for any caveats related to your
+operating system.
 
-For general building and installation instructions, see the file INSTALL.
+If you are trying to build GNU make from a Git clone rather than a downloaded
+source distribution, see the README.git file for instructions.
 
-If you need to build GNU Make and have no other 'make' program to use,
-you can use the shell script 'build.sh' instead.  To do this, first run
-'configure' as described in INSTALL.  Then, instead of typing 'make' to
-build the program, type 'sh build.sh'.  This should compile the program
-in the current directory.  Then you will have a Make program that you can
-use for './make install', or whatever else.
+For source distribution building and installation instructions, see the file
+INSTALL.
 
-Some systems' Make programs are broken and cannot process the Makefile for
-GNU Make.  If you get errors from your system's Make when building GNU
-Make, try using 'build.sh' instead.
+If you need to build GNU Make and have no other 'make' program to use, you can
+use the shell script 'build.sh' instead.  To do this, first run 'configure' as
+described in INSTALL.  Then, instead of typing 'make' to build the program,
+type 'sh build.sh'.  This should compile the program in the current directory.
+Then you will have a Make program that you can use for './make install', or
+whatever else.
+
+Some systems' Make programs cannot process the Makefile for GNU Make.  If you
+get errors from your system's Make when building GNU Make, try using
+'build.sh' instead.
 
 
 GNU Make is free software.  See the file COPYING for copying conditions.
@@ -85,18 +89,19 @@ If you need help using GNU make, try these forums:
 Git Access
 ----------
 
-The GNU make source repository is available via Git from the
-GNU Savannah Git server; look here for details:
+The GNU make source repository is available via Git from the GNU Savannah Git
+server; look here for details:
 
   http://savannah.gnu.org/git/?group=make
 
-Please note: you won't be able to build GNU make from Git without
-installing appropriate maintainer's tools, such as GNU m4, automake,
-autoconf, Perl, GNU make, and GCC.  See the README.git file for hints on
-how to build GNU make once these tools are available.  We make no
-guarantees about the contents or quality of the latest code in the Git
-repository: it is not unheard of for code that is known to be broken to
-be checked in.  Use at your own risk.
+Please note: you won't be able to build GNU make from Git without installing
+appropriate maintainer's tools, such as GNU m4, automake, autoconf, Perl, GNU
+make, and GCC.
+
+See the README.git file for instructions on how to build GNU make once these
+tools are available.  We make no guarantees about the contents or quality of
+the latest code in the Git repository: it is not unheard of for code that is
+known to be broken to be checked in.  Use at your own risk.
 
 
 System-specific Notes
@@ -154,6 +159,11 @@ Ports
     A precompiled binary of the MSDOS port of GNU Make is available as part
     of DJGPP; see the WWW page http://www.delorie.com/djgpp/ for more
     information.
+
+    The Cygwin project maintains its own port of GNU make.  That port may have
+    patches which are not present in this version.  If you are using Cygwin
+    you should use their version of GNU make, and if you have questions about
+    it you should start by asking on those mailing lists and forums.
 
 Please note there are two _separate_ ports of GNU make for Microsoft
 systems: a native Windows tool built with (for example) MSVC or Cygwin,
