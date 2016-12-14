@@ -3909,8 +3909,8 @@ show :
 
 As a special feature, if @code{SHELL} is determined to be a
 POSIX-style shell, the special prefix characters in ``internal''
-recipe lines will @emph{removed} before the recipe is processed.  This
-feature is intended to allow existing makefiles to add the
+recipe lines will be @emph{removed} before the recipe is processed.
+This feature is intended to allow existing makefiles to add the
 @code{.ONESHELL} special target and still run properly without
 extensive modifications.  Since the special prefix characters are not
 legal at the beginning of a line in a POSIX shell script this is not a
@@ -12467,16 +12467,18 @@ of its arguments.  @xref{Functions, ,Functions for Transforming Text}.
 @itemx multiple target patterns.  Stop.
 @itemx target pattern contains no `%'.  Stop.
 @itemx mixed implicit and static pattern rules.  Stop.
-These are generated for malformed static pattern rules.  The first
-means there's no pattern in the target section of the rule; the second
-means there are multiple patterns in the target section; the third
-means the target doesn't contain a pattern character (@code{%}); and
-the fourth means that all three parts of the static pattern rule
-contain pattern characters (@code{%})--only the first two parts
-should.  If you see these errors and you aren't trying to create a
-static pattern rule, check the value of any variables in your target
-and prerequisite lists to be sure they do not contain colons.
-@xref{Static Usage, ,Syntax of Static Pattern Rules}.
+These errors are generated for malformed static pattern rules
+(@pxref{Static Usage, ,Syntax of Static Pattern Rules}).  The first
+means the target-pattern part of the rule is empty; the second means
+there are multiple pattern characters (@code{%}) in the target-pattern
+part; the third means there are no pattern characters in the
+target-pattern part; and the fourth means that all three parts of the
+static pattern rule contain pattern characters (@code{%})--the first
+part should not contain pattern characters.
+
+If you see these errors and you aren't trying to create a static
+pattern rule, check the value of any variables in your target and
+prerequisite lists to be sure they do not contain colons.
 
 @item warning: -jN forced in submake: disabling jobserver mode.
 This warning and the next are generated if @code{make} detects error
