@@ -485,6 +485,8 @@ void error (const floc *flocp, size_t length, const char *fmt, ...)
 void fatal (const floc *flocp, size_t length, const char *fmt, ...)
             __attribute__ ((noreturn, __format__ (__printf__, 3, 4)));
 
+/* When adding macros to this list be sure to update the value of
+   XGETTEXT_OPTIONS in the po/Makevars file.  */
 #define O(_t,_a,_f)           _t((_a), 0, (_f))
 #define OS(_t,_a,_f,_s)       _t((_a), strlen (_s), (_f), (_s))
 #define OSS(_t,_a,_f,_s1,_s2) _t((_a), strlen (_s1) + strlen (_s2), \

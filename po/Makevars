@@ -26,7 +26,13 @@ subdir = po
 top_builddir = ..
 
 # These options get passed to xgettext.
-XGETTEXT_OPTIONS = --keyword=_ --keyword=N_
+# Ensure that all our magical output macros are correctly marked as
+# C (printf) format strings.
+XGETTEXT_OPTIONS = --keyword=_ --keyword=N_ \
+	--flag=DB:2:c-format --flag=DBF:2:c-format --flag=DBS:2:c-format \
+	--flag=O:3:c-format  --flag=OSN:3:c-format --flag=ONS:3:c-format \
+	--flag=OS:3:c-format --flag=OSS:3:c-format --flag=OSSS:3:c-format \
+	--flag=ON:3:c-format --flag=ONN:3:c-format
 
 # This is the copyright holder that gets inserted into the header of the
 # $(DOMAIN).pot file.  Set this to the copyright holder of the surrounding

@@ -27,6 +27,8 @@ extern int db_level;
 
 #define ISDB(_l)    ((_l)&db_level)
 
+/* When adding macros to this list be sure to update the value of
+   XGETTEXT_OPTIONS in the po/Makevars file.  */
 #define DBS(_l,_x)  do{ if(ISDB(_l)) {print_spaces (depth); \
                                       printf _x; fflush (stdout);} }while(0)
 
