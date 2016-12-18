@@ -662,11 +662,7 @@ extern int batch_mode_shell;
 extern char cmd_prefix;
 
 extern unsigned int job_slots;
-#ifndef NO_FLOAT
 extern double max_load_average;
-#else
-extern int max_load_average;
-#endif
 
 #ifdef WINDOWS32
 extern char *program;

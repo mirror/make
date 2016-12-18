@@ -277,13 +277,8 @@ char *sync_mutex = NULL;
    Negative values mean unlimited, while zero means limit to
    zero load (which could be useful to start infinite jobs remotely
    but one at a time locally).  */
-#ifndef NO_FLOAT
 double max_load_average = -1.0;
 double default_load_average = -1.0;
-#else
-int max_load_average = -1;
-int default_load_average = -1;
-#endif
 
 /* List of directories given with -C switches.  */
 
@@ -453,13 +448,8 @@ static const struct command_switch switches[] =
       "include-dir" },
     { 'j', positive_int, &arg_job_slots, 1, 1, 0, &inf_jobs, &default_job_slots,
       "jobs" },
-#ifndef NO_FLOAT
     { 'l', floating, &max_load_average, 1, 1, 0, &default_load_average,
       &default_load_average, "load-average" },
-#else
-    { 'l', positive_int, &max_load_average, 1, 1, 0, &default_load_average,
-      &default_load_average, "load-average" },
-#endif
     { 'o', filename, &old_files, 0, 0, 0, 0, 0, "old-file" },
     { 'O', string, &output_sync_option, 1, 1, 0, "target", 0, "output-sync" },
     { 'W', filename, &new_files, 0, 0, 0, 0, 0, "what-if" },
@@ -2942,7 +2932,6 @@ decode_switches (int argc, const char **argv, int env)
                       = *(unsigned int *) cs->noarg_value;
                   break;
 
-#ifndef NO_FLOAT
                 case floating:
                   if (coptarg == 0 && optind < argc
                       && (ISDIGIT (argv[optind][0]) || argv[optind][0] == '.'))
@@ -2954,7 +2943,6 @@ decode_switches (int argc, const char **argv, int env)
                          : *(double *) cs->noarg_value);
 
                   break;
-#endif
                 }
 
               /* We've found the switch.  Stop looking.  */
@@ -3156,7 +3144,6 @@ define_makeflags (int all, int makefile)
             }
           break;
 
-#ifndef NO_FLOAT
         case floating:
           if (all)
             {
@@ -3176,7 +3163,6 @@ define_makeflags (int all, int makefile)
                 }
             }
           break;
-#endif
 
         case string:
           if (all)

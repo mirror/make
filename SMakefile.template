@@ -38,7 +38,6 @@ LDFLAGS =
 
 # Define these for your system as follows:
 #	-DNO_ARCHIVES		To disable 'ar' archive support.
-#	-DNO_FLOAT		To avoid using floating-point numbers.
 #	-DENUM_BITFIELDS	If the compiler isn't GCC but groks enum foo:2.
 #				Some compilers apparently accept this
 #				without complaint but produce losing code,

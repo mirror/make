@@ -1408,11 +1408,6 @@ f_mtime (struct file *file, int search)
           adjusted_now = now + (resolution - 1);
           if (adjusted_now < adjusted_mtime)
             {
-#ifdef NO_FLOAT
-              OS (error, NILF,
-                  _("Warning: File '%s' has modification time in the future"),
-                  file->name);
-#else
               double from_now =
                 (FILE_TIMESTAMP_S (mtime) - FILE_TIMESTAMP_S (now)
                  + ((FILE_TIMESTAMP_NS (mtime) - FILE_TIMESTAMP_NS (now))
@@ -1426,7 +1421,6 @@ f_mtime (struct file *file, int search)
               OSS (error, NILF,
                    _("Warning: File '%s' has modification time %s s in the future"),
                    file->name, from_now_string);
-#endif
               clock_skew_detected = 1;
             }
         }
