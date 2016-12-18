@@ -490,12 +490,14 @@ variable_append (const char *name, unsigned int length,
 {
   const struct variable *v;
   char *buf = 0;
-  /* If this set is local and the next is not a parent, then next is local.  */
-  int nextlocal = local && set->next_is_parent == 0;
+  int nextlocal;
 
   /* If there's nothing left to check, return the empty buffer.  */
   if (!set)
     return initialize_variable_output ();
+
+  /* If this set is local and the next is not a parent, then next is local.  */
+  nextlocal = local && set->next_is_parent == 0;
 
   /* Try to find the variable in this variable set.  */
   v = lookup_variable_in_set (name, length, set->set);
