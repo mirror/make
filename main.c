@@ -464,6 +464,7 @@ static const struct command_switch switches[] =
       "warn-undefined-variables" },
     { CHAR_MAX+6, strlist, &eval_strings, 1, 0, 0, 0, 0, "eval" },
     { CHAR_MAX+7, string, &sync_mutex, 1, 1, 0, 0, 0, "sync-mutex" },
+    { CHAR_MAX+8, string, &jobserver_auth, 1, 0, 0, 0, 0, "jobserver-fds" },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
   };
 
