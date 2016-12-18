@@ -1195,7 +1195,7 @@ process_cleanup(
  *
  * Returns:  the buffer or NULL for failure
  *      Shell case:  sh_name a:/full/path/to/script argv[1] argv[2] ...
- *  Otherwise:   argv[0] argv[1] argv[2] ...
+ *      Otherwise:   argv[0] argv[1] argv[2] ...
  *
  * Notes/Dependencies:
  *   CreateProcess does not take an argv, so this command creates a
@@ -1212,15 +1212,15 @@ make_command_line( char *shell_name, char *full_exec_path, char **argv)
         unsigned int    bytes_required = 0;
         char*           command_line;
         char*           command_line_i;
-        int  cygwin_mode = 0; /* HAVE_CYGWIN_SHELL */
         int have_sh = 0; /* HAVE_CYGWIN_SHELL */
+        int cygwin_mode = 0; /* HAVE_CYGWIN_SHELL */
 
 #ifdef HAVE_CYGWIN_SHELL
-        have_sh = (shell_name != NULL || strstr(full_exec_path, "sh.exe"));
         cygwin_mode = 1;
 #endif
 
         if (shell_name && full_exec_path) {
+                have_sh = cygwin_mode && strstr(full_exec_path, "sh.exe");
                 bytes_required
                   = strlen(shell_name) + 1 + strlen(full_exec_path);
                 /*
