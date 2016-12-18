@@ -52,7 +52,6 @@ DIR *opendir(const char *);
 struct dirent *readdir(DIR *);
 void rewinddir(DIR *);
 void closedir(DIR *);
-int telldir(DIR *);
 void seekdir(DIR *, long);
 
 #endif  /* !__MINGW32__ */

@@ -128,7 +128,7 @@ readdir(DIR* pDir)
         } else if (!FindNextFile(pDir->dir_hDirHandle, &wfdFindData))
                         return NULL;
 
-        /* bump count for next call to readdir() or telldir() */
+        /* bump count for next call to readdir() */
         pDir->dir_nNumFiles++;
 
         /* fill in struct dirent values */
@@ -162,24 +162,6 @@ rewinddir(DIR* pDir)
         pDir->dir_nNumFiles = 0;
 
         return;
-}
-
-int
-telldir(DIR* pDir)
-{
-        if (!pDir) {
-                errno = EINVAL;
-                return -1;
-        }
-
-        /* sanity check that this is a DIR pointer */
-        if (pDir->dir_ulCookie != __DIRENT_COOKIE) {
-                errno = EINVAL;
-                return -1;
-        }
-
-        /* return number of times readdir() called */
-        return pDir->dir_nNumFiles;
 }
 
 void
