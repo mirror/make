@@ -3026,6 +3026,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
   char *p;
   glob_t gl;
   char *tp;
+  int findmap = stopmap|MAP_VMSCOMMA|MAP_BLANK|MAP_NUL;
 
   /* Always stop on NUL.  */
   stopmap |= MAP_NUL;
@@ -3072,28 +3073,28 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
       /* There are names left, so find the end of the next name.
          Throughout this iteration S points to the start.  */
       s = p;
-      p = find_char_unquote (p, stopmap|MAP_VMSCOMMA|MAP_BLANK);
+      p = find_char_unquote (p, findmap);
+
 #ifdef VMS
         /* convert comma separated list to space separated */
       if (p && *p == ',')
         *p =' ';
 #endif
 #ifdef _AMIGA
-      if (p && STOP_SET (*p, stopmap & MAP_COLON)
-          && !(ISSPACE (p[1]) || !p[1] || ISSPACE (p[-1])))
-        p = find_char_unquote (p+1, stopmap|MAP_VMSCOMMA|MAP_BLANK);
+      /* If we stopped due to a device name, skip it.  */
+      if (p && p != s+1 && p[0] == ':')
+        p = find_char_unquote (p+1, findmap);
 #endif
 #ifdef HAVE_DOS_PATHS
-    /* For DOS paths, skip a "C:\..." or a "C:/..." until we find the
-       first colon which isn't followed by a slash or a backslash.
-       Note that tokens separated by spaces should be treated as separate
-       tokens since make doesn't allow path names with spaces */
-    if (stopmap | MAP_COLON)
-      while (p != 0 && !ISSPACE (*p) &&
-             (p[1] == '\\' || p[1] == '/') && isalpha ((unsigned char)p[-1]))
-        p = find_char_unquote (p + 1, stopmap|MAP_VMSCOMMA|MAP_BLANK);
+      /* If we stopped due to a drive specifier, skip it.
+         Tokens separated by spaces are treated as separate paths since make
+         doesn't allow path names with spaces.  */
+      if (p && p == s+1 && p[0] == ':'
+          && isalpha ((unsigned char)s[0]) && STOP_SET (p[1], MAP_DIRSEP))
+        p = find_char_unquote (p+1, findmap);
 #endif
-      if (p == 0)
+
+      if (!p)
         p = s + strlen (s);
 
       /* Strip leading "this directory" references.  */
@@ -3188,7 +3189,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
                   /* Find the end of this word.  We don't want to unquote and
                      we don't care about quoting since we're looking for the
                      last char in the word. */
-                  while (! STOP_SET (*e, stopmap|MAP_BLANK|MAP_VMSCOMMA))
+                  while (! STOP_SET (*e, findmap))
                     ++e;
                   /* If we didn't move, we're done now.  */
                   if (e == o)
