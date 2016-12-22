@@ -2172,6 +2172,7 @@ main (int argc, char **argv, char **envp)
         while (d != 0)
           {
             struct file *f;
+
             for (f = d->file->double_colon; f != NULL; f = f->prev)
               if (f->deps == 0 && f->cmds != 0)
                 break;
@@ -2296,8 +2297,6 @@ main (int argc, char **argv, char **envp)
                         }
                     }
               }
-            /* Reset this to empty so we get the right error message below.  */
-            read_files = 0;
 
             if (any_remade)
               goto re_exec;
@@ -2534,10 +2533,11 @@ main (int argc, char **argv, char **envp)
 
   if (!goals)
     {
-      if (read_files == 0)
-        O (fatal, NILF, _("No targets specified and no makefile found"));
+      struct variable *v = lookup_variable (STRING_SIZE_TUPLE ("MAKEFILE_LIST"));
+      if (v && v->value && v->value[0] != '\0')
+        O (fatal, NILF, _("No targets"));
 
-      O (fatal, NILF, _("No targets"));
+      O (fatal, NILF, _("No targets specified and no makefile found"));
     }
 
   /* Update the goals.  */
