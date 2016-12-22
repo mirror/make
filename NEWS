@@ -15,6 +15,20 @@ A complete list of bugs fixed in this version is available here:
 
 http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set=custom
 
+* WARNING: Backward-incompatibility!
+  Number signs (#) appearing inside a macro reference or function invocation
+  no longer introduce comments and should not be escaped with backslashes:
+  thus a call such as:
+    foo := $(shell echo '#')
+  is legal.  Previously the number sign needed to be escaped, for example:
+    foo := $(shell echo '\#')
+  Now this latter will resolve to "\#".  If you want to write makefiles
+  portable to both versions, assign the number sign to a variable:
+    C := \#
+    foo := $(shell echo '$C')
+  This was claimed to be fixed in 3.81, but wasn't, for some reason.
+  To detect this change search for 'nocomment' in the .FEATURES variable.
+
 * The previous limit of 63 jobs under -jN on MS-Windows is now
   increased to 4095.  That limit includes the subprocess started by
   the $(shell) function.

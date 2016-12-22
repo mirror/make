@@ -70,5 +70,23 @@ all: ..\foo
 !,
               '', ": '..\\foo'\n");
 
+# Test escaped comments in variable assignments
+run_make_test(q!
+self = $1
+foo := $(call self,#foo#)#foo
+bar := $(call self,\#bar\#)#bar
+all:;@echo '$(foo) $(bar)'
+!,
+               '',"#foo# \\#bar\\#");
+
+# Test escaped comments in variable assignments in a variable
+run_make_test(q!
+C = \#
+self = $1
+foo := $(call self,$Cfoo$C)#foo
+all:;@echo '$(foo)'
+!,
+               '',"#foo#");
+
 # This tells the test driver that the perl test script executed properly.
 1;

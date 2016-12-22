@@ -1321,7 +1321,7 @@ main (int argc, char **argv, char **envp)
      some compilers (MSVC) don't like conditionals in macros.  */
   {
     const char *features = "target-specific order-only second-expansion"
-                           " else-if shortest-stem undefine oneshell"
+                           " else-if shortest-stem undefine oneshell nocomment"
 #ifndef NO_ARCHIVES
                            " archives"
 #endif

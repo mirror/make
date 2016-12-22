@@ -1398,14 +1398,15 @@ eval (struct ebuffer *ebuf, int set_default)
 
 
 /* Remove comments from LINE.
-   This is done by copying the text at LINE onto itself.  */
+   This will also remove backslashes that escape things.
+   It ignores comment characters that appear inside variable references.  */
 
 static void
 remove_comments (char *line)
 {
   char *comment;
 
-  comment = find_char_unquote (line, MAP_COMMENT);
+  comment = find_char_unquote (line, MAP_COMMENT|MAP_VARIABLE);
 
   if (comment != 0)
     /* Cut off the line at the #.  */
@@ -2224,27 +2225,27 @@ record_files (struct nameseq *filenames, const char *pattern,
     }
 }
 
-/* Search STRING for an unquoted STOPCHAR or blank (if BLANK is nonzero).
-   Backslashes quote STOPCHAR, blanks if BLANK is nonzero, and backslash.
-   Quoting backslashes are removed from STRING by compacting it into
-   itself.  Returns a pointer to the first unquoted STOPCHAR if there is
-   one, or nil if there are none.  STOPCHARs inside variable references are
-   ignored if IGNOREVARS is true.
+/* Search STRING for an unquoted STOPMAP.
+   Backslashes quote elements from STOPMAP and backslash.
+   Quoting backslashes are removed from STRING by compacting it into itself.
+   Returns a pointer to the first unquoted STOPCHAR if there is one, or nil if
+   there are none.
 
-   STOPCHAR _cannot_ be '$' if IGNOREVARS is true.  */
+   If MAP_VARIABLE is set, then the complete contents of variable references
+   are skipped, even if the contain STOPMAP characters.  */
 
 static char *
-find_char_unquote (char *string, int map)
+find_char_unquote (char *string, int stopmap)
 {
   unsigned int string_len = 0;
   char *p = string;
 
   /* Always stop on NUL.  */
-  map |= MAP_NUL;
+  stopmap |= MAP_NUL;
 
   while (1)
     {
-      while (! STOP_SET (*p, map))
+      while (! STOP_SET (*p, stopmap))
         ++p;
 
       if (*p == '\0')
