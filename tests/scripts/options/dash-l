@@ -17,29 +17,22 @@ decide that it cannot run more than one job even though -j 4 was
 also specified on the command line.";
 
 open(MAKEFILE,"> $makefile");
-
-# The Contents of the MAKEFILE ...
-
-print MAKEFILE <<'EOF';
+print MAKEFILE qq,
 SHELL = /bin/sh
 
 define test
-if [ ! -f test-file ]; then \
-  echo >> test-file; sleep 2; rm -f test-file; \
-else \
-  echo $@ FAILED; \
+if [ ! -f test-file ]; then \\
+  echo >> test-file; sleep 2; $CMD_rmfile test-file; \\
+else \\
+  echo \$\@ FAILED; \\
 fi
 endef
 
 all : ONE TWO THREE
-ONE : ; @$(test)
-TWO : ; @$(test)
-THREE : ; @$(test)
-EOF
-
-
-# END of Contents of MAKEFILE
-
+ONE : ; \@\$(test)
+TWO : ; \@\$(test)
+THREE : ; \@\$(test)
+,;
 close(MAKEFILE);
 
 $mkoptions = "-l 0.0001";

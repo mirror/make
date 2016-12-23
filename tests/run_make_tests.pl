@@ -42,6 +42,10 @@ $command_string = '';
 
 $all_tests = 0;
 
+# Shell commands
+
+$CMD_rmfile = 'rm -f';
+
 # rmdir broken in some Perls on VMS.
 if ($^O eq 'VMS')
 {
@@ -56,6 +60,8 @@ if ($^O eq 'VMS')
   };
 
   *CORE::GLOBAL::rmdir = \&vms_rmdir;
+
+  $CMD_rmfile = 'delete_file -no_ask';
 }
 
 require "test_driver.pl";
@@ -317,11 +323,9 @@ sub print_help
 }
 
 sub get_this_pwd {
-  $delete_command = 'rm -f';
   if ($has_POSIX) {
     $__pwd = POSIX::getcwd();
   } elsif ($vos) {
-    $delete_command = "delete_file -no_ask";
     $__pwd = `++(current_dir)`;
   } else {
     # No idea... just try using pwd as a last resort.

@@ -55,6 +55,30 @@ $test_timeout = 10 if $^O eq 'VMS';
 # Path to Perl
 $perl_name = $^X;
 
+# Find the strings that will be generated for various error codes.
+# We want them from the C locale regardless of our current locale.
+
+my $loc = undef;
+if ($has_POSIX) {
+    $loc = POSIX::setlocale(POSIX::LC_MESSAGES);
+    POSIX::setlocale(POSIX::LC_MESSAGES, 'C');
+}
+
+open(my $F, '<', 'file.none') and die "Opened non-existent file!\n";
+$ERR_no_such_file = "$!";
+
+touch('file.out');
+chmod(0444, 'file.out');
+open(my $F, '>', 'file.out') and die "Opened read-only file!\n";
+$ERR_read_only_file = "$!";
+
+chmod(0000, 'file.out');
+open(my $F, '<', 'file.out') and die "Opened unreadable file!\n";
+$ERR_unreadable_file = "$!";
+
+unlink('file.out');
+$loc and POSIX::setlocale(POSIX::LC_MESSAGES, $loc);
+
 # %makeENV is the cleaned-out environment.
 %makeENV = ();
 

@@ -51,18 +51,6 @@ unlink('4touch');
 touch('file.out');
 chmod(0444, 'file.out');
 
-# Find the error that will be printed
-# This seems complicated, but we need the message from the C locale
-my $loc = undef;
-if ($has_POSIX) {
-    $loc = POSIX::setlocale(POSIX::LC_MESSAGES);
-    POSIX::setlocale(POSIX::LC_MESSAGES, 'C');
-}
-my $e;
-open(my $F, '>', 'file.out') and die "Opened read-only file!\n";
-$e = "$!";
-$loc and POSIX::setlocale(POSIX::LC_MESSAGES, $loc);
-
 run_make_test(q!
 define A
 a
@@ -71,7 +59,7 @@ endef
 $(file     >     file.out,$(A))
 x:;@cat file.out
 !,
-              '', "#MAKEFILE#:6: *** open: file.out: $e.  Stop.",
+              '', "#MAKEFILE#:6: *** open: file.out: $ERR_read_only_file.  Stop.",
               512);
 
 unlink('file.out');
