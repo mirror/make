@@ -2150,12 +2150,11 @@ main (int argc, char **argv, char **envp)
   OUTPUT_UNSET ();
   output_close (&make_sync);
 
-  if (read_files != 0)
+  if (read_files)
     {
       /* Update any makefiles if necessary.  */
 
-      FILE_TIMESTAMP *makefile_mtimes = 0;
-      unsigned int mm_idx = 0;
+      FILE_TIMESTAMP *makefile_mtimes;
       char **aargv = NULL;
       const char **nargv;
       int nargc;
@@ -2163,12 +2162,22 @@ main (int argc, char **argv, char **envp)
 
       DB (DB_BASIC, (_("Updating makefiles....\n")));
 
+      {
+        struct goaldep *d;
+        unsigned int num_mkfiles;
+        for (d = read_files; d != NULL; d = d->next)
+          ++num_mkfiles;
+
+        makefile_mtimes = alloca (num_mkfiles * sizeof (FILE_TIMESTAMP));
+      }
+
       /* Remove any makefiles we don't want to try to update.  Record the
          current modtimes of the others so we can compare them later.  */
       {
-        register struct goaldep *d, *last;
-        last = 0;
-        d = read_files;
+        struct goaldep *d = read_files;
+        struct goaldep *last = NULL;
+        unsigned int mm_idx = 0;
+
         while (d != 0)
           {
             struct file *f;
@@ -2202,9 +2211,6 @@ main (int argc, char **argv, char **envp)
               }
             else
               {
-                makefile_mtimes = xrealloc (makefile_mtimes,
-                                            (mm_idx+1)
-                                            * sizeof (FILE_TIMESTAMP));
                 makefile_mtimes[mm_idx++] = file_mtime_no_search (d->file);
                 last = d;
                 d = d->next;
@@ -2453,9 +2459,6 @@ main (int argc, char **argv, char **envp)
           free (aargv);
           break;
         }
-
-      /* Free the makefile mtimes.  */
-      free (makefile_mtimes);
     }
 
   /* Set up 'MAKEFLAGS' again for the normal targets.  */

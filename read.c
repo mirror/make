@@ -318,7 +318,11 @@ eval_makefile (const char *filename, int flags)
   struct ebuffer ebuf;
   const floc *curfile;
   char *expanded = 0;
-  int makefile_errno;
+
+  /* Create a new goaldep entry.  */
+  deps = alloc_goaldep ();
+  deps->next = read_files;
+  read_files = deps;
 
   ebuf.floc.filenm = filename; /* Use the original file name.  */
   ebuf.floc.lineno = 1;
@@ -349,13 +353,12 @@ eval_makefile (const char *filename, int flags)
         filename = expanded;
     }
 
+  errno = 0;
   ENULLLOOP (ebuf.fp, fopen (filename, "r"));
-
-  /* Save the error code so we print the right message later.  */
-  makefile_errno = errno;
+  deps->error = errno;
 
   /* Check for unrecoverable errors: out of mem or FILE slots.  */
-  switch (makefile_errno)
+  switch (deps->error)
     {
 #ifdef EMFILE
     case EMFILE:
@@ -365,7 +368,7 @@ eval_makefile (const char *filename, int flags)
 #endif
     case ENOMEM:
       {
-        const char *err = strerror (makefile_errno);
+        const char *err = strerror (deps->error);
         OS (fatal, reading_file, "%s", err);
       }
     }
@@ -389,14 +392,8 @@ eval_makefile (const char *filename, int flags)
         }
     }
 
-  /* Now we have the final name for this makefile. Enter it into
-     the cache.  */
+  /* Enter the final name for this makefile as a goaldep.  */
   filename = strcache_add (filename);
-
-  /* Add FILENAME to the chain of read makefiles.  */
-  deps = alloc_goaldep ();
-  deps->next = read_files;
-  read_files = deps;
   deps->file = lookup_file (filename);
   if (deps->file == 0)
     deps->file = enter_file (filename);
@@ -405,16 +402,18 @@ eval_makefile (const char *filename, int flags)
 
   free (expanded);
 
-  /* If the makefile can't be found at all, give up entirely.  */
-
   if (ebuf.fp == 0)
     {
-      /* If we did some searching, errno has the error from the last
-         attempt, rather from FILENAME itself.  Store it in case the
-         caller wants to use it in a message.  */
-      errno = makefile_errno;
+      /* The makefile can't be read at all, give up entirely.
+         If we did some searching errno has the error from the last attempt,
+         rather from FILENAME itself: recover the more accurate one.  */
+      errno = deps->error;
+      deps->file->last_mtime = NONEXISTENT_MTIME;
       return deps;
     }
+
+  /* Success; clear errno.  */
+  deps->error = 0;
 
   /* Set close-on-exec to avoid leaking the makefile to children, such as
      $(shell ...).  */
@@ -904,10 +903,7 @@ eval (struct ebuffer *ebuf, int set_default)
               struct goaldep *d = eval_makefile (files->name, flags);
 
               if (errno)
-                {
-                  d->error = (unsigned short)errno;
-                  d->floc = *fstart;
-                }
+                d->floc = *fstart;
 
               free_ns (files);
               files = next;
