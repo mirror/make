@@ -2121,11 +2121,11 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
 int
 child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
 {
-  int r;
-  int pid;
-  int fdin = good_stdin ? FD_STDIN : get_bad_stdin ();
+  const int fdin = good_stdin ? FD_STDIN : get_bad_stdin ();
   int fdout = FD_STDOUT;
   int fderr = FD_STDERR;
+  int r;
+  int pid;
 
   /* Divert child output if we want to capture it.  */
   if (out && out->syncout)
