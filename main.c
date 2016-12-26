@@ -2164,7 +2164,7 @@ main (int argc, char **argv, char **envp)
 
       {
         struct goaldep *d;
-        unsigned int num_mkfiles;
+        unsigned int num_mkfiles = 0;
         for (d = read_files; d != NULL; d = d->next)
           ++num_mkfiles;
 
