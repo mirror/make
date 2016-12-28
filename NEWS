@@ -33,6 +33,9 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set
   increased to 4095.  That limit includes the subprocess started by
   the $(shell) function.
 
+* A new option --no-silent has been added, that cancels the effect of the
+  -s/--silent/--quiet flag.
+
 
 Version 4.2.1 (10 Jun 2016)
 

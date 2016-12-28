@@ -2945,10 +2945,9 @@ If you specify prerequisites for @code{.SILENT}, then @code{make} will
 not print the recipe used to remake those particular files before
 executing them.  The recipe for @code{.SILENT} is ignored.
 
-If mentioned as a target with no prerequisites, @code{.SILENT} says not
-to print any recipes before executing them.  This usage of
-@samp{.SILENT} is supported only for historical compatibility.  We
-recommend you use the more selective ways to silence specific recipes.
+If mentioned as a target with no prerequisites, @code{.SILENT} says
+not to print any recipes before executing them.  You may also use more
+selective ways to silence specific recipe command lines.
 @xref{Echoing, ,Recipe Echoing}.  If you want to silence all recipes
 for a particular run of @code{make}, use the @samp{-s} or
 @w{@samp{--silent}} option (@pxref{Options Summary}).
@@ -3788,8 +3787,7 @@ The @samp{-s} or @samp{--silent}
 flag to @code{make} prevents all echoing, as if all recipes
 started with @samp{@@}.  A rule in the makefile for the special target
 @code{.SILENT} without prerequisites has the same effect
-(@pxref{Special Targets, ,Special Built-in Target Names}).
-@code{.SILENT} is essentially obsolete since @samp{@@} is more flexible.@refill
+(@pxref{Special Targets, ,Special Built-in Target Names}).@refill
 
 @node Execution, Parallel, Echoing, Recipes
 @section Recipe Execution

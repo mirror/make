@@ -270,19 +270,13 @@ Don't define any built\-in variables.
 \fB\-s\fR, \fB\-\-silent\fR, \fB\-\-quiet\fR
 Silent operation; do not print the commands as they are executed.
 .TP 0.5i
+.B \-\-no\-silent
+Cancel the effect of the \fB\-s\fR option.
+.TP 0.5i
 \fB\-S\fR, \fB\-\-no\-keep\-going\fR, \fB\-\-stop\fR
 Cancel the effect of the
 .B \-k
 option.
-This is never necessary except in a recursive
-.B make
-where
-.B \-k
-might be inherited from the top-level
-.B make
-via MAKEFLAGS or if you set
-.B \-k
-in MAKEFLAGS in your environment.
 .TP 0.5i
 \fB\-t\fR, \fB\-\-touch\fR
 Touch files (mark them up to date without really changing them)

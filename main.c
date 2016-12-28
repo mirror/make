@@ -165,6 +165,7 @@ int verify_flag;
 /* Nonzero means do not print commands to be executed (-s).  */
 
 int silent_flag;
+static const int default_silent_flag = 0;
 
 /* Nonzero means just touch the files
    that would appear to need remaking (-t)  */
@@ -220,7 +221,7 @@ int no_builtin_variables_flag = 0;
 /* Nonzero means keep going even if remaking some file fails (-k).  */
 
 int keep_going_flag;
-int default_keep_going_flag = 0;
+static const int default_keep_going_flag = 0;
 
 /* Nonzero means check symlink mtimes.  */
 
@@ -389,6 +390,8 @@ static const char *const usage[] =
     N_("\
   -s, --silent, --quiet       Don't echo recipes.\n"),
     N_("\
+  --no-silent                 Echo recipes (disable --silent mode).\n"),
+    N_("\
   -S, --no-keep-going, --stop\n\
                               Turns off -k.\n"),
     N_("\
@@ -434,7 +437,7 @@ static const struct command_switch switches[] =
     { 'r', flag, &no_builtin_rules_flag, 1, 1, 0, 0, 0, "no-builtin-rules" },
     { 'R', flag, &no_builtin_variables_flag, 1, 1, 0, 0, 0,
       "no-builtin-variables" },
-    { 's', flag, &silent_flag, 1, 1, 0, 0, 0, "silent" },
+    { 's', flag, &silent_flag, 1, 1, 0, 0, &default_silent_flag, "silent" },
     { 'S', flag_off, &keep_going_flag, 1, 1, 0, 0, &default_keep_going_flag,
       "no-keep-going" },
     { 't', flag, &touch_flag, 1, 1, 1, 0, 0, "touch" },
@@ -464,7 +467,8 @@ static const struct command_switch switches[] =
       "warn-undefined-variables" },
     { CHAR_MAX+6, strlist, &eval_strings, 1, 0, 0, 0, 0, "eval" },
     { CHAR_MAX+7, string, &sync_mutex, 1, 1, 0, 0, 0, "sync-mutex" },
-    { CHAR_MAX+8, string, &jobserver_auth, 1, 0, 0, 0, 0, "jobserver-fds" },
+    { CHAR_MAX+8, flag_off, &silent_flag, 1, 1, 0, 0, &default_silent_flag, "no-silent" },
+    { CHAR_MAX+9, string, &jobserver_auth, 1, 0, 0, 0, 0, "jobserver-fds" },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
   };
 
