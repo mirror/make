@@ -36,6 +36,8 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set
 * A new option --no-silent has been added, that cancels the effect of the
   -s/--silent/--quiet flag.
 
+* A new option -E has been added as a short alias for --eval.
+
 
 Version 4.2.1 (10 Jun 2016)
 

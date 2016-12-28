@@ -148,8 +148,12 @@ for debugging while remaking makefiles.  Use
 to disable all previous debugging flags.
 .TP 0.5i
 \fB\-e\fR, \fB\-\-environment\-overrides\fR
-Give variables taken from the environment precedence
-over variables from makefiles.
+Give variables taken from the environment precedence over variables
+from makefiles.
+.TP 0.5i
+\fB\-E\fR \fIstring\fR, \fB\-\-eval\fR \fIstring\fR
+Interpret \fIstring\fR using the \fBeval\fR function, before parsing any
+makefiles.
 .TP 0.5i
 \fB\-f\fR \fIfile\fR, \fB\-\-file\fR=\fIfile\fR, \fB\-\-makefile\fR=\fIFILE\fR
 Use

@@ -8657,6 +8657,8 @@ Give variables taken from the environment precedence
 over variables from makefiles.
 @xref{Environment, ,Variables from the Environment}.
 
+@item -E @var{string}
+@cindex @code{-E}
 @item --eval=@var{string}
 @cindex @code{--eval}
 @c Extra blank line here makes the table look better.

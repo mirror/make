@@ -350,7 +350,7 @@ static const char *const usage[] =
   -e, --environment-overrides\n\
                               Environment variables override makefiles.\n"),
     N_("\
-  --eval=STRING               Evaluate STRING as a makefile statement.\n"),
+  -E STRING, --eval=STRING    Evaluate STRING as a makefile statement.\n"),
     N_("\
   -f FILE, --file=FILE, --makefile=FILE\n\
                               Read FILE as a makefile.\n"),
@@ -425,6 +425,7 @@ static const struct command_switch switches[] =
     { 'D', flag, &suspend_flag, 1, 1, 0, 0, 0, "suspend-for-debug" },
 #endif
     { 'e', flag, &env_overrides, 1, 1, 0, 0, 0, "environment-overrides", },
+    { 'E', strlist, &eval_strings, 1, 0, 0, 0, 0, "eval" },
     { 'h', flag, &print_usage_flag, 0, 0, 0, 0, 0, "help" },
     { 'i', flag, &ignore_errors_flag, 1, 1, 0, 0, 0, "ignore-errors" },
     { 'k', flag, &keep_going_flag, 1, 1, 0, 0, &default_keep_going_flag,
@@ -465,7 +466,6 @@ static const struct command_switch switches[] =
       "no-print-directory" },
     { CHAR_MAX+5, flag, &warn_undefined_variables_flag, 1, 1, 0, 0, 0,
       "warn-undefined-variables" },
-    { CHAR_MAX+6, strlist, &eval_strings, 1, 0, 0, 0, 0, "eval" },
     { CHAR_MAX+7, string, &sync_mutex, 1, 1, 0, 0, 0, "sync-mutex" },
     { CHAR_MAX+8, flag_off, &silent_flag, 1, 1, 0, 0, &default_silent_flag, "no-silent" },
     { CHAR_MAX+9, string, &jobserver_auth, 1, 0, 0, 0, 0, "jobserver-fds" },
