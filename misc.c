@@ -220,7 +220,7 @@ xmalloc (unsigned int size)
   /* Make sure we don't allocate 0, for pre-ISO implementations.  */
   void *result = malloc (size ? size : 1);
   if (result == 0)
-    OUT_OF_MEM();
+    out_of_memory ();
   return result;
 }
 
@@ -231,7 +231,7 @@ xcalloc (unsigned int size)
   /* Make sure we don't allocate 0, for pre-ISO implementations.  */
   void *result = calloc (size ? size : 1, 1);
   if (result == 0)
-    OUT_OF_MEM();
+    out_of_memory ();
   return result;
 }
 
@@ -246,7 +246,7 @@ xrealloc (void *ptr, unsigned int size)
     size = 1;
   result = ptr ? realloc (ptr, size) : malloc (size);
   if (result == 0)
-    OUT_OF_MEM();
+    out_of_memory ();
   return result;
 }
 
@@ -263,7 +263,7 @@ xstrdup (const char *ptr)
 #endif
 
   if (result == 0)
-    OUT_OF_MEM();
+    out_of_memory ();
 
 #ifdef HAVE_STRDUP
   return result;
@@ -282,7 +282,7 @@ xstrndup (const char *str, unsigned int length)
 #ifdef HAVE_STRNDUP
   result = strndup (str, length);
   if (result == 0)
-    OUT_OF_MEM();
+    out_of_memory ();
 #else
   result = xmalloc (length + 1);
   if (length > 0)

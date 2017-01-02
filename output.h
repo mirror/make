@@ -24,6 +24,10 @@ struct output
 extern struct output *output_context;
 extern unsigned int stdio_traced;
 
+#define FD_STDIN  (fileno (stdin))
+#define FD_STDOUT (fileno (stdout))
+#define FD_STDERR (fileno (stderr))
+
 #define OUTPUT_SET(_new)    do{ output_context = (_new)->syncout ? (_new) : NULL; }while(0)
 #define OUTPUT_UNSET()      do{ output_context = NULL; }while(0)
 
@@ -31,6 +35,10 @@ extern unsigned int stdio_traced;
 #define OUTPUT_IS_TRACED()  (!!stdio_traced)
 
 FILE *output_tmpfile (char **, const char *);
+
+/* Write a buffer directly to the given file descriptor.
+   This handles errors etc.  */
+int output_write (int fd, const void *buffer, size_t len);
 
 /* Initialize and close a child output structure: if NULL do this program's
    output (this should only be done once).  */

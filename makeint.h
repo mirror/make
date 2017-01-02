@@ -484,6 +484,7 @@ void error (const floc *flocp, size_t length, const char *fmt, ...)
             __attribute__ ((__format__ (__printf__, 3, 4)));
 void fatal (const floc *flocp, size_t length, const char *fmt, ...)
             __attribute__ ((noreturn, __format__ (__printf__, 3, 4)));
+void out_of_memory () __attribute__((noreturn));
 
 /* When adding macros to this list be sure to update the value of
    XGETTEXT_OPTIONS in the po/Makevars file.  */
@@ -500,8 +501,6 @@ void fatal (const floc *flocp, size_t length, const char *fmt, ...)
                                  (_f), (_s), (_n))
 #define ONS(_t,_a,_f,_n,_s)   _t((_a), INTSTR_LENGTH + strlen (_s), \
                                  (_f), (_n), (_s))
-
-#define OUT_OF_MEM() O (fatal, NILF, _("virtual memory exhausted"))
 
 void die (int) __attribute__ ((noreturn));
 void pfatal_with_name (const char *) __attribute__ ((noreturn));

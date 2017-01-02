@@ -62,9 +62,6 @@ char **construct_command_argv (char *line, char **restp, struct file *file,
 #ifdef VMS
 int child_execute_job (struct child *child, char *argv);
 #else
-# define FD_STDIN       (fileno (stdin))
-# define FD_STDOUT      (fileno (stdout))
-# define FD_STDERR      (fileno (stderr))
 int child_execute_job (struct output *out, int good_stdin, char **argv, char **envp);
 #endif
 

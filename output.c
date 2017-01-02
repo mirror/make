@@ -61,6 +61,26 @@ unsigned int stdio_traced = 0;
 # define MODE_T     int
 #endif
 
+/* Write a BUFFER of size LEN to file descriptor FD.
+   Handle EINTR and other short writes.  If we get an error, ignore it.  */
+int
+output_write (int fd, const void *buffer, size_t len)
+{
+  const char *msg = buffer;
+  while (1)
+    {
+      ssize_t r;
+
+      EINTRLOOP (r, write (fd, msg, len));
+
+      if (r < 0 || (size_t)r == len)
+        return r;
+
+      len -= r;
+      msg += r;
+    }
+}
+
 /* Write a string to the current STDOUT or STDERR.  */
 static void
 _outputs (struct output *out, int is_err, const char *msg)
@@ -76,16 +96,8 @@ _outputs (struct output *out, int is_err, const char *msg)
       int fd = is_err ? out->err : out->out;
       int len = strlen (msg);
       int r;
-
       EINTRLOOP (r, lseek (fd, 0, SEEK_END));
-      while (1)
-        {
-          EINTRLOOP (r, write (fd, msg, len));
-          if (r == len || r <= 0)
-            break;
-          len -= r;
-          msg += r;
-        }
+      output_write (fd, msg, len);
     }
 }
 
@@ -744,4 +756,16 @@ pfatal_with_name (const char *name)
   OSS (fatal, NILF, _("%s: %s"), name, err);
 
   /* NOTREACHED */
+}
+
+/* Print a message about out of memory (not using more heap) and exit.
+   Our goal here is to be sure we don't try to allocate more memory, which
+   means we don't want to use string translations or normal cleanup.  */
+
+void
+out_of_memory ()
+{
+  output_write (FD_STDOUT, program, strlen (program));
+  output_write (FD_STDOUT, STRING_SIZE_TUPLE (": *** virtual memory exhausted\n"));
+  exit (MAKE_FAILURE);
 }

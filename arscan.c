@@ -375,6 +375,8 @@ struct ar_hdr
 #ifndef AR_HDR_SIZE
 # define   AR_HDR_SIZE  (sizeof (struct ar_hdr))
 #endif
+
+#include "output.h"
 
 /* Takes three arguments ARCHIVE, FUNCTION and ARG.
 
@@ -891,7 +893,7 @@ ar_member_touch (const char *arname, const char *memname)
   EINTRLOOP (o, lseek (fd, pos, 0));
   if (o < 0)
     goto lose;
-  EINTRLOOP (r, write (fd, &ar_hdr, AR_HDR_SIZE));
+  r = output_write (fd, &ar_hdr, AR_HDR_SIZE);
   if (r != AR_HDR_SIZE)
     goto lose;
   /* The file's mtime is the time we we want.  */
@@ -913,7 +915,7 @@ ar_member_touch (const char *arname, const char *memname)
   EINTRLOOP (o, lseek (fd, pos, 0));
   if (o < 0)
     goto lose;
-  EINTRLOOP (r, write (fd, &ar_hdr, AR_HDR_SIZE));
+  r = output_write (fd, &ar_hdr, AR_HDR_SIZE);
   if (r != AR_HDR_SIZE)
     goto lose;
   close (fd);
