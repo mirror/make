@@ -15,7 +15,8 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "makeint.h"
-#include "job.h"
+#include "os.h"
+#include "output.h"
 
 /* GNU make no longer supports pre-ANSI89 environments.  */
 
@@ -335,7 +336,7 @@ setup_tmpfile (struct output *out)
       int fd = output_tmpfd ();
       if (fd < 0)
         goto error;
-      CLOSE_ON_EXEC (fd);
+      fd_noinherit (fd);
       out->out = fd;
     }
 
@@ -348,7 +349,7 @@ setup_tmpfile (struct output *out)
           int fd = output_tmpfd ();
           if (fd < 0)
             goto error;
-          CLOSE_ON_EXEC (fd);
+          fd_noinherit (fd);
           out->err = fd;
         }
     }

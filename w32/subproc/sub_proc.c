@@ -339,15 +339,6 @@ process_exit_code(HANDLE proc)
         return (((sub_process *)proc)->exit_code);
 }
 
-void
-process_noinherit(int fd)
-{
-  HANDLE fh = (HANDLE)_get_osfhandle(fd);
-
-  if (fh && fh != INVALID_HANDLE_VALUE)
-        SetHandleInformation(fh, HANDLE_FLAG_INHERIT, 0);
-}
-
 /*
 2006-02:
 All the following functions are currently unused.

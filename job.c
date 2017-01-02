@@ -2052,10 +2052,10 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
       save_fdin = dup (FD_STDIN);
       if (save_fdin < 0)
         O (fatal, NILF, _("no more file handles: could not duplicate stdin\n"));
-      CLOSE_ON_EXEC (save_fdin);
+      fd_noinherit (save_fdin);
 
       dup2 (fdin, FD_STDIN);
-      CLOSE_ON_EXEC (fdin);
+      fd_noinherit (fdin);
     }
 
   if (fdout != FD_STDOUT)
@@ -2064,10 +2064,10 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
       if (save_fdout < 0)
         O (fatal, NILF,
            _("no more file handles: could not duplicate stdout\n"));
-      CLOSE_ON_EXEC (save_fdout);
+      fd_noinherit (save_fdout);
 
       dup2 (fdout, FD_STDOUT);
-      CLOSE_ON_EXEC (fdout);
+      fd_noinherit (fdout);
     }
 
   if (fderr != FD_STDERR)
@@ -2078,11 +2078,11 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
           if (save_fderr < 0)
             O (fatal, NILF,
                _("no more file handles: could not duplicate stderr\n"));
-          CLOSE_ON_EXEC (save_fderr);
+          fd_noinherit (save_fderr);
         }
 
       dup2 (fderr, FD_STDERR);
-      CLOSE_ON_EXEC (fderr);
+      fd_noinherit (fderr);
     }
 
   /* Run the command.  */

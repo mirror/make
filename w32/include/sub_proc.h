@@ -60,6 +60,5 @@ EXTERN_DECL(char * process_errbuf, (HANDLE proc));
 EXTERN_DECL(int process_outcnt, (HANDLE proc));
 EXTERN_DECL(int process_errcnt, (HANDLE proc));
 EXTERN_DECL(void process_pipes, (HANDLE proc, int pipes[3]));
-EXTERN_DECL(void process_noinherit, (int fildes));
 
 #endif

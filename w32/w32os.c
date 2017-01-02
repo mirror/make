@@ -198,3 +198,21 @@ jobserver_acquire (int timeout)
     /* WAIT_OBJECT_0 indicates that the semaphore was signalled.  */
     return dwEvent == WAIT_OBJECT_0;
 }
+
+void
+fd_inherit(int fd)
+{
+  HANDLE fh = (HANDLE)_get_osfhandle(fd);
+
+  if (fh && fh != INVALID_HANDLE_VALUE)
+        SetHandleInformation(fh, HANDLE_FLAG_INHERIT, 1);
+}
+
+void
+fd_noinherit(int fd)
+{
+  HANDLE fh = (HANDLE)_get_osfhandle(fd);
+
+  if (fh && fh != INVALID_HANDLE_VALUE)
+        SetHandleInformation(fh, HANDLE_FLAG_INHERIT, 0);
+}

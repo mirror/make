@@ -27,11 +27,11 @@ guile.c
 hash.c
 implicit.c
 job.c
-job.h
 load.c
 main.c
 misc.c
 output.c
+output.h
 posixos.c
 read.c
 remake.c

@@ -69,7 +69,7 @@ AC_HEADER_STAT
 AC_HEADER_TIME
 AC_CHECK_HEADERS([stdlib.h locale.h unistd.h limits.h fcntl.h string.h \
                   memory.h sys/param.h sys/resource.h sys/time.h sys/timeb.h \
-                  sys/select.h])
+                  sys/select.h sys/file.h])
 
 AM_PROG_CC_C_O
 AC_C_CONST
@@ -132,7 +132,7 @@ AS_IF([test "$ac_cv_func_gettimeofday" = yes],
             [Define to 1 if you have a standard gettimeofday function])
 ])
 
-AC_CHECK_FUNCS([strdup strndup umask mkstemp mktemp fdopen fileno \
+AC_CHECK_FUNCS([strdup strndup umask mkstemp mktemp fdopen \
                 dup dup2 getcwd realpath sigsetmask sigaction \
                 getgroups seteuid setegid setlinebuf setreuid setregid \
                 getrlimit setrlimit setvbuf pipe strerror strsignal \

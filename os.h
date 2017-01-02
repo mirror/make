@@ -77,8 +77,17 @@ unsigned int jobserver_acquire (int timeout);
 #endif
 
 /* Create a "bad" file descriptor for stdin when parallel jobs are run.  */
-#if !defined(VMD) && !defined(WINDOWS32) && !defined(_AMIGA) && !defined(__MSDOS__)
-int get_bad_stdin (void);
-#else
+#if defined(VMS) || defined(WINDOWS32) || defined(_AMIGA) || defined(__MSDOS__)
 # define get_bad_stdin() (-1)
+#else
+int get_bad_stdin (void);
+#endif
+
+/* Set a file descriptor to close/not close in a subprocess.  */
+#if defined(VMS) || defined(_AMIGA) || defined(__MSDOS__)
+# define fd_inherit(_i)   0
+# define fd_noinherit(_i) 0
+#else
+void fd_inherit (int);
+void fd_noinherit (int);
 #endif

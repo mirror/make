@@ -20,7 +20,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
+#elif defined(HAVE_SYS_FILE_H)
+# include <sys/file.h>
 #endif
+
 #if defined(HAVE_PSELECT) && defined(HAVE_SYS_SELECT_H)
 # include <sys/select.h>
 #endif
@@ -53,7 +56,7 @@ make_job_rfd (void)
 #else
   EINTRLOOP (job_rfd, dup (job_fds[0]));
   if (job_rfd >= 0)
-    CLOSE_ON_EXEC (job_rfd);
+    fd_noinherit (job_rfd);
 
   return job_rfd;
 #endif
@@ -67,6 +70,11 @@ jobserver_setup (int slots)
   EINTRLOOP (r, pipe (job_fds));
   if (r < 0)
     pfatal_with_name (_("creating jobs pipe"));
+
+  /* By default we don't send the job pipe FDs to our children.
+     See jobserver_pre_child() and jobserver_post_child().  */
+  fd_noinherit (job_fds[0]);
+  fd_noinherit (job_fds[1]);
 
   if (make_job_rfd () < 0)
     pfatal_with_name (_("duping jobs pipe"));
@@ -180,33 +188,22 @@ jobserver_acquire_all (void)
 void
 jobserver_pre_child (int recursive)
 {
-  /* If it's not a recursive make, avoid polutting the jobserver pipes.  */
-  if (!recursive && job_fds[0] >= 0)
+  if (recursive && job_fds[0] >= 0)
     {
-      CLOSE_ON_EXEC (job_fds[0]);
-      CLOSE_ON_EXEC (job_fds[1]);
+      fd_inherit (job_fds[0]);
+      fd_inherit (job_fds[1]);
     }
 }
 
+/* Reconfigure the jobserver after starting a child process.  */
 void
 jobserver_post_child (int recursive)
 {
-#if defined(F_GETFD) && defined(F_SETFD)
-  if (!recursive && job_fds[0] >= 0)
+  if (recursive && job_fds[0] >= 0)
     {
-      unsigned int i;
-      for (i = 0; i < 2; ++i)
-        {
-          int flags;
-          EINTRLOOP (flags, fcntl (job_fds[i], F_GETFD));
-          if (flags >= 0)
-            {
-              int r;
-              EINTRLOOP (r, fcntl (job_fds[i], F_SETFD, flags & ~FD_CLOEXEC));
-            }
-        }
+      fd_noinherit (job_fds[0]);
+      fd_noinherit (job_fds[1]);
     }
-#endif
 }
 
 void
@@ -396,7 +393,7 @@ jobserver_acquire (int timeout)
   return 0;
 }
 
-#endif
+#endif /* HAVE_PSELECT */
 
 #endif /* MAKE_JOBSERVER */
 
@@ -423,9 +420,48 @@ get_bad_stdin (void)
           /* Set the descriptor to close on exec, so it does not litter any
              child's descriptor table.  When it is dup2'd onto descriptor 0,
              that descriptor will not close on exec.  */
-          CLOSE_ON_EXEC (bad_stdin);
+          fd_noinherit (bad_stdin);
         }
     }
 
   return bad_stdin;
 }
+
+/* Set file descriptors to be inherited / not inherited by subprocesses.  */
+
+#if !defined(F_SETFD) || !defined(F_GETFD)
+void fd_inherit (int fd) {}
+void fd_noinherit (int fd) {}
+
+#else
+
+# ifndef FD_CLOEXEC
+#  define FD_CLOEXEC 1
+# endif
+
+void
+fd_inherit (int fd)
+{
+  int flags;
+  EINTRLOOP (flags, fcntl (fd, F_GETFD));
+  if (flags >= 0)
+    {
+      int r;
+      flags &= ~FD_CLOEXEC;
+      EINTRLOOP (r, fcntl (fd, F_SETFD, flags));
+    }
+}
+
+void
+fd_noinherit (int fd)
+{
+    int flags;
+    EINTRLOOP(flags, fcntl(fd, F_GETFD));
+    if (flags >= 0)
+      {
+        int r;
+        flags |= FD_CLOEXEC;
+        EINTRLOOP(r, fcntl(fd, F_SETFD, flags));
+      }
+}
+#endif

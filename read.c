@@ -21,6 +21,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "filedef.h"
 #include "dep.h"
 #include "job.h"
+#include "os.h"
 #include "commands.h"
 #include "variable.h"
 #include "rule.h"
@@ -415,11 +416,8 @@ eval_makefile (const char *filename, int flags)
   /* Success; clear errno.  */
   deps->error = 0;
 
-  /* Set close-on-exec to avoid leaking the makefile to children, such as
-     $(shell ...).  */
-#ifdef HAVE_FILENO
-  CLOSE_ON_EXEC (fileno (ebuf.fp));
-#endif
+  /* Avoid leaking the makefile to children.  */
+  fd_noinherit (fileno (ebuf.fp));
 
   /* Add this makefile to the list. */
   do_variable_definition (&ebuf.floc, "MAKEFILE_LIST", filename, o_file,

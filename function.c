@@ -19,6 +19,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "variable.h"
 #include "dep.h"
 #include "job.h"
+#include "os.h"
 #include "commands.h"
 #include "debug.h"
 
@@ -1778,8 +1779,8 @@ func_shell_base (char *o, char **argv, int trim_newlines)
     }
 
   /* Close handles that are unnecessary for the child process.  */
-  CLOSE_ON_EXEC(pipedes[1]);
-  CLOSE_ON_EXEC(pipedes[0]);
+  fd_noinherit (pipedes[1]);
+  fd_noinherit (pipedes[0]);
 
   {
     struct output out;
