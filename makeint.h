@@ -291,6 +291,14 @@ char *strerror (int errnum);
 char *strsignal (int signum);
 #endif
 
+#if defined(HAVE_UMASK)
+# define UMASK(_m)  umask (_m)
+# define MODE_T     mode_t
+#else
+# define UMASK(_m)  0
+# define MODE_T     int
+#endif
+
 /* ISDIGIT offers the following features:
    - Its arg may be any int or unsigned int; it need not be an unsigned char.
    - It's guaranteed to evaluate its argument exactly once.
@@ -520,6 +528,7 @@ int alpha_compare (const void *, const void *);
 void print_spaces (unsigned int);
 char *find_percent (char *);
 const char *find_percent_cached (const char **);
+FILE *get_tmpfile (char **, const char *);
 
 #ifndef NO_ARCHIVES
 int ar_name (const char *);

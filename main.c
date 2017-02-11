@@ -1824,7 +1824,7 @@ main (int argc, char **argv, char **envp)
 #endif /* !HAVE_DOS_PATHS */
 
             strcat (template, DEFAULT_TMPFILE);
-            outfile = output_tmpfile (&stdin_nm, template);
+            outfile = get_tmpfile (&stdin_nm, template);
             if (outfile == 0)
               pfatal_with_name (_("fopen (temporary file)"));
             while (!feof (stdin) && ! ferror (stdin))

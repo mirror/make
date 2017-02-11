@@ -1924,9 +1924,8 @@ func_shell_base (char *o, char **argv, int trim_newlines)
     return o;
 
   /* Note the mktemp() is a security hole, but this only runs on Amiga.
-     Ideally we would use output_tmpfile(), but this uses a special
-     Open(), not fopen(), and I'm not familiar enough with the code to mess
-     with it.  */
+     Ideally we would use get_tmpfile(), but this uses a special Open(), not
+     fopen(), and I'm not familiar enough with the code to mess with it.  */
   strcpy (tmp_output, "t:MakeshXXXXXXXX");
   mktemp (tmp_output);
   child_stdout = Open (tmp_output, MODE_NEWFILE);

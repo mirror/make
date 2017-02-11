@@ -23,6 +23,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdarg.h>
 
+#ifdef WINDOWS32
+# include <io.h>
+#endif
+
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #else
@@ -388,6 +392,67 @@ free_ns_chain (struct nameseq *ns)
       ns = ns->next;
       free_ns (t);
     }
+}
+
+
+/* Provide support for temporary files.  */
+
+#ifndef HAVE_STDLIB_H
+# ifdef HAVE_MKSTEMP
+int mkstemp (char *template);
+# else
+char *mktemp (char *template);
+# endif
+#endif
+
+FILE *
+get_tmpfile (char **name, const char *template)
+{
+  FILE *file;
+#ifdef HAVE_FDOPEN
+  int fd;
+#endif
+
+  /* Preserve the current umask, and set a restrictive one for temp files.  */
+  MODE_T mask = UMASK (0077);
+
+#if defined(HAVE_MKSTEMP) || defined(HAVE_MKTEMP)
+# define TEMPLATE_LEN   strlen (template)
+#else
+# define TEMPLATE_LEN   L_tmpnam
+#endif
+  *name = xmalloc (TEMPLATE_LEN + 1);
+  strcpy (*name, template);
+
+#if defined(HAVE_MKSTEMP) && defined(HAVE_FDOPEN)
+  /* It's safest to use mkstemp(), if we can.  */
+  EINTRLOOP (fd, mkstemp (*name));
+  if (fd == -1)
+    file = NULL;
+  else
+    file = fdopen (fd, "w");
+#else
+# ifdef HAVE_MKTEMP
+  (void) mktemp (*name);
+# else
+  (void) tmpnam (*name);
+# endif
+
+# ifdef HAVE_FDOPEN
+  /* Can't use mkstemp(), but guard against a race condition.  */
+  EINTRLOOP (fd, open (*name, O_CREAT|O_EXCL|O_WRONLY, 0600));
+  if (fd == -1)
+    return 0;
+  file = fdopen (fd, "w");
+# else
+  /* Not secure, but what can we do?  */
+  file = fopen (*name, "w");
+# endif
+#endif
+
+  UMASK (mask);
+
+  return file;
 }
 
 

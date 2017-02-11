@@ -34,8 +34,6 @@ extern unsigned int stdio_traced;
 #define OUTPUT_TRACED()     do{ stdio_traced = 1; }while(0)
 #define OUTPUT_IS_TRACED()  (!!stdio_traced)
 
-FILE *output_tmpfile (char **, const char *);
-
 /* Write a buffer directly to the given file descriptor.
    This handles errors etc.  */
 int output_write (int fd, const void *buffer, size_t len);

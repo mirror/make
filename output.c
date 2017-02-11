@@ -53,14 +53,6 @@ unsigned int stdio_traced = 0;
 # define STREAM_OK(_s) 1
 #endif
 
-#if defined(HAVE_UMASK)
-# define UMASK(_m)  umask (_m)
-# define MODE_T     mode_t
-#else
-# define UMASK(_m)  0
-# define MODE_T     int
-#endif
-
 /* Write a BUFFER of size LEN to file descriptor FD.
    Handle EINTR and other short writes.  If we get an error, ignore it.  */
 int
@@ -426,67 +418,6 @@ output_dump (struct output *out)
     }
 }
 #endif /* NO_OUTPUT_SYNC */
-
-
-/* Provide support for temporary files.  */
-
-#ifndef HAVE_STDLIB_H
-# ifdef HAVE_MKSTEMP
-int mkstemp (char *template);
-# else
-char *mktemp (char *template);
-# endif
-#endif
-
-FILE *
-output_tmpfile (char **name, const char *template)
-{
-  FILE *file;
-#ifdef HAVE_FDOPEN
-  int fd;
-#endif
-
-  /* Preserve the current umask, and set a restrictive one for temp files.  */
-  MODE_T mask = UMASK (0077);
-
-#if defined(HAVE_MKSTEMP) || defined(HAVE_MKTEMP)
-# define TEMPLATE_LEN   strlen (template)
-#else
-# define TEMPLATE_LEN   L_tmpnam
-#endif
-  *name = xmalloc (TEMPLATE_LEN + 1);
-  strcpy (*name, template);
-
-#if defined(HAVE_MKSTEMP) && defined(HAVE_FDOPEN)
-  /* It's safest to use mkstemp(), if we can.  */
-  EINTRLOOP (fd, mkstemp (*name));
-  if (fd == -1)
-    file = NULL;
-  else
-    file = fdopen (fd, "w");
-#else
-# ifdef HAVE_MKTEMP
-  (void) mktemp (*name);
-# else
-  (void) tmpnam (*name);
-# endif
-
-# ifdef HAVE_FDOPEN
-  /* Can't use mkstemp(), but guard against a race condition.  */
-  EINTRLOOP (fd, open (*name, O_CREAT|O_EXCL|O_WRONLY, 0600));
-  if (fd == -1)
-    return 0;
-  file = fdopen (fd, "w");
-# else
-  /* Not secure, but what can we do?  */
-  file = fopen (*name, "w");
-# endif
-#endif
-
-  UMASK (mask);
-
-  return file;
-}
 
 
 /* This code is stolen from gnulib.
