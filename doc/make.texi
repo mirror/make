@@ -7399,7 +7399,7 @@ will be expanded.
 The @code{if} function provides support for conditional expansion in a
 functional context (as opposed to the GNU @code{make} makefile
 conditionals such as @code{ifeq} (@pxref{Conditional Syntax, ,Syntax of
-Conditionals}).
+Conditionals})).
 
 The first argument, @var{condition}, first has all preceding and
 trailing whitespace stripped, then is expanded.  If it expands to any
