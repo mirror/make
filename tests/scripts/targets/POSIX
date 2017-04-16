@@ -34,8 +34,8 @@ my %POSIX = (AR => 'ar', ARFLAGS => '-rv',
              YACC => 'yacc', YFLAGS => '',
              LEX => 'lex', LFLAGS => '',
              LDFLAGS => '',
-             CC => 'c99', CFLAGS => '-O',
-             FC => 'fort77', FFLAGS => '-O 1',
+             CC => 'c99', CFLAGS => '-O1',
+             FC => 'fort77', FFLAGS => '-O1',
              SCCSFLAGS => '', SCCSGETFLAGS => '-s');
 my $make = join('', map { "\t\@echo '$_=\$($_)'\n" } sort keys %POSIX);
 my $r = join('', map { "$_=$POSIX{$_}\n"} sort keys %POSIX);

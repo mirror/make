@@ -2055,22 +2055,24 @@ record_files (struct nameseq *filenames, const char *pattern,
 
       /* Check for special targets.  Do it here instead of, say, snap_deps()
          so that we can immediately use the value.  */
-      if (streq (name, ".POSIX"))
+      if (!posix_pedantic && streq (name, ".POSIX"))
         {
           posix_pedantic = 1;
           define_variable_cname (".SHELLFLAGS", "-ec", o_default, 0);
-          /* These default values are based on IEEE Std 1003.1-2008.  */
+          /* These default values are based on IEEE Std 1003.1-2008.
+             It requires '-O 1' for [CF]FLAGS, but GCC doesn't allow space
+             between -O and the number so omit it here.  */
           define_variable_cname ("ARFLAGS", "-rv", o_default, 0);
           define_variable_cname ("CC", "c99", o_default, 0);
-          define_variable_cname ("CFLAGS", "-O", o_default, 0);
+          define_variable_cname ("CFLAGS", "-O1", o_default, 0);
           define_variable_cname ("FC", "fort77", o_default, 0);
-          define_variable_cname ("FFLAGS", "-O 1", o_default, 0);
+          define_variable_cname ("FFLAGS", "-O1", o_default, 0);
           define_variable_cname ("SCCSGETFLAGS", "-s", o_default, 0);
         }
-      else if (streq (name, ".SECONDEXPANSION"))
+      else if (!second_expansion && streq (name, ".SECONDEXPANSION"))
         second_expansion = 1;
 #if !defined (__MSDOS__) && !defined (__EMX__)
-      else if (streq (name, ".ONESHELL"))
+      else if (!one_shell && streq (name, ".ONESHELL"))
         one_shell = 1;
 #endif
 
