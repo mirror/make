@@ -52,8 +52,9 @@ $test_passed = 1;
 $test_timeout = 5;
 $test_timeout = 10 if $^O eq 'VMS';
 
-# Path to Perl
+# Path to Perl--make sure it uses forward-slashes
 $perl_name = $^X;
+$perl_name =~ tr,\\,/,;
 
 # Find the strings that will be generated for various error codes.
 # We want them from the C locale regardless of our current locale.
@@ -64,19 +65,37 @@ if ($has_POSIX) {
     POSIX::setlocale(POSIX::LC_MESSAGES, 'C');
 }
 
-open(my $F, '<', 'file.none') and die "Opened non-existent file!\n";
-$ERR_no_such_file = "$!";
+$ERR_no_such_file = undef;
+$ERR_read_only_file = undef;
+$ERR_unreadable_file = undef;
 
-touch('file.out');
-chmod(0444, 'file.out');
-open(my $F, '>', 'file.out') and die "Opened read-only file!\n";
-$ERR_read_only_file = "$!";
-
-chmod(0000, 'file.out');
-open(my $F, '<', 'file.out') and die "Opened unreadable file!\n";
-$ERR_unreadable_file = "$!";
+if (open(my $F, '<', 'file.none')) {
+    print "Opened non-existent file! Skipping related tests.\n";
+} else {
+    $ERR_no_such_file = "$!";
+}
 
 unlink('file.out');
+touch('file.out');
+
+chmod(0444, 'file.out');
+if (open(my $F, '>', 'file.out')) {
+    print "Opened read-only file! Skipping related tests.\n";
+    close($F);
+} else {
+    $ERR_read_only_file = "$!";
+}
+
+chmod(0000, 'file.out');
+if (open(my $F, '<', 'file.out')) {
+    print "Opened unreadable file!  Skipping related tests.\n";
+    close($F);
+} else {
+    $ERR_unreadable_file = "$!";
+}
+
+unlink('file.out') or die "Failed to delete file.out: $!\n";
+
 $loc and POSIX::setlocale(POSIX::LC_MESSAGES, $loc);
 
 # %makeENV is the cleaned-out environment.
@@ -331,6 +350,40 @@ sub get_osname
 {
   # Set up an initial value.  In perl5 we can do it the easy way.
   $osname = defined($^O) ? $^O : '';
+
+  # find the type of the port.  We do this up front to have a single
+  # point of change if it needs to be tweaked.
+  #
+  # This is probably not specific enough.
+  #
+  if ($osname =~ /MSWin32/i || $osname =~ /Windows/i
+      || $osname =~ /MINGW32/i || $osname =~ /CYGWIN_NT/i) {
+    $port_type = 'W32';
+  }
+  # Bleah, the osname is so variable on DOS.  This kind of bites.
+  # Well, as far as I can tell if we check for some text at the
+  # beginning of the line with either no spaces or a single space, then
+  # a D, then either "OS", "os", or "ev" and a space.  That should
+  # match and be pretty specific.
+  elsif ($osname =~ /^([^ ]*|[^ ]* [^ ]*)D(OS|os|ev) /) {
+    $port_type = 'DOS';
+  }
+  # Check for OS/2
+  elsif ($osname =~ m%OS/2%) {
+    $port_type = 'OS/2';
+  }
+
+  # VMS has a GNV Unix mode or a DCL mode.
+  # The SHELL environment variable should not be defined in VMS-DCL mode.
+  elsif ($osname eq 'VMS' && !defined $ENV{"SHELL"}) {
+    $port_type = 'VMS-DCL';
+  }
+  # Everything else, right now, is UNIX.  Note that we should integrate
+  # the VOS support into this as well and get rid of $vos; we'll do
+  # that next time.
+  else {
+    $port_type = 'UNIX';
+  }
 
   if ($osname eq 'VMS')
   {
@@ -1008,59 +1061,92 @@ sub detach_default_output
   open (STDERR, '>&', pop @ERRSTACK) or error("ddo: $! duping STDERR\n", 1);
 }
 
+sub _run_with_timeout
+{
+    my $code;
+    if ($^O eq 'VMS') {
+        #local $SIG{ALRM} = sub {
+        #    my $e = $ERRSTACK[0];
+        #    print $e "\nTest timed out after $test_timeout seconds\n";
+        #    die "timeout\n";
+        #};
+        #alarm $test_timeout;
+        system(@_);
+        #alarm 0;
+        my $severity = ${^CHILD_ERROR_NATIVE} & 7;
+        $code = 0;
+        if (($severity & 1) == 0) {
+            $code = 512;
+        }
+
+        # Get the vms status.
+        my $vms_code = ${^CHILD_ERROR_NATIVE};
+
+        # Remove the print status bit
+        $vms_code &= ~0x10000000;
+
+        # Posix code translation.
+        if (($vms_code & 0xFFFFF000) == 0x35a000) {
+            $code = (($vms_code & 0xFFF) >> 3) * 256;
+        }
+
+    } elsif ($port_type eq 'W32') {
+        my $pid = system(1, @_);
+        $pid > 0 or die "Cannot execute $_[0]\n";
+        local $SIG{ALRM} = sub {
+            my $e = $ERRSTACK[0];
+            print $e "\nTest timed out after $test_timeout seconds\n";
+            kill -9, $pid;
+            die "timeout\n";
+        };
+        alarm $test_timeout;
+        my $r = waitpid($pid, 0);
+        alarm 0;
+        $r == -1 and die "No such pid: $pid\n";
+        # This shouldn't happen since we wait forever or timeout via SIGALRM
+        $r == 0 and die "No process exited.\n";
+        $code = $?;
+
+    } else {
+        my $pid = fork();
+        if (! $pid) {
+            exec(@_) or die "exec: Cannot execute $_[0]\n";
+        }
+        local $SIG{ALRM} = sub {
+            my $e = $ERRSTACK[0];
+            print $e "\nTest timed out after $test_timeout seconds\n";
+            # Resend the alarm to our process group to kill the children.
+            $SIG{ALRM} = 'IGNORE';
+            kill -14, $$;
+            die "timeout\n";
+        };
+        alarm $test_timeout;
+        my $r = waitpid($pid, 0);
+        alarm 0;
+        $r == -1 and die "No such pid: $pid\n";
+        # This shouldn't happen since we wait forever or timeout via SIGALRM
+        $r == 0 and die "No process exited.\n";
+        $code = $?;
+    }
+
+    return $code;
+}
+
 # This runs a command without any debugging info.
 sub _run_command
 {
-  my $code;
-
   # We reset this before every invocation.  On Windows I think there is only
   # one environment, not one per process, so I think that variables set in
   # test scripts might leak into subsequent tests if this isn't reset--???
   resetENV();
 
-  eval {
-      if ($^O eq 'VMS') {
-          local $SIG{ALRM} = sub {
-              my $e = $ERRSTACK[0];
-              print $e "\nTest timed out after $test_timeout seconds\n";
-              die "timeout\n"; };
-#          alarm $test_timeout;
-          system(@_);
-          my $severity = ${^CHILD_ERROR_NATIVE} & 7;
-          $code = 0;
-          if (($severity & 1) == 0) {
-              $code = 512;
-          }
+  my $orig = $SIG{ALRM};
+  my $code = eval { _run_with_timeout(@_); };
+  $SIG{ALRM} = $orig;
 
-          # Get the vms status.
-          my $vms_code = ${^CHILD_ERROR_NATIVE};
-
-          # Remove the print status bit
-          $vms_code &= ~0x10000000;
-
-          # Posix code translation.
-          if (($vms_code & 0xFFFFF000) == 0x35a000) {
-              $code = (($vms_code & 0xFFF) >> 3) * 256;
-          }
-      } else {
-          my $pid = fork();
-          if (! $pid) {
-              exec(@_) or die "Cannot execute $_[0]\n";
-          }
-          local $SIG{ALRM} = sub { my $e = $ERRSTACK[0]; print $e "\nTest timed out after $test_timeout seconds\n"; die "timeout\n"; };
-          alarm $test_timeout;
-          waitpid($pid, 0) > 0 or die "No such pid: $pid\n";
-          $code = $?;
-      }
-      alarm 0;
-  };
   if ($@) {
       # The eval failed.  If it wasn't SIGALRM then die.
       $@ eq "timeout\n" or die "Command failed: $@";
-
-      # Timed out.  Resend the alarm to our process group to kill the children.
-      $SIG{ALRM} = 'IGNORE';
-      kill -14, $$;
       $code = 14;
   }
 

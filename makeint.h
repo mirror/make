@@ -664,11 +664,7 @@ extern char cmd_prefix;
 extern unsigned int job_slots;
 extern double max_load_average;
 
-#ifdef WINDOWS32
-extern char *program;
-#else
 extern const char *program;
-#endif
 
 #ifdef VMS
 const char *vms_command (const char *argv0);

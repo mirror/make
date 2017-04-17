@@ -43,13 +43,17 @@ all: ; @echo $$HI
     ','','hi');
 
 # Test shell errors in recipes including offset
-run_make_test('
+# This needs to be ported to Windows, or else Windows error messages
+# need to converted to look like more normal make errors.
+if ($port_type ne 'W32') {
+    run_make_test('
 all:
 	@echo hi
 	$(shell ./basdfdfsed there)
 	@echo there
 ',
-              '', "#MAKE#: ./basdfdfsed: Command not found\nhi\nthere\n");
+                  '', "#MAKE#: ./basdfdfsed: Command not found\nhi\nthere\n");
+}
 
 1;
 

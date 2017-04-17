@@ -8,6 +8,10 @@ This only works on systems that support it.";
 # If this instance of make doesn't support archives, skip it
 exists $FEATURES{archives} or return -1;
 
+# In theory archive support exists on Windows but it doesn't use ar;
+# someone will need to port this test.
+$port_type eq 'W32' and return -1;
+
 # Create some .o files to work with
 if ($osname eq 'VMS') {
   use Cwd;

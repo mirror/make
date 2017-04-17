@@ -104,6 +104,28 @@ Building with (MSVC++-)cl using NMakefile
     (this produces WinDebug/make.exe and WinRel/make.exe).
 
 
+Running the test suite
+----------------------
+
+ 3. You will need an installation of Perl.  Be sure to use a relatively
+    modern version: older versions will sometimes throw spurious errors.
+
+    To run the suite after building, use:
+
+        cd tests
+        .\run_make_tests.bat -make <path-to-make>
+
+    I've found <path-to-make> seems to want forward-slashes in the path.
+    For example if building with .\build_w32.bat non-debug, use:
+
+        cd tests
+        .\run_make_tests.bat -make ../WinRel/gnumake.exe
+
+    I've tested this with the MSYS2 shell and POSIX tools installation
+    that you get by installing Git for Windows.
+
+
+
 -------------------
 -- Notes/Caveats --
 -------------------
@@ -160,10 +182,8 @@ GNU make and brain-dead shells (BATCH_MODE_ONLY_SHELL):
 
 Support for parallel builds
 
-        Parallel builds (-jN) are supported in this port, with 1
-        limitation: The number of concurrent processes has a hard
-        limit of 64, due to the way this port implements waiting for
-        its subprocesses.
+        Parallel builds (-jN) are supported in this port.  The number of
+        concurrent processes has a hard limit of 4095.
 
 GNU make and Cygnus GNU Windows32 tools:
 
@@ -216,13 +236,6 @@ GNU make handling of drive letters in pathnames (PATH, vpath, VPATH):
         problems which exist between platforms.  If colon is used on
         both Unix and Windows systems, then no ifdef'ing will be
         necessary in the makefile source.
-
-GNU make test suite:
-
-        I verified all functionality with a slightly modified version
-        of make-test-%VERSION% (modifications to get test suite to run
-        on Windows NT). All tests pass in an environment that includes
-        sh.exe.  Tests were performed on both Windows NT and Windows 95.
 
 Pathnames and white space:
 

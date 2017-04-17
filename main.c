@@ -503,13 +503,7 @@ static struct command_variable *command_variables;
 
 /* The name we were invoked with.  */
 
-#ifdef WINDOWS32
-/* On MS-Windows, we chop off the .exe suffix in 'main', so this
-   cannot be 'const'.  */
-char *program;
-#else
 const char *program;
-#endif
 
 /* Our current directory before processing any -C options.  */
 
@@ -1201,36 +1195,29 @@ main (int argc, char **argv, char **envp)
     program = "make";
   else
     {
-      program = strrchr (argv[0], '/');
-#if defined(__MSDOS__) || defined(__EMX__)
-      if (program == 0)
-        program = strrchr (argv[0], '\\');
+#if defined(HAVE_DOS_PATHS)
+      const char* start = argv[0];
+
+      /* Skip an initial drive specifier if present.  */
+      if (isalpha ((unsigned char)start[0]) && start[1] == ':')
+        start += 2;
+
+      if (start[0] == '\0')
+        program = "make";
       else
         {
-          /* Some weird environments might pass us argv[0] with
-             both kinds of slashes; we must find the rightmost.  */
-          char *p = strrchr (argv[0], '\\');
-          if (p && p > program)
-            program = p;
+          program = start + strlen (start);
+          while (program > start && ! STOP_SET (program[-1], MAP_DIRSEP))
+            --program;
+
+          /* Remove the .exe extension if present.  */
+          {
+            size_t len = strlen (program);
+            if (len > 4 && streq (&program[len - 4], ".exe"))
+              program = xstrndup (program, len - 4);
+          }
         }
-      if (program == 0 && argv[0][1] == ':')
-        program = argv[0] + 1;
-#endif
-#ifdef WINDOWS32
-      if (program == 0)
-        {
-          /* Extract program from full path */
-          program = strrchr (argv[0], '\\');
-          if (program)
-            {
-              int argv0_len = strlen (program);
-              if (argv0_len > 4 && streq (&program[argv0_len - 4], ".exe"))
-                /* Remove .exe extension */
-                program[argv0_len - 4] = '\0';
-            }
-        }
-#endif
-#ifdef VMS
+#elif defined(VMS)
       set_program_name (argv[0]);
       program = program_name;
       {
@@ -1277,6 +1264,7 @@ main (int argc, char **argv, char **envp)
       if (need_vms_symbol () && !vms_use_mcr_command)
         create_foreign_command (program_name, argv[0]);
 #else
+      program = strrchr (argv[0], '/');
       if (program == 0)
         program = argv[0];
       else
