@@ -205,7 +205,7 @@ read_all_makefiles (const char **makefiles)
       {
         if (*p != '\0')
           *p++ = '\0';
-        eval_makefile (name, RM_NO_DEFAULT_GOAL|RM_INCLUDED|RM_DONTCARE);
+        eval_makefile (strcache_add (name), RM_NO_DEFAULT_GOAL|RM_INCLUDED|RM_DONTCARE);
       }
 
     free (value);
