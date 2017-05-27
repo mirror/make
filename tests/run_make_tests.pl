@@ -64,6 +64,9 @@ if ($^O eq 'VMS')
   $CMD_rmfile = 'delete_file -no_ask';
 }
 
+use FindBin;
+use lib "$FindBin::Bin";
+
 require "test_driver.pl";
 require "config-flags.pm";
 
