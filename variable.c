@@ -1208,6 +1208,7 @@ do_variable_definition (const floc *flocp, const char *varname,
       p = value;
       break;
     case f_append:
+    case f_append_value:
       {
         /* If we have += but we're in a target variable context, we want to
            append only with other variables in the context of this target.  */
@@ -1243,9 +1244,9 @@ do_variable_definition (const floc *flocp, const char *varname,
             val = value;
             if (v->recursive)
               /* The previous definition of the variable was recursive.
-                 The new value is the unexpanded old and new values. */
+                 The new value is the unexpanded old and new values.  */
               flavor = f_recursive;
-            else
+            else if (flavor != f_append_value)
               /* The previous definition of the variable was simple.
                  The new value comes from the old value, which was expanded
                  when it was set; and from the expanded new value.  Allocate

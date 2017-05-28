@@ -421,7 +421,7 @@ eval_makefile (const char *filename, int flags)
 
   /* Add this makefile to the list. */
   do_variable_definition (&ebuf.floc, "MAKEFILE_LIST", filename, o_file,
-                          f_append, 0);
+                          f_append_value, 0);
 
   /* Evaluate the makefile */
 

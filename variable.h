@@ -37,7 +37,8 @@ enum variable_flavor
     f_recursive,        /* Recursive definition (=) */
     f_append,           /* Appending definition (+=) */
     f_conditional,      /* Conditional definition (?=) */
-    f_shell             /* Shell assignment (!=) */
+    f_shell,            /* Shell assignment (!=) */
+    f_append_value      /* Append unexpanded value */
   };
 
 /* Structure that represents one variable definition.
