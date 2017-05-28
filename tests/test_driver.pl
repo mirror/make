@@ -609,6 +609,8 @@ sub run_all_tests
         $run_filename = "$testpath.$runext";
         $tmp_filename = "$testpath.$tmpfilesuffix";
 
+        -f $perl_testname or die "Invalid test: $testname\n\n";
+
         setup_for_test();
 
         $output = "........................................................ ";
