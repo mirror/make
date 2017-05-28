@@ -5720,7 +5720,8 @@ objects += another.o
 
 @noindent
 This takes the value of the variable @code{objects}, and adds the text
-@samp{another.o} to it (preceded by a single space).  Thus:
+@samp{another.o} to it (preceded by a single space, if it has a value
+already).  Thus:
 
 @example
 objects = main.o foo.o bar.o utils.o

@@ -29,6 +29,12 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set
   This was claimed to be fixed in 3.81, but wasn't, for some reason.
   To detect this change search for 'nocomment' in the .FEATURES variable.
 
+* WARNING: Backward-incompatibility!
+  Previously appending using '+=' to an empty variable would result in a value
+  starting with a space.  Now the initial space is only added if the variable
+  already contains some value.  Similarly, appending an empty string does not
+  add a trailing space.
+
 * The previous limit of 63 jobs under -jN on MS-Windows is now
   increased to 4095.  That limit includes the subprocess started by
   the $(shell) function.

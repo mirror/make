@@ -1197,7 +1197,7 @@ do_variable_definition (const floc *flocp, const char *varname,
          The value is set IFF the variable is not defined yet. */
       v = lookup_variable (varname, strlen (varname));
       if (v)
-        return v->special ? set_special_var (v) : v;
+        goto done;
 
       conditional = 1;
       flavor = f_recursive;
@@ -1253,15 +1253,29 @@ do_variable_definition (const floc *flocp, const char *varname,
                  buffer if we're looking at a target-specific variable.  */
               val = tp = allocated_variable_expand (val);
 
-            oldlen = strlen (v->value);
+            /* If the new value is empty, nothing to do.  */
             vallen = strlen (val);
+            if (!vallen)
+              {
+                alloc_value = tp;
+                goto done;
+              }
+
+            oldlen = strlen (v->value);
             p = alloc_value = xmalloc (oldlen + 1 + vallen + 1);
-            memcpy (alloc_value, v->value, oldlen);
-            alloc_value[oldlen] = ' ';
-            memcpy (&alloc_value[oldlen + 1], val, vallen + 1);
+
+            if (oldlen)
+              {
+                memcpy (alloc_value, v->value, oldlen);
+                alloc_value[oldlen] = ' ';
+                ++oldlen;
+              }
+
+            memcpy (&alloc_value[oldlen], val, vallen + 1);
 
             free (tp);
           }
+        break;
       }
     }
 
@@ -1405,8 +1419,8 @@ do_variable_definition (const floc *flocp, const char *varname,
   v->append = append;
   v->conditional = conditional;
 
+ done:
   free (alloc_value);
-
   return v->special ? set_special_var (v) : v;
 }
 
