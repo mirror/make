@@ -62,6 +62,24 @@ make_job_rfd (void)
 #endif
 }
 
+static void
+set_blocking (int fd, int blocking)
+{
+  // If we're not using pselect() don't change the blocking
+#ifdef HAVE_PSELECT
+  int flags;
+  EINTRLOOP (flags, fcntl (fd, F_GETFL));
+  if (flags >= 0)
+    {
+      int r;
+      flags = blocking ? (flags & ~O_NONBLOCK) : (flags | O_NONBLOCK);
+      EINTRLOOP (r, fcntl (fd, F_SETFL, flags));
+      if (r < 0)
+        pfatal_with_name ("fcntl(O_NONBLOCK)");
+    }
+#endif
+}
+
 unsigned int
 jobserver_setup (int slots)
 {
@@ -85,6 +103,9 @@ jobserver_setup (int slots)
       if (r != 1)
         pfatal_with_name (_("init jobserver pipe"));
     }
+
+  /* When using pselect() we want the read to be non-blocking.  */
+  set_blocking (job_fds[0], 0);
 
   return 1;
 }
@@ -120,6 +141,9 @@ jobserver_parse_auth (const char *auth)
 
       return 0;
     }
+
+  /* When using pselect() we want the read to be non-blocking.  */
+  set_blocking (job_fds[0], 0);
 
   return 1;
 }
@@ -169,7 +193,10 @@ jobserver_acquire_all (void)
 {
   unsigned int tokens = 0;
 
-  /* Close the write side, so the read() won't hang.  */
+  /* Use blocking reads to wait for all outstanding jobs.  */
+  set_blocking (job_fds[0], 1);
+
+  /* Close the write side, so the read() won't hang forever.  */
   close (job_fds[1]);
   job_fds[1] = -1;
 
@@ -236,17 +263,11 @@ jobserver_pre_acquire (void)
 unsigned int
 jobserver_acquire (int timeout)
 {
-  sigset_t empty;
-  fd_set readfds;
   struct timespec spec;
   struct timespec *specp = NULL;
-  int r;
-  char intake;
+  sigset_t empty;
 
   sigemptyset (&empty);
-
-  FD_ZERO (&readfds);
-  FD_SET (job_fds[0], &readfds);
 
   if (timeout)
     {
@@ -256,28 +277,52 @@ jobserver_acquire (int timeout)
       specp = &spec;
     }
 
-  r = pselect (job_fds[0]+1, &readfds, NULL, NULL, specp, &empty);
-
-  if (r == -1)
+  while (1)
     {
-      /* Better be SIGCHLD.  */
-      if (errno != EINTR)
-        pfatal_with_name (_("pselect jobs pipe"));
-      return 0;
+      fd_set readfds;
+      int r;
+      char intake;
+
+      FD_ZERO (&readfds);
+      FD_SET (job_fds[0], &readfds);
+
+      r = pselect (job_fds[0]+1, &readfds, NULL, NULL, specp, &empty);
+      if (r < 0)
+        switch (errno)
+          {
+          case EINTR:
+            /* SIGCHLD will show up as an EINTR.  */
+            return 0;
+
+          case EBADF:
+            /* Someone closed the jobs pipe.
+               That shouldn't happen but if it does we're done.  */
+              O (fatal, NILF, _("job server shut down"));
+
+          default:
+            pfatal_with_name (_("pselect jobs pipe"));
+          }
+
+      if (r == 0)
+        /* Timeout.  */
+        return 0;
+
+      /* The read FD is ready: read it!  This is non-blocking.  */
+      EINTRLOOP (r, read (job_fds[0], &intake, 1));
+
+      if (r < 0)
+        {
+          /* Someone sniped our token!  Try again.  */
+          if (errno == EAGAIN)
+            continue;
+
+          pfatal_with_name (_("read jobs pipe"));
+        }
+
+      /* read() should never return 0: only the master make can reap all the
+         tokens and close the write side...??  */
+      return r > 0;
     }
-
-  if (r == 0)
-    /* Timeout.  */
-    return 0;
-
-  /* The read FD is ready: read it!  */
-  EINTRLOOP (r, read (job_fds[0], &intake, 1));
-  if (r < 0)
-    pfatal_with_name (_("read jobs pipe"));
-
-  /* What does it mean if read() returns 0?  It shouldn't happen because only
-     the master make can reap all the tokens and close the write side...??  */
-  return r > 0;
 }
 
 #else
