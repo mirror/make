@@ -22,9 +22,16 @@ $(shell exit 0)
 OK := $(.SHELLSTATUS)
 $(shell exit 1)
 BAD := $(.SHELLSTATUS)
+$(shell kill -2 $$$$)
+SIG := $(.SHELLSTATUS)
 all: ; @echo PRE=$(PRE) OK=$(OK) BAD=$(BAD)
               ','','PRE= OK=0 BAD=1');
 
+run_make_test('.PHONY: all
+$(shell kill -2 $$$$)
+SIG := $(.SHELLSTATUS)
+all: ; @echo SIG=$(SIG)
+              ','','SIG=130');
 
 # Test unescaped comment characters in shells.  Savannah bug #20513
 run_make_test(q!

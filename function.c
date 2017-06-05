@@ -1469,6 +1469,9 @@ shell_completed (int exit_code, int exit_sig)
   else
     shell_function_completed = 1;
 
+  if (exit_code == 0 && exit_sig > 0)
+    exit_code = 128 + exit_sig;
+
   sprintf (buf, "%d", exit_code);
   define_variable_cname (".SHELLSTATUS", buf, o_override, 0);
 }
