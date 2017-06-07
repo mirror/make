@@ -1404,6 +1404,11 @@ do_variable_definition (const floc *flocp, const char *varname,
         }
     }
   else
+    v = NULL;
+
+  /* If not $SHELL, or if $SHELL points to a program we didn't find,
+     just process this variable "as usual".  */
+  if (!v)
 #endif
 
   /* If we are defining variables inside an $(eval ...), we might have a
