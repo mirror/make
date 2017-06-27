@@ -7991,7 +7991,7 @@ foo = $(call reverse,a,b)
 @end smallexample
 
 @noindent
-Here @var{foo} will contain @samp{b a}.
+Here @code{foo} will contain @samp{b a}.
 
 This one is slightly more interesting: it defines a macro to search for
 the first instance of a program in @code{PATH}:
@@ -8003,7 +8003,7 @@ LS := $(call pathsearch,ls)
 @end smallexample
 
 @noindent
-Now the variable LS contains @code{/bin/ls} or similar.
+Now the variable @code{LS} contains @code{/bin/ls} or similar.
 
 The @code{call} function can be nested.  Each recursive invocation gets
 its own local values for @code{$(1)}, etc.@: that mask the values of
@@ -8014,14 +8014,14 @@ higher-level @code{call}.  For example, here is an implementation of a
 map = $(foreach a,$(2),$(call $(1),$(a)))
 @end smallexample
 
-Now you can @var{map} a function that normally takes only one argument,
+Now you can @code{map} a function that normally takes only one argument,
 such as @code{origin}, to multiple values in one step:
 
 @smallexample
 o = $(call map,origin,o map MAKE)
 @end smallexample
 
-and end up with @var{o} containing something like @samp{file file default}.
+and end up with @code{o} containing something like @samp{file file default}.
 
 A final caution: be careful when adding whitespace to the arguments to
 @code{call}.  As with other functions, any whitespace contained in the
