@@ -51,7 +51,7 @@ struct pattern_var *
 create_pattern_var (const char *target, const char *suffix)
 {
   register unsigned int len = strlen (target);
-  register struct pattern_var *p = xmalloc (sizeof (struct pattern_var));
+  register struct pattern_var *p = xcalloc (sizeof (struct pattern_var));
 
   if (pattern_vars != 0)
     {
