@@ -582,12 +582,10 @@ struct output make_sync;
 
 /* Mask of signals that are being caught with fatal_error_signal.  */
 
-#ifdef POSIX
+#if defined(POSIX)
 sigset_t fatal_signal_set;
-#else
-# ifdef HAVE_SIGSETMASK
+#elif defined(HAVE_SIGSETMASK)
 int fatal_signal_mask;
-# endif
 #endif
 
 #if !HAVE_DECL_BSD_SIGNAL && !defined bsd_signal

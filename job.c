@@ -464,6 +464,62 @@ is_bourne_compatible_shell (const char *path)
   return 0;
 }
 
+#ifdef POSIX
+extern sigset_t fatal_signal_set;
+
+static void
+block_sigs ()
+{
+  sigprocmask (SIG_BLOCK, &fatal_signal_set, (sigset_t *) 0);
+}
+
+static void
+unblock_sigs ()
+{
+  sigprocmask (SIG_UNBLOCK, &fatal_signal_set, (sigset_t *) 0);
+}
+
+void
+unblock_all_sigs ()
+{
+  sigset_t empty;
+  sigemptyset (&empty);
+  sigprocmask (SIG_SETMASK, &empty, (sigset_t *) 0);
+}
+
+#elif defined(HAVE_SIGSETMASK)
+
+extern int fatal_signal_mask;
+
+static void
+block_sigs ()
+{
+  sigblock (fatal_signal_mask);
+}
+
+static void
+unblock_sigs ()
+{
+  sigsetmask (siggetmask (0) & ~fatal_signal_mask)
+}
+
+void
+unblock_all_sigs ()
+{
+  sigsetmask (0);
+}
+
+#else
+
+#define block_sigs()
+#define unblock_sigs()
+
+void
+unblock_all_sigs ()
+{
+}
+
+#endif
 
 /* Write an error message describing the exit status given in
    EXIT_CODE, EXIT_SIG, and COREDUMP, for the target TARGET_NAME.
@@ -1037,32 +1093,6 @@ free_child (struct child *child)
   free (child);
 }
 
-#ifdef POSIX
-extern sigset_t fatal_signal_set;
-#endif
-
-void
-block_sigs (void)
-{
-#ifdef POSIX
-  (void) sigprocmask (SIG_BLOCK, &fatal_signal_set, (sigset_t *) 0);
-#else
-# ifdef HAVE_SIGSETMASK
-  (void) sigblock (fatal_signal_mask);
-# endif
-#endif
-}
-
-#ifdef POSIX
-void
-unblock_sigs (void)
-{
-  sigset_t empty;
-  sigemptyset (&empty);
-  sigprocmask (SIG_SETMASK, &empty, (sigset_t *) 0);
-}
-#endif
-
 
 /* Start a job to run the commands specified in CHILD.
    CHILD is updated to reflect the commands and ID of the child process.
@@ -2144,7 +2174,7 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
     return pid;
 
   /* We are the child.  */
-  unblock_sigs ();
+  unblock_all_sigs ();
 
 #ifdef SET_STACK_SIZE
   /* Reset limits, if necessary.  */

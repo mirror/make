@@ -246,7 +246,7 @@ start_remote_job (char **argv, char **envp, int stdin_fd,
         (void) dup2 (stdin_fd, 0);
 
       /* Unblock signals in the child.  */
-      unblock_sigs ();
+      unblock_all_sigs ();
 
       /* Run the command.  */
       exec_command (new_argv, envp);

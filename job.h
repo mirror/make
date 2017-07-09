@@ -73,18 +73,7 @@ int exec_command (char **argv, char **envp);
 void exec_command (char **argv, char **envp) __attribute__ ((noreturn));
 #endif
 
+void unblock_all_sigs (void);
+
 extern unsigned int job_slots_used;
-
-void block_sigs (void);
-#ifdef POSIX
-void unblock_sigs (void);
-#else
-#ifdef  HAVE_SIGSETMASK
-extern int fatal_signal_mask;
-#define unblock_sigs()  sigsetmask (0)
-#else
-#define unblock_sigs()
-#endif
-#endif
-
 extern unsigned int jobserver_tokens;
