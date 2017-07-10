@@ -50,8 +50,8 @@ static struct pattern_var *last_pattern_vars[256];
 struct pattern_var *
 create_pattern_var (const char *target, const char *suffix)
 {
-  register unsigned int len = strlen (target);
-  register struct pattern_var *p = xcalloc (sizeof (struct pattern_var));
+  unsigned int len = strlen (target);
+  struct pattern_var *p = xcalloc (sizeof (struct pattern_var));
 
   if (pattern_vars != 0)
     {
@@ -63,7 +63,7 @@ create_pattern_var (const char *target, const char *suffix)
       else
         {
           /* Find the position where we can insert this variable. */
-          register struct pattern_var **v;
+          struct pattern_var **v;
 
           for (v = &pattern_vars; ; v = &(*v)->next)
             {
@@ -673,8 +673,8 @@ initialize_file_variables (struct file *file, int reading)
 struct variable_set_list *
 create_new_variable_set (void)
 {
-  register struct variable_set_list *setlist;
-  register struct variable_set *set;
+  struct variable_set_list *setlist;
+  struct variable_set *set;
 
   set = xmalloc (sizeof (struct variable_set));
   hash_init (&set->table, SMALL_SCOPE_VARIABLE_BUCKETS,
@@ -981,7 +981,7 @@ char **
 target_environment (struct file *file)
 {
   struct variable_set_list *set_list;
-  register struct variable_set_list *s;
+  struct variable_set_list *s;
   struct hash_table table;
   struct variable **v_slot;
   struct variable **v_end;

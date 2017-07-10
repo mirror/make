@@ -107,7 +107,7 @@ static int
 vmsHandleChildTerm (struct child *child)
 {
   int exit_code;
-  register struct child *lastc, *c;
+  struct child *lastc, *c;
   int child_failed;
 
   /* The child efn is 0 when a built-in or null command is executed

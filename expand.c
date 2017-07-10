@@ -55,7 +55,7 @@ char *variable_buffer;
 char *
 variable_buffer_output (char *ptr, const char *string, unsigned int length)
 {
-  register unsigned int newlen = length + (ptr - variable_buffer);
+  unsigned int newlen = length + (ptr - variable_buffer);
 
   if ((newlen + VARIABLE_BUFFER_ZONE) > variable_buffer_length)
     {

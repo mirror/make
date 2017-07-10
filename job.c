@@ -830,12 +830,12 @@ reap_children (int block, int err)
                 /* get exit data */
                 exit_code = process_exit_code (hPID);
 
-		/* the extra tests of exit_code are here to prevent
-		   map_windows32_error_to_string from calling 'fatal',
-		   which will then call reap_children again */
+                /* the extra tests of exit_code are here to prevent
+                   map_windows32_error_to_string from calling 'fatal',
+                   which will then call reap_children again */
                 if (werr && exit_code > 0 && exit_code < WSABASEERR)
-		  fprintf (stderr, "make (e=%d): %s", exit_code,
-			   map_windows32_error_to_string (exit_code));
+                  fprintf (stderr, "make (e=%d): %s", exit_code,
+                           map_windows32_error_to_string (exit_code));
 
                 /* signal */
                 exit_sig = process_signal (hPID);
@@ -1076,7 +1076,7 @@ free_child (struct child *child)
 
   if (child->command_lines != 0)
     {
-      register unsigned int i;
+      unsigned int i;
       for (i = 0; i < child->file->cmds->ncommand_lines; ++i)
         free (child->command_lines[i]);
       free (child->command_lines);
@@ -1084,7 +1084,7 @@ free_child (struct child *child)
 
   if (child->environment != 0)
     {
-      register char **ep = child->environment;
+      char **ep = child->environment;
       while (*ep != 0)
         free (*ep++);
       free (child->environment);
@@ -2848,7 +2848,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
                If so, have the shell handle it.  */
             if (i == 1)
               {
-                register int j;
+                int j;
                 for (j = 0; sh_cmds[j] != 0; ++j)
                   {
                     if (streq (sh_cmds[j], new_argv[0]))
@@ -2887,7 +2887,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
 
   if (i == 1)
     {
-      register int j;
+      int j;
       for (j = 0; sh_cmds[j] != 0; ++j)
         if (streq (sh_cmds[j], new_argv[0]))
           goto slow;

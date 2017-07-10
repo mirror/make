@@ -2774,9 +2774,9 @@ static void
 decode_switches (int argc, const char **argv, int env)
 {
   int bad = 0;
-  register const struct command_switch *cs;
-  register struct stringlist *sl;
-  register int c;
+  const struct command_switch *cs;
+  struct stringlist *sl;
+  int c;
 
   /* getopt does most of the parsing for us.
      First, get its vectors set up.  */

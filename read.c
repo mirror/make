@@ -1338,7 +1338,7 @@ eval (struct ebuffer *ebuf, int set_default)
                    the default goal file.  */
                 for (d = suffix_file->deps; d != 0; d = d->next)
                   {
-                    register struct dep *d2;
+                    struct dep *d2;
                     if (*dep_name (d) != '.' && streq (name, dep_name (d)))
                       {
                         reject = 1;

@@ -54,9 +54,9 @@ static struct vpath *gpaths;
 void
 build_vpath_lists (void)
 {
-  register struct vpath *new = 0;
-  register struct vpath *old, *nexto;
-  register char *p;
+  struct vpath *new = 0;
+  struct vpath *old, *nexto;
+  char *p;
 
   /* Reverse the chain.  */
   for (old = vpaths; old != 0; old = nexto)
@@ -605,7 +605,7 @@ print_vpath_data_base (void)
   nvpaths = 0;
   for (v = vpaths; v != 0; v = v->next)
     {
-      register unsigned int i;
+      unsigned int i;
 
       ++nvpaths;
 

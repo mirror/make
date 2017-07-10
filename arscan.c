@@ -479,7 +479,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
   /* Now find the members one by one.  */
   {
 #ifdef SARMAG
-    register long int member_offset = SARMAG;
+    long int member_offset = SARMAG;
 #else
 #ifdef AIAMAG
     long int member_offset;
@@ -506,16 +506,16 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
       }
 #else
 #ifndef M_XENIX
-    register long int member_offset = sizeof (int);
+    long int member_offset = sizeof (int);
 #else   /* Xenix.  */
-    register long int member_offset = sizeof (unsigned short int);
+    long int member_offset = sizeof (unsigned short int);
 #endif  /* Not Xenix.  */
 #endif
 #endif
 
     while (1)
       {
-        register int nread;
+        int nread;
         struct ar_hdr member_header;
 #ifdef AIAMAGBIG
         struct ar_hdr_big member_header_big;
@@ -638,7 +638,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
         name = namebuf;
         memcpy (name, member_header.ar_name, sizeof member_header.ar_name);
         {
-          register char *p = name + sizeof member_header.ar_name;
+          char *p = name + sizeof member_header.ar_name;
           do
             *p = '\0';
           while (p > name && *--p == ' ');

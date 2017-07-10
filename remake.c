@@ -101,7 +101,7 @@ update_goal_chain (struct goaldep *goaldeps)
 
   while (goals != 0)
     {
-      register struct dep *g, *lastgoal;
+      struct dep *g, *lastgoal;
 
       /* Start jobs that are waiting for the load to go down.  */
 
@@ -583,7 +583,7 @@ update_file_1 (struct file *file, unsigned int depth)
           check_renamed (d->file);
 
           {
-            register struct file *f = d->file;
+            struct file *f = d->file;
             if (f->double_colon)
               f = f->double_colon;
             do
@@ -647,7 +647,7 @@ update_file_1 (struct file *file, unsigned int depth)
             check_renamed (d->file);
 
             {
-              register struct file *f = d->file;
+              struct file *f = d->file;
               if (f->double_colon)
                 f = f->double_colon;
               do
