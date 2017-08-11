@@ -327,3 +327,151 @@ round_up_2 (unsigned long n)
 
   return n + 1;
 }
+
+#define rol32(v, n) \
+	((v) << (n) | ((v) >> (32 - (n))))
+
+/* jhash_mix -- mix 3 32-bit values reversibly. */
+#define jhash_mix(a, b, c)                      \
+{                                               \
+        a -= c;  a ^= rol32(c, 4);  c += b;     \
+        b -= a;  b ^= rol32(a, 6);  a += c;     \
+        c -= b;  c ^= rol32(b, 8);  b += a;     \
+        a -= c;  a ^= rol32(c, 16); c += b;     \
+        b -= a;  b ^= rol32(a, 19); a += c;     \
+        c -= b;  c ^= rol32(b, 4);  b += a;     \
+}
+
+/* jhash_final - final mixing of 3 32-bit values (a,b,c) into c */
+#define jhash_final(a, b, c)                    \
+{                                               \
+        c ^= b; c -= rol32(b, 14);              \
+        a ^= c; a -= rol32(c, 11);              \
+        b ^= a; b -= rol32(a, 25);              \
+        c ^= b; c -= rol32(b, 16);              \
+        a ^= c; a -= rol32(c, 4);               \
+        b ^= a; b -= rol32(a, 14);              \
+        c ^= b; c -= rol32(b, 24);              \
+}
+
+/* An arbitrary initial parameter */
+#define JHASH_INITVAL           0xdeadbeef
+
+#define sum_get_unaligned_32(r, p)              \
+  do {                                          \
+    unsigned int val;                           \
+    memcpy(&val, (p), 4);                       \
+    r += val;                                   \
+  } while(0);
+
+unsigned jhash(unsigned const char *k, int length)
+{
+  unsigned int a, b, c;
+
+  /* Set up the internal state */
+  a = b = c = JHASH_INITVAL + length;
+
+  /* All but the last block: affect some 32 bits of (a,b,c) */
+  while (length > 12) {
+    sum_get_unaligned_32(a, k);
+    sum_get_unaligned_32(b, k + 4);
+    sum_get_unaligned_32(c, k + 8);
+    jhash_mix(a, b, c);
+    length -= 12;
+    k += 12;
+  }
+
+  if (!length)
+    return c;
+
+  if (length > 8)
+    {
+      sum_get_unaligned_32(a, k);
+      length -= 4;
+      k += 4;
+    }
+  if (length > 4)
+    {
+      sum_get_unaligned_32(b, k);
+      length -= 4;
+      k += 4;
+    }
+
+  if (length == 4)
+    c += (unsigned)k[3]<<24;
+  if (length >= 3)
+    c += (unsigned)k[2]<<16;
+  if (length >= 2)
+    c += (unsigned)k[1]<<8;
+  c += k[0];
+  jhash_final(a, b, c);
+  return c;
+}
+
+#ifdef WORDS_BIGENDIAN
+/* The ifs are ordered from the first byte in memory to the last.  */
+#define sum_up_to_nul(r, p, flag)         \
+  do {                                    \
+    unsigned int val;                     \
+    memcpy(&val, (p), 4);                 \
+    if ((val & 0xFF000000) == 0)          \
+      flag = 1;                           \
+    else if ((val & 0xFF0000) == 0)       \
+      r += val & ~0xFFFF, flag = 1;       \
+    else if ((val & 0xFF00) == 0)         \
+      r += val & ~0xFF, flag = 1;         \
+    else                                  \
+      r += val, flag = (val & 0xFF) == 0; \
+  } while (0)
+#else
+/* First detect the presence of zeroes.  If there is none, we can
+   sum the 4 bytes directly.  Otherwise, the ifs are ordered as in the
+   big endian case, from the first byte in memory to the last.  */
+#define sum_up_to_nul(r, p, flag)                   \
+  do {                                              \
+    unsigned int val;                               \
+    unsigned int zeroes;                            \
+    memcpy(&val, (p), 4);                           \
+    zeroes = ((val - 0x01010101) & ~val);           \
+    if (!(zeroes & 0x80808080))                     \
+      r += val;                                     \
+    else if ((val & 0xFF) == 0)                     \
+      flag = 1;                                     \
+    else if ((val & 0xFF00) == 0)                   \
+      r += val & 0xFF, flag = 1;                    \
+    else if ((val & 0xFF0000) == 0)                 \
+      r += val & 0xFFFF, flag = 1;                  \
+    else                                            \
+      r += val, flag = 1;                           \
+  } while (0)
+#endif
+
+unsigned jhash_string(unsigned const char *k)
+{
+  unsigned int a, b, c;
+  unsigned int have_nul = 0;
+  unsigned const char *start = k;
+
+  /* Set up the internal state */
+  a = b = c = JHASH_INITVAL;
+
+  /* All but the last block: affect some 32 bits of (a,b,c) */
+  for (;;) {
+    sum_up_to_nul(a, k, have_nul);
+    if (have_nul)
+      break;
+    k += 4;
+    sum_up_to_nul(b, k, have_nul);
+    if (have_nul)
+      break;
+    k += 4;
+    sum_up_to_nul(c, k, have_nul);
+    if (have_nul)
+      break;
+    k += 4;
+    jhash_mix(a, b, c);
+  }
+
+  jhash_final(a, b, c);
+  return c + (k - start);
+}

@@ -417,6 +417,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define alloca(n)       __ALLOCA(n)
 #endif
 
+/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+   significant byte first (like Motorola and SPARC, unlike Intel). */
+/* #  undef WORDS_BIGENDIAN */
+
 /* Output sync sypport */
 #define NO_OUTPUT_SYNC
 

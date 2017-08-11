@@ -49,6 +49,7 @@ AC_CANONICAL_HOST
 AC_AIX
 AC_ISC_POSIX
 AC_MINIX
+AC_C_BIGENDIAN
 
 # Enable gettext, in "external" mode.
 AM_GNU_GETTEXT_VERSION([0.19.4])

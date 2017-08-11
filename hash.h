@@ -73,6 +73,9 @@ void hash_map_arg __P((struct hash_table *ht, hash_map_arg_func_t map, void *arg
 void hash_print_stats __P((struct hash_table *ht, FILE *out_FILE));
 void **hash_dump __P((struct hash_table *ht, void **vector_0, qsort_cmp_t compare));
 
+extern unsigned jhash(unsigned char const *key, int n);
+extern unsigned jhash_string(unsigned char const *key);
+
 extern void *hash_deleted_item;
 #define HASH_VACANT(item) ((item) == 0 || (void *) (item) == hash_deleted_item)
 
@@ -83,9 +86,8 @@ extern void *hash_deleted_item;
    be identical.  Take advantage of that to short-circuit string compares.  */
 
 #define STRING_HASH_1(KEY, RESULT) do { \
-  unsigned char const *_key_ = (unsigned char const *) (KEY) - 1; \
-  while (*++_key_) \
-    (RESULT) += (*_key_ << (_key_[1] & 0xf)); \
+  unsigned char const *_key_ = (unsigned char const *) (KEY); \
+  (RESULT) += jhash_string(_key_); \
 } while (0)
 #define return_STRING_HASH_1(KEY) do { \
   unsigned long _result_ = 0; \
@@ -93,10 +95,11 @@ extern void *hash_deleted_item;
   return _result_; \
 } while (0)
 
+/* No need for a second hash because jhash already provides
+   pretty good results.  However, do evaluate the arguments
+   to avoid warnings.  */
 #define STRING_HASH_2(KEY, RESULT) do { \
-  unsigned char const *_key_ = (unsigned char const *) (KEY) - 1; \
-  while (*++_key_) \
-    (RESULT) += (*_key_ << (_key_[1] & 0x7)); \
+  (void)(KEY); \
 } while (0)
 #define return_STRING_HASH_2(KEY) do { \
   unsigned long _result_ = 0; \
@@ -113,27 +116,24 @@ extern void *hash_deleted_item;
 
 
 #define STRING_N_HASH_1(KEY, N, RESULT) do { \
-  unsigned char const *_key_ = (unsigned char const *) (KEY) - 1; \
-  int _n_ = (N); \
-  if (_n_) \
-    while (--_n_ && *++_key_) \
-      (RESULT) += (*_key_ << (_key_[1] & 0xf)); \
-  (RESULT) += *++_key_; \
+  unsigned char const *_key_ = (unsigned char const *) (KEY); \
+  (RESULT) += jhash(_key_, N); \
 } while (0)
+
 #define return_STRING_N_HASH_1(KEY, N) do { \
   unsigned long _result_ = 0; \
   STRING_N_HASH_1 ((KEY), (N), _result_); \
   return _result_; \
 } while (0)
 
+/* No need for a second hash because jhash already provides
+   pretty good results.  However, do evaluate the arguments
+   to avoid warnings.  */
 #define STRING_N_HASH_2(KEY, N, RESULT) do { \
-  unsigned char const *_key_ = (unsigned char const *) (KEY) - 1; \
-  int _n_ = (N); \
-  if (_n_) \
-    while (--_n_ && *++_key_) \
-      (RESULT) += (*_key_ << (_key_[1] & 0x7)); \
-  (RESULT) += *++_key_; \
+  (void)(KEY); \
+  (void)(N); \
 } while (0)
+
 #define return_STRING_N_HASH_2(KEY, N) do { \
   unsigned long _result_ = 0; \
   STRING_N_HASH_2 ((KEY), (N), _result_); \
@@ -141,10 +141,10 @@ extern void *hash_deleted_item;
 } while (0)
 
 #define STRING_N_COMPARE(X, Y, N, RESULT) do { \
-  RESULT = (X) == (Y) ? 0 : strncmp ((X), (Y), (N)); \
+  RESULT = (X) == (Y) ? 0 : memcmp ((X), (Y), (N)); \
 } while (0)
 #define return_STRING_N_COMPARE(X, Y, N) do { \
-  return (X) == (Y) ? 0 : strncmp ((X), (Y), (N)); \
+  return (X) == (Y) ? 0 : memcmp ((X), (Y), (N)); \
 } while (0)
 
 #ifdef HAVE_CASE_INSENSITIVE_FS
