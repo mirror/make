@@ -55,43 +55,41 @@ alpha_compare (const void *v1, const void *v2)
 void
 collapse_continuations (char *line)
 {
-  char *in, *out, *p;
+  char *out = line;
+  char *in = line;
+  char *q;
 
-  in = strchr (line, '\n');
-  if (in == 0)
+  q = strchr(in, '\n');
+  if (q == 0)
     return;
 
-  out = in;
-  while (out > line && out[-1] == '\\')
-    --out;
-
-  while (*in != '\0')
+  do
     {
-      /* BS_WRITE gets the number of quoted backslashes at
-         the end just before IN, and BACKSLASH gets nonzero
-         if the next character is quoted.  */
-      unsigned int backslash = 0;
-      unsigned int bs_write = 0;
-      for (p = in - 1; p >= line && *p == '\\'; --p)
+      char *p = q;
+      int i;
+      int out_line_length;
+
+      if (q > line && q[-1] == '\\')
         {
-          if (backslash)
-            ++bs_write;
-          backslash = !backslash;
-
-          /* It should be impossible to go back this far without exiting,
-             but if we do, we can't get the right answer.  */
-          if (in == out - 1)
-            abort ();
+          /* Search for more backslashes.  */
+          i = -2;
+          while (&p[i] >= line && p[i] == '\\')
+            --i;
+          ++i;
         }
+      else
+        i = 0;
 
-      /* Output the appropriate number of backslashes.  */
-      while (bs_write-- > 0)
-        *out++ = '\\';
+      /* The number of backslashes is now -I, keep half of them.  */
+      out_line_length = (p - in) + i - i/2;
+      if (out != in)
+        memmove (out, in, out_line_length);
+      out += out_line_length;
 
-      /* Skip the newline.  */
-      ++in;
+      /* When advancing IN, skip the newline too.  */
+      in = q + 1;
 
-      if (backslash)
+      if (i & 1)
         {
           /* Backslash/newline handling:
              In traditional GNU make all trailing whitespace, consecutive
@@ -106,30 +104,16 @@ collapse_continuations (char *line)
           *out++ = ' ';
         }
       else
-        /* If the newline isn't quoted, put it in the output.  */
-        *out++ = '\n';
+        {
+          /* If the newline isn't quoted, put it in the output.  */
+          *out++ = '\n';
+        }
 
-      /* Now copy the following line to the output.
-         Stop when we find backslashes followed by a newline.  */
-      while (*in != '\0')
-        if (*in == '\\')
-          {
-            p = in + 1;
-            while (*p == '\\')
-              ++p;
-            if (*p == '\n')
-              {
-                in = p;
-                break;
-              }
-            while (in < p)
-              *out++ = *in++;
-          }
-        else
-          *out++ = *in++;
+      q = strchr(in, '\n');
     }
+  while (q);
 
-  *out = '\0';
+  memmove(out, in, strlen(in) + 1);
 }
 
 /* Print N spaces (used in debug for target-depth).  */
