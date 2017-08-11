@@ -2249,7 +2249,7 @@ find_map_unquote (char *string, int stopmap)
         break;
 
       /* If we stopped due to a variable reference, skip over its contents.  */
-      if (STOP_SET (*p, MAP_VARIABLE))
+      if (*p == '$')
         {
           char openparen = p[1];
 
