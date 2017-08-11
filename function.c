@@ -329,7 +329,10 @@ find_next_argument (char startparen, char endparen,
   int count = 0;
 
   for (; ptr < end; ++ptr)
-    if (*ptr == startparen)
+    if (!STOP_SET (*ptr, MAP_VARSEP|MAP_COMMA))
+      continue;
+
+    else if (*ptr == startparen)
       ++count;
 
     else if (*ptr == endparen)
@@ -2458,7 +2461,9 @@ handle_function (char **op, const char **stringp)
      count might be high, but it'll never be low.  */
 
   for (nargs=1, end=beg; *end != '\0'; ++end)
-    if (*end == ',')
+    if (!STOP_SET (*end, MAP_VARSEP|MAP_COMMA))
+      continue;
+    else if (*end == ',')
       ++nargs;
     else if (*end == openparen)
       ++count;

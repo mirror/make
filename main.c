@@ -635,6 +635,10 @@ initialize_stopchar_map (void)
   stopchar_map[(int)'|'] = MAP_PIPE;
   stopchar_map[(int)'.'] = MAP_DOT | MAP_USERFUNC;
   stopchar_map[(int)','] = MAP_COMMA;
+  stopchar_map[(int)'('] = MAP_VARSEP;
+  stopchar_map[(int)'{'] = MAP_VARSEP;
+  stopchar_map[(int)'}'] = MAP_VARSEP;
+  stopchar_map[(int)')'] = MAP_VARSEP;
   stopchar_map[(int)'$'] = MAP_VARIABLE;
 
   stopchar_map[(int)'-'] = MAP_USERFUNC;
