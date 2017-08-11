@@ -397,7 +397,6 @@ extern int unixy_shell;
 #define MAP_SEMI        0x0010
 #define MAP_EQUALS      0x0020
 #define MAP_COLON       0x0040
-#define MAP_PERCENT     0x0080
 #define MAP_PIPE        0x0100
 #define MAP_DOT         0x0200
 #define MAP_COMMA       0x0400

@@ -2429,10 +2429,9 @@ find_percent_cached (const char **string)
 
   while (1)
     {
-      while (! STOP_SET (*p, MAP_PERCENT|MAP_NUL))
-        ++p;
+      p = strchr(p, '%');
 
-      if (*p == '\0')
+      if (!p)
         break;
 
       /* See if this % is escaped with a backslash; if not we're done.  */
@@ -2478,11 +2477,12 @@ find_percent_cached (const char **string)
   if (new)
     {
       *string = strcache_add (*string);
-      p = *string + (p - new);
+      if (p)
+	p = *string + (p - new);
     }
 
   /* If we didn't find a %, return NULL.  Otherwise return a ptr to it.  */
-  return (*p == '\0') ? NULL : p;
+  return p;
 }
 
 /* Find the next line of text in an eval buffer, combining continuation lines
