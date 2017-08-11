@@ -154,7 +154,8 @@ static void record_target_var (struct nameseq *filenames, char *defn,
 static enum make_word_type get_next_mword (char *buffer, char *delim,
                                            char **startp, unsigned int *length);
 static void remove_comments (char *line);
-static char *find_char_unquote (char *string, int map);
+static char *find_map_unquote (char *string, int map);
+static char *find_char_unquote (char *string, int stop);
 static char *unescape_char (char *string, int c);
 
 
@@ -1002,7 +1003,7 @@ eval (struct ebuffer *ebuf, int set_default)
 
         /* Search the line for an unquoted ; that is not after an
            unquoted #.  */
-        cmdleft = find_char_unquote (line, MAP_SEMI|MAP_COMMENT|MAP_VARIABLE);
+        cmdleft = find_map_unquote (line, MAP_SEMI|MAP_COMMENT|MAP_VARIABLE);
         if (cmdleft != 0 && *cmdleft == '#')
           {
             /* We found a comment before a semicolon.  */
@@ -1049,7 +1050,7 @@ eval (struct ebuffer *ebuf, int set_default)
             if (cmdleft == 0)
               {
                 /* Look for a semicolon in the expanded line.  */
-                cmdleft = find_char_unquote (p2, MAP_SEMI);
+                cmdleft = find_char_unquote (p2, ';');
 
                 if (cmdleft != 0)
                   {
@@ -1076,7 +1077,7 @@ eval (struct ebuffer *ebuf, int set_default)
                   }
               }
 
-            colonp = find_char_unquote (p2, MAP_COLON);
+            colonp = find_char_unquote (p2, ':');
 #ifdef HAVE_DOS_PATHS
             /* The drive spec brain-damage strikes again...  */
             /* Note that the only separators of targets in this context
@@ -1085,7 +1086,7 @@ eval (struct ebuffer *ebuf, int set_default)
             while (colonp && (colonp[1] == '/' || colonp[1] == '\\') &&
                    colonp > p2 && isalpha ((unsigned char)colonp[-1]) &&
                    (colonp == p2 + 1 || strchr (" \t(", colonp[-2]) != 0))
-              colonp = find_char_unquote (colonp + 1, MAP_COLON);
+              colonp = find_char_unquote (colonp + 1, ':');
 #endif
             if (colonp != 0)
               break;
@@ -1178,7 +1179,7 @@ eval (struct ebuffer *ebuf, int set_default)
 
         /* This is a normal target, _not_ a target-specific variable.
            Unquote any = in the dependency list.  */
-        find_char_unquote (lb_next, MAP_EQUALS);
+        find_char_unquote (lb_next, '=');
 
         /* Remember the command prefix for this target.  */
         prefix = cmd_prefix;
@@ -1196,7 +1197,7 @@ eval (struct ebuffer *ebuf, int set_default)
             /* Look for a semicolon in the expanded line.  */
             if (cmdleft == 0)
               {
-                cmdleft = find_char_unquote (p2, MAP_SEMI);
+                cmdleft = find_char_unquote (p2, ';');
                 if (cmdleft != 0)
                   *(cmdleft++) = '\0';
               }
@@ -1400,7 +1401,7 @@ remove_comments (char *line)
 {
   char *comment;
 
-  comment = find_char_unquote (line, MAP_COMMENT|MAP_VARIABLE);
+  comment = find_map_unquote (line, MAP_COMMENT|MAP_VARIABLE);
 
   if (comment != 0)
     /* Cut off the line at the #.  */
@@ -2231,7 +2232,7 @@ record_files (struct nameseq *filenames, const char *pattern,
    are skipped, even if the contain STOPMAP characters.  */
 
 static char *
-find_char_unquote (char *string, int stopmap)
+find_map_unquote (char *string, int stopmap)
 {
   unsigned int string_len = 0;
   char *p = string;
@@ -2312,6 +2313,46 @@ find_char_unquote (char *string, int stopmap)
   return 0;
 }
 
+static char *
+find_char_unquote (char *string, int stop)
+{
+  unsigned int string_len = 0;
+  char *p = string;
+
+  while (1)
+    {
+      p = strchr(p, stop);
+
+      if (!p)
+        return NULL;
+
+      if (p > string && p[-1] == '\\')
+        {
+          /* Search for more backslashes.  */
+          int i = -2;
+          while (&p[i] >= string && p[i] == '\\')
+            --i;
+          ++i;
+          /* Only compute the length if really needed.  */
+          if (string_len == 0)
+            string_len = strlen (string);
+          /* The number of backslashes is now -I.
+             Copy P over itself to swallow half of them.  */
+          memmove (&p[i], &p[i/2], (string_len - (p - string)) - (i/2) + 1);
+          p += i/2;
+          if (i % 2 == 0)
+            /* All the backslashes quoted each other; the STOPCHAR was
+               unquoted.  */
+            return p;
+
+          /* The STOPCHAR was quoted by a backslash.  Look for another.  */
+        }
+      else
+        /* No backslash in sight.  */
+        return p;
+    }
+}
+
 /* Unescape a character in a string.  The string is compressed onto itself.  */
 
 static char *
@@ -2365,7 +2406,7 @@ unescape_char (char *string, int c)
 char *
 find_percent (char *pattern)
 {
-  return find_char_unquote (pattern, MAP_PERCENT);
+  return find_char_unquote (pattern, '%');
 }
 
 /* Search STRING for an unquoted % and handle quoting.  Returns a pointer to
@@ -3070,7 +3111,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
       /* There are names left, so find the end of the next name.
          Throughout this iteration S points to the start.  */
       s = p;
-      p = find_char_unquote (p, findmap);
+      p = find_map_unquote (p, findmap);
 
 #ifdef VMS
         /* convert comma separated list to space separated */
@@ -3080,7 +3121,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
 #ifdef _AMIGA
       /* If we stopped due to a device name, skip it.  */
       if (p && p != s+1 && p[0] == ':')
-        p = find_char_unquote (p+1, findmap);
+        p = find_map_unquote (p+1, findmap);
 #endif
 #ifdef HAVE_DOS_PATHS
       /* If we stopped due to a drive specifier, skip it.
@@ -3088,7 +3129,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
          doesn't allow path names with spaces.  */
       if (p && p == s+1 && p[0] == ':'
           && isalpha ((unsigned char)s[0]) && STOP_SET (p[1], MAP_DIRSEP))
-        p = find_char_unquote (p+1, findmap);
+        p = find_map_unquote (p+1, findmap);
 #endif
 
       if (!p)
