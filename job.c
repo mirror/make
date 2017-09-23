@@ -1919,17 +1919,31 @@ job_next_command (struct child *child)
 }
 
 /* Determine if the load average on the system is too high to start a new job.
-   The real system load average is only recomputed once a second.  However, a
-   very parallel make can easily start tens or even hundreds of jobs in a
-   second, which brings the system to its knees for a while until that first
-   batch of jobs clears out.
+
+   On systems which provide /proc/loadavg (e.g., Linux), we use an idea
+   provided by Sven C. Dack <sven.c.dack@sky.com>: retrieve the current number
+   of processes the kernel is running and, if it's greater than the requested
+   load we don't allow another job to start.  We allow a job to start with
+   equal processes since one of those will be for make itself, which will then
+   pause waiting for jobs to clear.
+
+   Otherwise, we obtain the system load average and compare that.
+
+   The system load average is only recomputed once every N (N>=1) seconds.
+   However, a very parallel make can easily start tens or even hundreds of
+   jobs in a second, which brings the system to its knees for a while until
+   that first batch of jobs clears out.
 
    To avoid this we use a weighted algorithm to try to account for jobs which
    have been started since the last second, and guess what the load average
    would be now if it were computed.
 
    This algorithm was provided by Thomas Riedl <thomas.riedl@siemens.com>,
-   who writes:
+   based on load average being recomputed once per second, which is
+   (apparently) how Solaris operates.  Linux recomputes only once every 5
+   seconds, but Linux is handled by the /proc/loadavg algorithm above.
+
+   Thomas writes:
 
 !      calculate something load-oid and add to the observed sys.load,
 !      so that latter can catch up:
@@ -1966,6 +1980,7 @@ load_too_high (void)
 #else
   static double last_sec;
   static time_t last_now;
+  static int proc_fd = -2;
   double load, guess;
   time_t now;
 
@@ -1977,6 +1992,68 @@ load_too_high (void)
 
   if (max_load_average < 0)
     return 0;
+
+  /* If we haven't tried to open /proc/loadavg, try now.  */
+#define LOADAVG "/proc/loadavg"
+  if (proc_fd == -2)
+    {
+      EINTRLOOP (proc_fd, open (LOADAVG, O_RDONLY));
+      if (proc_fd < 0)
+        DB (DB_JOBS, ("Using system load detection method.\n"));
+      else
+        {
+          DB (DB_JOBS, ("Using " LOADAVG " load detection method.\n"));
+          fd_noinherit (proc_fd);
+        }
+    }
+
+  /* Try to read /proc/loadavg if we managed to open it.  */
+  if (proc_fd >= 0)
+    {
+      int r;
+
+      EINTRLOOP (r, lseek (proc_fd, 0, SEEK_SET));
+      if (r >= 0)
+        {
+#define PROC_LOADAVG_SIZE 64
+          char avg[PROC_LOADAVG_SIZE+1];
+
+          EINTRLOOP (r, read (proc_fd, avg, PROC_LOADAVG_SIZE));
+          if (r >= 0)
+            {
+              const char *p;
+
+              /* The syntax of /proc/loadavg is:
+                    <1m> <5m> <15m> <running>/<total> <pid>
+                 The load is considered too high if there are more jobs
+                 running than the requested average.  */
+
+              avg[r] = '\0';
+              p = strchr (avg, ' ');
+              if (p)
+                p = strchr (p+1, ' ');
+              if (p)
+                p = strchr (p+1, ' ');
+
+              if (p && ISDIGIT(p[1]))
+                {
+                  int cnt = atoi (p+1);
+                  DB (DB_JOBS, ("Running: system = %d / make = %u (max requested = %f)\n",
+                                cnt, job_slots_used, max_load_average));
+                  return (double)cnt > max_load_average;
+                }
+
+              DB (DB_JOBS, ("Failed to parse " LOADAVG ": %s\n", avg));
+            }
+        }
+
+      /* If we got here, something went wrong.  Give up on this method.  */
+      if (r < 0)
+        DB (DB_JOBS, ("Failed to read " LOADAVG ": %s\n", strerror (errno)));
+
+      close (proc_fd);
+      proc_fd = -1;
+    }
 
   /* Find the real system load average.  */
   make_access ();
