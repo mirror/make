@@ -1469,7 +1469,45 @@ name_mtime (const char *name)
   struct stat st;
   int e;
 
+#if defined(WINDOWS32)
+  {
+    char tem[MAXPATHLEN], *tstart, *tend;
+    const char *p = name + strlen (name);
+
+    /* Remove any trailing slashes and "."/"..".  MS-Windows stat
+       fails on valid directories if NAME ends in a slash, and we need
+       to emulate the Posix behavior where stat on "foo/" or "foo/."
+       succeeds ONLY if "foo" is a directory. */
+    if (p > name)
+      {
+	memcpy (tem, name, p - name + 1);
+	tstart = tem;
+	if (tstart[1] == ':')
+	  tstart += 2;
+	tend = tem + (p - name - 1);
+	if (*tend == '.' && tend > tstart)
+	  tend--;
+	if (*tend == '.' && tend > tstart)
+	  tend--;
+	for ( ; tend > tstart && (*tend == '/' || *tend == '\\'); tend--)
+	  *tend = '\0';
+      }
+    else
+      {
+	tem[0] = '\0';
+	tend = &tem[0];
+      }
+
+    e = stat (tem, &st);
+    if (e == 0 && !_S_ISDIR (st.st_mode) && tend < tem + (p - name - 1))
+      {
+	errno = ENOTDIR;
+	e = -1;
+      }
+  }
+#else
   EINTRLOOP (e, stat (name, &st));
+#endif
   if (e == 0)
     mtime = FILE_TIMESTAMP_STAT_MODTIME (name, st);
   else if (errno == ENOENT || errno == ENOTDIR)
