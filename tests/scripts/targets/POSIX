@@ -17,7 +17,7 @@ run_make_test(qq!
 .POSIX:
 all: ; \@$script
 !,
-              '', "#MAKE#: *** [#MAKEFILE#:3: all] Error $err\n", 512);
+              '', "#MAKE#: *** [#MAKEFILE#;3: all] Error $err\n", 512);
 
 # User settings must override .POSIX
 $flags = '-xc';

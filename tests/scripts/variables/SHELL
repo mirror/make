@@ -102,6 +102,6 @@ run_make_test(qq!
 .SHELLFLAGS = $flags
 all: ; \@$script
 !,
-              '', "$out#MAKE#: *** [#MAKEFILE#:3: all] Error $err\n", 512);
+              '', "$out#MAKE#: *** [#MAKEFILE#;3: all] Error $err\n", 512);
 
 1;

@@ -110,7 +110,7 @@ $(dir)/foo.bar:
 
 ',
 "dir=$dir",
-"#MAKE#: *** [#MAKEFILE#:6: $dir/foo.bar] Error 1",
+"#MAKE#: *** [#MAKEFILE#;6: $dir/foo.bar] Error 1",
 512);
 
 unlink("$dir/foo.bar");
