@@ -1245,7 +1245,7 @@ func_if (char *o, char **argv, const char *funcname UNUSED)
     {
       char *expansion = expand_argument (begp, endp+1);
 
-      result = strlen (expansion);
+      result = expansion[0] != '\0';
       free (expansion);
     }
 
