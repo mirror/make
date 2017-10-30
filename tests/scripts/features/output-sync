@@ -45,7 +45,7 @@ sub output_sync_clean {
 # reliable.  If things are too fast, then sometimes a different job will steal
 # the output sync lock and the output is mis-ordered from what we expect.
 sub output_sync_wait {
-    return "while [ ! -f ../mksync.$_[0] ]; do :; done; $CMD_rmfile ../mksync.$_[0].wait; $sleep_command 1";
+    return "while [ ! -f ../mksync.$_[0] ]; do :; done; $sleep_command 1";
 }
 sub output_sync_set {
     return "date > ../mksync.$_[0]";

@@ -1466,7 +1466,7 @@ main (int argc, char **argv, char **envp)
                                  || output_sync == OUTPUT_SYNC_TARGET);
   OUTPUT_SET (&make_sync);
 
-  /* Remember the job slots set through the environment vs. command line.  */
+  /* Parse the command line options.  Remember the job slots set this way.  */
   {
     int env_slots = arg_job_slots;
     arg_job_slots = INVALID_JOB_SLOTS;
@@ -1593,41 +1593,38 @@ main (int argc, char **argv, char **envp)
   /* We may move, but until we do, here we are.  */
   starting_directory = current_directory;
 
-  /* Set up the job_slots value and the jobserver.  This can't be usefully set
-     in the makefile, and we want to verify the authorization is valid before
-     make has a chance to start using it for something else.  */
+  /* Validate the arg_job_slots configuration before we define MAKEFLAGS so
+     users get an accurate value in their makefiles.
+     At this point arg_job_slots is the argv setting, if there is one, else
+     the MAKEFLAGS env setting, if there is one.  */
 
   if (jobserver_auth)
     {
+      /* We're a child in an existing jobserver group.  */
       if (argv_slots == INVALID_JOB_SLOTS)
         {
+          /* There's no -j option on the command line: check authorization.  */
           if (jobserver_parse_auth (jobserver_auth))
             {
               /* Success!  Use the jobserver.  */
-              job_slots = 0;
               goto job_setup_complete;
             }
 
+          /* Oops: we have jobserver-auth but it's invalid :(.  */
           O (error, NILF, _("warning: jobserver unavailable: using -j1.  Add '+' to parent make rule."));
           arg_job_slots = 1;
         }
 
-      /* The user provided a -j setting on the command line: use it.  */
+      /* The user provided a -j setting on the command line so use it: we're
+         the master make of a new jobserver group.  */
       else if (!restarts)
-        /* If restarts is >0 we already printed this message.  */
-        O (error, NILF,
-           _("warning: -jN forced in submake: disabling jobserver mode."));
+        ON (error, NILF,
+            _("warning: -j%d forced in submake: resetting jobserver mode."),
+            argv_slots);
 
-      /* We failed to use our parent's jobserver.  */
+      /* We can't use our parent's jobserver, so reset.  */
       reset_jobserver ();
-      job_slots = (unsigned int)arg_job_slots;
     }
-  else if (arg_job_slots == INVALID_JOB_SLOTS)
-    /* The default is one job at a time.  */
-    job_slots = 1;
-  else
-    /* Use whatever was provided.  */
-    job_slots = (unsigned int)arg_job_slots;
 
  job_setup_complete:
 
@@ -1983,6 +1980,9 @@ main (int argc, char **argv, char **envp)
   {
     int old_builtin_rules_flag = no_builtin_rules_flag;
     int old_builtin_variables_flag = no_builtin_variables_flag;
+    int old_arg_job_slots = arg_job_slots;
+
+    arg_job_slots = INVALID_JOB_SLOTS;
 
     /* Decode switches again, for variables set by the makefile.  */
     decode_env_switches (STRING_SIZE_TUPLE ("GNUMAKEFLAGS"));
@@ -1994,6 +1994,24 @@ main (int argc, char **argv, char **envp)
 #if 0
     decode_env_switches (STRING_SIZE_TUPLE ("MFLAGS"));
 #endif
+
+    /* If -j is not set in the makefile, or it was set on the command line,
+       reset to use the previous value.  */
+    if (arg_job_slots == INVALID_JOB_SLOTS || argv_slots != INVALID_JOB_SLOTS)
+      arg_job_slots = old_arg_job_slots;
+
+    else if (jobserver_auth)
+      {
+        /* Makefile MAKEFLAGS set -j, but we already have a jobserver.
+           Make us the master of a new jobserver group.  */
+        if (!restarts)
+          ON (error, NILF,
+              _("warning: -j%d forced in makefile: resetting jobserver mode."),
+              arg_job_slots);
+
+        /* We can't use our parent's jobserver, so reset.  */
+        reset_jobserver ();
+      }
 
     /* Reset in case the switches changed our mind.  */
     syncing = (output_sync == OUTPUT_SYNC_LINE
@@ -2021,8 +2039,31 @@ main (int argc, char **argv, char **envp)
       undefine_default_variables ();
   }
 
+  /* Final jobserver configuration.
+
+     If we have jobserver_auth then we are a client in an existing jobserver
+     group, that's already been verified OK above.  If we don't have
+     jobserver_auth and jobserver is enabled, then start a new jobserver.
+
+     arg_job_slots = INVALID_JOB_SLOTS if we don't want -j in MAKEFLAGS
+
+     arg_job_slots = # of jobs of parallelism
+
+     job_slots = 0 for no limits on jobs, or when limiting via jobserver.
+
+     job_slots = 1 for standard non-parallel mode.
+
+     job_slots >1 for old-style parallelism without jobservers.  */
+
+  if (jobserver_auth)
+    job_slots = 0;
+  else if (arg_job_slots == INVALID_JOB_SLOTS)
+    job_slots = 1;
+  else
+    job_slots = arg_job_slots;
+
 #if defined (__MSDOS__) || defined (__EMX__) || defined (VMS)
-  if (arg_job_slots != 1
+  if (job_slots != 1
 # ifdef __EMX__
       && _osmode != OS2_MODE /* turn off -j if we are in DOS mode */
 # endif
@@ -2031,7 +2072,8 @@ main (int argc, char **argv, char **envp)
       O (error, NILF,
          _("Parallel jobs (-j) are not supported on this platform."));
       O (error, NILF, _("Resetting to single job (-j1) mode."));
-      arg_job_slots = job_slots = 1;
+      arg_job_slots = INVALID_JOB_SLOTS;
+      job_slots = 1;
     }
 #endif
 
