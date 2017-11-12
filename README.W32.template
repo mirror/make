@@ -41,14 +41,6 @@ Do this first, regardless of the build method you choose:
     case, while Makefile rules are written for lower-case versions.)
 
 
-Using make_msvc_net2003.vcproj
-------------------------------
-
- 2. Open make_msvc_net2003.vcproj in MSVS71 or MSVC71 or any compatible IDE,
-    then build this project as usual.  There's also a solution file for
-    Studio 2003.
-
-
 Building with (MinGW-)GCC using build_w32.bat
 ---------------------------------------------
 
@@ -58,8 +50,9 @@ Building with (MinGW-)GCC using build_w32.bat
         .\build_w32.bat gcc
 
     This produces gnumake.exe in the GccRel directory.
+
     If you want a version of GNU make built with debugging enabled,
-    add the --debug option.
+    add the --debug option.  Output goes into the GccDebug directory.
 
     The batch file will probe for Guile installation, and will build
     gnumake.exe with Guile if it finds it.  If you have Guile
@@ -82,7 +75,8 @@ Building with (MSVC++-)cl using build_w32.bat
 
     If you want a 32bit version of GNU make, add the --x86 option.
 
-    If you want a Debug build of GNU make, add the --debug option.
+    If you want a Debug build of GNU make, add the --debug option.  Output
+    will go into the .\WinDebug directory.
 
     The batch file will probe for Guile installation, and will build
     gnumake.exe with Guile if it finds it.  If Guile is installed,
@@ -90,18 +84,46 @@ Building with (MSVC++-)cl using build_w32.bat
     --without-guile option.
 
 
-Building with (MSVC++-)cl using NMakefile
------------------------------------------
+Building with (MinGW-)GCC using GNU make
+----------------------------------------
 
- 2. Open a W32 command prompt for your installed (MSVC++-)cl, setup a
-    correct PATH and other environment variables for it (usually via
-    executing vcvars32.bat or vsvars32.bat from the cl-installation, or
-    using a corresponding start menu entry from the cl-installation),
-    then execute ...
+ 2. If you already have a version of GNU make available you can use it
+    to build this version.  Open a W32 command prompt for your installed
+    (MinGW-)GCC, setup a correct PATH and other environment variables
+    for it, then execute ...
 
-        nmake /f NMakefile
+        make -f Basic.mk TOOLCHAIN=gcc
 
-    (this produces WinDebug/make.exe and WinRel/make.exe).
+    This produces GccRel\gnumake.exe.
+    If you want a version of GNU make built with debugging enabled,
+    add the TARGET_TYPE=debug option:
+
+        make -f Basic.mk TOOLCHAIN=gcc TARGET_TYPE=debug
+
+    The makefile doesn't support Guile integration.  Use build_w32.bat
+    if you want to build with Guile support.
+
+
+Building with (MSVC++-)cl using GNU make
+----------------------------------------
+
+ 2. If you already have a version of GNU make available you can use it
+    to build this version.  Open a W32 command prompt for your installed
+    (MSVC++-)cl, setup a correct PATH and other environment variables
+    for it (usually via executing vcvars32.bat or vsvars32.bat from the
+    cl-installation, or using a corresponding start menu entry from the
+    cl-installation), then execute ...
+
+        make -f Basic.mk
+
+    This produces an optimized WinRel/gnumake.exe.
+    If you want a version of GNU make built with debugging enabled,
+    add the TARGET_TYPE=debug option:
+
+        make -f Basic.mk TARGET_TYPE=debug
+
+    The makefile doesn't support Guile integration.  Use build_w32.bat
+    if you want to build with Guile support.
 
 
 Running the test suite
@@ -110,7 +132,11 @@ Running the test suite
  3. You will need an installation of Perl.  Be sure to use a relatively
     modern version: older versions will sometimes throw spurious errors.
 
-    To run the suite after building, use:
+    To run the suite after building using GNU make, use:
+
+        make -f Basic.mk check
+
+    Alternatively if you'd like to run tests by hand, use:
 
         cd tests
         .\run_make_tests.bat -make <path-to-make>

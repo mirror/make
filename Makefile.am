@@ -16,83 +16,88 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AUTOMAKE_OPTIONS = dist-bzip2 silent-rules std-options
+AUTOMAKE_OPTIONS = dist-bzip2 silent-rules std-options subdir-objects
 ACLOCAL_AMFLAGS = -I config
 
 MAKE_HOST =	@MAKE_HOST@
 
-# Only process if target is MS-Windows
-if WINDOWSENV
-  MAYBE_W32 =	w32
-  W32INC =	-I $(top_srcdir)/w32/include
-  W32LIB =	-Lw32 -lw32
-  ossrc =
-else
-  ossrc =	posixos.c
-endif
-
-SUBDIRS =	glob config po doc $(MAYBE_W32)
+SUBDIRS =	glob config po doc
 
 bin_PROGRAMS =	make
 include_HEADERS = gnumake.h
 
-if USE_CUSTOMS
-  remote =	remote-cstms.c
-else
-  remote =	remote-stub.c
-endif
-
-make_SOURCES =	ar.c arscan.c commands.c default.c dir.c expand.c file.c \
-		function.c getopt.c getopt1.c guile.c implicit.c job.c load.c \
-		loadapi.c main.c misc.c $(ossrc) output.c read.c remake.c \
-		rule.c signame.c strcache.c variable.c version.c vpath.c \
-		hash.c $(remote)
-
-EXTRA_make_SOURCES = vmsjobs.c remote-stub.c remote-cstms.c
-
-noinst_HEADERS = commands.h dep.h filedef.h job.h makeint.h rule.h variable.h \
-		debug.h getopt.h gettext.h hash.h output.h os.h
-
-make_LDADD =	@LIBOBJS@ @ALLOCA@ $(GLOBLIB) @GETLOADAVG_LIBS@ @LIBINTL@ \
-		$(GUILE_LIBS)
-# Only process if target is MS-Windows
-if WINDOWSENV
-    make_LDADD += $(W32LIB)
-endif
-
 man_MANS =	make.1
 
-DEFS =		-DLOCALEDIR=\"$(localedir)\" -DLIBDIR=\"$(libdir)\" -DINCLUDEDIR=\"$(includedir)\" @DEFS@
+make_SRCS =	ar.c arscan.c commands.c commands.h debug.h default.c dep.h \
+		dir.c expand.c file.c filedef.h function.c getopt.c getopt.h \
+		getopt1.c gettext.h guile.c hash.c hash.h implicit.c job.c \
+		job.h load.c loadapi.c main.c makeint.h misc.c os.h output.c \
+		output.h read.c remake.c rule.c rule.h signame.c strcache.c \
+		variable.c variable.h version.c vpath.c
 
-AM_CPPFLAGS =	$(GLOBINC)
+glob_SRCS =	glob/fnmatch.c glob/fnmatch.h glob/glob.c glob/glob.h
+
+w32_SRCS =	w32/pathstuff.c w32/w32os.c w32/compat/dirent.c \
+		w32/compat/posixfcn.c w32/include/dirent.h w32/include/dlfcn.h \
+		w32/include/pathstuff.h w32/include/sub_proc.h \
+		w32/include/w32err.h w32/subproc/misc.c w32/subproc/proc.h \
+		w32/subproc/sub_proc.c w32/subproc/w32err.c
+
+vms_SRCS =	vms_exit.c vms_export_symbol.c vms_progname.c vmsdir.h \
+		vmsfunctions.c vmsify.c vmsjobs.c
+
+amiga_SRCS =	amiga.c amiga.h
+
+make_SOURCES =	$(make_SRCS)
+EXTRA_make_SOURCES = $(amiga_SRCS) $(vms_SRCS)
+
+make_LDADD =	$(GUILE_LIBS) $(LIBOBJS) $(ALLOCA) $(GLOBLIB) \
+		@GETLOADAVG_LIBS@ @LIBINTL@
+
+localedir =	$(datadir)/locale
+
+AM_CPPFLAGS =	-DLIBDIR=\"$(libdir)\" -DINCLUDEDIR=\"$(includedir)\" \
+		-DLOCALEDIR=\"$(localedir)\" $(GLOBINC)
+
 AM_CFLAGS =	$(GUILE_CFLAGS)
-# Only process if target is MS-Windows
+
 if WINDOWSENV
-    AM_CPPFLAGS +=	$(W32INC)
+  make_SOURCES += $(w32_SRCS)
+  AM_CPPFLAGS  += -I $(top_srcdir)/w32/include
+else
+  make_SOURCES += posixos.c
 endif
 
+if USE_CUSTOMS
+  make_SOURCES += remote-cstms.c
+else
+  make_SOURCES += remote-stub.c
+endif
 
 # Extra stuff to include in the distribution.
 
+mk_FILES =	Basic.mk mk/Amiga.mk mk/Windows32.mk mk/msdosdjgpp.mk
+
+# test/scripts are added via dist-hook below.
+test_FILES =	tests/run_make_tests tests/run_make_tests.bat \
+		tests/run_make_tests.pl tests/test_driver.pl \
+		tests/config-flags.pm.in tests/config_flags_pm.com \
+		tests/mkshadow tests/jhelp.pl tests/guile.supp tests/README
+
 EXTRA_DIST =	ChangeLog README build.sh.in $(man_MANS) \
 		README.customs README.OS2 \
-		SCOPTIONS SMakefile \
-		README.Amiga Makefile.ami config.ami make.lnk amiga.c amiga.h \
-		README.DOS Makefile.DOS configure.bat dosbuild.bat configh.dos\
-		README.W32 NMakefile config.h.W32 build_w32.bat subproc.bat \
-		make_msvc_net2003.sln make_msvc_net2003.vcproj \
+		README.Amiga SCOPTIONS config.ami \
+		README.DOS builddos.bat configh.dos \
+		README.W32 config.h.W32 build_w32.bat \
 		README.VMS makefile.vms makefile.com config.h-vms \
-		vmsdir.h vmsfunctions.c vmsify.c vms_exit.c vms_progname.c \
-		vms_export_symbol.c vms_export_symbol_test.com \
-		gmk-default.scm gmk-default.h
+		vms_export_symbol_test.com \
+		gmk-default.scm gmk-default.h \
+		$(mk_FILES) $(test_FILES)
+
 
 # This is built during configure, but behind configure's back
 
 DISTCLEANFILES = build.sh
-
-# --------------- Internationalization Section
-
-localedir =	$(datadir)/locale
 
 # --------------- Local INSTALL Section
 
@@ -101,7 +106,7 @@ localedir =	$(datadir)/locale
 
 # Whether or not make needs to be installed setgid.
 # The value should be either 'true' or 'false'.
-# On many systems, the getloadavg function (used to implement the '-l'
+# On some systems, the getloadavg function (used to implement the '-l'
 # switch) will not work unless make is installed setgid kmem.
 #
 inst_setgid = @NEED_SETGID@
@@ -134,11 +139,11 @@ gmk-default.h: $(srcdir)/gmk-default.scm
 
 # --------------- Local DIST Section
 
-# Install the w32 and tests subdirectories
+# Install the mk and tests subdirectories
 #
 dist-hook:
 	(cd $(srcdir); \
-	 sub=`find w32 tests -follow \( -name .git -o -name .deps -o -name work -o -name .gitignore -o -name \*.orig -o -name \*.rej -o -name \*~ -o -name Makefile \) -prune -o -type f -print`; \
+	 sub=`find tests/scripts -follow \( -name .git -o -name .deps -o -name work -o -name .gitignore -o -name \*.orig -o -name \*.rej -o -name \*~ -o -name \*.out -o -name Makefile \) -prune -o -type f -print`; \
 	 tar chf - $$sub) \
 	| (cd $(distdir); tar xfBp -)
 

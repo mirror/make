@@ -27,8 +27,8 @@ New (since 3.74) DOS-specific features:
    8. Can be built without (a previous version of) Make.
 
    9. The build process requires only standard tools.  (Optional
-      targets like "install:" and "clean:" still need additional
-      programs, though, see below.)
+      targets like "check:" still need additional programs, though,
+      see below.)
 
   10. Beginning with v3.78, the test suite works in the DJGPP
       environment (requires Perl and auxiliary tools; see below).
@@ -55,71 +55,33 @@ To build from sources:
       either DJTAR (which is part of the DJGPP development
       environment), or the DJGPP port of GNU Tar.
 
-   2. Invoke the 'configure.bat' batch file.
+   2. If you have a working Make already, you can run:
 
-      If you are building Make in-place, i.e. in the same directory
-      where its sources are kept, just type "configure.bat" and press
-      [Enter].  Otherwise, you need to supply the path to the source
-      directory as an argument to the batch file, like this:
+          make -f Basic.mk
 
-        c:\djgpp\gnu\make-%VERSION%\configure.bat c:/djgpp/gnu/make-%VERSION%
+   3. If you don't have a working Make already you can bootstrap one
+      by running:
 
-      Note the forward slashes in the source path argument: you MUST
-      use them here.
+          .\builddos.bat
 
-   3. If configure.bat doesn't find a working Make, it will suggest to
-      use the 'dosbuild.bat' batch file to build Make.  Either do as it
-      suggests or install another Make program (a pre-compiled binary
-      should be available from the usual DJGPP sites) and rerun
-      configure.bat.
-
-   4. Invoke Make.
-
-      If you are building from outside of the source directory, you
+   4. If you are building from outside of the source directory, you
       need to tell Make where the sources are, like this:
 
-                make srcdir=c:/djgpp/gnu/make-%VERSION%
+          make srcdir=c:/djgpp/gnu/make
 
-      (configure.bat will tell you this when it finishes).  You MUST
-      use a full, not relative, name of the source directory here, or
-      else Make might fail.
+      or:
 
-   5. After Make finishes, if you have a Unix-style shell installed,
-      you can use the 'install' target to install the package.  You
-      will also need GNU Fileutils and GNU Sed for this (they should
-      be available from the DJGPP sites).
+          c:/djgpp/gnu/make/builddos.bat c:/djgpp/gnu/make
 
-      By default, GNU make will install into your DJGPP installation
-      area.  If you wish to use a different directory, override the
-      DESTDIR variable when invoking "make install", like this:
-
-                make install DESTDIR=c:/other/dir
-
-      This causes the make executable to be placed in c:/other/dir/bin,
-      the man pages in c:/other/dir/man, etc.
-
-      Without a Unix-style shell, you will have to install programs
-      and the docs manually.  Copy make.exe to a directory on your
-      PATH, make.i* info files to your Info directory, and update the
-      file 'dir' in your Info directory by adding the following item
-      to the main menu:
-
-        * Make: (make.info).           The GNU make utility.
-
-      If you have the 'install-info' program (from the GNU Texinfo
-      package), it will do that for you if you invoke it like this:
-
-        install-info --info-dir=c:/djgpp/info c:/djgpp/info/make.info
-
-      (If your Info directory is other than C:\DJGPP\INFO, change this
-      command accordingly.)
-
-   6. The 'clean' targets also require Unix-style shell, and GNU Sed
-      and 'rm' programs (the latter from Fileutils).
-
-   7. To run the test suite, type "make check".  This requires a Unix
+   5. To run the test suite, type "make check".  This requires a Unix
       shell (I used the DJGPP port of Bash 2.03), Perl, Sed, Fileutils
       and Sh-utils.
+
+   6. To install copy make.exe to the preferred location.
+
+      Since GNU make 4.3, support for customized platform installations
+      has been removed.  If you'd like to collaborate on reinstating
+      these capabilities, contact bug-make@gnu.org.
 
 
 Notes:

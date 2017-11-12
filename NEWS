@@ -35,6 +35,14 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set
   already contains some value.  Similarly, appending an empty string does not
   add a trailing space.
 
+* WARNING: Backward-incompatibility!
+  On Linux, and other systems that provide a /proc/loadavg with similar
+  syntax, the -l/--load-average option will use the contents of that file to
+  determine how many jobs are running at any given instant, and compare that
+  value to the load value requested.  This allows usage such as "-j -lN" for
+  N-processor systems with less fear of overload.
+  Patch provided by Sven C. Dack <sven.c.dack@sky.com>
+
 * The previous limit of 63 jobs under -jN on MS-Windows is now
   increased to 4095.  That limit includes the subprocess started by
   the $(shell) function.

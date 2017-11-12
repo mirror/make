@@ -35,16 +35,8 @@ AM_CPPFLAGS += $(MAKE_MAINTAINER_MODE)
 # I want this one but I have to wait for the const cleanup!
 # -Wwrite-strings
 
-# Find the glob source files... this might be dangerous, but we're maintainers!
-globsrc := $(wildcard glob/*.c)
-globhdr := $(wildcard glob/*.h)
-
 TEMPLATES = README README.DOS README.W32 README.OS2 \
 	    config.ami configh.dos config.h.W32 config.h-vms
-MTEMPLATES = Makefile.DOS SMakefile
-
-# These are built as a side-effect of the dist rule
-#all-am: $(TEMPLATES) $(MTEMPLATES) build.sh.in
 
 # Create preprocessor output files--GCC specific!
 %.i : %.c
@@ -61,24 +53,20 @@ $(TEMPLATES) : % : %.template Makefile
 
 # Construct Makefiles by adding on dependencies, etc.
 #
-$(MTEMPLATES) : % : %.template .dep_segment Makefile
+Basic.mk: Basic.mk.template .dep_segment Makefile
 	rm -f $@
 	sed -e 's@%VERSION%@$(VERSION)@g' \
-	    -e 's@%PROGRAMS%@$(bin_PROGRAMS)@g' \
-	    -e 's@%SOURCES%@$(filter-out remote-%,$(make_SOURCES)) remote-$$(REMOTE).c@g' \
-	    -e 's@%OBJECTS%@$(filter-out remote-%,$(make_OBJECTS)) remote-$$(REMOTE).o@g' \
-	    -e 's@%GLOB_SOURCES%@$(globsrc) $(globhdr)@g' \
-	    -e 's@%GLOB_OBJECTS%@$(globsrc:glob/%.c=%.o)@g' \
+	    -e 's@%make_SOURCES%@$(filter %.c,$(make_SRCS))@g' \
+	    -e 's@%glob_SOURCES%@$(filter %.c,$(glob_SRCS))@g' \
+	    -e 's@%w32_SOURCES%@$(filter %.c,$(w32_SRCS))@g' \
+	    -e 's@%vms_SOURCES%@$(filter %.c,$(vms_SRCS))@g' \
+	    -e 's@%amiga_SOURCES%@$(filter %.c,$(amiga_SRCS))@g' \
 	  $< > $@
 	echo >>$@; echo '# --------------- DEPENDENCIES' >>$@; echo '#' >>$@; \
-	  cat $(word 2,$^) >>$@
-	chmod a-w $@
-
-NMakefile: NMakefile.template .dep_segment Makefile
-	rm -f $@
-	cp $< $@
-	echo >>$@; echo '# --------------- DEPENDENCIES' >>$@; echo '#' >>$@; \
-	  sed 's/^\([^ ]*\)\.o:/$$(OUTDIR)\/\1.obj:/' $(word 2,$^) >>$@
+	sed -e 's@^\([^ ]*\)\.o:@$$(OUTDIR)/\1.$$(OBJEXT):@' \
+	    -e 's@\([^ ]*\.[ch]\)@$$(SRCDIR)/\1@g' \
+	    -e 's@$$(SRCDIR)/config.h@$$(OUTDIR)/config.h@g' \
+	  $(word 2,$^) >>$@
 	chmod a-w $@
 
 # Construct build.sh.in
@@ -86,15 +74,14 @@ NMakefile: NMakefile.template .dep_segment Makefile
 build.sh.in: build.template Makefile
 	rm -f $@
 	sed -e 's@%objs%@$(patsubst %.o,%.$${OBJEXT},$(filter-out remote-%,$(make_OBJECTS)))@g' \
-	    -e 's@%globobjs%@$(patsubst %.c,%.$${OBJEXT},$(globsrc))@g' \
+	    -e 's@%globobjs%@$(patsubst %.c,%.$${OBJEXT},$(filter %.c,$(glob_SRCS)))@g' \
 	  $< > $@
 	chmod a-w+x $@
 
 
-# Use automake to build a dependency list file, for "foreign" makefiles like
-# Makefile.DOS.
+# Use automake to build a dependency list file, for Makebase.mk.
 #
-# Automake used to have a --generate-deps flag, but it's gone now, so we have
+# Automake used to have a --generate-deps flag but it's gone now, so we have
 # to do it ourselves.
 #
 DEP_FILES := $(wildcard $(DEPDIR)/*.Po)

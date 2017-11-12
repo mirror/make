@@ -1,6 +1,8 @@
-# -*-Makefile-*-, or close enough
-# Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-# 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+# GNU -*-Makefile-*- to build GNU make on Amiga
+#
+# Amiga overrides for use with Basic.mk.
+#
+# Copyright (C) 2017 Free Software Foundation, Inc.
 # This file is part of GNU Make.
 #
 # GNU Make is free software; you can redistribute it and/or modify it under
@@ -16,14 +18,24 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AUTOMAKE_OPTIONS =	foreign
+CC = sc
+LD = $(CC) Link
+RM = delete
+MKDIR = makedir
 
-# Only build the library when the system doesn't already have GNU glob.
-if USE_LOCAL_GLOB
-  noinst_LIBRARIES =	libglob.a
-endif
+CPPFLAGS =
+CFLAGS =
+LDFLAGS =
 
-libglob_a_SOURCES =	glob.c glob.h fnmatch.c fnmatch.h
+prog_SOURCES += alloca.c getloadavg.c $(glob_SOURCES) $(amiga_SOURCES)
 
+extra_CPPFLAGS = IDir "" IDir $(SRCDIR)/glob
 
-EXTRA_DIST =		COPYING.LIB
+C_SOURCE =
+OUTPUT_OPTION =
+LDFLAGS = From LIB:cres.o
+LDLIBS = Lib LIB:sc.lib LIB:amiga.lib
+LINK_OUTPUT = To $@
+
+$(OUTDIR)/config.h: $(SRCDIR)/config.ami
+	copy $< To $@

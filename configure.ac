@@ -27,8 +27,6 @@ AC_CONFIG_HEADERS([config.h])
 
 # Automake setup
 # We have to enable "foreign" because ChangeLog is auto-generated
-# We cannot enable -Werror because gettext 0.18.1 has invalid content
-# When we update gettext to 0.18.3 or better we can add it again.
 AM_INIT_AUTOMAKE([1.15 foreign -Werror -Wall])
 
 # Checks for programs.
@@ -40,9 +38,6 @@ AC_PROG_CPP
 AC_CHECK_PROG([AR], [ar], [ar], [ar])
 # Perl is needed for the test suite (only)
 AC_CHECK_PROG([PERL], [perl], [perl], [perl])
-
-# Needed for w32/Makefile.am
-AM_PROG_AR
 
 # Specialized system macros
 AC_CANONICAL_HOST
@@ -509,7 +504,7 @@ AS_IF([test "x$make_cv_load" = xno && test "x$user_load" = xyes],
 
 # Specify what files are to be created.
 AC_CONFIG_FILES([Makefile glob/Makefile po/Makefile.in config/Makefile \
-                 doc/Makefile w32/Makefile tests/config-flags.pm])
+                 doc/Makefile tests/config-flags.pm])
 
 # OK, do it!
 

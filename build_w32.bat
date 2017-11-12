@@ -190,12 +190,12 @@ call :Compile strcache
 call :Compile variable
 call :Compile version
 call :Compile vpath
-call :Compile w32\compat\posixfcn
 call :Compile w32\pathstuff
+call :Compile w32\w32os
+call :Compile w32\compat\posixfcn
 call :Compile w32\subproc\misc
 call :Compile w32\subproc\sub_proc
 call :Compile w32\subproc\w32err
-call :Compile w32\w32os
 
 if not "%COMPILER%" == "gcc" call :Compile w32\compat\dirent
 
@@ -204,6 +204,7 @@ call :Link
 echo.
 if not exist %OUTDIR%\%MAKE%.exe echo %OUTDIR% build FAILED!
 if exist %OUTDIR%\%MAKE%.exe echo %OUTDIR% build succeeded.
+if exist %OUTDIR%\%MAKE%.exe copy /Y Basic.mk Makefile
 goto :EOF
 
 :Compile

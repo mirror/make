@@ -7,6 +7,15 @@ Software Foundation, Inc.
 This file is free documentation; the Free Software Foundation gives
 unlimited permission to copy, distribute and modify it.
 
+Installation From Git
+=====================
+
+If you are trying to build GNU make from a Git clone rather than a
+downloaded source distribution file, see README.git for steps you
+must take to configure your workspace before you can use the
+instructions below.
+
+
 Basic Installation
 ==================
 
@@ -228,4 +237,3 @@ overridden in the site shell script).
 
 `configure' also accepts some other, not widely useful, options.  Run
 `configure --help' for more details.
-

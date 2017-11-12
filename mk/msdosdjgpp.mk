@@ -1,5 +1,8 @@
-# Makefile.am to create libw32.a for mingw32 host.
-# Copyright (C) 1997-2017 Free Software Foundation, Inc.
+# GNU -*-Makefile-*- to build GNU make on MS-DOS with DJGPP
+#
+# MS-DOS overrides for use with Makebase.mk.
+#
+# Copyright (C) 2017 Free Software Foundation, Inc.
 # This file is part of GNU Make.
 #
 # GNU Make is free software; you can redistribute it and/or modify it under
@@ -15,12 +18,17 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AUTOMAKE_OPTIONS = subdir-objects
+OBJEXT = o
+EXEEXT = .exe
 
-noinst_LIBRARIES = libw32.a
+CC = gcc
 
-libw32_a_SOURCES =  subproc/misc.c subproc/sub_proc.c subproc/w32err.c \
-		    compat/posixfcn.c pathstuff.c w32os.c
+prog_SOURCES += getloadavg.c $(glob_SOURCES)
 
-libw32_a_CPPFLAGS = -I$(srcdir)/include -I$(srcdir)/subproc -I$(top_srcdir) \
-		    -I$(top_srcdir)/glob
+extra_CPPFLAGS += -I$(SRCDIR)/glob -DINCLUDEDIR=\"c:/djgpp/include\" -DLIBDIR=\"c:/djgpp/lib\"
+
+MKDIR.cmd = command.com /c mkdir $(subst /,\\,$@)
+RM.cmd = command.com /c del /F /Q $(subst /,\\,$(OBJECTS) $(PROG))
+
+$(OUTDIR)/config.h: $(SRCDIR)/configh.dos
+	command.com /c copy /Y $(subst /,\\,$< $@)

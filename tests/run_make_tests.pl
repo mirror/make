@@ -71,7 +71,10 @@ use FindBin;
 use lib "$FindBin::Bin";
 
 require "test_driver.pl";
-require "config-flags.pm";
+if (! eval { require "config-flags.pm" }) {
+    # Some target systems don't create config-flags.pm
+    %CONFIG_FLAGS = ();
+}
 
 # Some target systems might not have the POSIX module...
 $has_POSIX = eval { require "POSIX.pm" };

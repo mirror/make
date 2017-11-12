@@ -1,0 +1,103 @@
+# Basic GNU -*-Makefile-*- to build GNU make
+#
+# NOTE:
+# If you have no 'make' program at all to process this makefile:
+#   * On Windows, run ".\buildw32.bat" to bootstrap one.
+#   * On MS-DOS, run ".\builddos.bat" to bootstrap one.
+#
+# Once you have a GNU make program created, you can use it with this makefile
+# to keep it up to date if you make changes, as:
+#
+#   make.exe -f Makew32.mk
+#
+# Copyright (C) 2017 Free Software Foundation, Inc.
+# This file is part of GNU Make.
+#
+# GNU Make is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 3 of the License, or (at your option) any later
+# version.
+#
+# GNU Make is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program.  If not, see <http://www.gnu.org/licenses/>.
+
+all:
+
+make_SOURCES = %make_SOURCES% remote-stub.c
+glob_SOURCES = %glob_SOURCES%
+w32_SOURCES = %w32_SOURCES%
+vms_SOURCES = %vms_SOURCES%
+amiga_SOURCES = %amiga_SOURCES%
+
+OUTDIR = .
+SRCDIR = .
+
+OBJEXT = o
+EXEEXT =
+
+PROG = $(OUTDIR)/make$(EXEEXT)
+
+LD = $(CC)
+
+# Reserved for command-line override
+CPPFLAGS =
+CFLAGS = -g -O2
+LDFLAGS =
+
+prog_SOURCES = $(make_SOURCES)
+
+extra_CPPFLAGS = -DHAVE_CONFIG_H -I$(OUTDIR) -I$(SRCDIR)
+extra_CFLAGS =
+extra_LDFLAGS = $(extra_CFLAGS) $(CFLAGS)
+
+C_SOURCE = -c
+OUTPUT_OPTION = -o $@
+LINK_OUTPUT = -o $@
+
+# Command lines
+
+COMPILE.cmd = $(CC) $(extra_CFLAGS) $(CFLAGS) $(extra_CPPFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $(OUTPUT_OPTION) $(C_SOURCE) $<
+
+LINK.cmd = $(LD) $(extra_LDFLAGS) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) $(LINK_OUTPUT)
+
+CHECK.cmd = cd tests && ./run_make_tests -make $(shell cd $(<D) && pwd)/$(<F)
+
+MKDIR = mkdir -p
+MKDIR.cmd = $(MKDIR) $@
+
+RM = rm -f
+RM.cmd = $(RM) $(OBJECTS) $(PROG)
+
+# Load overrides for the above variables.
+include $(wildcard mk/$(lastword $(subst -, ,$(MAKE_HOST)).mk))
+
+VERSION = %VERSION%
+
+VPATH = $(SRCDIR)
+
+all: $(PROG)
+
+OBJECTS = $(patsubst %.c,$(OUTDIR)/%.$(OBJEXT),$(prog_SOURCES))
+
+$(PROG): $(OBJECTS)
+	$(LINK.cmd)
+
+.SECONDEXPANSION:
+$(OBJECTS): $(OUTDIR)/%.$(OBJEXT): %.c | $$(@D)/.
+	$(COMPILE.cmd)
+
+$(addsuffix .,$(sort $(dir $(OBJECTS)))):
+	$(MKDIR.cmd)
+
+check: $(PROG)
+	$(CHECK.cmd)
+
+clean:
+	$(RM.cmd)
+
+.PHONY: all check clean

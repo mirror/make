@@ -3,6 +3,7 @@ ID
 TAGS
 .*gdbinit
 .gdb_history
+.vscode
 *~
 #*
 .#*
@@ -11,6 +12,7 @@ TAGS
 ABOUT-NLS
 Makefile
 Makefile.in
+Basic.mk
 aclocal.m4
 autom4te.cache
 config.cache
@@ -44,13 +46,10 @@ GccRel/
 .dep_segment
 .check-git-HEAD
 ChangeLog
-Makefile.DOS
-NMakefile
 README
 README.DOS
 README.OS2
 README.W32
-SMakefile
 build.sh
 build.sh.in
 config.ami

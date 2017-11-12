@@ -6,6 +6,12 @@ $details = "Verify the different aspects of the shared object API.";
 # Don't do anything if this system doesn't support "load"
 exists $FEATURES{load} or return -1;
 
+# CONFIG_FLAGS are loaded from config-flags.pm and set by configure
+if (! exists $CONFIG_FLAGS{CC}) {
+    $verbose and print "Skipping load test: no CC defined\n";
+    return -1;
+}
+
 # First build a shared object
 # Provide both a default and non-default load symbol
 
@@ -71,6 +77,8 @@ testapi_gmk_setup ()
 }
 EOF
 close($F) or die "close: testapi.c: $!\n";
+
+# Make sure we can compile
 
 my $sobuild = "$CONFIG_FLAGS{CC} ".($srcdir? "-I$srcdir":'')." $CONFIG_FLAGS{CPPFLAGS} $CONFIG_FLAGS{CFLAGS} -shared -fPIC $CONFIG_FLAGS{LDFLAGS} -o testapi.so testapi.c";
 
