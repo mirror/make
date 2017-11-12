@@ -2550,7 +2550,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
     { "cd", "echo", "eval", "exec", "exit", "login", "logout", "set", "umask",
       "wait", "while", "for", "case", "if", ":", ".", "break", "continue",
       "export", "read", "readonly", "shift", "times", "trap", "switch",
-      "unset", "ulimit", 0 };
+      "unset", "ulimit", "command", 0 };
 
   const char *sh_chars;
   const char **sh_cmds;
@@ -2577,7 +2577,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
     { "echo", "cd", "eval", "exec", "exit", "login", "logout", "set", "umask",
       "wait", "while", "for", "case", "if", ":", ".", "break", "continue",
       "export", "read", "readonly", "shift", "times", "trap", "switch",
-      "unset", 0 };
+      "unset", "command", 0 };
 
   const char *sh_chars;
   const char **sh_cmds;
@@ -2587,7 +2587,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
   static const char *sh_cmds[] =
     { "cd", "eval", "if", "delete", "echo", "copy", "rename", "set", "setenv",
       "date", "makedir", "skip", "else", "endif", "path", "prompt", "unset",
-      "unsetenv", "version", 0 };
+      "unsetenv", "version", "command", 0 };
 
 #elif defined (WINDOWS32)
   /* We used to have a double quote (") in sh_chars_dos[] below, but
@@ -2610,7 +2610,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
   static const char *sh_cmds_sh[] =
     { "cd", "eval", "exec", "exit", "login", "logout", "set", "umask", "wait",
       "while", "for", "case", "if", ":", ".", "break", "continue", "export",
-      "read", "readonly", "shift", "times", "trap", "switch", "test",
+      "read", "readonly", "shift", "times", "trap", "switch", "test", "command",
 #ifdef BATCH_MODE_ONLY_SHELL
       "echo",
 #endif
@@ -2624,10 +2624,10 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
 #else  /* must be UNIX-ish */
   static const char *sh_chars = "#;\"*?[]&|<>(){}$`^~!";
   static const char *sh_cmds[] =
-    { ".", ":", "break", "case", "cd", "continue", "eval", "exec", "exit",
-      "export", "for", "if", "login", "logout", "read", "readonly", "set",
-      "shift", "switch", "test", "times", "trap", "ulimit", "umask", "unset",
-      "wait", "while", 0 };
+    { ".", ":", "break", "case", "cd", "command", "continue", "eval", "exec",
+      "exit", "export", "for", "if", "login", "logout", "read", "readonly",
+      "set", "shift", "switch", "test", "times", "trap", "ulimit", "umask",
+      "unset", "wait", "while", 0 };
 
 # ifdef HAVE_DOS_PATHS
   /* This is required if the MSYS/Cygwin ports (which do not define
