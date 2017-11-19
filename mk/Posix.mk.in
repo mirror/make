@@ -1,6 +1,6 @@
-# GNU -*-Makefile-*- to build GNU make on Amiga
+# GNU -*-Makefile-*- to build GNU make on POSIX systems
 #
-# Amiga overrides for use with Basic.mk.
+# POSIX overrides for use with Basic.mk.
 #
 # Copyright (C) 2017 Free Software Foundation, Inc.
 # This file is part of GNU Make.
@@ -18,27 +18,10 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
-CC = sc
-LD = $(CC) Link
+# Very little is needed here since the default Basic.mk assumes POSIX
 
-RM = delete
-MKDIR = makedir
-CP = copy
-CP.cmd = $(CP) $< To $@
+prog_SOURCES += $(posix_SOURCES)
 
-CPPFLAGS =
-CFLAGS =
-LDFLAGS =
-
-prog_SOURCES += $(alloca_SOURCES) $(loadavg_SOURCES) $(glob_SOURCES) $(amiga_SOURCES)
-
-extra_CPPFLAGS = IDir $(OUTDIR)src IDir $(SRCDIR)/src IDir $(SRCDIR)/glob
-
-C_SOURCE =
-OUTPUT_OPTION =
-LDFLAGS = From LIB:cres.o
-LDLIBS = Lib LIB:sc.lib LIB:amiga.lib
-LINK_OUTPUT = To $@
-
-$(OUTDIR)src/config.h: $(SRCDIR)/src/config.ami
-	$(CP.cmd)
+extra_CPPFLAGS += @GUILE_CFLAGS@ @GLOBINC@
+extra_LDFLAGS += @AM_LDFLAGS@
+LDLIBS += @GUILE_LIBS@ @LIBOBJS@ @GETLOADAVG_LIBS@ @GLOBLIB@ @ALLOCA@ @LIBINTL@ @LIBS@

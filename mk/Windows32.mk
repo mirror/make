@@ -1,6 +1,6 @@
 # GNU -*-Makefile-*- to build GNU make on Windows
 #
-# Windows overrides for use with Makebase.mk.
+# Windows overrides for use with Basic.mk.
 #
 # Copyright (C) 2017 Free Software Foundation, Inc.
 # This file is part of GNU Make.
@@ -25,7 +25,7 @@ TARGET_TYPE = release
 TOOLCHAIN = msvc
 
 
-prog_SOURCES += getloadavg.c $(glob_SOURCES) $(w32_SOURCES)
+prog_SOURCES += $(loadavg_SOURCES) $(glob_SOURCES) $(w32_SOURCES)
 
 w32_LIBS = kernel32 user32 gdi32 winspool comdlg32 advapi32 shell32 ole32 \
 	   oleaut32 uuid odbc32 odbccp32
@@ -39,7 +39,7 @@ msvc_CC = cl.exe
 msvc_LD = link.exe
 
 msvc_CPPFLAGS = /DHAVE_CONFIG_H /DWINDOWS32 /DWIN32 /D_CONSOLE
-msvc_CPPFLAGS += /I$(OUTDIR) /I$(SRCDIR) /I$(SRCDIR)/glob /I$(SRCDIR)/w32/include
+msvc_CPPFLAGS += /I$(OUTDIR)src /I$(SRCDIR)/src /I$(SRCDIR)/glob /I$(SRCDIR)/src/w32/include
 
 msvc_CFLAGS = /nologo /MT /W4 /EHsc
 msvc_CFLAGS += /FR$(OUTDIR) /Fp$(BASE_PROG).pch /Fd$(BASE_PROG).pdb
@@ -52,11 +52,11 @@ msvc_C_SOURCE = /c
 msvc_OUTPUT_OPTION = /Fo$@
 msvc_LINK_OUTPUT = /OUT:$@
 
-release_msvc_OUTDIR = ./WinRel
+release_msvc_OUTDIR = ./WinRel/
 release_msvc_CPPFLAGS = /D NDEBUG
 release_msvc_CFLAGS = /O2
 
-debug_msvc_OUTDIR = ./WinDebug
+debug_msvc_OUTDIR = ./WinDebug/
 debug_msvc_CPPFLAGS = /D _DEBUG
 debug_msvc_CFLAGS = /Zi /Od
 debug_msvc_LDFLAGS = /DEBUG
@@ -65,10 +65,10 @@ debug_msvc_LDFLAGS = /DEBUG
 gcc_CC = gcc
 gcc_LD = $(gcc_CC)
 
-release_gcc_OUTDIR = ./GccRel
-debug_gcc_OUTDIR = ./GccDebug
+release_gcc_OUTDIR = ./GccRel/
+debug_gcc_OUTDIR = ./GccDebug/
 
-gcc_CPPFLAGS = -DHAVE_CONFIG_H -I$(OBJDIR) -I$(SRCDIR) -I$(SRCDIR)/glob -I$(SRCDIR)/w32/include
+gcc_CPPFLAGS = -DHAVE_CONFIG_H -I$(OUTDIR)src -I$(SRCDIR)/src -I$(SRCDIR)/glob -I$(SRCDIR)/src/w32/include
 gcc_CFLAGS = -mthreads -Wall -std=gnu99 -gdwarf-2 -g3
 gcc_LDFLAGS = -mthreads -gdwarf-2 -g3
 gcc_LDLIBS = $(addprefix -l,$(w32_libs))
@@ -86,8 +86,14 @@ LINK.cmd = $(LD) $(extra_LDFLAGS) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) $(LINK_
 
 CHECK.cmd = cmd /c cd tests \& .\run_make_tests.bat -make ../$(PROG)
 
-MKDIR.cmd = cmd /c mkdir $(subst /,\\,$@)
-RM.cmd = cmd /c del /F /Q $(subst /,\\,$(OBJECTS) $(PROG))
+MKDIR = cmd /c mkdir
+MKDIR.cmd = $(MKDIR) $(subst /,\\,$@)
+
+RM = cmd /c del /F /Q
+RM.cmd = $(RM) $(subst /,\\,$(OBJECTS) $(PROG))
+
+CP = cmd /c copy /Y
+CP.cmd = $(CP) $(subst /,\\,$< $@)
 
 CC = $($(TOOLCHAIN)_CC)
 LD = $($(TOOLCHAIN)_LD)
@@ -104,7 +110,7 @@ EXEEXT	= .exe
 _CUSTOM = $($(TOOLCHAIN)_$1) $($(TARGET_TYPE)_$1) $($(TARGET_TYPE)_$(TOOLCHAIN)_$1)
 
 # I'm not sure why this builds gnumake rather than make...?
-PROG = $(OUTDIR)/gnumake$(EXEEXT)
+PROG = $(OUTDIR)gnumake$(EXEEXT)
 BASE_PROG = $(basename $(PROG))
 
 extra_CPPFLAGS = $(call _CUSTOM,CPPFLAGS)
@@ -112,5 +118,5 @@ extra_CFLAGS = $(call _CUSTOM,CFLAGS)
 extra_LDFLAGS = $(call _CUSTOM,LDFLAGS)
 LDLIBS = $(call _CUSTOM,LDLIBS)
 
-$(OUTDIR)/config.h: $(SRCDIR)/config.h.W32
-	cmd /c copy /Y $(subst /,\\,$< $@)
+$(OUTDIR)src/config.h: $(SRCDIR)/src/config.h.W32
+	$(CP.cmd)

@@ -28,20 +28,40 @@
 
 all:
 
-make_SOURCES = %make_SOURCES% remote-stub.c
+src = src/
+glob = glob/
+
+make_SOURCES = %make_SOURCES%
 glob_SOURCES = %glob_SOURCES%
+loadavg_SOURCES = %loadavg_SOURCES%
+alloca_SOURCES = %alloca_SOURCES%
 w32_SOURCES = %w32_SOURCES%
 vms_SOURCES = %vms_SOURCES%
 amiga_SOURCES = %amiga_SOURCES%
 
-OUTDIR = .
+posix_SOURCES = $(src)posixos.c
+remote_SOURCES = $(src)remote-stub.c
+
+OUTDIR =
 SRCDIR = .
 
 OBJEXT = o
 EXEEXT =
 
-PROG = $(OUTDIR)/make$(EXEEXT)
+PREFIX = /usr/local
+INCLUDEDIR = $(PREFIX)/include
+LIBDIR = $(PREFIX)/lib
+LOCALEDIR = $(PREFIX)/share
 
+PROG = $(OUTDIR)make$(EXEEXT)
+
+prog_SOURCES = $(make_SOURCES) $(remote_SOURCES)
+
+OBJECTS = $(patsubst %.c,$(OUTDIR)%.$(OBJEXT),$(prog_SOURCES))
+
+OBJDIRS = $(addsuffix .,$(sort $(dir $(OBJECTS))))
+
+# Use the default value of CC
 LD = $(CC)
 
 # Reserved for command-line override
@@ -49,9 +69,8 @@ CPPFLAGS =
 CFLAGS = -g -O2
 LDFLAGS =
 
-prog_SOURCES = $(make_SOURCES)
-
-extra_CPPFLAGS = -DHAVE_CONFIG_H -I$(OUTDIR) -I$(SRCDIR)
+extra_CPPFLAGS = -DHAVE_CONFIG_H -I$(OUTDIR)src -I$(SRCDIR)/src \
+	-DLIBDIR=\"$(LIBDIR)\" -DINCLUDEDIR=\"$(INCLUDEDIR)\" -DLOCALEDIR=\"$(LOCALDIR)\"
 extra_CFLAGS =
 extra_LDFLAGS = $(extra_CFLAGS) $(CFLAGS)
 
@@ -65,7 +84,10 @@ COMPILE.cmd = $(CC) $(extra_CFLAGS) $(CFLAGS) $(extra_CPPFLAGS) $(CPPFLAGS) $(TA
 
 LINK.cmd = $(LD) $(extra_LDFLAGS) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) $(LINK_OUTPUT)
 
-CHECK.cmd = cd tests && ./run_make_tests -make $(shell cd $(<D) && pwd)/$(<F)
+CHECK.cmd = cd $(SRCDIR)/tests && ./run_make_tests -make $(shell cd $(<D) && pwd)/$(<F)
+
+CP = cp
+CP.cmd = $(CP) $< $@
 
 MKDIR = mkdir -p
 MKDIR.cmd = $(MKDIR) $@
@@ -74,7 +96,7 @@ RM = rm -f
 RM.cmd = $(RM) $(OBJECTS) $(PROG)
 
 # Load overrides for the above variables.
-include $(wildcard mk/$(lastword $(subst -, ,$(MAKE_HOST)).mk))
+include $(firstword $(wildcard $(SRCDIR)/mk/$(lastword $(subst -, ,$(MAKE_HOST)).mk) $(OUTDIR)mk/Posix.mk $(SRCDIR)/mk/Posix.mk))
 
 VERSION = %VERSION%
 
@@ -82,16 +104,15 @@ VPATH = $(SRCDIR)
 
 all: $(PROG)
 
-OBJECTS = $(patsubst %.c,$(OUTDIR)/%.$(OBJEXT),$(prog_SOURCES))
-
 $(PROG): $(OBJECTS)
 	$(LINK.cmd)
 
-.SECONDEXPANSION:
-$(OBJECTS): $(OUTDIR)/%.$(OBJEXT): %.c | $$(@D)/.
+$(OBJECTS): $(OUTDIR)%.$(OBJEXT): %.c
 	$(COMPILE.cmd)
 
-$(addsuffix .,$(sort $(dir $(OBJECTS)))):
+$(OBJECTS): | $(OBJDIRS)
+
+$(OBJDIRS):
 	$(MKDIR.cmd)
 
 check: $(PROG)

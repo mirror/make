@@ -44,7 +44,6 @@ libdir=${exec_prefix}/lib
 includedir=${prefix}/include
 
 localedir=${prefix}/share/locale
-aliaspath=${localedir}${PATH_SEPARATOR}.
 
 defines="-DLOCALEDIR=\"${localedir}\" -DLIBDIR=\"${libdir}\" -DINCLUDEDIR=\"${includedir}\""' @DEFS@'
 
@@ -52,7 +51,7 @@ defines="-DLOCALEDIR=\"${localedir}\" -DLIBDIR=\"${libdir}\" -DINCLUDEDIR=\"${in
 set -e
 
 # These are all the objects we need to link together.
-objs="%objs% remote-${REMOTE}.${OBJEXT} ${extras} ${ALLOCA}"
+objs="%objs% src/remote-${REMOTE}.${OBJEXT} ${extras} ${ALLOCA}"
 
 if [ x"$GLOBLIB" != x ]; then
   objs="$objs %globobjs%"
@@ -63,7 +62,7 @@ fi
 for file in `echo ${objs} | sed 's/\.'${OBJEXT}'/.c/g'`; do
   echo compiling ${file}...
   $CC $defines $CPPFLAGS $CFLAGS \
-      -c -I. -I${srcdir} ${globinc} ${srcdir}/$file
+      -c -Isrc -I${srcdir}/src ${globinc} ${srcdir}/$file
 done
 
 # The object files were actually all put in the current directory.

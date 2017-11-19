@@ -24,6 +24,7 @@ if "%1" == "--help" goto Usage
 set MAKE=gnumake
 set GUILE=Y
 set COMPILER=cl.exe
+set O=obj
 set ARCH=x64
 set DEBUG=N
 
@@ -53,6 +54,7 @@ goto ParseSW
 
 :SetCC
 set COMPILER=gcc
+set O=o
 echo Building with GCC
 shift
 goto ParseSW
@@ -146,58 +148,61 @@ if exist %OUTDIR%\nul rmdir /S /Q %OUTDIR%
 
 :: Recreate it
 mkdir %OUTDIR%
+mkdir %OUTDIR%\src
+mkdir %OUTDIR%\src\w32
+mkdir %OUTDIR%\src\w32\compat
+mkdir %OUTDIR%\src\w32\subproc
 mkdir %OUTDIR%\glob
-mkdir %OUTDIR%\w32
-mkdir %OUTDIR%\w32\compat
-mkdir %OUTDIR%\w32\subproc
 
 if "%GUILE%" == "Y" call :ChkGuile
 
 echo.
 echo Compiling %OUTDIR% version
 
-if exist config.h.W32.template call :ConfigSCM
-copy config.h.W32 %OUTDIR%\config.h
+if exist src\config.h.W32.template call :ConfigSCM
+copy src\config.h.W32 %OUTDIR%\src\config.h
 
-call :Compile ar
-call :Compile arscan
-call :Compile commands
-call :Compile default
-call :Compile dir
-call :Compile expand
-call :Compile file
-call :Compile function
-call :Compile getloadavg
-call :Compile getopt
-call :Compile getopt1
+if exist %OUTDIR%\link.sc del %OUTDIR%\link.sc
+
+call :Compile src\ar
+call :Compile src\arscan
+call :Compile src\commands
+call :Compile src\default
+call :Compile src\dir
+call :Compile src\expand
+call :Compile src\file
+call :Compile src\function
+call :Compile src\getloadavg
+call :Compile src\getopt
+call :Compile src\getopt1
+call :Compile src\guile GUILE
+call :Compile src\hash
+call :Compile src\implicit
+call :Compile src\job
+call :Compile src\load
+call :Compile src\loadapi
+call :Compile src\main GUILE
+call :Compile src\misc
+call :Compile src\output
+call :Compile src\read
+call :Compile src\remake
+call :Compile src\remote-stub
+call :Compile src\rule
+call :Compile src\signame
+call :Compile src\strcache
+call :Compile src\variable
+call :Compile src\version
+call :Compile src\vpath
+call :Compile src\w32\pathstuff
+call :Compile src\w32\w32os
+call :Compile src\w32\compat\posixfcn
+call :Compile src\w32\subproc\misc
+call :Compile src\w32\subproc\sub_proc
+call :Compile src\w32\subproc\w32err
 call :Compile glob\fnmatch
 call :Compile glob\glob
-call :Compile guile GUILE
-call :Compile hash
-call :Compile implicit
-call :Compile job
-call :Compile load
-call :Compile loadapi
-call :Compile main GUILE
-call :Compile misc
-call :Compile output
-call :Compile read
-call :Compile remake
-call :Compile remote-stub
-call :Compile rule
-call :Compile signame
-call :Compile strcache
-call :Compile variable
-call :Compile version
-call :Compile vpath
-call :Compile w32\pathstuff
-call :Compile w32\w32os
-call :Compile w32\compat\posixfcn
-call :Compile w32\subproc\misc
-call :Compile w32\subproc\sub_proc
-call :Compile w32\subproc\w32err
 
-if not "%COMPILER%" == "gcc" call :Compile w32\compat\dirent
+if not "%COMPILER%" == "gcc" call :Compile src\w32\compat\dirent
 
 call :Link
 
@@ -208,21 +213,21 @@ if exist %OUTDIR%\%MAKE%.exe copy /Y Basic.mk Makefile
 goto :EOF
 
 :Compile
+echo %OUTDIR%\%1.%O% >>%OUTDIR%\link.sc
 set EXTRAS=
 if "%2" == "GUILE" set "EXTRAS=%GUILECFLAGS%"
 if "%COMPILER%" == "gcc" goto GccCompile
 
 :: MSVC Compile
 echo on
-%COMPILER% /nologo /MT /W4 /EHsc %OPTS% /I %OUTDIR% /I . /I glob /I w32/include /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR%OUTDIR% /Fp%OUTDIR%\%MAKE%.pch /Fo%OUTDIR%\%1.obj /Fd%OUTDIR%\%MAKE%.pdb %EXTRAS% /c %1.c
+%COMPILER% /nologo /MT /W4 /EHsc %OPTS% /I %OUTDIR%/src /I src /I glob /I src/w32/include /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR%OUTDIR% /Fp%OUTDIR%\%MAKE%.pch /Fo%OUTDIR%\%1.%O% /Fd%OUTDIR%\%MAKE%.pdb %EXTRAS% /c %1.c
 @echo off
-echo %OUTDIR%\%1.obj >>%OUTDIR%\link.sc
 goto :EOF
 
 :GccCompile
 :: GCC Compile
 echo on
-gcc -mthreads -Wall -std=gnu99 -gdwarf-2 -g3 %OPTS% -I%OUTDIR% -I. -I./glob -I./w32/include -DWINDOWS32 -DHAVE_CONFIG_H %EXTRAS% -o %OUTDIR%\%1.o -c %1.c
+gcc -mthreads -Wall -std=gnu99 -gdwarf-2 -g3 %OPTS% -I%OUTDIR%/src -I./src -I./glob -I./src/w32/include -DWINDOWS32 -DHAVE_CONFIG_H %EXTRAS% -o %OUTDIR%\%1.%O% -c %1.c
 @echo off
 goto :EOF
 
@@ -240,18 +245,19 @@ goto :EOF
 :GccLink
 :: GCC Link
 echo on
-gcc -mthreads -gdwarf-2 -g3 -o %OUTDIR%\%MAKE%.exe %OUTDIR%\variable.o %OUTDIR%\rule.o %OUTDIR%\remote-stub.o %OUTDIR%\commands.o %OUTDIR%\file.o %OUTDIR%\getloadavg.o %OUTDIR%\default.o %OUTDIR%\signame.o %OUTDIR%\expand.o %OUTDIR%\dir.o %OUTDIR%\main.o %OUTDIR%\getopt1.o %OUTDIR%\guile.o %OUTDIR%\job.o %OUTDIR%\output.o %OUTDIR%\read.o %OUTDIR%\version.o %OUTDIR%\getopt.o %OUTDIR%\arscan.o %OUTDIR%\remake.o %OUTDIR%\misc.o %OUTDIR%\hash.o %OUTDIR%\strcache.o %OUTDIR%\ar.o %OUTDIR%\function.o %OUTDIR%\vpath.o %OUTDIR%\implicit.o %OUTDIR%\loadapi.o %OUTDIR%\load.o %OUTDIR%\glob\glob.o %OUTDIR%\glob\fnmatch.o %OUTDIR%\w32\pathstuff.o %OUTDIR%\w32\compat\posixfcn.o %OUTDIR%\w32\w32os.o %OUTDIR%\w32\subproc\misc.o %OUTDIR%\w32\subproc\sub_proc.o %OUTDIR%\w32\subproc\w32err.o %GUILELIBS% -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32 -Wl,--out-implib=%OUTDIR%\libgnumake-1.dll.a
+echo %GUILELIBS% -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32 >>%OUTDIR%\link.sc
+gcc -mthreads -gdwarf-2 -g3 %OPTS% -o %OUTDIR%\%MAKE%.exe @%OUTDIR%\link.sc -Wl,--out-implib=%OUTDIR%\libgnumake-1.dll.a
 @echo off
 goto :EOF
 
 :ConfigSCM
 echo Generating config from SCM templates
-sed -n "s/^AC_INIT(\[GNU make\],\[\([^]]\+\)\].*/s,%%VERSION%%,\1,g/p" configure.ac > %OUTDIR%\config.h.W32.sed
-echo s,%%PACKAGE%%,make,g >> %OUTDIR%\config.h.W32.sed
-sed -f %OUTDIR%\config.h.W32.sed config.h.W32.template > config.h.W32
-echo static const char *const GUILE_module_defn = ^" \> gmk-default.h
-sed -e "s/;.*//" -e "/^[ \t]*$/d" -e "s/\"/\\\\\"/g" -e "s/$/ \\\/" gmk-default.scm >> gmk-default.h
-echo ^";>> gmk-default.h
+sed -n "s/^AC_INIT(\[GNU make\],\[\([^]]\+\)\].*/s,%%VERSION%%,\1,g/p" configure.ac > %OUTDIR%\src\config.h.W32.sed
+echo s,%%PACKAGE%%,make,g >> %OUTDIR%\src\config.h.W32.sed
+sed -f %OUTDIR%\src\config.h.W32.sed src\config.h.W32.template > src\config.h.W32
+echo static const char *const GUILE_module_defn = ^" \ > src\gmk-default.h
+sed -e "s/;.*//" -e "/^[ \t]*$/d" -e "s/\"/\\\\\"/g" -e "s/$/ \\\/" src\gmk-default.scm >> src\gmk-default.h
+echo ^";>> src\gmk-default.h
 goto :EOF
 
 :ChkGuile
@@ -318,6 +324,7 @@ set GUILELIBS=
 set LINKOPTS=
 set MAKE=
 set NOGUILE=
+set O=
 set OPTS=
 set OUTDIR=
 set PKGMSC=

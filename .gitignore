@@ -22,6 +22,8 @@ config.log
 config.status
 configure
 stamp-h1
+.dirstamp
+mk/Posix.mk
 
 # Build artifacts
 .deps

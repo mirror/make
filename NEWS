@@ -43,6 +43,9 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set
   N-processor systems with less fear of overload.
   Patch provided by Sven C. Dack <sven.c.dack@sky.com>
 
+* Rework the source distribution to move source files into the src/*
+  subdirectory.  This aligns with modern best practices in GNU.
+
 * The previous limit of 63 jobs under -jN on MS-Windows is now
   increased to 4095.  That limit includes the subprocess started by
   the $(shell) function.

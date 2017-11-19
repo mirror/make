@@ -80,7 +80,7 @@ close($F) or die "close: testapi.c: $!\n";
 
 # Make sure we can compile
 
-my $sobuild = "$CONFIG_FLAGS{CC} ".($srcdir? "-I$srcdir":'')." $CONFIG_FLAGS{CPPFLAGS} $CONFIG_FLAGS{CFLAGS} -shared -fPIC $CONFIG_FLAGS{LDFLAGS} -o testapi.so testapi.c";
+my $sobuild = "$CONFIG_FLAGS{CC} ".($srcdir? "-I$srcdir/src":'')." $CONFIG_FLAGS{CPPFLAGS} $CONFIG_FLAGS{CFLAGS} -shared -fPIC $CONFIG_FLAGS{LDFLAGS} -o testapi.so testapi.c";
 
 my $clog = `$sobuild 2>&1`;
 if ($? != 0) {

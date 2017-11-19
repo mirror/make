@@ -22,8 +22,11 @@ AC_PREREQ([2.69])
 
 # Autoconf setup
 AC_CONFIG_AUX_DIR([config])
-AC_CONFIG_SRCDIR([vpath.c])
-AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_SRCDIR([src/vpath.c])
+AC_CONFIG_HEADERS([src/config.h])
+
+# For now all our libobj code is in src/
+AC_CONFIG_LIBOBJ_DIR([src])
 
 # Automake setup
 # We have to enable "foreign" because ChangeLog is auto-generated
@@ -505,6 +508,8 @@ AS_IF([test "x$make_cv_load" = xno && test "x$user_load" = xyes],
 # Specify what files are to be created.
 AC_CONFIG_FILES([Makefile glob/Makefile po/Makefile.in config/Makefile \
                  doc/Makefile tests/config-flags.pm])
+# We don't need this, since the standard automake output will do.
+#mk/Posix.mk
 
 # OK, do it!
 

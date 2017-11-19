@@ -31,39 +31,39 @@ if not "%XSRC%"=="%1" goto SmallEnv
 
 :SrcDone
 
-copy /Y %XSRC%/configh.dos ./config.h
+copy /Y %XSRC%/src/configh.dos ./src/config.h
 
 if not exist glob mkdir glob
 
 rem Echo ON so they will see what is going on.
 @echo on
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/commands.c -o commands.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/output.c -o output.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/job.c -o job.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/dir.c -o dir.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/file.c -o file.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/misc.c -o misc.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/main.c -o main.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -DINCLUDEDIR=\"c:/djgpp/include\" -O2 -g %XSRC%/read.c -o read.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -DLIBDIR=\"c:/djgpp/lib\" -O2 -g %XSRC%/remake.c -o remake.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/rule.c -o rule.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/implicit.c -o implicit.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/default.c -o default.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/variable.c -o variable.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/expand.c -o expand.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/function.c -o function.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/vpath.c -o vpath.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/hash.c -o hash.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/strcache.c -o strcache.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/version.c -o version.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/ar.c -o ar.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/arscan.c -o arscan.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/signame.c -o signame.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/remote-stub.c -o remote-stub.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/getopt.c -o getopt.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/getopt1.c -o getopt1.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/glob/glob.c -o glob/glob.o
-gcc -c -I%XSRC% -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/glob/fnmatch.c -o glob/fnmatch.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/commands.c -o commands.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/output.c -o output.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/job.c -o job.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/dir.c -o dir.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/file.c -o file.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/misc.c -o misc.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/main.c -o main.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -DINCLUDEDIR=\"c:/djgpp/include\" -O2 -g %XSRC%/src/read.c -o read.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -DLIBDIR=\"c:/djgpp/lib\" -O2 -g %XSRC%/src/remake.c -o remake.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/rule.c -o rule.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/implicit.c -o implicit.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/default.c -o default.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/variable.c -o variable.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/expand.c -o expand.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/function.c -o function.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/vpath.c -o vpath.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/hash.c -o hash.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/strcache.c -o strcache.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/version.c -o version.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/ar.c -o ar.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/arscan.c -o arscan.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/signame.c -o signame.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/remote-stub.c -o remote-stub.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/getopt.c -o getopt.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/src/getopt1.c -o getopt1.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/glob/glob.c -o glob/glob.o
+gcc -c -I%XSRC%/src -I%XSRC%/glob -DHAVE_CONFIG_H -O2 -g %XSRC%/glob/fnmatch.c -o glob/fnmatch.o
 @echo off
 echo commands.o > respf.$$$
 for %%f in (job output dir file misc main read remake rule implicit default variable) do echo %%f.o >> respf.$$$

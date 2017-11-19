@@ -67,7 +67,7 @@ To build from sources:
    4. If you are building from outside of the source directory, you
       need to tell Make where the sources are, like this:
 
-          make srcdir=c:/djgpp/gnu/make
+          make -f c:/djgpp/gnu/make/Basic.mk SRCDIR=c:/djgpp/gnu/make
 
       or:
 

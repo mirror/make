@@ -1,6 +1,6 @@
 # GNU -*-Makefile-*- to build GNU make on MS-DOS with DJGPP
 #
-# MS-DOS overrides for use with Makebase.mk.
+# MS-DOS overrides for use with Basic.mk.
 #
 # Copyright (C) 2017 Free Software Foundation, Inc.
 # This file is part of GNU Make.
@@ -23,12 +23,22 @@ EXEEXT = .exe
 
 CC = gcc
 
-prog_SOURCES += getloadavg.c $(glob_SOURCES)
+prog_SOURCES += $(loadavg_SOURCES) $(glob_SOURCES)
 
-extra_CPPFLAGS += -I$(SRCDIR)/glob -DINCLUDEDIR=\"c:/djgpp/include\" -DLIBDIR=\"c:/djgpp/lib\"
+INCLUDEDIR = c:/djgpp/include
+LIBDIR = c:/djgpp/lib
+LOCALEDIR = c:/djgpp/share
 
-MKDIR.cmd = command.com /c mkdir $(subst /,\\,$@)
-RM.cmd = command.com /c del /F /Q $(subst /,\\,$(OBJECTS) $(PROG))
+extra_CPPFLAGS = -I$(SRCDIR)/glob
 
-$(OUTDIR)/config.h: $(SRCDIR)/configh.dos
-	command.com /c copy /Y $(subst /,\\,$< $@)
+MKDIR = command.com /c mkdir
+MKDIR.cmd = $(MKDIR) $(subst /,\\,$@)
+
+RM = command.com /c del /F /Q
+RM.cmd = $(RM) $(subst /,\\,$(OBJECTS) $(PROG))
+
+CP = command.com /c copy /Y
+CP.cmd = $(CP) $(subst /,\\,$< $@)
+
+$(OUTDIR)src/config.h: $(SRCDIR)/src/configh.dos
+	$(CP.cmd)

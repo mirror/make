@@ -96,7 +96,7 @@ sub valid_option
 
    if ($option =~ /^-srcdir$/i) {
        $srcdir = shift @argv;
-       if (! -f "$srcdir/gnumake.h") {
+       if (! -f "$srcdir/src/gnumake.h") {
            print "$option $srcdir: Not a valid GNU make source directory.\n";
            exit 0;
        }
@@ -457,7 +457,7 @@ sub set_more_defaults
    if (! $srcdir) {
        $make_path =~ /^(.*$pathsep)?/;
        my $d = $1 || '../';
-       -f "${d}gnumake.h" and $srcdir = $d;
+       -f "${d}/src/gnumake.h" and $srcdir = $d;
    }
 
    # Not with the make program, so see if we can get it out of the makefile
@@ -466,7 +466,7 @@ sub set_more_defaults
        $_ = <MF>;
        close(MF);
        /^abs_srcdir\s*=\s*(.*?)\s*$/m;
-       -f "$1/gnumake.h" and $srcdir = $1;
+       -f "$1/src/gnumake.h" and $srcdir = $1;
    }
 
    # Get Purify log info--if any.

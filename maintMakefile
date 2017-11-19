@@ -36,7 +36,7 @@ AM_CPPFLAGS += $(MAKE_MAINTAINER_MODE)
 # -Wwrite-strings
 
 TEMPLATES = README README.DOS README.W32 README.OS2 \
-	    config.ami configh.dos config.h.W32 config.h-vms
+	    src/config.ami src/configh.dos src/config.h.W32 src/config.h-vms
 
 # Create preprocessor output files--GCC specific!
 %.i : %.c
@@ -53,19 +53,22 @@ $(TEMPLATES) : % : %.template Makefile
 
 # Construct Makefiles by adding on dependencies, etc.
 #
+srccvt = $(patsubst src/%,$$(src)%,$(filter %.c,$1))
 Basic.mk: Basic.mk.template .dep_segment Makefile
 	rm -f $@
 	sed -e 's@%VERSION%@$(VERSION)@g' \
-	    -e 's@%make_SOURCES%@$(filter %.c,$(make_SRCS))@g' \
-	    -e 's@%glob_SOURCES%@$(filter %.c,$(glob_SRCS))@g' \
-	    -e 's@%w32_SOURCES%@$(filter %.c,$(w32_SRCS))@g' \
-	    -e 's@%vms_SOURCES%@$(filter %.c,$(vms_SRCS))@g' \
-	    -e 's@%amiga_SOURCES%@$(filter %.c,$(amiga_SRCS))@g' \
+	    -e 's@%make_SOURCES%@$(call srccvt,$(make_SRCS))@g' \
+	    -e 's@%glob_SOURCES%@$(patsubst glob/%,$$(glob)%,$(filter %.c,$(glob_SRCS)))@g' \
+	    -e 's@%loadavg_SOURCES%@$(call srccvt,$(loadavg_SRCS))@g' \
+	    -e 's@%alloca_SOURCES%@$(call srccvt,$(alloca_SRCS))@g' \
+	    -e 's@%w32_SOURCES%@$(call srccvt,$(w32_SRCS))@g' \
+	    -e 's@%vms_SOURCES%@$(call srccvt,$(vms_SRCS))@g' \
+	    -e 's@%amiga_SOURCES%@$(call srccvt,$(amiga_SRCS))@g' \
 	  $< > $@
 	echo >>$@; echo '# --------------- DEPENDENCIES' >>$@; echo '#' >>$@; \
-	sed -e 's@^\([^ ]*\)\.o:@$$(OUTDIR)/\1.$$(OBJEXT):@' \
+	sed -e 's@^\([^ ]*\)\.o:@$$(OUTDIR)\1.$$(OBJEXT):@' \
 	    -e 's@\([^ ]*\.[ch]\)@$$(SRCDIR)/\1@g' \
-	    -e 's@$$(SRCDIR)/config.h@$$(OUTDIR)/config.h@g' \
+	    -e 's@$$(SRCDIR)/src/config.h@$$(OUTDIR)src/config.h@g' \
 	  $(word 2,$^) >>$@
 	chmod a-w $@
 
@@ -73,7 +76,7 @@ Basic.mk: Basic.mk.template .dep_segment Makefile
 #
 build.sh.in: build.template Makefile
 	rm -f $@
-	sed -e 's@%objs%@$(patsubst %.o,%.$${OBJEXT},$(filter-out remote-%,$(make_OBJECTS)))@g' \
+	sed -e 's@%objs%@$(patsubst %.o,%.$${OBJEXT},$(filter-out src/remote-%,$(make_OBJECTS)))@g' \
 	    -e 's@%globobjs%@$(patsubst %.c,%.$${OBJEXT},$(filter %.c,$(glob_SRCS)))@g' \
 	  $< > $@
 	chmod a-w+x $@
@@ -84,10 +87,10 @@ build.sh.in: build.template Makefile
 # Automake used to have a --generate-deps flag but it's gone now, so we have
 # to do it ourselves.
 #
-DEP_FILES := $(wildcard $(DEPDIR)/*.Po)
+DEP_FILES := $(wildcard src/$(DEPDIR)/*.Po)
 .dep_segment: Makefile.am maintMakefile $(DEP_FILES)
 	rm -f $@
-	(for f in $(DEPDIR)/*.Po; do \
+	(for f in src/$(DEPDIR)/*.Po; do \
 	   echo ""; \
 	   echo "# $$f"; \
 	   sed	-e '/^[^:]*\.[ch] *:/d' \
@@ -157,7 +160,7 @@ move_if_change =  if test -r $(target) && cmp -s $(target).t $(target); then \
 #   ftp://tiger.informatik.hu-berlin.de/pub/po/maint/
 
 po_wget_flags =	--recursive --level=1 --no-directories --no-check-certificate
-po_repo = http://translationproject.org/latest/$(PACKAGE)
+po_repo = https://translationproject.org/latest/$(PACKAGE)
 po_sync = translationproject.org::tp/latest/$(PACKAGE)/
 
 .PHONY: do-po-update po-update
@@ -182,8 +185,8 @@ po-update:
 # with each of the files that belongs to some other package and is
 # regularly updated from the specified URL.
 
-cvs-url = http://savannah.gnu.org/cgi-bin/viewcvs/~checkout~
-git-url = http://git.savannah.gnu.org/cgit
+cvs-url = https://savannah.gnu.org/cgi-bin/viewcvs/~checkout~
+git-url = https://git.savannah.gnu.org/cgit
 target = $(patsubst get-%,%,$@)
 
 config-url = $(git-url)/config.git/plain/$(patsubst get-config/%,%,$@)
@@ -231,22 +234,51 @@ check-alt-config: \
 # Trick GNU make so it doesn't run the submake as a recursive make.
 NR_MAKE = $(MAKE)
 
-# Check builds both with build.sh and with make
+# Check builds both with build.sh and with make and with Basic.mk
 checkcfg.%: distdir
 	@echo "Building $@ (output in checkcfg.$*.log)"
-	@exec >'checkcfg.$*.log' 2>&1; \
+	exec >'checkcfg.$*.log' 2>&1; \
 	   rm -rf $(distdir)/_build \
 	&& mkdir $(distdir)/_build \
 	&& cd $(distdir)/_build \
 	&& echo "Testing configure with $(subst ^,=,$*)" \
 	&& ../configure --srcdir=.. $(subst ^,=,$*) \
-		$(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS) \
-		CFLAGS='$(AM_CFLAGS)' \
+		$(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS)
+	exec >>'checkcfg.$*.log' 2>&1; \
+	   cd $(distdir)/_build \
 	&& ./build.sh \
 	&& ./make $(AM_MAKEFLAGS) check \
-	&& rm -f *.o make \
-	&& $(NR_MAKE) $(AM_MAKEFLAGS) \
-	&& ./make $(AM_MAKEFLAGS) check
+	&& ./make $(AM_MAKEFLAGS) clean
+	exec >>'checkcfg.$*.log' 2>&1; \
+	   cd $(distdir)/_build \
+	&& $(NR_MAKE) $(AM_MAKEFLAGS) CFLAGS='$(AM_CFLAGS)' \
+	&& ./make $(AM_MAKEFLAGS) check \
+	&& ./make $(AM_MAKEFLAGS) clean
+
+# Try the different build methods
+checkcfg.basicmk: checkcfg.% : distdir
+	@echo "Building $@ (output in checkcfg.$*.log)"
+	exec >'checkcfg.$*.log' 2>&1; \
+	   rm -rf $(distdir)/_build \
+	&& mkdir $(distdir)/_build \
+	&& cd $(distdir)/_build \
+	&& echo "Testing Basic.mk SRCDIR=.." \
+	&& ../configure --srcdir=.. \
+		$(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS)
+	exec >>'checkcfg.$*.log' 2>&1; \
+	   cd $(distdir)/_build \
+	&& $(NR_MAKE) $(AM_MAKEFLAGS) -f ../Basic.mk CFLAGS='$(AM_CFLAGS)' SRCDIR=.. \
+	&& ./make $(AM_MAKEFLAGS) -f ../Basic.mk SRCDIR=.. check \
+	&& ./make $(AM_MAKEFLAGS) -f ../Basic.mk SRCDIR=.. clean
+	exec >>'checkcfg.$*.log' 2>&1; \
+	   echo "Testing Basic.mk SRCDIR=." \
+	&& rm -rf $(distdir)/_build \
+	&& cd $(distdir) \
+	&& ./configure \
+		$(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS) \
+	&& $(NR_MAKE) $(AM_MAKEFLAGS) -f Basic.mk CFLAGS='$(AM_CFLAGS)' \
+	&& ./make $(AM_MAKEFLAGS) -f Basic.mk check \
+	&& ./make $(AM_MAKEFLAGS) -f Basic.mk clean
 
 
 ## --------------- ##
@@ -273,11 +305,11 @@ changelog-check:
 	fi
 
 # Verify that all source files using _() are listed in po/POTFILES.in.
-# Ignore makeint.h; it defines _().
+# Ignore src/makeint.h; it defines _().
 po-check:
 	if test -f po/POTFILES.in; then \
 	  grep '^[^#]' po/POTFILES.in | sort > $@-1; \
-	  $(PERL) -wn -e 'if (/\b_\(/) { $$ARGV eq "./makeint.h" || print "$$ARGV\n" and close ARGV }' `find . -name '*.[ch]'` | sed 's,^\./,,' | sort > $@-2; \
+	  $(PERL) -wn -e 'if (/\b_\(/) { $$ARGV eq "./src/makeint.h" || print "$$ARGV\n" and close ARGV }' `find . -name '*.[ch]'` | sed 's,^\./,,' | sort > $@-2; \
 	  diff -u $@-1 $@-2 || exit 1; \
 	  rm -f $@-1 $@-2; \
 	fi
