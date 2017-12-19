@@ -6880,7 +6880,7 @@ the function call.  For example,
 $(subst ee,EE,feet on the street)
 @end example
 
-substitutes the string @samp{fEEt on the strEEt}.
+produces the value @samp{fEEt on the strEEt}.
 
 @item $(patsubst @var{pattern},@var{replacement},@var{text})
 @findex patsubst
