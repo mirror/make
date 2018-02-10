@@ -1,25 +1,35 @@
 @echo off
-rem Copyright (C) 1996-2017 Free Software Foundation, Inc.
-rem This file is part of GNU Make.
-rem
-rem GNU Make is free software; you can redistribute it and/or modify it under
-rem the terms of the GNU General Public License as published by the Free
-rem Software Foundation; either version 3 of the License, or (at your option)
-rem any later version.
-rem
-rem GNU Make is distributed in the hope that it will be useful, but WITHOUT
-rem ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-rem FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for.
-rem more details.
-rem
-rem You should have received a copy of the GNU General Public License along
-rem with this program.  If not, see <http://www.gnu.org/licenses/>.
+:: Copyright (C) 1996-2017 Free Software Foundation, Inc.
+:: This file is part of GNU Make.
+::
+:: GNU Make is free software; you can redistribute it and/or modify it under
+:: the terms of the GNU General Public License as published by the Free
+:: Software Foundation; either version 3 of the License, or (at your option)
+:: any later version.
+::
+:: GNU Make is distributed in the hope that it will be useful, but WITHOUT
+:: ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+:: FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for.
+:: more details.
+::
+:: You should have received a copy of the GNU General Public License along
+:: with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 setlocal
+if not "%RECURSEME%"=="%~0" (
+    set "RECURSEME=%~0"
+    %ComSpec% /s /c ""%~0" %*"
+    goto :EOF
+)
+
 call :Reset
 
 if "%1" == "-h" goto Usage
 if "%1" == "--help" goto Usage
+
+echo.
+echo Creating GNU Make for Windows 9X/NT/2K/XP/Vista/7/8/10
+echo.
 
 set MAKE=gnumake
 set GUILE=Y
@@ -38,37 +48,51 @@ goto Usage
 
 :SetDebug
 set DEBUG=Y
+echo - Building without compiler optimizations
 shift
 goto ParseSW
 
 :NoGuile
 set GUILE=N
-echo Building without Guile
+echo - Building without Guile
 shift
 goto ParseSW
 
 :Set32Bit
 set ARCH=x86
+echo - Building 32bit GNU Make
 shift
 goto ParseSW
 
 :SetCC
 set COMPILER=gcc
 set O=o
-echo Building with GCC
+echo - Building with GCC
 shift
 goto ParseSW
 
-rem Build with Guile is supported only on NT and later versions
 :DoneSW
-echo.
-echo Creating GNU Make for Windows 9X/NT/2K/XP/Vista/7/8/10
-if "%DEBUG%" == "Y" echo Building without compiler optimizations
+if "%COMPILER%" == "gcc" goto FindGcc
 
-if "%COMPILER%" == "gcc" goto GccBuild
-
-rem Make sure we can find a compiler
+:: Find a compiler.  Visual Studio requires a lot of effort to locate :-/.
 %COMPILER% >nul 2>&1
+if not ERRORLEVEL 1 goto FoundMSVC
+
+:: Visual Studio 17 and above provides the "vswhere" tool
+call :FindVswhere
+if ERRORLEVEL 1 goto LegacyVS
+
+for /f "tokens=* usebackq" %%i in (`%VSWHERE% -latest -property installationPath`) do (
+    set InstallPath=%%i
+)
+set "VSVARS=%InstallPath%\VC\Auxiliary\Build\vcvarsall.bat"
+call :CheckMSVC
+if not ERRORLEVEL 1 goto FoundMSVC
+
+:: No "vswhere" or it can't find a compiler.  Go old-school.
+:LegacyVS
+set "VSVARS=%VS150COMNTOOLS%\..\..\VC\vcvarsall.bat"
+call :CheckMSVC
 if not ERRORLEVEL 1 goto FoundMSVC
 
 set "VSVARS=%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat"
@@ -115,10 +139,10 @@ set "VSVARS=%V5TOOLS%\VC\Bin\vcvars32.bat"
 call :CheckMSVC
 if not ERRORLEVEL 1 goto FoundMSVC
 
-rem We did not find anything--fail
+:: We did not find anything--fail
 echo No MSVC compiler available.
 echo Please run vcvarsall.bat and/or configure your Path.
-exit /b 1
+exit 1
 
 :FoundMSVC
 set OUTDIR=.\WinRel
@@ -127,20 +151,23 @@ set LINKOPTS=
 if "%DEBUG%" == "Y" set OUTDIR=.\WinDebug
 if "%DEBUG%" == "Y" set "OPTS=/Zi /Od /D _DEBUG"
 if "%DEBUG%" == "Y" set LINKOPTS=/DEBUG
-call :Build
-goto Done
+:: Show the compiler version that we found
+:: Unfortunately this also shows a "usage" note; I can't find anything better.
+echo.
+%COMPILER%
+goto Build
 
-:GccBuild
+:FindGcc
 set OUTDIR=.\GccRel
 set OPTS=-O2
 if "%DEBUG%" == "Y" set OPTS=-O0
 if "%DEBUG%" == "Y" set OUTDIR=.\GccDebug
-call :Build
-goto Done
-
-:Done
-call :Reset
-goto :EOF
+:: Show the compiler version that we found
+echo.
+%COMPILER% --version
+if not ERRORLEVEL 1 goto Build
+echo No %COMPILER% found.
+exit 1
 
 :Build
 :: Clean the directory if it exists
@@ -207,28 +234,41 @@ if not "%COMPILER%" == "gcc" call :Compile src\w32\compat\dirent
 call :Link
 
 echo.
-if not exist %OUTDIR%\%MAKE%.exe echo %OUTDIR% build FAILED!
-if exist %OUTDIR%\%MAKE%.exe echo %OUTDIR% build succeeded.
-if exist %OUTDIR%\%MAKE%.exe copy /Y Basic.mk Makefile
+if exist %OUTDIR%\%MAKE%.exe goto Success
+echo %OUTDIR% build FAILED!
+exit 1
+
+:Success
+echo %OUTDIR% build succeeded.
+if exist Basic.mk copy /Y Basic.mk Makefile
+call :Reset
 goto :EOF
+
+::
+:: Subroutines
+::
 
 :Compile
 echo %OUTDIR%\%1.%O% >>%OUTDIR%\link.sc
 set EXTRAS=
 if "%2" == "GUILE" set "EXTRAS=%GUILECFLAGS%"
+if exist "%OUTDIR%\%1.%O%" del "%OUTDIR%\%1.%O%"
 if "%COMPILER%" == "gcc" goto GccCompile
 
 :: MSVC Compile
 echo on
 %COMPILER% /nologo /MT /W4 /EHsc %OPTS% /I %OUTDIR%/src /I src /I glob /I src/w32/include /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR%OUTDIR% /Fp%OUTDIR%\%MAKE%.pch /Fo%OUTDIR%\%1.%O% /Fd%OUTDIR%\%MAKE%.pdb %EXTRAS% /c %1.c
 @echo off
-goto :EOF
+goto CompileDone
 
 :GccCompile
 :: GCC Compile
 echo on
-gcc -mthreads -Wall -std=gnu99 -gdwarf-2 -g3 %OPTS% -I%OUTDIR%/src -I./src -I./glob -I./src/w32/include -DWINDOWS32 -DHAVE_CONFIG_H %EXTRAS% -o %OUTDIR%\%1.%O% -c %1.c
+%COMPILER% -mthreads -Wall -std=gnu99 -gdwarf-2 -g3 %OPTS% -I%OUTDIR%/src -I./src -I./glob -I./src/w32/include -DWINDOWS32 -DHAVE_CONFIG_H %EXTRAS% -o %OUTDIR%\%1.%O% -c %1.c
 @echo off
+
+:CompileDone
+if not exist "%OUTDIR%\%1.%O%" exit 1
 goto :EOF
 
 :Link
@@ -246,7 +286,7 @@ goto :EOF
 :: GCC Link
 echo on
 echo %GUILELIBS% -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32 >>%OUTDIR%\link.sc
-gcc -mthreads -gdwarf-2 -g3 %OPTS% -o %OUTDIR%\%MAKE%.exe @%OUTDIR%\link.sc -Wl,--out-implib=%OUTDIR%\libgnumake-1.dll.a
+%COMPILER% -mthreads -gdwarf-2 -g3 %OPTS% -o %OUTDIR%\%MAKE%.exe @%OUTDIR%\link.sc -Wl,--out-implib=%OUTDIR%\libgnumake-1.dll.a
 @echo off
 goto :EOF
 
@@ -261,6 +301,7 @@ echo ^";>> src\gmk-default.h
 goto :EOF
 
 :ChkGuile
+:: Build with Guile is supported only on NT and later versions
 if not "%OS%" == "Windows_NT" goto NoGuile
 pkg-config --help > %OUTDIR%\guile.tmp 2> NUL
 if ERRORLEVEL 1 goto NoPkgCfg
@@ -284,17 +325,26 @@ if not ERRORLEVEL 1 set /P GUILELIBS= < %OUTDIR%\guile.tmp
 
 if not "%GUILECFLAGS%" == "" goto GuileDone
 
-echo No Guile found, building without Guile
+echo - No Guile found, building without Guile
 goto GuileDone
 
 :NoPkgCfg
-echo pkg-config not found, building without Guile
+echo - pkg-config not found, building without Guile
 
 :GuileDone
 if "%GUILECFLAGS%" == "" goto :EOF
 
-echo Guile found, building with Guile
+echo - Guile found: building with Guile
 set "GUILECFLAGS=%GUILECFLAGS% -DHAVE_GUILE"
+goto :EOF
+
+:FindVswhere
+set VSWHERE=vswhere
+%VSWHERE% -help >nul 2>&1
+if not ERRORLEVEL 1 exit /b 0
+set "VSWHERE=C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere"
+%VSWHERE% -help >nul 2>&1
+if ERRORLEVEL 1 exit /b 1
 goto :EOF
 
 :CheckMSVC
