@@ -407,6 +407,7 @@ struct dirfile
     const char *name;           /* Name of the file.  */
     size_t length;
     short impossible;           /* This file is impossible.  */
+    unsigned char type;
   };
 
 static unsigned long
@@ -730,6 +731,9 @@ dir_contents_file_exists_p (struct directory_contents *dir,
           df->name = strcache_add_len (downcase_inplace (d->d_name), len);
 #else
           df->name = strcache_add_len (d->d_name, len);
+#endif
+#ifdef _DIRENT_HAVE_D_TYPE
+          df->type = d->d_type;
 #endif
           df->length = len;
           df->impossible = 0;
@@ -1242,7 +1246,7 @@ read_dirstream (__ptr_t stream)
           d->d_namlen = len - 1;
 #endif
 #ifdef _DIRENT_HAVE_D_TYPE
-          d->d_type = DT_UNKNOWN;
+          d->d_type = df->type;
 #endif
           memcpy (d->d_name, df->name, len);
           return d;
