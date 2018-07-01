@@ -88,7 +88,9 @@ foo bar
 foo bar');
 
 # Test the fastpath / single quotes
-run_make_test("
+# Single quotes don't behave the same in Windows
+if ($port_type ne 'W32') {
+    run_make_test("
 all:
 	\@echo 'foo\\
 bar'
@@ -123,6 +125,7 @@ foo \
     bar
 foo \
     bar');
+}
 
 # Test the fastpath / double quotes
 run_make_test('

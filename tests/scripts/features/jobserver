@@ -80,25 +80,27 @@ inc.mk:
 
 unlink('inc.mk');
 
-# Test recursion when make doesn't think it exists.
+# Test recursion which is hidden from make.
 # See Savannah bug #39934
 # Or Red Hat bug https://bugzilla.redhat.com/show_bug.cgi?id=885474
+# Windows doesn't use a pipe, and doesn't close access, so this won't happen.
+if ($port_type ne 'W32') {
+    open(MAKEFILE,"> Makefile2");
+    print MAKEFILE '
+    vpath %.c ../
+    foo:
+    ';
+    close(MAKEFILE);
 
-open(MAKEFILE,"> Makefile2");
-print MAKEFILE '
-vpath %.c ../
-foo:
-';
-close(MAKEFILE);
-
-run_make_test(q!
+    run_make_test(q!
 default: ; @ #MAKEPATH# -f Makefile2
 !,
               "-j2 $np",
 "#MAKE#[1]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
 #MAKE#[1]: Nothing to be done for 'foo'.");
 
-rmfiles('Makefile2');
+    rmfiles('Makefile2');
+}
 
 1;
 

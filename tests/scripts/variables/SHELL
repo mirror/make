@@ -5,6 +5,11 @@ $description = "Test proper handling of SHELL.";
 # If we don't have a POSIX shell available, never mind
 $is_posix_sh or return -1;
 
+# On Windows, shell names might not match
+if ($port_type eq 'W32') {
+    return -1;
+}
+
 $mshell = $sh_name;
 
 # According to POSIX, the value of SHELL in the environment has no impact on

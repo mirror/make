@@ -22,16 +22,8 @@ $(shell exit 0)
 OK := $(.SHELLSTATUS)
 $(shell exit 1)
 BAD := $(.SHELLSTATUS)
-$(shell kill -2 $$$$)
-SIG := $(.SHELLSTATUS)
 all: ; @echo PRE=$(PRE) OK=$(OK) BAD=$(BAD)
               ','','PRE= OK=0 BAD=1');
-
-run_make_test('.PHONY: all
-$(shell kill -2 $$$$)
-SIG := $(.SHELLSTATUS)
-all: ; @echo SIG=$(SIG)
-              ','','SIG=130');
 
 # Test unescaped comment characters in shells.  Savannah bug #20513
 run_make_test(q!
@@ -49,10 +41,10 @@ export HI = $(shell echo hi)
 all: ; @echo $$HI
     ','','hi');
 
-# Test shell errors in recipes including offset
-# This needs to be ported to Windows, or else Windows error messages
-# need to converted to look like more normal make errors.
 if ($port_type ne 'W32') {
+    # Test shell errors in recipes including offset
+    # This needs to be ported to Windows, or else Windows error messages
+    # need to converted to look like more normal make errors.
     run_make_test('
 all:
 	@echo hi
@@ -60,6 +52,14 @@ all:
 	@echo there
 ',
                   '', "#MAKE#: ./basdfdfsed: Command not found\nhi\nthere\n");
+
+    # Test SHELLSTATUS for kill.
+    # This test could be ported to Windows, using taskkill ... ?
+    run_make_test('.PHONY: all
+$(shell kill -2 $$$$)
+SIG := $(.SHELLSTATUS)
+all: ; @echo SIG=$(SIG)
+              ','','SIG=130');
 }
 
 1;
