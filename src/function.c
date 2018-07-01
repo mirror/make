@@ -2028,8 +2028,8 @@ func_not (char *o, char **argv, char *funcname UNUSED)
 # endif
 # define ROOT_LEN 3
 #else
-#define IS_ABSOLUTE(n) (n[0] == '/')
-#define ROOT_LEN 1
+# define IS_ABSOLUTE(n) (n[0] == '/')
+# define ROOT_LEN 1
 #endif
 
 /* Return the absolute name of file NAME which does not contain any '.',
@@ -2042,7 +2042,7 @@ abspath (const char *name, char *apath)
   const char *start, *end, *apath_limit;
   unsigned long root_len = ROOT_LEN;
 
-  if (name[0] == '\0' || apath == NULL)
+  if (name[0] == '\0')
     return NULL;
 
   apath_limit = apath + GET_PATH_MAX;
@@ -2081,7 +2081,7 @@ abspath (const char *name, char *apath)
       if (STOP_SET (name[0], MAP_DIRSEP))
         root_len = 1;
 #endif
-      strncpy (apath, name, root_len);
+      memcpy (apath, name, root_len);
       apath[root_len] = '\0';
       dest = apath + root_len;
       /* Get past the root, since we already copied it.  */
