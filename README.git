@@ -73,62 +73,66 @@ It should build with any C compiler conforming to the ANSI C89 / ISO C90
 standard.
 
 
-Building From Git
------------------
+Building From Git for POSIX
+---------------------------
 
-To build GNU make from Git, you will need Autoconf, Automake, and
-Gettext, and any tools that those utilities require (GNU m4, Perl,
-etc.).  See the configure.ac file to find the minimum versions of each
-of these tools.  You will also need a copy of wget and gnulib.
+To build GNU make from Git on POSIX systems such as GNU/Linux, you will
+need to install the following extra software:
+
+* autoconf
+* automake >= 1.16.1
+* gettext
+* autopoint
+* pkg-config
+* texinfo (for makeinfo)
+
+And any tools that those utilities require (GNU m4, Perl, etc.)
+
+GNU make requires gnulib to provide some facilities.  If you want to maintain
+a local installation of gnulib you can set GNULIB_SRCDIR to point to it.
+Otherwise, ./bootstrap will obtain a clone for you.
+
+Unfortunately due to issues with gnulib's getloadavg, you must have automake
+1.16.1 or above.  This version is not yet widely available in GNU/Linux
+package managers.  If you need to install from source be sure to set
+ACLOCAL_PATH to point to the pkg-config location (e.g., /usr/share/aclocal).
+
 
 When building from Git you must build in the source directory: "VPATH
 builds" from remote directories are not supported.  Once you've created
 a distribution, of course, you can unpack it and do a VPATH build from
 there.
 
-After checking out the code, you will need to perform these steps to get
-to the point where you can run "make".
+After checking out the code, you will need to run the bootstrap script:
 
- 1) $ autoreconf -i
-
-    This rebuilds all the things that need rebuilding, installing
-    missing files as symbolic links.
-
-    You may get warnings here about missing files like README, etc.
-    Ignore them, they are harmless.
-
- 2) $ ./configure
-
-    Generate a Makefile
-
- 3) $ make update
-
-    Use wget to retrieve various other files that GNU make relies on,
-    but does not keep in its own source tree.
-
-    NB: You may need GNU make to correctly perform this step; if you use
-    a platform-local make you may get problems with missing files in doc/.
+ $ ./bootstrap
 
 At this point you have successfully brought your Git copy of the GNU
 make source directory up to the point where it can be treated
 more-or-less like the official package you would get from ftp.gnu.org.
 That is, you can just run:
 
-  $ make && make check && make install
+  $ ./configure
+  $ make check
+  $ make install
 
 to build and install GNU make.
 
 
-Windows builds from Git
------------------------
+Building From Git for Windows
+-----------------------------
 
 If you have a UNIX emulation like CYGWIN you can opt to run the general
-build procedure above; it will work.  Be sure to read
-README.W32.template for information on options you might want to use
-when running ./configure.
+build procedure above; it will work.  Consult README.W32.template for
+information on options you might want to use when running ./configure.
 
-If you can't or don't want to do that, then rename the file
-README.W32.template to README.W32 and follow those instructions.
+If you can't or don't want to do that, then first run the .\bootstrap.bat
+script to prime your Git workspace:
+
+  > .\bootstrap.bat
+
+Next, rename the file README.W32.template to README.W32 and follow those
+instructions.
 
 
 Creating a Package
@@ -277,16 +281,10 @@ prerequisites are available of course).
 This list is eminently suitable for a quick swipe o' the mouse and a
 swift click o' mouse-2 into an xterm.  Go for it!
 
-autoreconf -i
-./configure
-make update
-make
-make check
+For a debugging version:
 
-Or, for a debugging version:
+./bootstrap && ./configure CFLAGS=-g && make check
 
-autoreconf -i && ./configure CFLAGS=-g && make update && make && make check
+For a release version
 
-Or, all-in-one:
-
-autoreconf -i && ./configure && make update && make && make check
+./bootstrap && ./configure && make check

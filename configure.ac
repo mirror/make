@@ -21,20 +21,27 @@ AC_INIT([GNU make],[4.2.90],[bug-make@gnu.org])
 AC_PREREQ([2.69])
 
 # Autoconf setup
-AC_CONFIG_AUX_DIR([config])
+AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([src/vpath.c])
 AC_CONFIG_HEADERS([src/config.h])
 
-# For now all our libobj code is in src/
-AC_CONFIG_LIBOBJ_DIR([src])
+AC_CONFIG_LIBOBJ_DIR([lib])
 
 # Automake setup
 # We have to enable "foreign" because ChangeLog is auto-generated
-AM_INIT_AUTOMAKE([1.15 foreign -Werror -Wall])
+# Automake 1.15 and gnulib don't get along: gnulib has some strange error
+# in the way it handles getloadavg.c which causes make distcheck to fail.
+# http://lists.gnu.org/archive/html/bug-gnulib/2018-06/msg00024.html
+AM_INIT_AUTOMAKE([1.16.1 foreign -Werror -Wall])
 
 # Checks for programs.
 AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
+
+# Configure gnulib
+gl_EARLY
+gl_INIT
+
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PROG_CPP
@@ -154,8 +161,6 @@ AC_CHECK_FUNCS([strcasecmp strncasecmp strcmpi strncmpi stricmp strnicmp])
 
 # strcoll() is used by the GNU glob library
 AC_FUNC_STRCOLL
-
-AC_FUNC_ALLOCA
 AC_FUNC_CLOSEDIR_VOID
 
 # See if the user wants to add (or not) GNU Guile support
@@ -182,24 +187,6 @@ AS_IF([test "x$with_guile" != xno],
 ])
 
 AM_CONDITIONAL([HAVE_GUILE], [test "$have_guile" = yes])
-
-AC_FUNC_GETLOADAVG
-
-# AC_FUNC_GETLOADAVG is documented to set the NLIST_STRUCT value, but it
-# doesn't.  So, we will.
-
-AS_IF([test "$ac_cv_header_nlist_h" = yes],
-[ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <nlist.h>]],
-        [[struct nlist nl;
-          nl.n_name = "string";
-          return 0;]])],
-        [make_cv_nlist_struct=yes],
-        [make_cv_nlist_struct=no])
-  AS_IF([test "$make_cv_nlist_struct" = yes],
-  [ AC_DEFINE([NLIST_STRUCT], [1],
-       [Define to 1 if struct nlist.n_name is a pointer rather than an array.])
-  ])
-])
 
 AC_CHECK_DECLS([sys_siglist, _sys_siglist, __sys_siglist], , ,
   [AC_INCLUDES_DEFAULT
@@ -412,15 +399,21 @@ AC_CACHE_CHECK([if system libc has GNU glob], [make_cv_sys_gnu_glob],
 #endif],
         [make_cv_sys_gnu_glob=yes],
         [make_cv_sys_gnu_glob=no])])
-AS_IF([test "$make_cv_sys_gnu_glob" = no],
-[ GLOBINC='-I$(srcdir)/glob'
-  GLOBLIB=glob/libglob.a
-])
-AC_SUBST([GLOBINC])
-AC_SUBST([GLOBLIB])
 
 # Tell automake about this, so it can build the right .c files.
-AM_CONDITIONAL([USE_LOCAL_GLOB], [test "$make_cv_sys_gnu_glob" = no])
+AM_CONDITIONAL([USE_SYSTEM_GLOB], [test "$make_cv_sys_gnu_glob" = yes])
+
+# Tell build.sh which to use
+USE_SYSTEM_GLOB="$make_cv_sys_gnu_glob"
+AC_SUBST([USE_SYSTEM_GLOB])
+
+# See if we need a replacement for getloadavg()
+gl_GETLOADAVG
+if test $HAVE_GETLOADAVG = 0; then
+  AC_LIBOBJ([getloadavg])
+  gl_PREREQ_GETLOADAVG
+fi
+gl_STDLIB_MODULE_INDICATOR([getloadavg])
 
 # Let the makefile know what our build host is
 
@@ -505,9 +498,9 @@ AS_IF([test "x$make_cv_load" = xno && test "x$user_load" = xyes],
 ])
 
 # Specify what files are to be created.
-AC_CONFIG_FILES([Makefile glob/Makefile po/Makefile.in config/Makefile \
-                 doc/Makefile tests/config-flags.pm])
-# We don't need this, since the standard automake output will do.
+AC_CONFIG_FILES([Makefile lib/Makefile po/Makefile.in doc/Makefile \
+                 tests/config-flags.pm])
+# We don't need this: the standard automake output suffices for POSIX systems.
 #mk/Posix.mk
 
 # OK, do it!

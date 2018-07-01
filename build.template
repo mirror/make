@@ -20,22 +20,26 @@
 
 # See Makefile.in for comments describing these variables.
 
-srcdir='@srcdir@'
-CC='@CC@'
-CFLAGS='@CFLAGS@ @GUILE_CFLAGS@'
-CPPFLAGS='@CPPFLAGS@'
-LDFLAGS='@AM_LDFLAGS@ @LDFLAGS@'
-ALLOCA='@ALLOCA@'
-LOADLIBES='@LIBS@ @GUILE_LIBS@ @LIBINTL@'
-eval extras=\'@LIBOBJS@\'
-REMOTE='@REMOTE@'
-GLOBLIB='@GLOBLIB@'
-PATH_SEPARATOR='@PATH_SEPARATOR@'
-OBJEXT='@OBJEXT@'
-EXEEXT='@EXEEXT@'
+LIBOBJDIR=lib/
+U=
+
+top_srcdir="@top_srcdir@"
+CC="@CC@"
+CFLAGS="@CFLAGS@ @GUILE_CFLAGS@"
+CPPFLAGS="@CPPFLAGS@"
+LDFLAGS="@AM_LDFLAGS@ @LDFLAGS@"
+ALLOCA="@ALLOCA@"
+LOADLIBES="@LIBS@ @GUILE_LIBS@ @LIBINTL@"
+LIBOBJS="@LIBOBJS@"
+REMOTE="@REMOTE@"
+OBJEXT="@OBJEXT@"
+EXEEXT="@EXEEXT@"
+
+# Use our old-style glob implementation
+test x"@USE_SYSTEM_GLOB@" = xno && LIBOBJS="${LIBOBJS} ${LIBOBJDIR}fnmatch.$OBJEXT ${LIBOBJDIR}glob.$OBJEXT"
 
 # Common prefix for machine-independent installed files.
-prefix='@prefix@'
+prefix="@prefix@"
 # Common prefix for machine-dependent installed files.
 exec_prefix=`eval echo @exec_prefix@`
 # Directory to find libraries in for '-lXXX'.
@@ -45,24 +49,29 @@ includedir=${prefix}/include
 
 localedir=${prefix}/share/locale
 
-defines="-DLOCALEDIR=\"${localedir}\" -DLIBDIR=\"${libdir}\" -DINCLUDEDIR=\"${includedir}\""' @DEFS@'
+defines="-DLOCALEDIR=\"${localedir}\" -DLIBDIR=\"${libdir}\" -DINCLUDEDIR=\"${includedir}\" @DEFS@"
 
 # Exit as soon as any command fails.
 set -e
 
 # These are all the objects we need to link together.
-objs="%objs% src/remote-${REMOTE}.${OBJEXT} ${extras} ${ALLOCA}"
+objs="%objs% src/remote-${REMOTE}.${OBJEXT} ${LIBOBJS}"
 
-if [ x"$GLOBLIB" != x ]; then
-  objs="$objs %globobjs%"
-  globinc=-I${srcdir}/glob
-fi
+case $LIBOBJS in
+    (*alloca*) cp "$top_srcdir"/lib/alloca.in.h lib/alloca.h ;;
+esac
+case $LIBOBJS in
+    (*fnmatch*) cp "$top_srcdir"/lib/fnmatch.in.h lib/fnmatch.h ;;
+esac
+case $LIBOBJS in
+    (*glob*) cp "$top_srcdir"/lib/glob.in.h lib/glob.h ;;
+esac
 
 # Compile the source files into those objects.
 for file in `echo ${objs} | sed 's/\.'${OBJEXT}'/.c/g'`; do
   echo compiling ${file}...
   $CC $defines $CPPFLAGS $CFLAGS \
-      -c -Isrc -I${srcdir}/src ${globinc} ${srcdir}/$file
+      -c -Isrc -I"$top_srcdir"/src -Ilib -I"$top_srcdir"/lib "$top_srcdir"/$file
 done
 
 # The object files were actually all put in the current directory.

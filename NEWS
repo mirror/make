@@ -24,8 +24,8 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set
     foo := $(shell echo '\#')
   Now this latter will resolve to "\#".  If you want to write makefiles
   portable to both versions, assign the number sign to a variable:
-    C := \#
-    foo := $(shell echo '$C')
+    H := \#
+    foo := $(shell echo '$H')
   This was claimed to be fixed in 3.81, but wasn't, for some reason.
   To detect this change search for 'nocomment' in the .FEATURES variable.
 
@@ -36,15 +36,12 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set
   add a trailing space.
 
 * WARNING: Backward-incompatibility!
-  On Linux, and other systems that provide a /proc/loadavg with similar
+  On Linux, and any other systems that provide a /proc/loadavg with similar
   syntax, the -l/--load-average option will use the contents of that file to
   determine how many jobs are running at any given instant, and compare that
   value to the load value requested.  This allows usage such as "-j -lN" for
-  N-processor systems with less fear of overload.
+  N-processor systems without fear of overload.
   Patch provided by Sven C. Dack <sven.c.dack@sky.com>
-
-* Rework the source distribution to move source files into the src/*
-  subdirectory.  This aligns with modern best practices in GNU.
 
 * The previous limit of 63 jobs under -jN on MS-Windows is now
   increased to 4095.  That limit includes the subprocess started by
@@ -54,6 +51,14 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set
   -s/--silent/--quiet flag.
 
 * A new option -E has been added as a short alias for --eval.
+
+GNU make Developer News
+
+* Import the GNU standard bootstrap script to replace the hand-rolled
+  "make update" method for building code from a GNU make Git repository.
+
+* Rework the source distribution to move source files into the src/*
+  subdirectory.  This aligns with modern best practices in GNU.
 
 
 Version 4.2.1 (10 Jun 2016)

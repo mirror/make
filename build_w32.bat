@@ -179,7 +179,7 @@ mkdir %OUTDIR%\src
 mkdir %OUTDIR%\src\w32
 mkdir %OUTDIR%\src\w32\compat
 mkdir %OUTDIR%\src\w32\subproc
-mkdir %OUTDIR%\glob
+mkdir %OUTDIR%\lib
 
 if "%GUILE%" == "Y" call :ChkGuile
 
@@ -188,6 +188,9 @@ echo Compiling %OUTDIR% version
 
 if exist src\config.h.W32.template call :ConfigSCM
 copy src\config.h.W32 %OUTDIR%\src\config.h
+
+copy lib\glob.in.h %OUTDIR%\lib\glob.h
+copy lib\fnmatch.in.h %OUTDIR%\lib\fnmatch.h
 
 if exist %OUTDIR%\link.sc del %OUTDIR%\link.sc
 
@@ -199,7 +202,6 @@ call :Compile src\dir
 call :Compile src\expand
 call :Compile src\file
 call :Compile src\function
-call :Compile src\getloadavg
 call :Compile src\getopt
 call :Compile src\getopt1
 call :Compile src\guile GUILE
@@ -226,8 +228,9 @@ call :Compile src\w32\compat\posixfcn
 call :Compile src\w32\subproc\misc
 call :Compile src\w32\subproc\sub_proc
 call :Compile src\w32\subproc\w32err
-call :Compile glob\fnmatch
-call :Compile glob\glob
+call :Compile lib\fnmatch
+call :Compile lib\glob
+call :Compile lib\getloadavg
 
 if not "%COMPILER%" == "gcc" call :Compile src\w32\compat\dirent
 
@@ -257,14 +260,14 @@ if "%COMPILER%" == "gcc" goto GccCompile
 
 :: MSVC Compile
 echo on
-%COMPILER% /nologo /MT /W4 /EHsc %OPTS% /I %OUTDIR%/src /I src /I glob /I src/w32/include /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR%OUTDIR% /Fp%OUTDIR%\%MAKE%.pch /Fo%OUTDIR%\%1.%O% /Fd%OUTDIR%\%MAKE%.pdb %EXTRAS% /c %1.c
+%COMPILER% /nologo /MT /W4 /EHsc %OPTS% /I %OUTDIR%/src /I src /I %OUTDIR%/lib /I lib /I src/w32/include /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR%OUTDIR% /Fp%OUTDIR%\%MAKE%.pch /Fo%OUTDIR%\%1.%O% /Fd%OUTDIR%\%MAKE%.pdb %EXTRAS% /c %1.c
 @echo off
 goto CompileDone
 
 :GccCompile
 :: GCC Compile
 echo on
-%COMPILER% -mthreads -Wall -std=gnu99 -gdwarf-2 -g3 %OPTS% -I%OUTDIR%/src -I./src -I./glob -I./src/w32/include -DWINDOWS32 -DHAVE_CONFIG_H %EXTRAS% -o %OUTDIR%\%1.%O% -c %1.c
+%COMPILER% -mthreads -Wall -std=gnu99 -gdwarf-2 -g3 %OPTS% -I%OUTDIR%/src -I./src -I%OUTDIR%/lib -I./lib -I./src/w32/include -DWINDOWS32 -DHAVE_CONFIG_H %EXTRAS% -o %OUTDIR%\%1.%O% -c %1.c
 @echo off
 
 :CompileDone

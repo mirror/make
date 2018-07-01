@@ -19,7 +19,7 @@
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
 src = [.src]
-glob = [.glob]
+lib = [.lib]
 SRCDIR = []
 
 OBJEXT = .obj
@@ -46,7 +46,7 @@ endif
 
 extra_CPPFLAGS = /define=($(subst $s,$c,$(patsubst %,"%",$(defs))))
 
-cinclude = /nested=none/include=($(src),$(glob))
+cinclude = /nested=none/include=($(src),$(lib))
 ifeq ($(CC),cc)
 cprefix = /prefix=(all,except=(glob,globfree))
 cwarn = /standard=relaxed/warn=(disable=questcompare)
@@ -71,7 +71,13 @@ endif
 # uncomment this
 #ALLOCA = $(alloca_SOURCES)
 
+# If your system doesn't have alloca.h, or the one provided is bad,
+# uncomment this
+#BUILT_SOURCES += $(lib)alloca.h
+
 prog_SOURCES += $(ALLOCA) $(glob_SOURCES) $(vms_SOURCES)
+
+BUILT_SOURCES += $(lib)fnmatch.h $(lib)glob.h
 
 COMPILE.cmd = $(CC) $(extra_CFLAGS)$(CFLAGS)/obj=$@ $(extra_CPPFLAGS)$(CPPFLAGS) $<
 

@@ -1,0 +1,5 @@
+*
+!/.gitignore
+!/aclocal.m4
+!/dospaths.m4
+

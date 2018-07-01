@@ -10,20 +10,22 @@ TAGS
 
 # Configure artifacts
 ABOUT-NLS
+INSTALL
 Makefile
 Makefile.in
 Basic.mk
 aclocal.m4
 autom4te.cache
+build-aux/
 config.cache
 config.h
 config.h.in
 config.log
 config.status
 configure
+/mk/Posix.mk
 stamp-h1
 .dirstamp
-mk/Posix.mk
 
 # Build artifacts
 .deps
@@ -31,6 +33,7 @@ gmk-default.h
 loadavg
 make
 *.o
+*.a
 *.exe
 *.dll.a
 *.obj

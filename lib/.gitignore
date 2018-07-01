@@ -1,0 +1,11 @@
+*
+!/.gitignore
+
+!/fnmatch.c
+!/fnmatch.in.h
+/fnmatch.h
+
+!/glob.c
+!/glob.in.h
+/glob.h
+

@@ -8,7 +8,7 @@
 # Once you have a GNU make program created, you can use it with this makefile
 # to keep it up to date if you make changes, as:
 #
-#   make.exe -f Makew32.mk
+#   make.exe -f Basic.mk
 #
 # Copyright (C) 2017-2018 Free Software Foundation, Inc.
 # This file is part of GNU Make.
@@ -29,7 +29,7 @@
 all:
 
 src = src/
-glob = glob/
+lib = lib/
 
 make_SOURCES = %make_SOURCES%
 glob_SOURCES = %glob_SOURCES%
@@ -57,6 +57,8 @@ PROG = $(OUTDIR)make$(EXEEXT)
 
 prog_SOURCES = $(make_SOURCES) $(remote_SOURCES)
 
+BUILT_SOURCES =
+
 OBJECTS = $(patsubst %.c,$(OUTDIR)%.$(OBJEXT),$(prog_SOURCES))
 
 OBJDIRS = $(addsuffix .,$(sort $(dir $(OBJECTS))))
@@ -69,7 +71,7 @@ CPPFLAGS =
 CFLAGS = -g -O2
 LDFLAGS =
 
-extra_CPPFLAGS = -DHAVE_CONFIG_H -I$(OUTDIR)src -I$(SRCDIR)/src \
+extra_CPPFLAGS = -DHAVE_CONFIG_H -I$(OUTDIR)src -I$(SRCDIR)/src -I$(OUTDIR)lib -I$(SRCDIR)/lib \
 	-DLIBDIR=\"$(LIBDIR)\" -DINCLUDEDIR=\"$(INCLUDEDIR)\" -DLOCALEDIR=\"$(LOCALDIR)\"
 extra_CFLAGS =
 extra_LDFLAGS = $(extra_CFLAGS) $(CFLAGS)
@@ -93,7 +95,7 @@ MKDIR = mkdir -p
 MKDIR.cmd = $(MKDIR) $@
 
 RM = rm -f
-RM.cmd = $(RM) $(OBJECTS) $(PROG)
+RM.cmd = $(RM) $(OBJECTS) $(PROG) $(BUILT_SOURCES)
 
 # Load overrides for the above variables.
 include $(firstword $(wildcard $(SRCDIR)/mk/$(lastword $(subst -, ,$(MAKE_HOST)).mk) $(OUTDIR)mk/Posix.mk $(SRCDIR)/mk/Posix.mk))
@@ -110,7 +112,7 @@ $(PROG): $(OBJECTS)
 $(OBJECTS): $(OUTDIR)%.$(OBJEXT): %.c
 	$(COMPILE.cmd)
 
-$(OBJECTS): | $(OBJDIRS)
+$(OBJECTS): | $(OBJDIRS) $(BUILT_SOURCES)
 
 $(OBJDIRS):
 	$(MKDIR.cmd)
@@ -120,5 +122,9 @@ check: $(PROG)
 
 clean:
 	$(RM.cmd)
+
+$(filter %.h,$(BUILT_SOURCES)): %.h : %.in.h
+	$(RM) $<
+	$(CP.cmd)
 
 .PHONY: all check clean

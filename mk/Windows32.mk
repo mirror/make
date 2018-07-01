@@ -27,6 +27,8 @@ TOOLCHAIN = msvc
 
 prog_SOURCES += $(loadavg_SOURCES) $(glob_SOURCES) $(w32_SOURCES)
 
+BUILT_SOURCES += $(lib)fnmatch.h $(lib)glob.h
+
 w32_LIBS = kernel32 user32 gdi32 winspool comdlg32 advapi32 shell32 ole32 \
 	   oleaut32 uuid odbc32 odbccp32
 
@@ -39,7 +41,7 @@ msvc_CC = cl.exe
 msvc_LD = link.exe
 
 msvc_CPPFLAGS = /DHAVE_CONFIG_H /DWINDOWS32 /DWIN32 /D_CONSOLE
-msvc_CPPFLAGS += /I$(OUTDIR)src /I$(SRCDIR)/src /I$(SRCDIR)/glob /I$(SRCDIR)/src/w32/include
+msvc_CPPFLAGS += /I$(OUTDIR)src /I$(SRCDIR)/src /I$(SRCDIR)/src/w32/include /I$(OUTDIR)lib /I$(SRCDIR)/lib
 
 msvc_CFLAGS = /nologo /MT /W4 /EHsc
 msvc_CFLAGS += /FR$(OUTDIR) /Fp$(BASE_PROG).pch /Fd$(BASE_PROG).pdb
@@ -68,7 +70,7 @@ gcc_LD = $(gcc_CC)
 release_gcc_OUTDIR = ./GccRel/
 debug_gcc_OUTDIR = ./GccDebug/
 
-gcc_CPPFLAGS = -DHAVE_CONFIG_H -I$(OUTDIR)src -I$(SRCDIR)/src -I$(SRCDIR)/glob -I$(SRCDIR)/src/w32/include
+gcc_CPPFLAGS = -DHAVE_CONFIG_H -I$(OUTDIR)src -I$(SRCDIR)/src -I$(SRCDIR)/src/w32/include -I$(OUTDIR)lib -I$(SRCDIR)/lib
 gcc_CFLAGS = -mthreads -Wall -std=gnu99 -gdwarf-2 -g3
 gcc_LDFLAGS = -mthreads -gdwarf-2 -g3
 gcc_LDLIBS = $(addprefix -l,$(w32_libs))

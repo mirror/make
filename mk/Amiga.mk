@@ -32,7 +32,9 @@ LDFLAGS =
 
 prog_SOURCES += $(alloca_SOURCES) $(loadavg_SOURCES) $(glob_SOURCES) $(amiga_SOURCES)
 
-extra_CPPFLAGS = IDir $(OUTDIR)src IDir $(SRCDIR)/src IDir $(SRCDIR)/glob
+BUILT_SOURCES += $(lib)alloca.h $(lib)fnmatch.h $(lib)glob.h
+
+extra_CPPFLAGS = IDir $(OUTDIR)src IDir $(SRCDIR)/src IDir $(OUTDIR)lib IDir $(SRCDIR)/lib
 
 C_SOURCE =
 OUTPUT_OPTION =

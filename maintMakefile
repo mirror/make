@@ -2,6 +2,13 @@
 # only if you have the full copy of the GNU make sources from the Git
 # tree, not a dist copy.
 
+# --------------------- #
+# Updating everything.  #
+# --------------------- #
+
+.PHONY: update
+update:
+
 BUGLIST := bug-make@gnu.org
 
 # These are related to my personal setup.
@@ -38,6 +45,8 @@ AM_CPPFLAGS += $(MAKE_MAINTAINER_MODE)
 TEMPLATES = README README.DOS README.W32 README.OS2 \
 	    src/config.ami src/configh.dos src/config.h.W32 src/config.h-vms
 
+all: $(TEMPLATES)
+
 # Create preprocessor output files--GCC specific!
 %.i : %.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) -E -dD -o $@ $<
@@ -53,17 +62,17 @@ $(TEMPLATES) : % : %.template Makefile
 
 # Construct Makefiles by adding on dependencies, etc.
 #
-srccvt = $(patsubst src/%,$$(src)%,$(filter %.c,$1))
+cvt = $(patsubst $1/%,$$($1)%,$(filter %.c,$2))
 Basic.mk: Basic.mk.template .dep_segment Makefile
 	rm -f $@
 	sed -e 's@%VERSION%@$(VERSION)@g' \
-	    -e 's@%make_SOURCES%@$(call srccvt,$(make_SRCS))@g' \
-	    -e 's@%glob_SOURCES%@$(patsubst glob/%,$$(glob)%,$(filter %.c,$(glob_SRCS)))@g' \
-	    -e 's@%loadavg_SOURCES%@$(call srccvt,$(loadavg_SRCS))@g' \
-	    -e 's@%alloca_SOURCES%@$(call srccvt,$(alloca_SRCS))@g' \
-	    -e 's@%w32_SOURCES%@$(call srccvt,$(w32_SRCS))@g' \
-	    -e 's@%vms_SOURCES%@$(call srccvt,$(vms_SRCS))@g' \
-	    -e 's@%amiga_SOURCES%@$(call srccvt,$(amiga_SRCS))@g' \
+	    -e 's@%make_SOURCES%@$(call cvt,src,$(make_SRCS))@g' \
+	    -e 's@%w32_SOURCES%@$(call cvt,src,$(w32_SRCS))@g' \
+	    -e 's@%vms_SOURCES%@$(call cvt,src,$(vms_SRCS))@g' \
+	    -e 's@%amiga_SOURCES%@$(call cvt,src,$(amiga_SRCS))@g' \
+	    -e 's@%loadavg_SOURCES%@$(call cvt,lib,$(loadavg_SRCS))@g' \
+	    -e 's@%alloca_SOURCES%@$(call cvt,lib,$(alloca_SRCS))@g' \
+	    -e 's@%glob_SOURCES%@$(call cvt,lib,$(glob_SRCS))@g' \
 	  $< > $@
 	echo >>$@; echo '# --------------- DEPENDENCIES' >>$@; echo '#' >>$@; \
 	sed -e 's@^\([^ ]*\)\.o:@$$(OUTDIR)\1.$$(OBJEXT):@' \
@@ -77,9 +86,10 @@ Basic.mk: Basic.mk.template .dep_segment Makefile
 build.sh.in: build.template Makefile
 	rm -f $@
 	sed -e 's@%objs%@$(patsubst %.o,%.$${OBJEXT},$(filter-out src/remote-%,$(make_OBJECTS)))@g' \
-	    -e 's@%globobjs%@$(patsubst %.c,%.$${OBJEXT},$(filter %.c,$(glob_SRCS)))@g' \
 	  $< > $@
 	chmod a-w+x $@
+
+all: build.sh.in
 
 
 # Use automake to build a dependency list file, for Makebase.mk.
@@ -154,6 +164,11 @@ move_if_change =  if test -r $(target) && cmp -s $(target).t $(target); then \
 # Updating PO files.  #
 # ------------------- #
 
+# NOTE: This is handled by the bootstrap script now
+
+#update: po-update
+update: po-check
+
 # PO archive mirrors --- Be careful; some might not be fully populated!
 #   ftp://ftp.unex.es/pub/gnu-i18n/po/maint/
 #   http://translation.sf.net/maint/
@@ -181,6 +196,13 @@ po-update:
 # Updating GNU build files.  #
 # -------------------------- #
 
+# Note: this is handled by the bootstrap script now
+#update: scm-update
+
+.PHONY: scm-update
+scm-update: get-build-aux/texinfo.tex get-build-aux/config.guess \
+		get-build-aux/config.sub get-doc/make-stds.texi get-doc/fdl.texi
+
 # The following pseudo table associates a local directory and a URL
 # with each of the files that belongs to some other package and is
 # regularly updated from the specified URL.
@@ -189,14 +211,14 @@ cvs-url = https://savannah.gnu.org/cgi-bin/viewcvs/~checkout~
 git-url = https://git.savannah.gnu.org/cgit
 target = $(patsubst get-%,%,$@)
 
-config-url = $(git-url)/config.git/plain/$(patsubst get-config/%,%,$@)
-get-config/config.guess get-config/config.sub:
+config-url = $(git-url)/config.git/plain/$(patsubst get-build-aux/%,%,$@)
+get-build-aux/config.guess get-build-aux/config.sub:
 	@echo $(WGET) $(config-url) -O $(target) \
 	  && $(WGET) $(config-url) -O $(target).t \
 	  && $(move_if_change)
 
-gnulib-url = $(git-url)/gnulib.git/plain/build-aux/$(patsubst get-config/%,%,$@)
-get-config/texinfo.tex:
+gnulib-url = $(git-url)/gnulib.git/plain/build-aux/$(patsubst get-build-aux/%,%,$@)
+get-build-aux/texinfo.tex:
 	@echo $(WGET) $(gnulib-url) -O $(target) \
 	  && $(WGET) $(gnulib-url) -O $(target).t \
 	  && $(move_if_change)
@@ -207,71 +229,66 @@ get-doc/make-stds.texi get-doc/fdl.texi:
 	  && $(WGET) $(gnustandards-url) -O $(target).t \
 	  && $(move_if_change)
 
-.PHONY: scm-update
-scm-update: get-config/texinfo.tex get-config/config.guess get-config/config.sub get-doc/make-stds.texi get-doc/fdl.texi
-
-
-# --------------------- #
-# Updating everything.  #
-# --------------------- #
-
-.PHONY: update
-update: po-update scm-update
-
 
 # ---------------------------------- #
 # Alternative configuration checks.  #
 # ---------------------------------- #
 
-.PHONY: check-alt-config
-check-alt-config: \
+CONFIG_CHECKS := \
 	checkcfg.--disable-job-server \
 	checkcfg.--disable-load \
 	checkcfg.--without-guile \
+	checkcfg.make_cv_sys_gnu_glob^no \
+	checkcfg.ac_cv_func_getloadavg^no+ac_cv_have_decl_getloadavg^no+gl_cv_have_raw_decl_getloadavg^no+ac_cv_lib_util_getloadavg^no+ac_cv_lib_getloadavg_getloadavg^no \
 	checkcfg.CPPFLAGS^-DNO_OUTPUT_SYNC \
 	checkcfg.CPPFLAGS^-DNO_ARCHIVES
+
+.PHONY: check-alt-config
+check-alt-config: $(CONFIG_CHECKS)
 
 # Trick GNU make so it doesn't run the submake as a recursive make.
 NR_MAKE = $(MAKE)
 
-# Check builds both with build.sh and with make and with Basic.mk
-checkcfg.%: distdir
+# Check builds both with build.sh and with make
+$(CONFIG_CHECKS): checkcfg.%: distdir
 	@echo "Building $@ (output in checkcfg.$*.log)"
 	exec >'checkcfg.$*.log' 2>&1; \
+	   echo "Testing configure with $(subst ^,=,$(subst +, ,$*))"; set -x; \
 	   rm -rf $(distdir)/_build \
 	&& mkdir $(distdir)/_build \
 	&& cd $(distdir)/_build \
-	&& echo "Testing configure with $(subst ^,=,$*)" \
-	&& ../configure --srcdir=.. $(subst ^,=,$*) \
+	&& ../configure --srcdir=.. $(subst ^,=,$(subst +, ,$*)) \
 		$(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS)
-	exec >>'checkcfg.$*.log' 2>&1; \
+	exec >>'checkcfg.$*.log' 2>&1; set -x; \
 	   cd $(distdir)/_build \
 	&& ./build.sh \
 	&& ./make $(AM_MAKEFLAGS) check \
 	&& ./make $(AM_MAKEFLAGS) clean
-	exec >>'checkcfg.$*.log' 2>&1; \
+	exec >>'checkcfg.$*.log' 2>&1; set -x; \
 	   cd $(distdir)/_build \
 	&& $(NR_MAKE) $(AM_MAKEFLAGS) CFLAGS='$(AM_CFLAGS)' \
 	&& ./make $(AM_MAKEFLAGS) check \
 	&& ./make $(AM_MAKEFLAGS) clean
 
-# Try the different build methods
+# Try using Basic.mk.  I can't test this on POSIX systems because it is only
+# used for non-POSIX systems; POSIX systems can just use normal
+# configure/Makefile.in etc.
 checkcfg.basicmk: checkcfg.% : distdir
 	@echo "Building $@ (output in checkcfg.$*.log)"
 	exec >'checkcfg.$*.log' 2>&1; \
+	   echo "Testing Basic.mk SRCDIR=.."; set -x; \
 	   rm -rf $(distdir)/_build \
 	&& mkdir $(distdir)/_build \
 	&& cd $(distdir)/_build \
-	&& echo "Testing Basic.mk SRCDIR=.." \
 	&& ../configure --srcdir=.. \
 		$(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS)
-	exec >>'checkcfg.$*.log' 2>&1; \
+	exec >>'checkcfg.$*.log' 2>&1; set -x; \
 	   cd $(distdir)/_build \
-	&& $(NR_MAKE) $(AM_MAKEFLAGS) -f ../Basic.mk CFLAGS='$(AM_CFLAGS)' SRCDIR=.. \
+	&& $(NR_MAKE) $(AM_MAKEFLAGS) -f ../Basic.mk SRCDIR=.. CFLAGS='$(AM_CFLAGS)' \
 	&& ./make $(AM_MAKEFLAGS) -f ../Basic.mk SRCDIR=.. check \
 	&& ./make $(AM_MAKEFLAGS) -f ../Basic.mk SRCDIR=.. clean
 	exec >>'checkcfg.$*.log' 2>&1; \
-	   echo "Testing Basic.mk SRCDIR=." \
+	   echo "Testing Basic.mk SRCDIR=."; set -x; \
 	&& rm -rf $(distdir)/_build \
 	&& cd $(distdir) \
 	&& ./configure \

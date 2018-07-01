@@ -226,9 +226,6 @@ extern char *alloca ();
 #   endif /* Not _AIX.  */
 #  endif /* sparc or HAVE_ALLOCA_H.  */
 # endif	/* GCC.  */
-
-# define __alloca	alloca
-
 #endif
 
 #ifndef __GNU_LIBRARY__
@@ -282,6 +279,14 @@ extern char *alloca ();
 # undef	GLOB_PERIOD
 #endif
 #include <glob.h>
+
+#if !defined __alloca
+# define __alloca alloca
+#endif
+
+#if !defined __stat
+# define __stat stat
+#endif
 
 #ifdef HAVE_GETLOGIN_R
 extern int getlogin_r __P ((char *, size_t));
@@ -369,7 +374,7 @@ glob (pattern, flags, errfunc, pglob)
   const char *dirname;
   size_t dirlen;
   int status;
-  int oldcount;
+  size_t oldcount;
 
   if (pattern == NULL || pglob == NULL || (flags & ~__GLOB_FLAGS) != 0)
     {
@@ -389,7 +394,7 @@ glob (pattern, flags, errfunc, pglob)
 	{
 	  /* Allocate working buffer large enough for our work.  Note that
 	    we have at least an opening and closing brace.  */
-	  int firstc;
+	  size_t firstc;
 	  char *alt_start;
 	  const char *p;
 	  const char *next;
@@ -860,7 +865,7 @@ glob (pattern, flags, errfunc, pglob)
 	 have to glob for the directory, and then glob for
 	 the pattern in each directory found.  */
       glob_t dirs;
-      register int i;
+      register size_t i;
 
       status = glob (dirname,
 		     ((flags & (GLOB_ERR | GLOB_NOCHECK | GLOB_NOESCAPE))
@@ -1010,7 +1015,7 @@ glob (pattern, flags, errfunc, pglob)
       if (dirlen > 0)
 	{
 	  /* Stick the directory on the front of each name.  */
-	  int ignore = oldcount;
+	  size_t ignore = oldcount;
 
 	  if ((flags & GLOB_DOOFFS) && ignore < pglob->gl_offs)
 	    ignore = pglob->gl_offs;
@@ -1028,7 +1033,7 @@ glob (pattern, flags, errfunc, pglob)
   if (flags & GLOB_MARK)
     {
       /* Append slashes to directory names.  */
-      int i;
+      size_t i;
       struct stat st;
       for (i = oldcount; i < pglob->gl_pathc; ++i)
 	if (((flags & GLOB_ALTDIRFUNC)
@@ -1072,7 +1077,7 @@ globfree (pglob)
 {
   if (pglob->gl_pathv != NULL)
     {
-      register int i;
+      register size_t i;
       for (i = 0; i < pglob->gl_pathc; ++i)
 	if (pglob->gl_pathv[i] != NULL)
 	  free ((__ptr_t) pglob->gl_pathv[i]);
@@ -1413,7 +1418,7 @@ glob_in_dir (pattern, directory, flags, errfunc, pglob)
 
  memory_error:
   {
-    int save = errno;
+    save = errno;
     if (flags & GLOB_ALTDIRFUNC)
       (*pglob->gl_closedir) (stream);
     else

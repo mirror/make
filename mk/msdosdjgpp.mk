@@ -25,11 +25,11 @@ CC = gcc
 
 prog_SOURCES += $(loadavg_SOURCES) $(glob_SOURCES)
 
+BUILT_SOURCES += $(lib)fnmatch.h $(lib)glob.h
+
 INCLUDEDIR = c:/djgpp/include
 LIBDIR = c:/djgpp/lib
 LOCALEDIR = c:/djgpp/share
-
-extra_CPPFLAGS = -I$(SRCDIR)/glob
 
 MKDIR = command.com /c mkdir
 MKDIR.cmd = $(MKDIR) $(subst /,\\,$@)
