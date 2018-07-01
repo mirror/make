@@ -27,9 +27,11 @@ GNUWEBDIR ?= $(SRCROOTDIR)/gnu-www
 MAKEWEBDIR ?= $(SRCROOTDIR)/make/make-web
 
 # We like mondo-warnings!
-AM_CFLAGS += -Wall -Wextra -Werror -Wwrite-strings -Wshadow -Wpointer-arith \
+# Also force comments to be preserved.  This helps when using ccache, in
+# combination with GCC 7's implicit-fallthrough warning.
+AM_CFLAGS += -C -Wall -Wextra -Werror -Wwrite-strings -Wshadow \
 	-Wdeclaration-after-statement -Wbad-function-cast -Wformat-security \
-	-Wtype-limits -Wunused-but-set-parameter -Wlogical-op \
+	-Wtype-limits -Wunused-but-set-parameter -Wlogical-op -Wpointer-arith \
 	-Wignored-qualifiers -Wformat-signedness -Wduplicated-cond
 
 # Unfortunately the Guile headers are sometimes broken.  Convince GCC
@@ -38,9 +40,6 @@ GUILE_CFLAGS := $(patsubst -I%,-isystem %,$(GUILE_CFLAGS))
 
 MAKE_MAINTAINER_MODE := -DMAKE_MAINTAINER_MODE
 AM_CPPFLAGS += $(MAKE_MAINTAINER_MODE)
-
-# I want this one but I have to wait for the const cleanup!
-# -Wwrite-strings
 
 TEMPLATES = README README.DOS README.W32 README.OS2 \
 	    src/config.ami src/configh.dos src/config.h.W32 src/config.h-vms
