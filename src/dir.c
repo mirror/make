@@ -426,7 +426,7 @@ dirfile_hash_cmp (const void *xv, const void *yv)
 {
   const struct dirfile *x = xv;
   const struct dirfile *y = yv;
-  int result = x->length - y->length;
+  int result = (int) (x->length - y->length);
   if (result)
     return result;
   return_ISTRING_COMPARE (x->name, y->name);
@@ -687,7 +687,7 @@ dir_contents_file_exists_p (struct directory_contents *dir,
   while (1)
     {
       /* Enter the file in the hash table.  */
-      unsigned int len;
+      size_t len;
       struct dirfile dirfile_key;
       struct dirfile **dirfile_slot;
 
@@ -1208,7 +1208,7 @@ static struct dirent *
 read_dirstream (__ptr_t stream)
 {
   static char *buf;
-  static unsigned int bufsz;
+  static size_t bufsz;
 
   struct dirstream *const ds = (struct dirstream *) stream;
   struct directory_contents *dc = ds->contents;
@@ -1221,8 +1221,8 @@ read_dirstream (__ptr_t stream)
         {
           /* The glob interface wants a 'struct dirent', so mock one up.  */
           struct dirent *d;
-          unsigned int len = df->length + 1;
-          unsigned int sz = sizeof (*d) - sizeof (d->d_name) + len;
+          size_t len = df->length + 1;
+          size_t sz = sizeof (*d) - sizeof (d->d_name) + len;
           if (sz > bufsz)
             {
               bufsz *= 2;

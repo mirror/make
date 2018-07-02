@@ -41,7 +41,7 @@ gmk_eval (const char *buffer, const gmk_floc *gfloc)
 {
   /* Preserve existing variable buffer context.  */
   char *pbuf;
-  unsigned int plen;
+  size_t plen;
   char *s;
   floc fl;
   floc *flp;

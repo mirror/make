@@ -492,7 +492,7 @@ enter_prereqs (struct dep *deps, const char *stem)
       while (dp != 0)
         {
           char *percent;
-          int nl = strlen (dp->name) + 1;
+          size_t nl = strlen (dp->name) + 1;
           char *nm = alloca (nl);
           memcpy (nm, dp->name, nl);
           percent = find_percent (nm);
@@ -1100,8 +1100,8 @@ build_target_list (char *value)
 
   if (files.ht_fill != last_targ_count)
     {
-      unsigned long max = EXPANSION_INCREMENT (strlen (value));
-      unsigned long len;
+      size_t max = EXPANSION_INCREMENT (strlen (value));
+      size_t len;
       char *p;
       struct file **fp = (struct file **) files.ht_vec;
       struct file **end = &fp[files.ht_size];
@@ -1115,12 +1115,12 @@ build_target_list (char *value)
         if (!HASH_VACANT (*fp) && (*fp)->is_target)
           {
             struct file *f = *fp;
-            int l = strlen (f->name);
+            size_t l = strlen (f->name);
 
             len += l + 1;
             if (len > max)
               {
-                unsigned long off = p - value;
+                size_t off = p - value;
 
                 max += EXPANSION_INCREMENT (l + 1);
                 value = xrealloc (value, max);

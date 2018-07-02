@@ -62,7 +62,7 @@ struct dep
 struct goaldep
   {
     DEP (struct goaldep);
-    unsigned short error;
+    int error;
     floc floc;
   };
 
@@ -83,14 +83,14 @@ struct goaldep
 #ifdef VMS
 void *parse_file_seq ();
 #else
-void *parse_file_seq (char **stringp, unsigned int size,
+void *parse_file_seq (char **stringp, size_t size,
                       int stopmap, const char *prefix, int flags);
 #endif
 
 char *tilde_expand (const char *name);
 
 #ifndef NO_ARCHIVES
-struct nameseq *ar_glob (const char *arname, const char *member_pattern, unsigned int size);
+struct nameseq *ar_glob (const char *arname, const char *member_pattern, size_t size);
 #endif
 
 #define dep_name(d)        ((d)->name ? (d)->name : (d)->file->name)

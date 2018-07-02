@@ -186,7 +186,7 @@ struct ar_glob_state
 #ifdef VMS
     char *suffix;
 #endif
-    unsigned int size;
+    size_t size;
     struct nameseq *chain;
     unsigned int n;
   };
@@ -258,7 +258,7 @@ ar_glob_pattern_p (const char *pattern, int quote)
    Return a malloc'd chain of matching elements (or nil if none).  */
 
 struct nameseq *
-ar_glob (const char *arname, const char *member_pattern, unsigned int size)
+ar_glob (const char *arname, const char *member_pattern, size_t size)
 {
   struct ar_glob_state state;
   struct nameseq *n;

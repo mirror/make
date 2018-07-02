@@ -86,7 +86,7 @@ _outputs (struct output *out, int is_err, const char *msg)
   else
     {
       int fd = is_err ? out->err : out->out;
-      int len = strlen (msg);
+      size_t len = strlen (msg);
       int r;
       EINTRLOOP (r, lseek (fd, 0, SEEK_END));
       output_write (fd, msg, len);
@@ -100,8 +100,8 @@ static int
 log_working_directory (int entering)
 {
   static char *buf = NULL;
-  static unsigned int len = 0;
-  unsigned int need;
+  static size_t len = 0;
+  size_t need;
   const char *fmt;
   char *p;
 

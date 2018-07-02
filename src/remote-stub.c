@@ -93,7 +93,7 @@ unblock_remote_children (void)
 
 /* Send signal SIG to child ID.  Return 0 if successful, -1 if not.  */
 int
-remote_kill (int id UNUSED, int sig UNUSED)
+remote_kill (pid_t id UNUSED, int sig UNUSED)
 {
   return -1;
 }

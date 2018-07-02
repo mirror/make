@@ -67,7 +67,7 @@ collapse_continuations (char *line)
     {
       char *p = q;
       int i;
-      int out_line_length;
+      size_t out_line_length;
 
       if (q > line && q[-1] == '\\')
         {
@@ -132,9 +132,9 @@ print_spaces (unsigned int n)
 const char *
 concat (unsigned int num, ...)
 {
-  static unsigned int rlen = 0;
+  static size_t rlen = 0;
   static char *result = NULL;
-  unsigned int ri = 0;
+  size_t ri = 0;
   va_list args;
 
   va_start (args, num);
@@ -142,7 +142,7 @@ concat (unsigned int num, ...)
   while (num-- > 0)
     {
       const char *s = va_arg (args, const char *);
-      unsigned int l = xstrlen (s);
+      size_t l = xstrlen (s);
 
       if (l == 0)
         continue;
@@ -203,7 +203,7 @@ strerror (int errnum)
 #undef xstrdup
 
 void *
-xmalloc (unsigned int size)
+xmalloc (size_t size)
 {
   /* Make sure we don't allocate 0, for pre-ISO implementations.  */
   void *result = malloc (size ? size : 1);
@@ -214,7 +214,7 @@ xmalloc (unsigned int size)
 
 
 void *
-xcalloc (unsigned int size)
+xcalloc (size_t size)
 {
   /* Make sure we don't allocate 0, for pre-ISO implementations.  */
   void *result = calloc (size ? size : 1, 1);
@@ -225,7 +225,7 @@ xcalloc (unsigned int size)
 
 
 void *
-xrealloc (void *ptr, unsigned int size)
+xrealloc (void *ptr, size_t size)
 {
   void *result;
 
@@ -263,7 +263,7 @@ xstrdup (const char *ptr)
 #endif  /* HAVE_DMALLOC_H */
 
 char *
-xstrndup (const char *str, unsigned int length)
+xstrndup (const char *str, size_t length)
 {
   char *result;
 
@@ -321,7 +321,7 @@ next_token (const char *s)
    of the token, so this function can be called repeatedly in a loop.  */
 
 char *
-find_next_token (const char **ptr, unsigned int *lengthptr)
+find_next_token (const char **ptr, size_t *lengthptr)
 {
   const char *p = next_token (*ptr);
 

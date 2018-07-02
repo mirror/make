@@ -43,16 +43,15 @@ extern unsigned int num_pattern_rules;
 
 extern unsigned int max_pattern_deps;
 extern unsigned int max_pattern_targets;
-extern unsigned int max_pattern_dep_length;
+extern size_t max_pattern_dep_length;
 
 extern struct file *suffix_file;
-extern unsigned int maxsuffix;
 
 
 void count_implicit_rule_limits (void);
 void convert_to_pattern (void);
 void install_pattern_rule (struct pspec *p, int terminal);
 void create_pattern_rule (const char **targets, const char **target_percents,
-                          unsigned int num, int terminal, struct dep *deps,
+                          unsigned short num, int terminal, struct dep *deps,
                           struct commands *commands, int override);
 void print_rule_data_base (void);

@@ -66,7 +66,7 @@ try_implicit_rule (struct file *file, unsigned int depth)
    length of the word.  */
 
 static const char *
-get_next_word (const char *buffer, unsigned int *length)
+get_next_word (const char *buffer, size_t *length)
 {
   const char *p = buffer, *beg;
   char c;
@@ -161,11 +161,11 @@ struct tryrule
   {
     struct rule *rule;
 
+    /* Stem length for this match. */
+    size_t stemlen;
+
     /* Index of the target in this rule that matched the file. */
     unsigned int matches;
-
-    /* Stem length for this match. */
-    unsigned int stemlen;
 
     /* Definition order of this rule. Used to implement stable sort.*/
     unsigned int order;
@@ -179,8 +179,8 @@ stemlen_compare (const void *v1, const void *v2)
 {
   const struct tryrule *r1 = v1;
   const struct tryrule *r2 = v2;
-  int r = r1->stemlen - r2->stemlen;
-  return r != 0 ? r : (int)(r1->order - r2->order);
+  int r = (int) (r1->stemlen - r2->stemlen);
+  return r != 0 ? r : (int) (r1->order - r2->order);
 }
 
 /* Search the pattern rules for a rule with an existing dependency to make
@@ -205,7 +205,7 @@ pattern_search (struct file *file, int archive,
   const char *filename = archive ? strchr (file->name, '(') : file->name;
 
   /* Length of FILENAME.  */
-  unsigned int namelen = strlen (filename);
+  size_t namelen = strlen (filename);
 
   /* The last slash in FILENAME (or nil if there is none).  */
   const char *lastslash;
@@ -225,8 +225,8 @@ pattern_search (struct file *file, int archive,
 
   /* The start and length of the stem of FILENAME for the current rule.  */
   const char *stem = 0;
-  unsigned int stemlen = 0;
-  unsigned int fullstemlen = 0;
+  size_t stemlen = 0;
+  size_t fullstemlen = 0;
 
   /* Buffer in which we store all the rules that are possibly applicable.  */
   struct tryrule *tryrules = xmalloc (num_pattern_rules * max_pattern_targets
@@ -252,7 +252,7 @@ pattern_search (struct file *file, int archive,
   struct rule *rule;
 
   char *pathdir = NULL;
-  unsigned long pathlen;
+  size_t pathlen;
 
   PATH_VAR (stem_str); /* @@ Need to get rid of stem, stemlen, etc. */
 
@@ -573,7 +573,7 @@ pattern_search (struct file *file, int archive,
               else
                 {
                   int add_dir = 0;
-                  unsigned int len;
+                  size_t len;
                   struct dep **dptr;
 
                   nptr = get_next_word (nptr, &len);
@@ -607,7 +607,7 @@ pattern_search (struct file *file, int archive,
                     }
                   else
                     {
-                      unsigned int i = p - nptr;
+                      size_t i = p - nptr;
                       memcpy (depname, nptr, i);
                       memcpy (depname + i, "$*", 2);
                       memcpy (depname + i + 2, p + 1, len - i - 1);
@@ -672,7 +672,7 @@ pattern_search (struct file *file, int archive,
 
               if (deps_found > max_deps)
                 {
-                  unsigned int l = pat - deplist;
+                  size_t l = pat - deplist;
                   /* This might have changed due to recursion.  */
                   max_pattern_deps = MAX(max_pattern_deps, deps_found);
                   max_deps = max_pattern_deps;
@@ -931,7 +931,7 @@ pattern_search (struct file *file, int archive,
     }
   else
     {
-      int dirlen = (lastslash + 1) - filename;
+      size_t dirlen = (lastslash + 1) - filename;
       char *sp;
 
       /* We want to prepend the directory from

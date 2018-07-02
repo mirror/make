@@ -72,7 +72,7 @@ new_cache (struct strcache **head, sc_buflen_t buflen)
 }
 
 static const char *
-copy_string (struct strcache *sp, const char *str, unsigned int len)
+copy_string (struct strcache *sp, const char *str, sc_buflen_t len)
 {
   /* Add the string to this cache.  */
   char *res = &sp->buffer[sp->end];
@@ -87,13 +87,13 @@ copy_string (struct strcache *sp, const char *str, unsigned int len)
 }
 
 static const char *
-add_string (const char *str, unsigned int len)
+add_string (const char *str, sc_buflen_t len)
 {
   const char *res;
   struct strcache *sp;
   struct strcache **spp = &strcache;
   /* We need space for the nul char.  */
-  unsigned int sz = len + 1;
+  sc_buflen_t sz = len + 1;
 
   ++total_strings;
   total_size += sz;
@@ -143,7 +143,7 @@ struct hugestring {
 static struct hugestring *hugestrings = NULL;
 
 static const char *
-add_hugestring (const char *str, unsigned int len)
+add_hugestring (const char *str, size_t len)
 {
   struct hugestring *new = xmalloc (sizeof (struct hugestring) + len);
   memcpy (new->buffer, str, len);
@@ -179,7 +179,7 @@ static struct hash_table strings;
 static unsigned long total_adds = 0;
 
 static const char *
-add_hash (const char *str, unsigned int len)
+add_hash (const char *str, size_t len)
 {
   char *const *slot;
   const char *key;
@@ -200,7 +200,7 @@ add_hash (const char *str, unsigned int len)
     return key;
 
   /* Not there yet so add it to a buffer, then into the hash table.  */
-  key = add_string (str, len);
+  key = add_string (str, (sc_buflen_t)len);
   hash_insert_at (&strings, key, slot);
   return key;
 }
@@ -238,7 +238,7 @@ strcache_add (const char *str)
 }
 
 const char *
-strcache_add_len (const char *str, unsigned int len)
+strcache_add_len (const char *str, size_t len)
 {
   /* If we're not given a nul-terminated string we have to create one, because
      the hashing functions expect it.  */
@@ -305,16 +305,16 @@ strcache_print_stats (const char *prefix)
           prefix, numbuffs + 1, fullbuffs, total_strings, total_size,
           (total_size / total_strings));
 
-  printf (_("%s current buf: size = %hu B / used = %hu B / count = %hu / avg = %hu B\n"),
+  printf (_("%s current buf: size = %hu B / used = %hu B / count = %hu / avg = %u B\n"),
           prefix, (sc_buflen_t)BUFSIZE, strcache->end, strcache->count,
-          (strcache->end / strcache->count));
+          (unsigned int) (strcache->end / strcache->count));
 
   if (numbuffs)
     {
       /* Show information about non-current buffers.  */
       unsigned long sz = total_size - strcache->end;
       unsigned long cnt = total_strings - strcache->count;
-      sc_buflen_t avgfree = totfree / numbuffs;
+      sc_buflen_t avgfree = (sc_buflen_t) (totfree / numbuffs);
 
       printf (_("%s other used: total = %lu B / count = %lu / avg = %lu B\n"),
               prefix, sz, cnt, sz / cnt);

@@ -105,7 +105,7 @@ static void clean_jobserver (int status);
 static void print_data_base (void);
 static void print_version (void);
 static void decode_switches (int argc, const char **argv, int env);
-static void decode_env_switches (const char *envar, unsigned int len);
+static void decode_env_switches (const char *envar, size_t len);
 static struct variable *define_makeflags (int all, int makefile);
 static char *quote_for_env (char *out, const char *in);
 static void initialize_global_hash_tables (void);
@@ -1355,7 +1355,7 @@ main (int argc, char **argv, char **envp)
         const char *ep = envp[i];
         /* By default, export all variables culled from the environment.  */
         enum variable_export export = v_export;
-        unsigned int len;
+        size_t len;
 
         while (! STOP_SET (*ep, MAP_EQUALS))
           ++ep;
@@ -1648,7 +1648,7 @@ main (int argc, char **argv, char **envp)
     {
       struct command_variable *cv;
       struct variable *v;
-      unsigned int len = 0;
+      size_t len = 0;
       char *value, *p;
 
       /* Figure out how much space will be taken up by the command-line
@@ -1828,7 +1828,7 @@ main (int argc, char **argv, char **envp)
             while (!feof (stdin) && ! ferror (stdin))
               {
                 char buf[2048];
-                unsigned int n = fread (buf, 1, sizeof (buf), stdin);
+                size_t n = fread (buf, 1, sizeof (buf), stdin);
                 if (n > 0 && fwrite (buf, 1, n, outfile) != n)
                   pfatal_with_name (_("fwrite (temporary file)"));
               }
@@ -1925,7 +1925,7 @@ main (int argc, char **argv, char **envp)
     {
       char *p, *value;
       unsigned int i;
-      unsigned int len = (CSTRLEN ("--eval=") + 1) * eval_strings->idx;
+      size_t len = (CSTRLEN ("--eval=") + 1) * eval_strings->idx;
 
       for (i = 0; i < eval_strings->idx; ++i)
         {
@@ -2646,7 +2646,7 @@ init_switches (void)
       long_options[i].flag = 0;
       long_options[i].val = switches[i].c;
       if (short_option (switches[i].c))
-        *p++ = switches[i].c;
+        *p++ = (char) switches[i].c;
       switch (switches[i].type)
         {
         case flag:
@@ -2769,7 +2769,7 @@ handle_non_switch_argument (const char *arg, int env)
         else
           {
             /* Paste the old and new values together */
-            unsigned int oldlen, newlen;
+            size_t oldlen, newlen;
             char *vp;
 
             oldlen = strlen (gv->value);
@@ -2890,7 +2890,7 @@ decode_switches (int argc, const char **argv, int env)
                       const char *op = opt;
 
                       if (short_option (cs->c))
-                        opt[0] = cs->c;
+                        opt[0] = (char) cs->c;
                       else
                         op = cs->long_name;
 
@@ -3013,7 +3013,7 @@ decode_switches (int argc, const char **argv, int env)
    decode_switches.  */
 
 static void
-decode_env_switches (const char *envar, unsigned int len)
+decode_env_switches (const char *envar, size_t len)
 {
   char *varref = alloca (2 + len + 2);
   char *value, *p, *buf;
@@ -3125,7 +3125,7 @@ define_makeflags (int all, int makefile)
     };
   struct flag *flags = 0;
   struct flag *last = 0;
-  unsigned int flagslen = 0;
+  size_t flagslen = 0;
 #define ADD_FLAG(ARG, LEN) \
   do {                                                                        \
     struct flag *new = alloca (sizeof (struct flag));                         \
@@ -3247,7 +3247,7 @@ define_makeflags (int all, int makefile)
   /* Add simple options as a group.  */
   while (flags != 0 && !flags->arg && short_option (flags->cs->c))
     {
-      *p++ = flags->cs->c;
+      *p++ = (char) flags->cs->c;
       flags = flags->next;
     }
 
@@ -3259,7 +3259,7 @@ define_makeflags (int all, int makefile)
 
       /* Add the flag letter or name to the string.  */
       if (short_option (flags->cs->c))
-        *p++ = flags->cs->c;
+        *p++ = (char) flags->cs->c;
       else
         {
           /* Long options require a double-dash.  */

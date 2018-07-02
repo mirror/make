@@ -36,10 +36,10 @@ int _cdecl compare(const void *a1, const void *a2)
         return _stricoll(*((char**)a1),*((char**)a2));
 }
 bool_t
-arr2envblk(char **arr, char **envblk_out, int *envsize_needed)
+arr2envblk(char **arr, char **envblk_out, size_t *envsize_needed)
 {
         char **tmp;
-        int size_needed;
+        size_t size_needed;
         int arrcnt;
         char *ptr;
 

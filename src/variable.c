@@ -50,7 +50,7 @@ static struct pattern_var *last_pattern_vars[256];
 struct pattern_var *
 create_pattern_var (const char *target, const char *suffix)
 {
-  unsigned int len = strlen (target);
+  size_t len = strlen (target);
   struct pattern_var *p = xcalloc (sizeof (struct pattern_var));
 
   if (pattern_vars != 0)
@@ -101,12 +101,12 @@ static struct pattern_var *
 lookup_pattern_var (struct pattern_var *start, const char *target)
 {
   struct pattern_var *p;
-  unsigned int targlen = strlen (target);
+  size_t targlen = strlen (target);
 
   for (p = start ? start->next : pattern_vars; p != 0; p = p->next)
     {
       const char *stem;
-      unsigned int stemlen;
+      size_t stemlen;
 
       if (p->len > targlen)
         /* It can't possibly match.  */
@@ -193,7 +193,7 @@ init_hash_global_variable_set (void)
    that it should be recursively re-expanded.  */
 
 struct variable *
-define_variable_in_set (const char *name, unsigned int length,
+define_variable_in_set (const char *name, size_t length,
                         const char *value, enum variable_origin origin,
                         int recursive, struct variable_set *set,
                         const floc *flocp)
@@ -206,7 +206,7 @@ define_variable_in_set (const char *name, unsigned int length,
     set = &global_variable_set;
 
   var_key.name = (char *) name;
-  var_key.length = length;
+  var_key.length = (unsigned int) length;
   var_slot = (struct variable **) hash_find_slot (&set->table, &var_key);
   v = *var_slot;
 
@@ -269,7 +269,7 @@ define_variable_in_set (const char *name, unsigned int length,
 
   v = xmalloc (sizeof (struct variable));
   v->name = xstrndup (name, length);
-  v->length = length;
+  v->length = (unsigned int) length;
   hash_insert_at (&set->table, v, var_slot);
   if (set == &global_variable_set)
     ++variable_changenum;
@@ -330,7 +330,7 @@ free_variable_set (struct variable_set_list *list)
 }
 
 void
-undefine_variable_in_set (const char *name, unsigned int length,
+undefine_variable_in_set (const char *name, size_t length,
                           enum variable_origin origin,
                           struct variable_set *set)
 {
@@ -342,7 +342,7 @@ undefine_variable_in_set (const char *name, unsigned int length,
     set = &global_variable_set;
 
   var_key.name = (char *) name;
-  var_key.length = length;
+  var_key.length = (unsigned int) length;
   var_slot = (struct variable **) hash_find_slot (&set->table, &var_key);
 
   if (env_overrides && origin == o_env)
@@ -412,8 +412,8 @@ lookup_special_var (struct variable *var)
 
   if (variable_changenum != last_changenum && streq (var->name, ".VARIABLES"))
     {
-      unsigned long max = EXPANSION_INCREMENT (strlen (var->value));
-      unsigned long len;
+      size_t max = EXPANSION_INCREMENT (strlen (var->value));
+      size_t len;
       char *p;
       struct variable **vp = (struct variable **) global_variable_set.table.ht_vec;
       struct variable **end = &vp[global_variable_set.table.ht_size];
@@ -433,7 +433,7 @@ lookup_special_var (struct variable *var)
             len += l + 1;
             if (len > max)
               {
-                unsigned long off = p - var->value;
+                size_t off = p - var->value;
 
                 max += EXPANSION_INCREMENT (l + 1);
                 var->value = xrealloc (var->value, max);
@@ -460,14 +460,14 @@ lookup_special_var (struct variable *var)
    on the variable, or nil if no such variable is defined.  */
 
 struct variable *
-lookup_variable (const char *name, unsigned int length)
+lookup_variable (const char *name, size_t length)
 {
   const struct variable_set_list *setlist;
   struct variable var_key;
   int is_parent = 0;
 
   var_key.name = (char *) name;
-  var_key.length = length;
+  var_key.length = (unsigned int) length;
 
   for (setlist = current_variable_set_list;
        setlist != 0; setlist = setlist->next)
@@ -547,13 +547,13 @@ lookup_variable (const char *name, unsigned int length)
    on the variable, or nil if no such variable is defined.  */
 
 struct variable *
-lookup_variable_in_set (const char *name, unsigned int length,
+lookup_variable_in_set (const char *name, size_t length,
                         const struct variable_set *set)
 {
   struct variable var_key;
 
   var_key.name = (char *) name;
-  var_key.length = length;
+  var_key.length = (unsigned int) length;
 
   return (struct variable *) hash_find_item ((struct hash_table *) &set->table, &var_key);
 }
@@ -1138,7 +1138,7 @@ static char *
 shell_result (const char *p)
 {
   char *buf;
-  unsigned int len;
+  size_t len;
   char *args[2];
   char *result;
 
@@ -1237,7 +1237,7 @@ do_variable_definition (const floc *flocp, const char *varname,
           {
             /* Paste the old and new values together in VALUE.  */
 
-            unsigned int oldlen, vallen;
+            size_t oldlen, vallen;
             const char *val;
             char *tp = NULL;
 
@@ -1567,7 +1567,7 @@ parse_variable_definition (const char *p, struct variable *var)
         return NULL;
     }
 
-  var->length = e - var->name;
+  var->length = (unsigned int) (e - var->name);
   var->value = next_token (p);
   return (char *)p;
 }
@@ -1788,7 +1788,7 @@ print_target_variables (const struct file *file)
 {
   if (file->variables != 0)
     {
-      int l = strlen (file->name);
+      size_t l = strlen (file->name);
       char *t = alloca (l + 3);
 
       strcpy (t, file->name);

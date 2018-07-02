@@ -78,7 +78,7 @@ static struct hash_table function_table;
 
 char *
 subst_expand (char *o, const char *text, const char *subst, const char *replace,
-              unsigned int slen, unsigned int rlen, int by_word)
+              size_t slen, size_t rlen, int by_word)
 {
   const char *t = text;
   const char *p;
@@ -148,10 +148,10 @@ patsubst_expand_pat (char *o, const char *text,
                      const char *pattern, const char *replace,
                      const char *pattern_percent, const char *replace_percent)
 {
-  unsigned int pattern_prepercent_len, pattern_postpercent_len;
-  unsigned int replace_prepercent_len, replace_postpercent_len;
+  size_t pattern_prepercent_len, pattern_postpercent_len;
+  size_t replace_prepercent_len, replace_postpercent_len;
   const char *t;
-  unsigned int len;
+  size_t len;
   int doneany = 0;
 
   /* Record the length of REPLACE before and after the % so we don't have to
@@ -280,7 +280,7 @@ lookup_function (const char *s)
     return NULL;
 
   function_table_entry_key.name = s;
-  function_table_entry_key.len = e - s;
+  function_table_entry_key.len = (unsigned char) (e - s);
 
   return hash_find_item (&function_table, &function_table_entry_key);
 }
@@ -291,11 +291,11 @@ lookup_function (const char *s)
 int
 pattern_matches (const char *pattern, const char *percent, const char *str)
 {
-  unsigned int sfxlen, strlength;
+  size_t sfxlen, strlength;
 
   if (percent == 0)
     {
-      unsigned int len = strlen (pattern) + 1;
+      size_t len = strlen (pattern) + 1;
       char *new_chars = alloca (len);
       memcpy (new_chars, pattern, len);
       percent = find_percent (new_chars);
@@ -357,9 +357,9 @@ static char *
 string_glob (char *line)
 {
   static char *result = 0;
-  static unsigned int length;
+  static size_t length;
   struct nameseq *chain;
-  unsigned int idx;
+  size_t idx;
 
   chain = PARSE_FILE_SEQ (&line, struct nameseq, MAP_NUL, NULL,
                           /* We do not want parse_file_seq to strip './'s.
@@ -377,7 +377,7 @@ string_glob (char *line)
   while (chain != 0)
     {
       struct nameseq *next = chain->next;
-      unsigned int len = strlen (chain->name);
+      size_t len = strlen (chain->name);
 
       if (idx + len + 1 > length)
         {
@@ -430,7 +430,7 @@ func_join (char *o, char **argv, const char *funcname UNUSED)
   const char *list2_iterator = argv[1];
   do
     {
-      unsigned int len1, len2;
+      size_t len1, len2;
 
       tp = find_next_token (&list1_iterator, &len1);
       if (tp != 0)
@@ -519,7 +519,7 @@ func_notdir_suffix (char *o, char **argv, const char *funcname)
   const char *list_iterator = argv[0];
   const char *p2;
   int doneany =0;
-  unsigned int len=0;
+  size_t len=0;
 
   int is_suffix = funcname[0] == 's';
   int is_notdir = !is_suffix;
@@ -595,7 +595,7 @@ func_basename_dir (char *o, char **argv, const char *funcname)
   const char *p3 = argv[0];
   const char *p2;
   int doneany = 0;
-  unsigned int len = 0;
+  size_t len = 0;
 
   int is_basename = funcname[0] == 'b';
   int is_dir = !is_basename;
@@ -668,14 +668,14 @@ func_basename_dir (char *o, char **argv, const char *funcname)
 static char *
 func_addsuffix_addprefix (char *o, char **argv, const char *funcname)
 {
-  int fixlen = strlen (argv[0]);
+  size_t fixlen = strlen (argv[0]);
   const char *list_iterator = argv[1];
   int is_addprefix = funcname[3] == 'p';
   int is_addsuffix = !is_addprefix;
 
   int doneany = 0;
   const char *p;
-  unsigned int len;
+  size_t len;
 
   while ((p = find_next_token (&list_iterator, &len)) != 0)
     {
@@ -708,7 +708,7 @@ func_subst (char *o, char **argv, const char *funcname UNUSED)
 static char *
 func_firstword (char *o, char **argv, const char *funcname UNUSED)
 {
-  unsigned int i;
+  size_t i;
   const char *words = argv[0];    /* Use a temp variable for find_next_token */
   const char *p = find_next_token (&words, &i);
 
@@ -721,12 +721,12 @@ func_firstword (char *o, char **argv, const char *funcname UNUSED)
 static char *
 func_lastword (char *o, char **argv, const char *funcname UNUSED)
 {
-  unsigned int i;
+  size_t i;
   const char *words = argv[0];    /* Use a temp variable for find_next_token */
   const char *p = NULL;
   const char *t;
 
-  while ((t = find_next_token (&words, &i)))
+  while ((t = find_next_token (&words, &i)) != NULL)
     p = t;
 
   if (p != 0)
@@ -871,7 +871,7 @@ func_foreach (char *o, char **argv, const char *funcname UNUSED)
   int doneany = 0;
   const char *list_iterator = list;
   const char *p;
-  unsigned int len;
+  size_t len;
   struct variable *var;
 
   /* Clean up the variable name by removing whitespace.  */
@@ -913,7 +913,7 @@ struct a_word
   struct a_word *next;
   struct a_word *chain;
   char *str;
-  int length;
+  size_t length;
   int matched;
 };
 
@@ -932,7 +932,7 @@ a_word_hash_2 (const void *key)
 static int
 a_word_hash_cmp (const void *x, const void *y)
 {
-  int result = ((struct a_word const *) x)->length - ((struct a_word const *) y)->length;
+  int result = (int) ((struct a_word const *) x)->length - ((struct a_word const *) y)->length;
   if (result)
     return result;
   return_STRING_COMPARE (((struct a_word const *) x)->str,
@@ -944,7 +944,7 @@ struct a_pattern
   struct a_pattern *next;
   char *str;
   char *percent;
-  int length;
+  size_t length;
 };
 
 static char *
@@ -965,7 +965,7 @@ func_filter_filterout (char *o, char **argv, const char *funcname)
   int words = 0;
   int hashing = 0;
   char *p;
-  unsigned int len;
+  size_t len;
 
   /* Chop ARGV[0] up into patterns to match against the words.
      We don't need to preserve it because our caller frees all the
@@ -1115,7 +1115,7 @@ func_error (char *o, char **argv, const char *funcname)
 {
   char **argvp;
   char *msg, *p;
-  int len;
+  size_t len;
 
   /* The arguments will be broken on commas.  Rather than create yet
      another special case where function arguments aren't broken up,
@@ -1168,7 +1168,7 @@ func_sort (char *o, char **argv, const char *funcname UNUSED)
   char **words;
   int wordi;
   char *p;
-  unsigned int len;
+  size_t len;
 
   /* Find the maximum number of words we'll have.  */
   t = argv[0];
@@ -1292,7 +1292,7 @@ func_or (char *o, char **argv, const char *funcname UNUSED)
       const char *begp = *argv;
       const char *endp = begp + strlen (*argv) - 1;
       char *expansion;
-      int result = 0;
+      size_t result = 0;
 
       /* Find the result of the condition: if it's false keep going.  */
 
@@ -1343,7 +1343,7 @@ func_and (char *o, char **argv, const char *funcname UNUSED)
     {
       const char *begp = *argv;
       const char *endp = begp + strlen (*argv) - 1;
-      int result;
+      size_t result;
 
       /* An empty condition is always false.  */
       strip_whitespace (&begp, &endp);
@@ -1398,7 +1398,7 @@ static char *
 func_eval (char *o, char **argv, const char *funcname UNUSED)
 {
   char *buf;
-  unsigned int len;
+  size_t len;
 
   /* Eval the buffer.  Pop the current variable buffer setting so that the
      eval'd code can use its own without conflicting.  */
@@ -1430,7 +1430,7 @@ func_value (char *o, char **argv, const char *funcname UNUSED)
   \r is replaced on UNIX as well. Is this desirable?
  */
 static void
-fold_newlines (char *buffer, unsigned int *length, int trim_newlines)
+fold_newlines (char *buffer, size_t *length, int trim_newlines)
 {
   char *dst = buffer;
   char *src = buffer;
@@ -1806,7 +1806,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
 
   {
     char *buffer;
-    unsigned int maxlen, i;
+    size_t maxlen, i;
     int cc;
 
     /* Record the PID for reap_children.  */
@@ -1916,11 +1916,11 @@ func_shell_base (char *o, char **argv, int trim_newlines)
 
   BPTR child_stdout;
   char tmp_output[FILENAME_MAX];
-  unsigned int maxlen = 200, i;
+  size_t maxlen = 200, i;
   int cc;
   char * buffer, * ptr;
   char ** aptr;
-  int len = 0;
+  size_t len = 0;
   char* batch_filename = NULL;
 
   /* Construct the argument list.  */
@@ -2104,7 +2104,7 @@ abspath (const char *name, char *apath)
 
   for (start = end = name; *start != '\0'; start = end)
     {
-      unsigned long len;
+      size_t len;
 
       /* Skip sequence of multiple path-separators.  */
       while (STOP_SET (*start, MAP_DIRSEP))
@@ -2158,7 +2158,7 @@ func_realpath (char *o, char **argv, const char *funcname UNUSED)
   const char *p = argv[0];
   const char *path = 0;
   int doneany = 0;
-  unsigned int len = 0;
+  size_t len = 0;
 
   while ((path = find_next_token (&p, &len)) != 0)
     {
@@ -2227,7 +2227,7 @@ func_file (char *o, char **argv, const char *funcname UNUSED)
 
       if (argv[1])
         {
-          int l = strlen (argv[1]);
+          size_t l = strlen (argv[1]);
           int nl = l == 0 || argv[1][l-1] != '\n';
 
           if (fputs (argv[1], fp) == EOF || (nl && fputc ('\n', fp) == EOF))
@@ -2291,7 +2291,7 @@ func_abspath (char *o, char **argv, const char *funcname UNUSED)
   const char *p = argv[0];
   const char *path = 0;
   int doneany = 0;
-  unsigned int len = 0;
+  size_t len = 0;
 
   while ((path = find_next_token (&p, &len)) != 0)
     {
@@ -2498,7 +2498,7 @@ handle_function (char **op, const char **stringp)
           ++nargs;
 
           if (nargs == entry_p->maximum_args
-              || (! (next = find_next_argument (openparen, closeparen, p, end))))
+              || ((next = find_next_argument (openparen, closeparen, p, end)) == NULL))
             next = end;
 
           *argvp = expand_argument (p, next);
@@ -2507,7 +2507,7 @@ handle_function (char **op, const char **stringp)
     }
   else
     {
-      int len = end - beg;
+      size_t len = end - beg;
       char *p, *aend;
 
       abeg = xmalloc (len+1);
@@ -2522,7 +2522,7 @@ handle_function (char **op, const char **stringp)
           ++nargs;
 
           if (nargs == entry_p->maximum_args
-              || (! (next = find_next_argument (openparen, closeparen, p, aend))))
+              || ((next = find_next_argument (openparen, closeparen, p, aend)) == NULL))
             next = aend;
 
           *argvp = p;
@@ -2556,7 +2556,7 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
   static int max_args = 0;
   char *fname;
   char *body;
-  int flen;
+  size_t flen;
   int i;
   int saved_args;
   const struct function_table_entry *entry_p;
@@ -2670,9 +2670,9 @@ define_new_function (const floc *flocp, const char *name,
 
   ent = xmalloc (sizeof (struct function_table_entry));
   ent->name = name;
-  ent->len = len;
-  ent->minimum_args = min;
-  ent->maximum_args = max;
+  ent->len = (unsigned char) len;
+  ent->minimum_args = (unsigned char) min;
+  ent->maximum_args = (unsigned char) max;
   ent->expand_args = ANY_SET(flags, GMK_FUNC_NOEXPAND) ? 0 : 1;
   ent->alloc_fn = 1;
   ent->fptr.alloc_func_ptr = func;

@@ -121,7 +121,7 @@ load_object (const floc *flocp, int noerror, const char *ldname,
 int
 load_file (const floc *flocp, const char **ldname, int noerror)
 {
-  int nmlen = strlen (*ldname);
+  size_t nmlen = strlen (*ldname);
   char *new = alloca (nmlen + CSTRLEN (SYMBOL_EXTENSION) + 1);
   char *symname = NULL;
   char *loaded;
@@ -142,7 +142,7 @@ load_file (const floc *flocp, const char **ldname, int noerror)
       ep = strchr (fp+1, ')');
       if (ep && ep[1] == '\0')
         {
-          int l = fp - *ldname;;
+          size_t l = fp - *ldname;;
 
           ++fp;
           if (fp == ep)

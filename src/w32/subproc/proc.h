@@ -24,6 +24,6 @@ typedef int bool_t;
 #define E_NO_MEM        103
 #define E_FORK          104
 
-extern bool_t arr2envblk(char **arr, char **envblk_out, int *envsize_needed);
+extern bool_t arr2envblk(char **arr, char **envblk_out, size_t *envsize_needed);
 
 #endif

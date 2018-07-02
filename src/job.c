@@ -29,10 +29,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Default shell to use.  */
 #ifdef WINDOWS32
-#ifdef HAVE_STRINGS_H
-#include <strings.h>	/* for strcasecmp, strncasecmp */
-#endif
-#include <windows.h>
+# ifdef HAVE_STRINGS_H
+#  include <strings.h>	/* for strcasecmp, strncasecmp */
+# endif
+# include <windows.h>
 
 const char *default_shell = "sh.exe";
 int no_default_sh_exe = 1;
@@ -281,7 +281,7 @@ create_batch_file (char const *base, int unixy, int *fd)
      launches the next one.  */
   static unsigned uniq = 0;
   static int second_loop = 0;
-  const unsigned sizemax = strlen (base) + strlen (ext) + 10;
+  const size_t sizemax = strlen (base) + strlen (ext) + 10;
 
   if (path_size == 0)
     {
@@ -451,7 +451,7 @@ is_bourne_compatible_shell (const char *path)
   for (s = unix_shells; *s != NULL; ++s)
     {
 #if defined(WINDOWS32) || defined(__MSDOS__)
-      unsigned int len = strlen (*s);
+      size_t len = strlen (*s);
       if ((strlen (name) >= len && STOP_SET (name[len], MAP_DOT|MAP_NUL))
           && strncasecmp (name, *s, len) == 0)
 #else
@@ -2637,7 +2637,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
   static const char *sh_chars_sh =  "#;\"*?[]&|<>(){}$`^~!";
 # endif  /* HAVE_DOS_PATHS */
 #endif
-  int i;
+  size_t i;
   char *p;
 #ifndef NDEBUG
   char *end;
@@ -3049,9 +3049,9 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
        argument list.  */
 
     char *new_line;
-    unsigned int shell_len = strlen (shell);
-    unsigned int line_len = strlen (line);
-    unsigned int sflags_len = shellflags ? strlen (shellflags) : 0;
+    size_t shell_len = strlen (shell);
+    size_t line_len = strlen (line);
+    size_t sflags_len = shellflags ? strlen (shellflags) : 0;
 #ifdef WINDOWS32
     char *command_ptr = NULL; /* used for batch_mode_shell mode */
 #endif
@@ -3208,7 +3208,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
             {
               const char *s = shellflags;
               char *t;
-              unsigned int len;
+              size_t len;
               while ((t = find_next_token (&s, &len)) != 0)
                 new_argv[n++] = xstrndup (t, len);
             }

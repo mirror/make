@@ -514,12 +514,12 @@ void die (int) __attribute__ ((noreturn));
 void pfatal_with_name (const char *) __attribute__ ((noreturn));
 void perror_with_name (const char *, const char *);
 #define xstrlen(_s) ((_s)==NULL ? 0 : strlen (_s))
-void *xmalloc (unsigned int);
-void *xcalloc (unsigned int);
-void *xrealloc (void *, unsigned int);
+void *xmalloc (size_t);
+void *xcalloc (size_t);
+void *xrealloc (void *, size_t);
 char *xstrdup (const char *);
-char *xstrndup (const char *, unsigned int);
-char *find_next_token (const char **, unsigned int *);
+char *xstrndup (const char *, size_t);
+char *find_next_token (const char **, size_t *);
 char *next_token (const char *);
 char *end_of_token (const char *);
 void collapse_continuations (char *);
@@ -568,7 +568,7 @@ void build_vpath_lists (void);
 void construct_vpath_list (char *pattern, char *dirpath);
 const char *vpath_search (const char *file, FILE_TIMESTAMP *mtime_ptr,
                           unsigned int* vpath_index, unsigned int* path_index);
-int gpath_search (const char *file, unsigned int len);
+int gpath_search (const char *file, size_t len);
 
 void construct_include_path (const char **arg_dirs);
 
@@ -585,7 +585,7 @@ void strcache_init (void);
 void strcache_print_stats (const char *prefix);
 int strcache_iscached (const char *str);
 const char *strcache_add (const char *str);
-const char *strcache_add_len (const char *str, unsigned int len);
+const char *strcache_add_len (const char *str, size_t len);
 
 /* Guile support  */
 int guile_gmake_setup (const floc *flocp);
@@ -711,7 +711,7 @@ int start_remote_job (char **, char **, int, int *, int *, int *);
 int remote_status (int *, int *, int *, int);
 void block_remote_children (void);
 void unblock_remote_children (void);
-int remote_kill (int id, int sig);
+int remote_kill (pid_t id, int sig);
 void print_variable_data_base (void);
 void print_vpath_data_base (void);
 

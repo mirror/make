@@ -66,8 +66,8 @@ typedef struct sub_process_t {
 
 /* keep track of children so we can implement a waitpid-like routine */
 static sub_process *proc_array[GMAKE_MAXIMUM_WAIT_OBJECTS];
-static int proc_index = 0;
-static int fake_exits_pending = 0;
+static unsigned int proc_index = 0;
+static unsigned int fake_exits_pending = 0;
 
 /*
  * Address the scalability limit intrisic to WaitForMultipleOjects by
@@ -98,30 +98,30 @@ DWORD process_wait_for_multiple_objects(
       assert(dwMilliseconds == 0 || dwMilliseconds == INFINITE); /* No support for timeouts */
 
       for (; objectCount > 0; blockCount++) {
-	DWORD n = objectCount <= MAXIMUM_WAIT_OBJECTS ? objectCount : MAXIMUM_WAIT_OBJECTS;
-	objectCount -= n;
-	retVal = WaitForMultipleObjects(n, &lpHandles[blockCount * MAXIMUM_WAIT_OBJECTS],
-					    FALSE, 0);
-	switch (retVal) {
-	  case WAIT_TIMEOUT:
-	    retVal = GMAKE_WAIT_TIMEOUT;
-	    continue;
-	    break;
-	  case WAIT_FAILED:
-	    fprintf(stderr,"WaitForMultipleOjbects failed waiting with error %d\n", GetLastError());
-	    break;
-	  default:
-	    if (retVal >= WAIT_ABANDONED_0) {
-	      assert(retVal < WAIT_ABANDONED_0 + MAXIMUM_WAIT_OBJECTS);
-	      retVal += blockCount * MAXIMUM_WAIT_OBJECTS - WAIT_ABANDONED_0 + GMAKE_WAIT_ABANDONED_0;
-	    } else {
-	      assert(retVal < WAIT_OBJECT_0 + MAXIMUM_WAIT_OBJECTS);
-	      retVal += blockCount * MAXIMUM_WAIT_OBJECTS;
-	    }
-	    break;
-	}
+        DWORD n = objectCount <= MAXIMUM_WAIT_OBJECTS ? objectCount : MAXIMUM_WAIT_OBJECTS;
+        objectCount -= n;
+        retVal = WaitForMultipleObjects(n, &lpHandles[blockCount * MAXIMUM_WAIT_OBJECTS],
+                                            FALSE, 0);
+        switch (retVal) {
+          case WAIT_TIMEOUT:
+            retVal = GMAKE_WAIT_TIMEOUT;
+            continue;
+            break;
+          case WAIT_FAILED:
+            fprintf(stderr,"WaitForMultipleOjbects failed waiting with error %d\n", GetLastError());
+            break;
+          default:
+            if (retVal >= WAIT_ABANDONED_0) {
+              assert(retVal < WAIT_ABANDONED_0 + MAXIMUM_WAIT_OBJECTS);
+              retVal += blockCount * MAXIMUM_WAIT_OBJECTS - WAIT_ABANDONED_0 + GMAKE_WAIT_ABANDONED_0;
+            } else {
+              assert(retVal < WAIT_OBJECT_0 + MAXIMUM_WAIT_OBJECTS);
+              retVal += blockCount * MAXIMUM_WAIT_OBJECTS;
+            }
+            break;
+        }
 
-	return retVal;
+        return retVal;
 
       }
 
@@ -139,7 +139,7 @@ DWORD
 process_set_handles(HANDLE *handles)
 {
     DWORD count = 0;
-    int i;
+    unsigned int i;
 
     /* Build array of handles to wait for */
     for (i = 0; i < proc_index; i++) {
@@ -160,7 +160,7 @@ process_set_handles(HANDLE *handles)
 static void
 process_adjust_wait_state(sub_process* pproc)
 {
-        int i;
+        unsigned int i;
 
         if (!proc_index)
                 return;
@@ -186,7 +186,7 @@ process_wait_for_any_private(int block, DWORD* pdwWaitStatus)
 {
         HANDLE handles[GMAKE_MAXIMUM_WAIT_OBJECTS];
         DWORD retval, which;
-        int i;
+        unsigned int i;
 
         if (!proc_index)
                 return NULL;
@@ -578,7 +578,7 @@ process_begin(
         STARTUPINFO startInfo;
         PROCESS_INFORMATION procInfo;
         char *envblk=NULL;
-        int envsize_needed = 0;
+        size_t envsize_needed = 0;
         int pass_null_exec_path = 0;
 
         /*
@@ -615,7 +615,7 @@ process_begin(
                 if (exec_path[0] == '/') {
                         char *new_argv0;
                         char **argvi = argv;
-                        int arglen = 0;
+                        size_t arglen = 0;
 
                         strcpy(buf, variable_expand ("$(SHELL)"));
                         shell_name = &buf[0];
@@ -708,7 +708,8 @@ process_begin(
                     && _stricmp(exec_path, argv[0]) == 0) {
                         char *new_argv, *p;
                         char **argvi;
-                        int arglen, i;
+                        size_t arglen;
+                        int i;
                         pass_null_exec_path = 1;
                         /* Rewrite argv[] replacing argv[0] with exec_fname.  */
                         for (argvi = argv + 1, arglen = strlen(exec_fname) + 1;
@@ -743,7 +744,7 @@ process_begin(
                         if ((pproc->last_err == ERROR_INVALID_PARAMETER
                              || pproc->last_err == ERROR_MORE_DATA)
                             && envsize_needed > 32*1024) {
-                                fprintf (stderr, "CreateProcess failed, probably because environment is too large (%d bytes).\n",
+                                fprintf (stderr, "CreateProcess failed, probably because environment is too large (%Iu bytes).\n",
                                          envsize_needed);
                         }
                         pproc->last_err = 0;
@@ -1196,13 +1197,13 @@ process_cleanup(
 static char *
 make_command_line( char *shell_name, char *full_exec_path, char **argv)
 {
-        int             argc = 0;
-        char**          argvi;
-        int*            enclose_in_quotes = NULL;
-        int*            enclose_in_quotes_i;
-        unsigned int    bytes_required = 0;
-        char*           command_line;
-        char*           command_line_i;
+        int    argc = 0;
+        char** argvi;
+        int*   enclose_in_quotes = NULL;
+        int*   enclose_in_quotes_i;
+        size_t bytes_required = 0;
+        char*  command_line;
+        char*  command_line_i;
         int have_sh = 0; /* HAVE_CYGWIN_SHELL */
         int cygwin_mode = 0; /* HAVE_CYGWIN_SHELL */
 

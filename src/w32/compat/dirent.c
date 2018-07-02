@@ -30,7 +30,7 @@ opendir(const char* pDirName)
         struct stat sb;
         DIR*    pDir;
         char*   pEndDirName;
-        int     nBufferLen;
+        size_t  nBufferLen;
 
         /* sanity checks */
         if (!pDirName) {

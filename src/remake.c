@@ -1255,7 +1255,7 @@ FILE_TIMESTAMP
 f_mtime (struct file *file, int search)
 {
   FILE_TIMESTAMP mtime;
-  int propagate_timestamp;
+  unsigned int propagate_timestamp;
 
   /* File's mtime is not known; must get it from the system.  */
 
@@ -1284,7 +1284,7 @@ f_mtime (struct file *file, int search)
              Change the archive-member reference accordingly.  */
 
           char *name;
-          unsigned int arlen, memlen;
+          size_t arlen, memlen;
 
           arlen = strlen (arfile->hname);
           memlen = strlen (memname);
@@ -1332,7 +1332,7 @@ f_mtime (struct file *file, int search)
               || (file->name[0] == '-' && file->name[1] == 'l'
                   && (name = library_search (file->name, &mtime)) != 0))
             {
-              int name_len;
+              size_t name_len;
 
               if (mtime != UNKNOWN_MTIME)
                 /* vpath_search and library_search store UNKNOWN_MTIME
@@ -1480,29 +1480,29 @@ name_mtime (const char *name)
        succeeds ONLY if "foo" is a directory. */
     if (p > name)
       {
-	memcpy (tem, name, p - name + 1);
-	tstart = tem;
-	if (tstart[1] == ':')
-	  tstart += 2;
-	tend = tem + (p - name - 1);
-	if (*tend == '.' && tend > tstart)
-	  tend--;
-	if (*tend == '.' && tend > tstart)
-	  tend--;
-	for ( ; tend > tstart && (*tend == '/' || *tend == '\\'); tend--)
-	  *tend = '\0';
+        memcpy (tem, name, p - name + 1);
+        tstart = tem;
+        if (tstart[1] == ':')
+          tstart += 2;
+        tend = tem + (p - name - 1);
+        if (*tend == '.' && tend > tstart)
+          tend--;
+        if (*tend == '.' && tend > tstart)
+          tend--;
+        for ( ; tend > tstart && (*tend == '/' || *tend == '\\'); tend--)
+          *tend = '\0';
       }
     else
       {
-	tem[0] = '\0';
-	tend = &tem[0];
+        tem[0] = '\0';
+        tend = &tem[0];
       }
 
     e = stat (tem, &st);
     if (e == 0 && !_S_ISDIR (st.st_mode) && tend < tem + (p - name - 1))
       {
-	errno = ENOTDIR;
-	e = -1;
+        errno = ENOTDIR;
+        e = -1;
       }
   }
 #else
@@ -1622,8 +1622,8 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
   /* Loop variables for the libpatterns value.  */
   char *p;
   const char *p2;
-  unsigned int len;
-  unsigned int liblen;
+  size_t len;
+  size_t liblen;
 
   /* Information about the earliest (in the vpath sequence) match.  */
   unsigned int best_vpath = 0, best_path = 0;
@@ -1643,8 +1643,8 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
   while ((p = find_next_token (&p2, &len)) != 0)
     {
       static char *buf = NULL;
-      static unsigned int buflen = 0;
-      static int libdir_maxlen = -1;
+      static size_t buflen = 0;
+      static size_t libdir_maxlen = 0;
       static unsigned int std_dirs = 0;
       char *libbuf = variable_expand ("");
 
@@ -1709,7 +1709,7 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
         {
           for (dp = dirs; *dp != 0; ++dp)
             {
-              int l = strlen (*dp);
+              size_t l = strlen (*dp);
               if (l > libdir_maxlen)
                 libdir_maxlen = l;
               std_dirs++;

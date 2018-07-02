@@ -26,12 +26,12 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 struct vpath
   {
-    struct vpath *next; /* Pointer to next struct in the linked list.  */
-    const char *pattern;/* The pattern to match.  */
-    const char *percent;/* Pointer into 'pattern' where the '%' is.  */
-    unsigned int patlen;/* Length of the pattern.  */
+    struct vpath *next;      /* Pointer to next struct in the linked list.  */
+    const char *pattern;     /* The pattern to match.  */
+    const char *percent;     /* Pointer into 'pattern' where the '%' is.  */
+    size_t patlen;           /* Length of the pattern.  */
     const char **searchpath; /* Null-terminated list of directories.  */
-    unsigned int maxlen;/* Maximum length of any entry in the list.  */
+    size_t maxlen;           /* Maximum length of any entry in the list.  */
   };
 
 /* Linked-list of all selective VPATHs.  */
@@ -160,7 +160,7 @@ construct_vpath_list (char *pattern, char *dirpath)
   unsigned int elem;
   char *p;
   const char **vpath;
-  unsigned int maxvpath;
+  size_t maxvpath;
   unsigned int maxelem;
   const char *percent = NULL;
 
@@ -229,7 +229,7 @@ construct_vpath_list (char *pattern, char *dirpath)
   while (*p != '\0')
     {
       char *v;
-      unsigned int len;
+      size_t len;
 
       /* Find the end of this entry.  */
       v = p;
@@ -304,7 +304,7 @@ construct_vpath_list (char *pattern, char *dirpath)
    in.  If it is found, return 1.  Otherwise we return 0.  */
 
 int
-gpath_search (const char *file, unsigned int len)
+gpath_search (const char *file, size_t len)
 {
   if (gpaths && (len <= gpaths->maxlen))
     {
@@ -333,9 +333,9 @@ selective_vpath_search (struct vpath *path, const char *file,
   const char *n;
   const char *filename;
   const char **vpath = path->searchpath;
-  unsigned int maxvpath = path->maxlen;
+  size_t maxvpath = path->maxlen;
   unsigned int i;
-  unsigned int flen, name_dplen;
+  size_t flen, name_dplen;
   int exists = 0;
 
   /* Find out if *FILE is a target.
@@ -376,7 +376,7 @@ selective_vpath_search (struct vpath *path, const char *file,
     {
       int exists_in_cache = 0;
       char *p = name;
-      unsigned int vlen = strlen (vpath[i]);
+      size_t vlen = strlen (vpath[i]);
 
       /* Put the next VPATH entry into NAME at P and increment P past it.  */
       memcpy (p, vpath[i], vlen);

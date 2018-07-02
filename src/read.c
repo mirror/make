@@ -51,7 +51,7 @@ struct ebuffer
     char *buffer;       /* Start of the current line in the buffer.  */
     char *bufnext;      /* Start of the next line in the buffer.  */
     char *bufstart;     /* Start of the entire buffer.  */
-    unsigned int size;  /* Malloc'd size of buffer. */
+    size_t size;        /* Malloc'd size of buffer. */
     FILE *fp;           /* File, or NULL if this is an internal buffer.  */
     floc floc;          /* Info on the file in fp (if any).  */
   };
@@ -122,7 +122,7 @@ static const char **include_directories;
 
 /* Maximum length of an element of the above.  */
 
-static unsigned int max_incl_len;
+static size_t max_incl_len;
 
 /* The filename and pointer to line number of the
    makefile currently being read in.  */
@@ -133,7 +133,7 @@ const floc *reading_file = 0;
 
 static struct goaldep *read_files = 0;
 
-static struct goaldep *eval_makefile (const char *filename, int flags);
+static struct goaldep *eval_makefile (const char *filename, unsigned short flags);
 static void eval (struct ebuffer *buffer, int flags);
 
 static long readline (struct ebuffer *ebuf);
@@ -141,18 +141,18 @@ static void do_undefine (char *name, enum variable_origin origin,
                          struct ebuffer *ebuf);
 static struct variable *do_define (char *name, enum variable_origin origin,
                                    struct ebuffer *ebuf);
-static int conditional_line (char *line, int len, const floc *flocp);
+static int conditional_line (char *line, size_t len, const floc *flocp);
 static void record_files (struct nameseq *filenames, const char *pattern,
                           const char *pattern_percent, char *depstr,
                           unsigned int cmds_started, char *commands,
-                          unsigned int commands_idx, int two_colon,
+                          size_t commands_idx, int two_colon,
                           char prefix, const floc *flocp);
 static void record_target_var (struct nameseq *filenames, char *defn,
                                enum variable_origin origin,
                                struct vmodifiers *vmod,
                                const floc *flocp);
 static enum make_word_type get_next_mword (char *buffer, char *delim,
-                                           char **startp, unsigned int *length);
+                                           char **startp, size_t *length);
 static void remove_comments (char *line);
 static char *find_map_unquote (char *string, int map);
 static char *find_char_unquote (char *string, int stop);
@@ -186,7 +186,7 @@ read_all_makefiles (const char **makefiles)
   {
     char *value;
     char *name, *p;
-    unsigned int length;
+    size_t length;
 
     {
       /* Turn off --warn-undefined-variables while we expand MAKEFILES.  */
@@ -314,7 +314,7 @@ restore_conditionals (struct conditionals *saved)
 }
 
 static struct goaldep *
-eval_makefile (const char *filename, int flags)
+eval_makefile (const char *filename, unsigned short flags)
 {
   struct goaldep *deps;
   struct ebuffer ebuf;
@@ -504,12 +504,12 @@ parse_var_assignment (const char *line, struct vmodifiers *vmod)
   /* Find the start of the next token.  If there isn't one we're done.  */
   NEXT_TOKEN (line);
   if (*line == '\0')
-    return (char *)line;
+    return (char *) line;
 
   p = line;
   while (1)
     {
-      int wlen;
+      size_t wlen;
       const char *p2;
       struct variable v;
 
@@ -545,12 +545,12 @@ parse_var_assignment (const char *line, struct vmodifiers *vmod)
         }
       else
         /* Not a variable or modifier: this is not a variable assignment.  */
-        return (char *)line;
+        return (char *) line;
 
       /* It was a modifier.  Try the next word.  */
       p = next_token (p2);
       if (*p == '\0')
-        return (char *)line;
+        return (char *) line;
     }
 
   /* Found a variable assignment or undefine.  */
@@ -567,10 +567,10 @@ static void
 eval (struct ebuffer *ebuf, int set_default)
 {
   char *collapsed = 0;
-  unsigned int collapsed_length = 0;
-  unsigned int commands_len = 200;
+  size_t collapsed_length = 0;
+  size_t commands_len = 200;
   char *commands;
-  unsigned int commands_idx = 0;
+  size_t commands_idx = 0;
   unsigned int cmds_started, tgts_started;
   int ignoring = 0, in_ignored_define = 0;
   int no_targets = 0;           /* Set when reading a rule without targets.  */
@@ -620,9 +620,9 @@ eval (struct ebuffer *ebuf, int set_default)
 
   while (1)
     {
-      unsigned int linelen;
+      size_t linelen;
       char *line;
-      unsigned int wlen;
+      size_t wlen;
       char *p;
       char *p2;
       struct vmodifiers vmod;
@@ -639,20 +639,22 @@ eval (struct ebuffer *ebuf, int set_default)
       line = ebuf->buffer;
 
       /* If this is the first line, check for a UTF-8 BOM and skip it.  */
-      if (ebuf->floc.lineno == 1 && line[0] == (char)0xEF
-          && line[1] == (char)0xBB && line[2] == (char)0xBF)
+      if (ebuf->floc.lineno == 1)
         {
-          line += 3;
-          if (ISDB(DB_BASIC))
+          unsigned char *ul = (unsigned char *) line;
+          if (ul[0] == 0xEF && ul[1] == 0xBB && ul[2] == 0xBF)
             {
-              if (ebuf->floc.filenm)
-                printf (_("Skipping UTF-8 BOM in makefile '%s'\n"),
-                        ebuf->floc.filenm);
-              else
-                printf (_("Skipping UTF-8 BOM in makefile buffer\n"));
+              line += 3;
+              if (ISDB(DB_BASIC))
+                {
+                  if (ebuf->floc.filenm)
+                    printf (_("Skipping UTF-8 BOM in makefile '%s'\n"),
+                            ebuf->floc.filenm);
+                  else
+                    printf (_("Skipping UTF-8 BOM in makefile buffer\n"));
+                }
             }
         }
-
       /* If this line is empty, skip it.  */
       if (line[0] == '\0')
         continue;
@@ -803,7 +805,7 @@ eval (struct ebuffer *ebuf, int set_default)
             export_all_variables = exporting;
           else
             {
-              unsigned int l;
+              size_t l;
               const char *cp;
               char *ap;
 
@@ -830,7 +832,7 @@ eval (struct ebuffer *ebuf, int set_default)
         {
           const char *cp;
           char *vpat;
-          unsigned int l;
+          size_t l;
 
           /* vpath ends the previous rule.  */
           record_waiting_files ();
@@ -895,9 +897,9 @@ eval (struct ebuffer *ebuf, int set_default)
           while (files != 0)
             {
               struct nameseq *next = files->next;
-              int flags = (RM_INCLUDED | RM_NO_TILDE
-                           | (noerror ? RM_DONTCARE : 0)
-                           | (set_default ? 0 : RM_NO_DEFAULT_GOAL));
+              unsigned short flags = (RM_INCLUDED | RM_NO_TILDE
+                                      | (noerror ? RM_DONTCARE : 0)
+                                      | (set_default ? 0 : RM_NO_DEFAULT_GOAL));
 
               struct goaldep *d = eval_makefile (files->name, flags);
 
@@ -992,7 +994,7 @@ eval (struct ebuffer *ebuf, int set_default)
       {
         enum make_word_type wtype;
         char *cmdleft, *semip, *lb_next;
-        unsigned int plen = 0;
+        size_t plen = 0;
         char *colonp;
         const char *end, *beg; /* Helpers for whitespace stripping. */
 
@@ -1054,8 +1056,8 @@ eval (struct ebuffer *ebuf, int set_default)
 
                 if (cmdleft != 0)
                   {
-                    unsigned long p2_off = p2 - variable_buffer;
-                    unsigned long cmd_off = cmdleft - variable_buffer;
+                    size_t p2_off = p2 - variable_buffer;
+                    size_t cmd_off = cmdleft - variable_buffer;
                     char *pend = p2 + strlen (p2);
 
                     /* Append any remnants of lb, then cut the line short
@@ -1070,7 +1072,7 @@ eval (struct ebuffer *ebuf, int set_default)
                        entirely consistent, since we do an unconditional
                        expand below once we know we don't have a
                        target-specific variable. */
-                    (void)variable_expand_string (pend, lb_next, (long)-1);
+                    variable_expand_string (pend, lb_next, SIZE_MAX);
                     lb_next += strlen (lb_next);
                     p2 = variable_buffer + p2_off;
                     cmdleft = variable_buffer + cmd_off + 1;
@@ -1150,7 +1152,7 @@ eval (struct ebuffer *ebuf, int set_default)
            of the unparsed section of p2, for later.  */
         if (*lb_next != '\0')
           {
-            unsigned int l = p2 - variable_buffer;
+            size_t l = p2 - variable_buffer;
             plen = strlen (p2);
             variable_buffer_output (p2+plen, lb_next, strlen (lb_next)+1);
             p2 = variable_buffer + l;
@@ -1163,7 +1165,7 @@ eval (struct ebuffer *ebuf, int set_default)
                after it.  */
             if (semip)
               {
-                unsigned int l = p2 - variable_buffer;
+                size_t l = p2 - variable_buffer;
                 *(--semip) = ';';
                 collapse_continuations (semip);
                 variable_buffer_output (p2 + strlen (p2),
@@ -1190,8 +1192,8 @@ eval (struct ebuffer *ebuf, int set_default)
         /* Expand the dependencies, etc.  */
         if (*lb_next != '\0')
           {
-            unsigned int l = p2 - variable_buffer;
-            (void) variable_expand_string (p2 + plen, lb_next, (long)-1);
+            size_t l = p2 - variable_buffer;
+            variable_expand_string (p2 + plen, lb_next, SIZE_MAX);
             p2 = variable_buffer + l;
 
             /* Look for a semicolon in the expanded line.  */
@@ -1281,7 +1283,7 @@ eval (struct ebuffer *ebuf, int set_default)
         if (cmdleft != 0)
           {
             /* Semicolon means rest of line is a command.  */
-            unsigned int l = strlen (cmdleft);
+            size_t l = strlen (cmdleft);
 
             cmds_started = fstart->lineno;
 
@@ -1347,7 +1349,7 @@ eval (struct ebuffer *ebuf, int set_default)
                       }
                     for (d2 = suffix_file->deps; d2 != 0; d2 = d2->next)
                       {
-                        unsigned int l = strlen (dep_name (d2));
+                        size_t l = strlen (dep_name (d2));
                         if (!strneq (name, dep_name (d2), l))
                           continue;
                         if (streq (name + l, dep_name (d)))
@@ -1442,9 +1444,9 @@ do_define (char *name, enum variable_origin origin, struct ebuffer *ebuf)
   struct variable var;
   floc defstart;
   int nlevels = 1;
-  unsigned int length = 100;
+  size_t length = 100;
   char *definition = xmalloc (length);
-  unsigned int idx = 0;
+  size_t idx = 0;
   char *p, *n;
 
   defstart = ebuf->floc;
@@ -1475,7 +1477,7 @@ do_define (char *name, enum variable_origin origin, struct ebuffer *ebuf)
   /* Now read the value of the variable.  */
   while (1)
     {
-      unsigned int len;
+      size_t len;
       char *line;
       long nlines = readline (ebuf);
 
@@ -1556,7 +1558,7 @@ do_define (char *name, enum variable_origin origin, struct ebuffer *ebuf)
    1 if following text should be ignored.  */
 
 static int
-conditional_line (char *line, int len, const floc *flocp)
+conditional_line (char *line, size_t len, const floc *flocp)
 {
   const char *cmdname;
   enum { c_ifdef, c_ifndef, c_ifeq, c_ifneq, c_else, c_endif } cmdtype;
@@ -1689,6 +1691,7 @@ conditional_line (char *line, int len, const floc *flocp)
 
   if (cmdtype == c_ifdef || cmdtype == c_ifndef)
     {
+      size_t l;
       char *var;
       struct variable *v;
       char *p;
@@ -1699,13 +1702,13 @@ conditional_line (char *line, int len, const floc *flocp)
 
       /* Make sure there's only one variable name to test.  */
       p = end_of_token (var);
-      i = p - var;
+      l = p - var;
       NEXT_TOKEN (p);
       if (*p != '\0')
         return -1;
 
-      var[i] = '\0';
-      v = lookup_variable (var, i);
+      var[l] = '\0';
+      v = lookup_variable (var, l);
 
       conditionals->ignoring[o] =
         ((v != 0 && *v->value != '\0') == (cmdtype == c_ifndef));
@@ -1716,7 +1719,7 @@ conditional_line (char *line, int len, const floc *flocp)
     {
       /* "ifeq" or "ifneq".  */
       char *s1, *s2;
-      unsigned int l;
+      size_t l;
       char termin = *line == '(' ? ',' : *line;
 
       if (termin != ',' && termin != '"' && termin != '\'')
@@ -1899,7 +1902,7 @@ record_target_var (struct nameseq *filenames, char *defn,
       if (v->origin != o_override)
         {
           struct variable *gv;
-          int len = strlen (v->name);
+          size_t len = strlen (v->name);
 
           gv = lookup_variable (v->name, len);
           if (gv && v != gv
@@ -1930,7 +1933,7 @@ static void
 record_files (struct nameseq *filenames, const char *pattern,
               const char *pattern_percent, char *depstr,
               unsigned int cmds_started, char *commands,
-              unsigned int commands_idx, int two_colon,
+              size_t commands_idx, int two_colon,
               char prefix, const floc *flocp)
 {
   struct commands *cmds;
@@ -1999,7 +2002,7 @@ record_files (struct nameseq *filenames, const char *pattern,
     {
       struct nameseq *nextf;
       const char **targets, **target_pats;
-      unsigned int c;
+      unsigned short c;
 
       if (pattern != 0)
         O (fatal, flocp, _("mixed implicit and static pattern rules"));
@@ -2234,7 +2237,7 @@ record_files (struct nameseq *filenames, const char *pattern,
 static char *
 find_map_unquote (char *string, int stopmap)
 {
-  unsigned int string_len = 0;
+  size_t string_len = 0;
   char *p = string;
 
   /* Always stop on NUL.  */
@@ -2316,7 +2319,7 @@ find_map_unquote (char *string, int stopmap)
 static char *
 find_char_unquote (char *string, int stop)
 {
-  unsigned int string_len = 0;
+  size_t string_len = 0;
   char *p = string;
 
   while (1)
@@ -2366,7 +2369,7 @@ unescape_char (char *string, int c)
       if (*s == '\\')
         {
           char *e = s;
-          int l;
+          size_t l;
 
           /* We found a backslash.  See if it's escaping our character.  */
           while (*e == '\\')
@@ -2420,7 +2423,7 @@ find_percent_cached (const char **string)
 {
   const char *p = *string;
   char *new = 0;
-  int slen = 0;
+  size_t slen = 0;
 
   /* If the first char is a % return now.  This lets us avoid extra tests
      inside the loop.  */
@@ -2478,7 +2481,7 @@ find_percent_cached (const char **string)
     {
       *string = strcache_add (*string);
       if (p)
-	p = *string + (p - new);
+        p = *string + (p - new);
     }
 
   /* If we didn't find a %, return NULL.  Otherwise return a ptr to it.  */
@@ -2562,10 +2565,10 @@ readline (struct ebuffer *ebuf)
   end = p + ebuf->size;
   *p = '\0';
 
-  while (fgets (p, (int)(end - p), ebuf->fp) != 0)
+  while (fgets (p, (int) (end - p), ebuf->fp) != 0)
     {
       char *p2;
-      unsigned long len;
+      size_t len;
       int backslash;
 
       len = strlen (p);
@@ -2626,7 +2629,7 @@ readline (struct ebuffer *ebuf)
          Make sure to preserve the current offset of p.  */
     more_buffer:
       {
-        unsigned long off = p - start;
+        size_t off = p - start;
         ebuf->size *= 2;
         start = ebuf->buffer = ebuf->bufstart = xrealloc (start, ebuf->size);
         p = start + off;
@@ -2665,7 +2668,7 @@ readline (struct ebuffer *ebuf)
    in a command list, etc.)  */
 
 static enum make_word_type
-get_next_mword (char *buffer, char *delim, char **startp, unsigned int *length)
+get_next_mword (char *buffer, char *delim, char **startp, size_t *length)
 {
   enum make_word_type wtype;
   char *p = buffer, *beg;
@@ -2847,7 +2850,7 @@ construct_include_path (const char **arg_dirs)
 #endif
   const char **dirs;
   const char **cpp;
-  unsigned int idx;
+  size_t idx;
 
   /* Compute the number of pointers we need in the table.  */
   idx = sizeof (default_include_directories) / sizeof (const char *);
@@ -2885,7 +2888,7 @@ construct_include_path (const char **arg_dirs)
         EINTRLOOP (e, stat (dir, &stbuf));
         if (e == 0 && S_ISDIR (stbuf.st_mode))
           {
-            unsigned int len = strlen (dir);
+            size_t len = strlen (dir);
             /* If dir name is written with trailing slashes, discard them.  */
             while (len > 1 && dir[len - 1] == '/')
               --len;
@@ -2907,7 +2910,7 @@ construct_include_path (const char **arg_dirs)
 
     if (djdir)
       {
-        unsigned int len = strlen (djdir->value) + 8;
+        size_t len = strlen (djdir->value) + 8;
         char *defdir = alloca (len + 1);
 
         strcat (strcpy (defdir, djdir->value), "/include");
@@ -2926,7 +2929,7 @@ construct_include_path (const char **arg_dirs)
       EINTRLOOP (e, stat (*cpp, &stbuf));
       if (e == 0 && S_ISDIR (stbuf.st_mode))
         {
-          unsigned int len = strlen (*cpp);
+          size_t len = strlen (*cpp);
           /* If dir name is written with trailing slashes, discard them.  */
           while (len > 1 && (*cpp)[len - 1] == '/')
             --len;
@@ -3043,7 +3046,7 @@ tilde_expand (const char *name)
   */
 
 void *
-parse_file_seq (char **stringp, unsigned int size, int stopmap,
+parse_file_seq (char **stringp, size_t size, int stopmap,
                 const char *prefix, int flags)
 {
   /* tmp points to tmpbuf after the prefix, if any.
@@ -3077,8 +3080,8 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
 
   /* Get enough temporary space to construct the largest possible target.  */
   {
-    static int tmpbuf_len = 0;
-    int l = strlen (*stringp) + 1;
+    static size_t tmpbuf_len = 0;
+    size_t l = strlen (*stringp) + 1;
     if (l > tmpbuf_len)
       {
         tmpbuf = xrealloc (tmpbuf, l);
@@ -3100,7 +3103,7 @@ parse_file_seq (char **stringp, unsigned int size, int stopmap,
       char *memname = 0;
 #endif
       char *s;
-      int nlen;
+      size_t nlen;
       int i;
 
       /* Skip whitespace; at the end of the string or STOPCHAR we're done.  */

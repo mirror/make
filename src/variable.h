@@ -53,7 +53,7 @@ struct variable
     char *name;                 /* Variable name.  */
     char *value;                /* Variable value.  */
     floc fileinfo;              /* Where the variable was defined.  */
-    int length;                 /* strlen (name) */
+    unsigned int length;        /* strlen (name) */
     unsigned int recursive:1;   /* Gets recursively re-evaluated.  */
     unsigned int append:1;      /* Nonzero if an appending target-specific
                                    variable.  */
@@ -104,7 +104,7 @@ struct pattern_var
     struct pattern_var *next;
     const char *suffix;
     const char *target;
-    unsigned int len;
+    size_t len;
     struct variable variable;
   };
 
@@ -114,22 +114,26 @@ extern struct variable *default_goal_var;
 extern struct variable shell_var;
 
 /* expand.c */
-char *variable_buffer_output (char *ptr, const char *string, unsigned int length);
+#ifndef SIZE_MAX
+# define SIZE_MAX ((size_t)~(size_t)0)
+#endif
+
+char *variable_buffer_output (char *ptr, const char *string, size_t length);
 char *variable_expand (const char *line);
 char *variable_expand_for_file (const char *line, struct file *file);
 char *allocated_variable_expand_for_file (const char *line, struct file *file);
 #define allocated_variable_expand(line) \
   allocated_variable_expand_for_file (line, (struct file *) 0)
 char *expand_argument (const char *str, const char *end);
-char *variable_expand_string (char *line, const char *string, long length);
-void install_variable_buffer (char **bufp, unsigned int *lenp);
-void restore_variable_buffer (char *buf, unsigned int len);
+char *variable_expand_string (char *line, const char *string, size_t length);
+void install_variable_buffer (char **bufp, size_t *lenp);
+void restore_variable_buffer (char *buf, size_t len);
 
 /* function.c */
 int handle_function (char **op, const char **stringp);
 int pattern_matches (const char *pattern, const char *percent, const char *str);
 char *subst_expand (char *o, const char *text, const char *subst,
-                    const char *replace, unsigned int slen, unsigned int rlen,
+                    const char *replace, size_t slen, size_t rlen,
                     int by_word);
 char *patsubst_expand_pat (char *o, const char *text, const char *pattern,
                            const char *replace, const char *pattern_percent,
@@ -169,11 +173,11 @@ void hash_init_function_table (void);
 void define_new_function(const floc *flocp, const char *name,
                          unsigned int min, unsigned int max, unsigned int flags,
                          gmk_func_ptr func);
-struct variable *lookup_variable (const char *name, unsigned int length);
-struct variable *lookup_variable_in_set (const char *name, unsigned int length,
+struct variable *lookup_variable (const char *name, size_t length);
+struct variable *lookup_variable_in_set (const char *name, size_t length,
                                          const struct variable_set *set);
 
-struct variable *define_variable_in_set (const char *name, unsigned int length,
+struct variable *define_variable_in_set (const char *name, size_t length,
                                          const char *value,
                                          enum variable_origin origin,
                                          int recursive,
@@ -208,7 +212,7 @@ struct variable *define_variable_in_set (const char *name, unsigned int length,
 #define define_variable_for_file(n,l,v,o,r,f) \
           define_variable_in_set((n),(l),(v),(o),(r),(f)->variables->set,NILF)
 
-void undefine_variable_in_set (const char *name, unsigned int length,
+void undefine_variable_in_set (const char *name, size_t length,
                                enum variable_origin origin,
                                struct variable_set *set);
 

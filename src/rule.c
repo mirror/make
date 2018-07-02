@@ -49,7 +49,7 @@ unsigned int max_pattern_deps;
 
 /* Maximum length of the name of a dependencies of any pattern rule.  */
 
-unsigned int max_pattern_dep_length;
+size_t max_pattern_dep_length;
 
 /* Pointer to structure for the file .SUFFIXES
    whose dependencies are the suffixes to be searched.  */
@@ -58,7 +58,7 @@ struct file *suffix_file;
 
 /* Maximum length of a suffix.  */
 
-unsigned int maxsuffix;
+static size_t maxsuffix;
 
 /* Compute the maximum dependency length and maximum number of
    dependencies of all implicit rules.  Also sets the subdir
@@ -69,7 +69,7 @@ void
 count_implicit_rule_limits (void)
 {
   char *name;
-  int namelen;
+  size_t namelen;
   struct rule *rule;
 
   num_pattern_rules = max_pattern_targets = max_pattern_deps = 0;
@@ -92,7 +92,7 @@ count_implicit_rule_limits (void)
       for (dep = rule->deps; dep != 0; dep = dep->next)
         {
           const char *dname = dep_name (dep);
-          unsigned int len = strlen (dname);
+          size_t len = strlen (dname);
 
 #ifdef VMS
           const char *p = strrchr (dname, ']');
@@ -115,7 +115,7 @@ count_implicit_rule_limits (void)
                  Extract the directory name.  */
               if (p == dname)
                 ++p;
-              if (p - dname > namelen)
+              if ((size_t) (p - dname) > namelen)
                 {
                   namelen = p - dname;
                   name = xrealloc (name, namelen + 1);
@@ -173,7 +173,7 @@ convert_suffix_rule (const char *target, const char *source,
   else
     {
       /* Construct the target name.  */
-      unsigned int len = strlen (target);
+      size_t len = strlen (target);
       char *p = alloca (1 + len + 1);
       p[0] = '%';
       memcpy (p + 1, target, len + 1);
@@ -186,7 +186,7 @@ convert_suffix_rule (const char *target, const char *source,
   else
     {
       /* Construct the dependency name.  */
-      unsigned int len = strlen (source);
+      size_t len = strlen (source);
       char *p = alloca (1 + len + 1);
       p[0] = '%';
       memcpy (p + 1, source, len + 1);
@@ -214,7 +214,7 @@ convert_to_pattern (void)
   maxsuffix = 0;
   for (d = suffix_file->deps; d != 0; d = d->next)
     {
-      unsigned int l = strlen (dep_name (d));
+      size_t l = strlen (dep_name (d));
       if (l > maxsuffix)
         maxsuffix = l;
     }
@@ -224,7 +224,7 @@ convert_to_pattern (void)
 
   for (d = suffix_file->deps; d != 0; d = d->next)
     {
-      unsigned int slen;
+      size_t slen;
 
       /* Make a rule that is just the suffix, with no deps or commands.
          This rule exists solely to disqualify match-anything rules.  */
@@ -242,7 +242,7 @@ convert_to_pattern (void)
       for (d2 = suffix_file->deps; d2 != 0; d2 = d2->next)
         {
           struct file *f;
-          unsigned int s2len;
+          size_t s2len;
 
           s2len = strlen (dep_name (d2));
 
@@ -365,7 +365,7 @@ install_pattern_rule (struct pspec *p, int terminal)
   r->suffixes = xmalloc (sizeof (const char *));
   r->lens = xmalloc (sizeof (unsigned int));
 
-  r->lens[0] = strlen (p->target);
+  r->lens[0] = (unsigned int) strlen (p->target);
   r->targets[0] = p->target;
   r->suffixes[0] = find_percent_cached (&r->targets[0]);
   assert (r->suffixes[0] != NULL);
@@ -376,7 +376,7 @@ install_pattern_rule (struct pspec *p, int terminal)
 
   if (new_pattern_rule (r, 0))
     {
-      r->terminal = terminal;
+      r->terminal = terminal ? 1 : 0;
       r->cmds = xmalloc (sizeof (struct commands));
       r->cmds->fileinfo.filenm = 0;
       r->cmds->fileinfo.lineno = 0;
@@ -442,7 +442,7 @@ freerule (struct rule *rule, struct rule *lastrule)
 
 void
 create_pattern_rule (const char **targets, const char **target_percents,
-                     unsigned int n, int terminal, struct dep *deps,
+                     unsigned short n, int terminal, struct dep *deps,
                      struct commands *commands, int override)
 {
   unsigned int i;
@@ -457,13 +457,13 @@ create_pattern_rule (const char **targets, const char **target_percents,
 
   for (i = 0; i < n; ++i)
     {
-      r->lens[i] = strlen (targets[i]);
+      r->lens[i] = (unsigned int) strlen (targets[i]);
       assert (r->suffixes[i] != NULL);
       ++r->suffixes[i];
     }
 
   if (new_pattern_rule (r, override))
-    r->terminal = terminal;
+    r->terminal = terminal ? 1 : 0;
 }
 
 /* Print the data base of rules.  */

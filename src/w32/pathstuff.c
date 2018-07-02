@@ -65,7 +65,7 @@ convert_Path_to_windows32(char *Path, char to_delim)
                 /* found one to count, handle things like '.' */
                 *etok = to_delim;
                 p = ++etok;
-            } else if ((*etok == ':') && (etok = strpbrk(etok+1, ":;"))) {
+            } else if ((*etok == ':') && ((etok = strpbrk(etok+1, ":;")) != NULL)) {
                 /* found one to count, handle drive letter */
                 *etok = to_delim;
                 p = ++etok;

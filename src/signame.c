@@ -237,7 +237,7 @@ strsignal (int sig)
 # elif HAVE_DECL___SYS_SIGLIST
 #  define sys_siglist __sys_siglist
 # else
-  static char sig_initted = 0;
+  static int sig_initted = 0;
 
   if (!sig_initted)
     sig_initted = signame_init ();

@@ -72,7 +72,7 @@ set_file_variables (struct file *file)
 
   if (ar_name (file->name))
     {
-      unsigned int len;
+      size_t len;
       const char *cp;
       char *p;
 
@@ -101,7 +101,7 @@ set_file_variables (struct file *file)
          any suffix in the .SUFFIXES list stripped off for
          explicit rules.  We store this in the 'stem' member.  */
       const char *name;
-      unsigned int len;
+      size_t len;
 
 #ifndef NO_ARCHIVES
       if (ar_name (file->name))
@@ -118,7 +118,7 @@ set_file_variables (struct file *file)
 
       for (d = enter_file (strcache_add (".SUFFIXES"))->deps; d ; d = d->next)
         {
-          unsigned int slen = strlen (dep_name (d));
+          size_t slen = strlen (dep_name (d));
           if (len > slen && strneq (dep_name (d), name + (len - slen), slen))
             {
               file->stem = strcache_add_len (name, len - slen);
@@ -159,14 +159,14 @@ set_file_variables (struct file *file)
 
   {
     static char *plus_value=0, *bar_value=0, *qmark_value=0;
-    static unsigned int plus_max=0, bar_max=0, qmark_max=0;
+    static size_t plus_max=0, bar_max=0, qmark_max=0;
 
-    unsigned int qmark_len, plus_len, bar_len;
+    size_t qmark_len, plus_len, bar_len;
     char *cp;
     char *caret_value;
     char *qp;
     char *bp;
-    unsigned int len;
+    size_t len;
 
     struct hash_table dep_hash;
     void **slot;
@@ -326,7 +326,8 @@ set_file_variables (struct file *file)
 void
 chop_commands (struct commands *cmds)
 {
-  unsigned int nlines, idx;
+  unsigned int nlines;
+  unsigned short idx;
   char **lines;
 
   /* If we don't have any commands,
@@ -339,7 +340,7 @@ chop_commands (struct commands *cmds)
 
   if (one_shell)
     {
-      int l = strlen (cmds->commands);
+      size_t l = strlen (cmds->commands);
 
       nlines = 1;
       lines = xmalloc (nlines * sizeof (char *));
@@ -382,7 +383,7 @@ chop_commands (struct commands *cmds)
               nlines += 2;
               lines = xrealloc (lines, nlines * sizeof (char *));
             }
-          lines[idx++] = xstrndup (p, end - p);
+          lines[idx++] = xstrndup (p, (size_t) (end - p));
           p = end;
           if (*p != '\0')
             ++p;
@@ -401,7 +402,7 @@ chop_commands (struct commands *cmds)
   if (nlines > USHRT_MAX)
     ON (fatal, &cmds->fileinfo, _("Recipe has too many lines (%ud)"), nlines);
 
-  cmds->ncommand_lines = nlines;
+  cmds->ncommand_lines = (unsigned short)nlines;
   cmds->command_lines = lines;
 
   cmds->any_recurse = 0;
