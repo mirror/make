@@ -142,7 +142,8 @@ AC_CHECK_FUNCS([strdup strndup umask mkstemp mktemp fdopen \
                 dup dup2 getcwd realpath sigsetmask sigaction \
                 getgroups seteuid setegid setlinebuf setreuid setregid \
                 getrlimit setrlimit setvbuf pipe strerror strsignal \
-                lstat readlink atexit isatty ttyname pselect posix_spawn])
+                lstat readlink atexit isatty ttyname pselect posix_spawn \
+                posix_spawnattr_setsigmask])
 
 # We need to check declarations, not just existence, because on Tru64 this
 # function is not declared without special flags, which themselves cause
