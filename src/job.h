@@ -62,7 +62,7 @@ char **construct_command_argv (char *line, char **restp, struct file *file,
 #ifdef VMS
 int child_execute_job (struct child *child, char *argv);
 #else
-int child_execute_job (struct output *out, int good_stdin, char **argv, char **envp);
+pid_t child_execute_job (struct output *out, int good_stdin, char **argv, char **envp);
 #endif
 
 #ifdef _AMIGA

@@ -136,7 +136,7 @@ start_remote_job_p (int first_p)
 
 int
 start_remote_job (char **argv, char **envp, int stdin_fd,
-                  int *is_remote, int *id_ptr, int *used_stdin)
+                  int *is_remote, pid_t *id_ptr, int *used_stdin)
 {
   char waybill[MAX_DATA_SIZE], msg[128];
   struct hostent *host;
@@ -145,7 +145,7 @@ start_remote_job (char **argv, char **envp, int stdin_fd,
   int len;
   int retsock, retport, sock;
   Rpc_Stat status;
-  int pid;
+  pid_t pid;
 
   /* Create the return socket.  */
   retsock = Rpc_UdpCreate (True, 0);

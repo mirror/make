@@ -2472,7 +2472,7 @@ main (int argc, char **argv, char **envp)
                Therefore it may be the best solution simply to spawn the
                child process including all file handles and to wait for its
                termination. */
-            int pid;
+            pid_t pid;
             int r;
             pid = child_execute_job (NULL, 1, nargv, environ);
 

@@ -1379,7 +1379,8 @@ start_job_command (struct child *child)
   /* start_waiting_job has set CHILD->remote if we can start a remote job.  */
   if (child->remote)
     {
-      int is_remote, id, used_stdin;
+      int is_remote, used_stdin;
+      pid_t id;
       if (start_remote_job (argv, child->environment,
                             child->good_stdin ? 0 : get_bad_stdin (),
                             &is_remote, &id, &used_stdin))
@@ -2133,10 +2134,10 @@ start_waiting_jobs (void)
 
 /* EMX: Start a child process. This function returns the new pid.  */
 # if defined __EMX__
-int
+pid_t
 child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
 {
-  int pid;
+  pid_t pid;
   int fdin = good_stdin ? FD_STDIN : get_bad_stdin ();
   int fdout = FD_STDOUT;
   int fderr = FD_STDERR;
@@ -2231,14 +2232,14 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
 /* POSIX:
    Create a child process executing the command in ARGV.
    ENVP is the environment of the new program.  Returns the PID or -1.  */
-int
+pid_t
 child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
 {
   const int fdin = good_stdin ? FD_STDIN : get_bad_stdin ();
   int fdout = FD_STDOUT;
   int fderr = FD_STDERR;
   int r;
-  int pid;
+  pid_t pid;
 
   /* Divert child output if we want to capture it.  */
   if (out && out->syncout)
@@ -2283,7 +2284,7 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
 
 /* EMX: This function returns the pid of the child process.  */
 # ifdef __EMX__
-int
+pid_t
 # else
 void
 # endif
@@ -2359,7 +2360,7 @@ exec_command (char **argv, char **envp)
 #else  /* !WINDOWS32 */
 
 # ifdef __EMX__
-  int pid;
+  pid_t pid;
 # endif
 
   /* Be the user, permanently.  */

@@ -32,7 +32,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifndef HAVE_UNISTD_H
-int getpid ();
+pid_t getpid ();
 #endif
 
 

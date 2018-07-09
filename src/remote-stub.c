@@ -53,7 +53,7 @@ start_remote_job_p (int first_p UNUSED)
 
 int
 start_remote_job (char **argv UNUSED, char **envp UNUSED, int stdin_fd UNUSED,
-                  int *is_remote UNUSED, int *id_ptr UNUSED,
+                  int *is_remote UNUSED, pid_t *id_ptr UNUSED,
                   int *used_stdin UNUSED)
 {
   return -1;

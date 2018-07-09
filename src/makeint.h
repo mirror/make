@@ -707,7 +707,7 @@ vms_restore_symbol (const char *string);
 void remote_setup (void);
 void remote_cleanup (void);
 int start_remote_job_p (int);
-int start_remote_job (char **, char **, int, int *, int *, int *);
+int start_remote_job (char **, char **, int, int *, pid_t *, int *);
 int remote_status (int *, int *, int *, int);
 void block_remote_children (void);
 void unblock_remote_children (void);
