@@ -65,7 +65,7 @@ make_job_rfd (void)
 static void
 set_blocking (int fd, int blocking)
 {
-  // If we're not using pselect() don't change the blocking
+  /* If we're not using pselect() don't change the blocking.  */
 #ifdef HAVE_PSELECT
   int flags;
   EINTRLOOP (flags, fcntl (fd, F_GETFL));

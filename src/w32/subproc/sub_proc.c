@@ -412,9 +412,9 @@ process_init()
         inherit.lpSecurityDescriptor = (PSECURITY_DESCRIPTOR)(&sd);
         inherit.bInheritHandle = TRUE;
 
-        // By convention, parent gets pipe[0], and child gets pipe[1]
-        // This means the READ side of stdin pipe goes into pipe[1]
-        // and the WRITE side of the stdout and stderr pipes go into pipe[1]
+        /* By convention, parent gets pipe[0], and child gets pipe[1].
+           This means the READ side of stdin pipe goes into pipe[1] and the
+           WRITE side of the stdout and stderr pipes go into pipe[1].  */
         if (CreatePipe( &stdin_pipes[1], &stdin_pipes[0], &inherit, 0) == FALSE ||
         CreatePipe( &stdout_pipes[0], &stdout_pipes[1], &inherit, 0) == FALSE ||
         CreatePipe( &stderr_pipes[0], &stderr_pipes[1], &inherit, 0) == FALSE) {
@@ -424,9 +424,7 @@ process_init()
                 return((HANDLE)pproc);
         }
 
-        //
-        // Mark the parent sides of the pipes as non-inheritable
-        //
+        /* Mark the parent sides of the pipes as non-inheritable.  */
         if (SetHandleInformation(stdin_pipes[0],
                                 HANDLE_FLAG_INHERIT, 0) == FALSE ||
                 SetHandleInformation(stdout_pipes[0],
@@ -832,8 +830,8 @@ proc_stdin_thread(sub_process *pproc)
                 if (WriteFile( (HANDLE) pproc->sv_stdin[0], pproc->inp, pproc->incnt,
                                          &in_done, NULL) == FALSE)
                         _endthreadex(0);
-                // This if should never be true for anonymous pipes, but gives
-                // us a chance to change I/O mechanisms later
+                /* This if should never be true for anonymous pipes, but gives
+                   us a chance to change I/O mechanisms later.  */
                 if (in_done < pproc->incnt) {
                         pproc->incnt -= in_done;
                         pproc->inp += in_done;
@@ -841,7 +839,7 @@ proc_stdin_thread(sub_process *pproc)
                         _endthreadex(0);
                 }
         }
-        return 0; // for compiler warnings only.. not reached
+        return 0; /* for compiler warnings only.. not reached.  */
 }
 
 static DWORD

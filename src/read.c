@@ -2382,7 +2382,7 @@ unescape_char (char *string, int c)
               memmove (p, s, l);
               p += l;
 
-              // If we hit the end of the string, we're done
+              /* If we hit the end of the string, we're done.  */
               if (*e == '\0')
                 break;
             }
