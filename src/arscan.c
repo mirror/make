@@ -416,6 +416,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
 # endif
 #endif
   char *namemap = 0;
+  int namemap_size = 0;
   int desc = open (archive, O_RDONLY, 0);
   if (desc < 0)
     return -1;
@@ -669,10 +670,15 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
               && namemap != 0)
             {
               int name_off = atoi (name + 1);
-              if (name_off < 1 || name_off > ARNAME_MAX)
+              int name_len;
+
+              if (name_off < 0 || name_off >= namemap_size)
                 goto invalid;
 
               name = namemap + name_off;
+              name_len = strlen (name);
+              if (name_len < 1)
+                goto invalid;
               long_name = 1;
             }
           else if (name[0] == '#'
@@ -680,7 +686,8 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
                    && name[2] == '/')
             {
               int name_len = atoi (name + 3);
-              if (name_len < 1 || name_len > ARNAME_MAX)
+
+              if (name_len < 1)
                 goto invalid;
 
               name = alloca (name_len + 1);
@@ -749,10 +756,13 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
             char *clear;
             char *limit;
 
-            namemap = alloca (eltsize);
+            if (eltsize > INT_MAX)
+              goto invalid;
+            namemap = alloca (eltsize + 1);
             EINTRLOOP (nread, read (desc, namemap, eltsize));
             if (nread != eltsize)
               goto invalid;
+            namemap_size = eltsize;
 
             /* The names are separated by newlines.  Some formats have
                a trailing slash.  Null terminate the strings for
@@ -767,6 +777,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
                       clear[-1] = '\0';
                   }
               }
+            *limit = '\0';
 
             is_namemap = 0;
           }
