@@ -25,10 +25,6 @@ SRCDIR = []
 OBJEXT = .obj
 EXEEXT = .exe
 
-CP = copy
-MKDIR = create/dir
-RM = delete
-
 e =
 s = $e $e
 c = ,
@@ -79,19 +75,23 @@ prog_SOURCES += $(ALLOCA) $(glob_SOURCES) $(vms_SOURCES)
 
 BUILT_SOURCES += $(lib)fnmatch.h $(lib)glob.h
 
-COMPILE.cmd = $(CC) $(extra_CFLAGS)$(CFLAGS)/obj=$@ $(extra_CPPFLAGS)$(CPPFLAGS) $<
+COMPILE.cmd = $(CC) $(extra_CFLAGS)$(CFLAGS)/obj=$@ $(extra_CPPFLAGS)$(CPPFLAGS) $1
 
-LINK.cmd = $(LD)$(extra_LDFLAGS)$(LDFLAGS)/exe=$@ $(subst $s,$c,$^)$(LDLIBS)
+LINK.cmd = $(LD)$(extra_LDFLAGS)$(LDFLAGS)/exe=$@ $(subst $s,$c,$1)$(LDLIBS)
 
 # Don't know how to do this
 CHECK.cmd =
 
-define RM.cmd
+MKDIR.cmd = create/dir $1
+RM.cmd = delete $1
+CP.cmd = copy $1 $2
+
+define CLEANSPACE
 	-purge [...]
-	-$(RM) $(PROG);
-	-$(RM) $(src)*.$(OBJEXT);
+	-delete $(PROG);
+	-delete $(src)*.$(OBJEXT);
 endef
 
 
 $(OUTDIR)$(src)config.h: $(SRCDIR)$(src)config.h.W32
-	$(CP.cmd)
+	$(call CP.cmd,$<,$@)

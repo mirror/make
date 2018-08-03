@@ -21,10 +21,9 @@
 CC = sc
 LD = $(CC) Link
 
-RM = delete
-MKDIR = makedir
-CP = copy
-CP.cmd = $(CP) $< To $@
+MKDIR.cmd = makedir $1
+RM.cmd = delete $1
+CP.cmd = copy $1 To $2
 
 CPPFLAGS =
 CFLAGS =
@@ -43,4 +42,4 @@ LDLIBS = Lib LIB:sc.lib LIB:amiga.lib
 LINK_OUTPUT = To $@
 
 $(OUTDIR)src/config.h: $(SRCDIR)/src/config.ami
-	$(CP.cmd)
+	$(call CP.cmd,$<,$@)

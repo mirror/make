@@ -23,22 +23,21 @@ EXEEXT = .exe
 
 CC = gcc
 
+# Translate a POSIX path into a Windows path.  Don't bother with drives.
+# Used only inside recipes, with DOS/CMD tools that require it.
+P2W = $(subst /,\,$1)
+
 prog_SOURCES += $(loadavg_SOURCES) $(glob_SOURCES)
 
-BUILT_SOURCES += $(lib)fnmatch.h $(lib)glob.h
+BUILT_SOURCES += $(lib)alloca.h $(lib)fnmatch.h $(lib)glob.h
 
 INCLUDEDIR = c:/djgpp/include
 LIBDIR = c:/djgpp/lib
 LOCALEDIR = c:/djgpp/share
 
-MKDIR = command.com /c mkdir
-MKDIR.cmd = $(MKDIR) $(subst /,\\,$@)
-
-RM = command.com /c del /F /Q
-RM.cmd = $(RM) $(subst /,\\,$(OBJECTS) $(PROG))
-
-CP = command.com /c copy /Y
-CP.cmd = $(CP) $(subst /,\\,$< $@)
+MKDIR.cmd = command.com /c mkdir $(call P2W,$1)
+RM.cmd = command.com /c del /F /Q $(call P2W,$1)
+CP.cmd = command.com /c copy /Y $(call P2W,$1 $2)
 
 $(OUTDIR)src/config.h: $(SRCDIR)/src/configh.dos
-	$(CP.cmd)
+	$(call CP.cmd,$<,$@)

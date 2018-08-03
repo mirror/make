@@ -24,10 +24,13 @@ TARGET_TYPE = release
 # TOOLCHAIN can be either "msvc" or "gcc"
 TOOLCHAIN = msvc
 
+# Translate a POSIX path into a Windows path.  Don't bother with drives.
+# Used only inside recipes, with DOS/CMD tools that require it.
+P2W = $(subst /,\,$1)
 
 prog_SOURCES += $(loadavg_SOURCES) $(glob_SOURCES) $(w32_SOURCES)
 
-BUILT_SOURCES += $(lib)fnmatch.h $(lib)glob.h
+BUILT_SOURCES += $(lib)alloca.h $(lib)fnmatch.h $(lib)glob.h
 
 w32_LIBS = kernel32 user32 gdi32 winspool comdlg32 advapi32 shell32 ole32 \
 	   oleaut32 uuid odbc32 odbccp32
@@ -84,18 +87,13 @@ release_gcc_CFLAGS = -O2
 
 # ---
 
-LINK.cmd = $(LD) $(extra_LDFLAGS) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) $(LINK_OUTPUT)
+LINK.cmd = $(LD) $(extra_LDFLAGS) $(LDFLAGS) $(TARGET_ARCH) $1 $(LDLIBS) $(LINK_OUTPUT)
 
 CHECK.cmd = cmd /c cd tests \& .\run_make_tests.bat -make ../$(PROG)
 
-MKDIR = cmd /c mkdir
-MKDIR.cmd = $(MKDIR) $(subst /,\\,$@)
-
-RM = cmd /c del /F /Q
-RM.cmd = $(RM) $(subst /,\\,$(OBJECTS) $(PROG))
-
-CP = cmd /c copy /Y
-CP.cmd = $(CP) $(subst /,\\,$< $@)
+MKDIR.cmd = cmd /c mkdir $(call P2W,$1)
+RM.cmd = cmd /c del /F /Q $(call P2W,$1)
+CP.cmd = cmd /c copy /Y $(call P2W,$1 $2)
 
 CC = $($(TOOLCHAIN)_CC)
 LD = $($(TOOLCHAIN)_LD)
@@ -121,4 +119,4 @@ extra_LDFLAGS = $(call _CUSTOM,LDFLAGS)
 LDLIBS = $(call _CUSTOM,LDLIBS)
 
 $(OUTDIR)src/config.h: $(SRCDIR)/src/config.h.W32
-	$(CP.cmd)
+	$(call CP.cmd,$<,$@)

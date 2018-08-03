@@ -77,6 +77,9 @@ Basic.mk: Basic.mk.template .dep_segment Makefile
 	sed -e 's@^\([^ ]*\)\.o:@$$(OUTDIR)\1.$$(OBJEXT):@' \
 	    -e 's@\([^ ]*\.[ch]\)@$$(SRCDIR)/\1@g' \
 	    -e 's@$$(SRCDIR)/src/config.h@$$(OUTDIR)src/config.h@g' \
+	    -e 's@$$(SRCDIR)/lib/stdlib.h@@g' \
+	    -e 's@$$(SRCDIR)/lib/sys/types.h@@g' \
+	    -e 's@$$(SRCDIR)/lib/unistd.h@@g' \
 	  $(word 2,$^) >>$@
 	chmod a-w $@
 

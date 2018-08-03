@@ -82,20 +82,25 @@ LINK_OUTPUT = -o $@
 
 # Command lines
 
-COMPILE.cmd = $(CC) $(extra_CFLAGS) $(CFLAGS) $(extra_CPPFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $(OUTPUT_OPTION) $(C_SOURCE) $<
+# $(call COMPILE.cmd,<src>,<tgt>)
+COMPILE.cmd = $(CC) $(extra_CFLAGS) $(CFLAGS) $(extra_CPPFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $(OUTPUT_OPTION) $(C_SOURCE) $1
 
-LINK.cmd = $(LD) $(extra_LDFLAGS) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) $(LINK_OUTPUT)
+# $(call LINK.cmd,<objectlist>)
+LINK.cmd = $(LD) $(extra_LDFLAGS) $(LDFLAGS) $(TARGET_ARCH) $1 $(LDLIBS) $(LINK_OUTPUT)
 
+# $(CHECK.cmd)
 CHECK.cmd = cd $(SRCDIR)/tests && ./run_make_tests -make $(shell cd $(<D) && pwd)/$(<F)
 
-CP = cp
-CP.cmd = $(CP) $< $@
+# $(call MKDIR.cmd,<dirlist>)
+MKDIR.cmd = mkdir -p $1
 
-MKDIR = mkdir -p
-MKDIR.cmd = $(MKDIR) $@
+# $(call RM.cmd,<filelist>)
+RM.cmd = rm -f $1
 
-RM = rm -f
-RM.cmd = $(RM) $(OBJECTS) $(PROG) $(BUILT_SOURCES)
+# $(call CP.cmd,<from>,<to>)
+CP.cmd = cp $1 $2
+
+CLEANSPACE = $(call RM.cmd,$(OBJECTS) $(PROG) $(BUILT_SOURCES))
 
 # Load overrides for the above variables.
 include $(firstword $(wildcard $(SRCDIR)/mk/$(lastword $(subst -, ,$(MAKE_HOST)).mk) $(OUTDIR)mk/Posix.mk $(SRCDIR)/mk/Posix.mk))
@@ -107,24 +112,24 @@ VPATH = $(SRCDIR)
 all: $(PROG)
 
 $(PROG): $(OBJECTS)
-	$(LINK.cmd)
+	$(call LINK.cmd,$^)
 
 $(OBJECTS): $(OUTDIR)%.$(OBJEXT): %.c
-	$(COMPILE.cmd)
+	$(call COMPILE.cmd,$<)
 
 $(OBJECTS): | $(OBJDIRS) $(BUILT_SOURCES)
 
 $(OBJDIRS):
-	$(MKDIR.cmd)
+	$(call MKDIR.cmd,$@)
 
-check: $(PROG)
+check:
 	$(CHECK.cmd)
 
 clean:
-	$(RM.cmd)
+	$(CLEANSPACE)
 
 $(filter %.h,$(BUILT_SOURCES)): %.h : %.in.h
-	$(RM) $<
-	$(CP.cmd)
+	$(call RM.cmd,$@)
+	$(call CP.cmd,$<,$@)
 
 .PHONY: all check clean
