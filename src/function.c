@@ -1699,7 +1699,6 @@ func_shell_base (char *o, char **argv, int trim_newlines)
   FILE *fpipe;
 #endif
   char **command_argv = NULL;
-  const char *error_prefix;
   char **envp;
   int pipedes[2];
   pid_t pid;
@@ -1739,17 +1738,6 @@ func_shell_base (char *o, char **argv, int trim_newlines)
 
   envp = environ;
 
-  /* For error messages.  */
-  if (reading_file && reading_file->filenm)
-    {
-      char *p = alloca (strlen (reading_file->filenm)+11+4);
-      sprintf (p, "%s:%lu: ", reading_file->filenm,
-               reading_file->lineno + reading_file->offset);
-      error_prefix = p;
-    }
-  else
-    error_prefix = "";
-
   /* Set up the output in case the shell writes something.  */
   output_start ();
 
@@ -1760,7 +1748,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
   fpipe = msdos_openpipe (pipedes, &pid, argv[0]);
   if (pipedes[0] < 0)
     {
-      perror_with_name (error_prefix, "pipe");
+      OS (error, reading_file, "pipe: %s", strerror (errno));
       pid = -1;
       goto done;
     }
@@ -1774,7 +1762,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
     {
       /* Open of the pipe failed, mark as failed execution.  */
       shell_completed (127, 0);
-      perror_with_name (error_prefix, "pipe");
+      OS (error, reading_file, "pipe: %s", strerror (errno));
       pid = -1;
       goto done;
     }
@@ -1782,7 +1770,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
 #else
   if (pipe (pipedes) < 0)
     {
-      perror_with_name (error_prefix, "pipe");
+      OS (error, reading_file, "pipe: %s", strerror (errno));
       pid = -1;
       goto done;
     }
@@ -1801,7 +1789,10 @@ func_shell_base (char *o, char **argv, int trim_newlines)
   }
 
   if (pid < 0)
-    goto done;
+    {
+      shell_completed (127, 0);
+      goto done;
+    }
 #endif
 
   {

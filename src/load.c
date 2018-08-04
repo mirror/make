@@ -240,7 +240,7 @@ unload_file (const char *name)
     if (streq (d->name, name) && d->dlp)
       {
         if (dlclose (d->dlp))
-          perror_with_name ("dlclose", d->name);
+          perror_with_name ("dlclose: ", d->name);
         d->dlp = NULL;
         break;
       }

@@ -49,9 +49,15 @@ if ($port_type ne 'W32') {
 all:
 	@echo hi
 	$(shell ./basdfdfsed there)
-	@echo there
+	@echo $(.SHELLSTATUS)
 ',
-                  '', "#MAKE#: ./basdfdfsed: Command not found\nhi\nthere\n");
+                  '', "#MAKE#: ./basdfdfsed: $ERR_no_such_file\nhi\n127\n");
+
+    run_make_test('
+$(shell ./basdfdfsed where)
+all: ; @echo $(.SHELLSTATUS)
+',
+                  '', "#MAKE#: ./basdfdfsed: $ERR_no_such_file\n127\n");
 
     # Test SHELLSTATUS for kill.
     # This test could be ported to Windows, using taskkill ... ?

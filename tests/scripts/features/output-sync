@@ -343,7 +343,7 @@ if ($port_type ne 'W32') {
     run_make_test(q!
 all:: ; @./foo bar baz
 !,
-              '-O', "#MAKE#: ./foo: Command not found\n#MAKE#: *** [#MAKEFILE#;2: all] Error 127\n", 512);
+              '-O', "#MAKE#: ./foo: $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#;2: all] Error 127\n", 512);
 }
 
 # This tells the test driver that the perl test script executed properly.

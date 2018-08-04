@@ -2213,6 +2213,9 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
         close (save_fderr);
     }
 
+  if (pid < 0)
+    OSS (error, NILF, "%s: %s", argv[0], strerror (errno));
+
   return pid;
 }
 
@@ -2286,7 +2289,7 @@ exec_command (char **argv, char **envp)
 #endif
   /* Run the program.  */
   execve (argv[0], argv, envp);
-  perror_with_name ("execve: ", argv[0]);
+  OSS (error, NILF, "%s: %s", argv[0], strerror (errno));
   _exit (EXIT_FAILURE);
 #else
 #ifdef WINDOWS32
@@ -2375,13 +2378,7 @@ exec_command (char **argv, char **envp)
   switch (errno)
     {
     case ENOENT:
-      /* We are in the child: don't use the output buffer.
-         It's not right to run fprintf() here!  */
-      if (makelevel == 0)
-        fprintf (stderr, _("%s: %s: Command not found\n"), program, argv[0]);
-      else
-        fprintf (stderr, _("%s[%u]: %s: Command not found\n"),
-                 program, makelevel, argv[0]);
+      OSS (error, NILF, "%s: %s", argv[0], strerror (errno));
       break;
     case ENOEXEC:
       {
@@ -2439,10 +2436,7 @@ exec_command (char **argv, char **envp)
 # else
         execvp (shell, new_argv);
 # endif
-        if (errno == ENOENT)
-          OS (error, NILF, _("%s: Shell program not found"), shell);
-        else
-          perror_with_name ("execvp: ", shell);
+        OSS (error, NILF, "%s: %s", new_argv[0], strerror (errno));
         break;
       }
 
@@ -2454,7 +2448,7 @@ exec_command (char **argv, char **envp)
 # endif
 
     default:
-      perror_with_name ("execvp: ", argv[0]);
+      OSS (error, NILF, "%s: %s", argv[0], strerror (errno));
       break;
     }
 
