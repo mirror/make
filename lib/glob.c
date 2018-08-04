@@ -1335,7 +1335,7 @@ glob_in_dir (pattern, directory, flags, errfunc, pglob)
 		  /* If we shall match only directories use the information
 		     provided by the dirent call if possible.  */
 		  if ((flags & GLOB_ONLYDIR)
-		      && d->d_type != DT_UNKNOWN && d->d_type != DT_DIR)
+		      && d->d_type != DT_UNKNOWN && d->d_type != DT_DIR && d->d_type != DT_LNK)
 		    continue;
 #endif
 
