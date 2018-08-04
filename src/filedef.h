@@ -68,7 +68,7 @@ struct file
         us_question,            /* Needs to be updated (-q is is set).  */
         us_failed               /* Update failed.  */
       } update_status ENUM_BITFIELD (2);
-    enum cmd_state              /* State of the commands.  */
+    enum cmd_state              /* State of commands.  ORDER IS IMPORTANT!  */
       {
         cs_not_started = 0,     /* Not yet started.  Must be 0!  */
         cs_deps_running,        /* Dep commands running.  */

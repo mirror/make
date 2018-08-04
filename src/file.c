@@ -788,7 +788,9 @@ snap_deps (void)
 #endif
 }
 
-/* Set the 'command_state' member of FILE and all its 'also_make's.  */
+/* Set the 'command_state' member of FILE and all its 'also_make's.
+   Don't decrease the state of also_make's (e.g., don't downgrade a 'running'
+   also_make to a 'deps_running' also_make).  */
 
 void
 set_command_state (struct file *file, enum cmd_state state)
@@ -798,7 +800,8 @@ set_command_state (struct file *file, enum cmd_state state)
   file->command_state = state;
 
   for (d = file->also_make; d != 0; d = d->next)
-    d->file->command_state = state;
+    if (state > d->file->command_state)
+      d->file->command_state = state;
 }
 
 /* Convert an external file timestamp to internal form.  */

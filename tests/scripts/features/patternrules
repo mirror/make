@@ -220,6 +220,22 @@ all: foo.x foo-mt.x
 
 1;
 
+# Test pattern rules building the same targets
+# See SV 54233.  Rely on our standard test timeout to break the loop
+
+touch('a.c');
+
+run_make_test(q!
+all: a.elf a.dbg
+
+%.elf %.lnk: %.c ; : $*.elf $*.lnk
+
+%.elf %.dbg: %.lnk ; : $*.elf $*.dbg
+!,
+    '-j2', ": a.elf a.lnk\n: a.elf a.dbg\n");
+
+unlink('a.c');
+
 # This tells the test driver that the perl test script executed properly.
 1;
 
