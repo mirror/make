@@ -137,9 +137,9 @@ extern int wait3 ();
 # endif /* Have wait3.  */
 #endif /* Have waitpid.  */
 
-#ifdef HAVE_SPAWN_H
+#ifdef USE_POSIX_SPAWN
 # include <spawn.h>
-#endif /* have spawn.h */
+#endif
 
 #if !defined (wait) && !defined (POSIX)
 int wait ();
@@ -2234,13 +2234,13 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
   const int fdin = good_stdin ? FD_STDIN : get_bad_stdin ();
   int fdout = FD_STDOUT;
   int fderr = FD_STDERR;
-  int r;
   pid_t pid;
-#if HAVE_POSIX_SPAWN
+  int r;
+#if USE_POSIX_SPAWN
   short flags = 0;
   posix_spawnattr_t attr;
   posix_spawn_file_actions_t fa;
-#endif /* have posix_spawn() */
+#endif
 
   /* Divert child output if we want to capture it.  */
   if (out && out->syncout)
@@ -2251,8 +2251,7 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
         fderr = out->err;
     }
 
-#if ! HAVE_POSIX_SPAWN
-  /* does not have posix_spawn() */
+#if !defined(USE_POSIX_SPAWN)
 
   pid = vfork();
   if (pid != 0)

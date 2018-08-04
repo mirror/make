@@ -240,6 +240,7 @@ CONFIG_CHECKS := \
 	checkcfg.--disable-job-server \
 	checkcfg.--disable-load \
 	checkcfg.--without-guile \
+	checkcfg.--disable-posix-spawn \
 	checkcfg.make_cv_sys_gnu_glob^no \
 	checkcfg.ac_cv_func_getloadavg^no+ac_cv_have_decl_getloadavg^no+gl_cv_have_raw_decl_getloadavg^no+ac_cv_lib_util_getloadavg^no+ac_cv_lib_getloadavg_getloadavg^no \
 	checkcfg.CPPFLAGS^-DNO_OUTPUT_SYNC \

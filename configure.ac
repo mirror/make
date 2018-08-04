@@ -357,6 +357,22 @@ AS_IF([test "$ac_cv_func_lstat" = yes && test "$ac_cv_func_readlink" = yes],
               [Define to 1 to enable symbolic link timestamp checking.])
 ])
 
+# Use posix_spawn if we have support and the user didn't disable it
+
+AC_ARG_ENABLE([posix-spawn],
+  AC_HELP_STRING([--disable-posix-spawn],
+                 [disable support for posix_spawn()]),
+  [make_cv_posix_spawn="$enableval" user_posix_spawn="$enableval"],
+  [make_cv_posix_spawn="yes"])
+
+AS_CASE([/$ac_cv_header_spawn/$ac_cv_func_posix_spawn/],
+  [*/no/*], [make_cv_posix_spawn=no])
+
+AS_CASE([/$make_cv_posix_spawn/$user_posix_spawn/],
+  [*/no/*], [make_cv_posix_spawn=no],
+  [AC_DEFINE(USE_POSIX_SPAWN, 1, [Define to 1 to use posix_spawn().])
+  ])
+
 # Find the SCCS commands, so we can include them in our default rules.
 
 AC_CACHE_CHECK([for location of SCCS get command], [make_cv_path_sccs_get], [
@@ -495,6 +511,12 @@ AS_IF([test "x$make_cv_load" = xno && test "x$user_load" = xyes],
   echo "         supports the dlopen(), dlsym(), and dlerror() functions."
   echo "         Your system doesn't appear to provide one or more of these."
   echo "         Disabling 'load' support."
+  echo
+])
+
+AS_IF([test "x$make_cv_posix_spawn" = xno && test "x$user_posix_spawn" = xyes],
+[ echo
+  echo "WARNING: posix_spawn() is not supported on this system."
   echo
 ])
 
