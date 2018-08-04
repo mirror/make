@@ -3317,7 +3317,7 @@ parse_file_seq (char **stringp, size_t size, int stopmap,
           nlist = &name;
         }
       else
-        switch (glob (name, GLOB_NOSORT|GLOB_ALTDIRFUNC, NULL, &gl))
+        switch (glob (name, GLOB_ALTDIRFUNC, NULL, &gl))
           {
           case GLOB_NOSPACE:
             out_of_memory ();
