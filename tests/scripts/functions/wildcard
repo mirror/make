@@ -100,10 +100,11 @@ unlink('xxx.yyy');
 run_make_test(q!exists: ; @echo file=$(wildcard xxx.yyy)!,
               '', "file=\n");
 
-# TEST #6: check for wildcards matching directories
-# See SV 53465
-
 if ($port_type ne 'W32' && eval { symlink("",""); 1 }) {
+
+    # TEST #6: check for wildcards matching directories
+    # See SV 53465
+
     my $dir = '__rdir';
     my $lnk = '__ldir';
     mkdir($dir, 0777);
@@ -113,6 +114,14 @@ if ($port_type ne 'W32' && eval { symlink("",""); 1 }) {
 
     unlink($lnk);
     rmdir($dir);
+
+    # Test for dangling symlinks
+
+    symlink($dir, $lnk);
+
+    run_make_test(qq!all: ; \@echo \$(wildcard $lnk)!, '', "$lnk");
+
+    unlink($lnk);
 }
 
 1;
