@@ -2279,159 +2279,73 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
   /* Run the command.  */
   exec_command (argv, envp);
 
-#else /* have posix_spawn() */
+#else /* use posix_spawn() */
 
-  if (posix_spawnattr_init (&attr) != 0)
-    return -1;
+  pid = -1;
 
-  if (posix_spawn_file_actions_init (&fa) != 0) {
-    posix_spawnattr_destroy (&attr);
-    return -1;
+  if ((r = posix_spawnattr_init (&attr)) != 0)
+    goto done;
 
-  error:;
-    posix_spawn_file_actions_destroy (&fa);
-    posix_spawnattr_destroy (&attr);
-    return -1;
-  }
+  if ((r = posix_spawn_file_actions_init (&fa)) != 0)
+    {
+      posix_spawnattr_destroy (&attr);
+      goto done;
+    }
 
   /* Unblock all signals.  */
 #ifdef HAVE_POSIX_SPAWNATTR_SETSIGMASK
   {
     sigset_t mask;
     sigemptyset (&mask);
-    if (posix_spawnattr_setsigmask (&attr, &mask) != 0)
-      goto error;
+    r = posix_spawnattr_setsigmask (&attr, &mask);
+    if (r != 0)
+      goto cleanup;
     flags |= POSIX_SPAWN_SETSIGMASK;
   }
 #endif /* have posix_spawnattr_setsigmask() */
 
+  /* USEVFORK can give significant speedup on systems where it's available.  */
+#ifdef POSIX_SPAWN_USEVFORK
+  flags |= POSIX_SPAWN_USEVFORK;
+#endif
+
 #ifdef SET_STACK_SIZE
-  /* Do not bother about stack limit.  */
+  /* No support for resetting the stack limit with posix_spawn().  */
 #endif
 
   /* For any redirected FD, dup2() it to the standard FD.
      They are all marked close-on-exec already.  */
   if (fdin >= 0 && fdin != FD_STDIN)
-    if (posix_spawn_file_actions_adddup2 (&fa, fdin, FD_STDIN) != 0)
-      goto error;
+    if ((r = posix_spawn_file_actions_adddup2 (&fa, fdin, FD_STDIN)) != 0)
+      goto cleanup;
   if (fdout != FD_STDOUT)
-    if (posix_spawn_file_actions_adddup2 (&fa, fdout, FD_STDOUT) != 0)
-      goto error;
+    if ((r = posix_spawn_file_actions_adddup2 (&fa, fdout, FD_STDOUT)) != 0)
+      goto cleanup;
   if (fderr != FD_STDERR)
-    if (posix_spawn_file_actions_adddup2 (&fa, fderr, FD_STDERR) != 0)
-      goto error;
-
-  /* -------- Here start the replacement for exec_command() */
+    if ((r = posix_spawn_file_actions_adddup2 (&fa, fderr, FD_STDERR)) != 0)
+      goto cleanup;
 
   /* Be the user, permanently.  */
   flags |= POSIX_SPAWN_RESETIDS;
 
   /* Apply the spawn flags.  */
-  if (posix_spawnattr_setflags(&attr, flags) != 0)
-    goto error;
+  if ((r = posix_spawnattr_setflags (&attr, flags)) != 0)
+    goto cleanup;
 
-  /* Run the program.  */
-  r = posix_spawnp(&pid, argv[0], &fa, &attr, argv, envp);
-  if (r == 0) {
-    posix_spawn_file_actions_destroy (&fa);
-    posix_spawnattr_destroy (&attr);
-    return pid;
-  }
+  /* Start the program.  */
+  while ((r = posix_spawnp (&pid, argv[0], &fa, &attr, argv, envp)) == EINTR)
+    ;
 
-  errno = r; /* for later perror()s */
-  switch (r)
-    {
-    case ENOENT:
-      /* We are in the child: don't use the output buffer.
-         It's not right to run fprintf() here!  */
-      if (makelevel == 0)
-        fprintf (stderr, _("%s: %s: Command not found\n"), program, argv[0]);
-      else
-        fprintf (stderr, _("%s[%u]: %s: Command not found\n"),
-                 program, makelevel, argv[0]);
-      break;
-    case ENOEXEC:
-      {
-        /* The file is not executable.  Try it as a shell script.  */
-        const char *shell;
-        char **new_argv;
-        int argc;
-        int i=1;
-
-# ifdef __EMX__
-        /* Do not use $SHELL from the environment */
-        struct variable *p = lookup_variable ("SHELL", 5);
-        if (p)
-          shell = p->value;
-        else
-          shell = 0;
-# else
-        shell = getenv ("SHELL");
-# endif
-        if (shell == 0)
-          shell = default_shell;
-
-        argc = 1;
-        while (argv[argc] != 0)
-          ++argc;
-
-# ifdef __EMX__
-        if (!unixy_shell)
-          ++argc;
-# endif
-
-        new_argv = alloca ((1 + argc + 1) * sizeof (char *));
-        new_argv[0] = (char *)shell;
-
-# ifdef __EMX__
-        if (!unixy_shell)
-          {
-            new_argv[1] = "/c";
-            ++i;
-            --argc;
-          }
-# endif
-
-        new_argv[i] = argv[0];
-        while (argc > 0)
-          {
-            new_argv[i + argc] = argv[argc];
-            --argc;
-          }
-
-        r = posix_spawnp(&pid, shell, &fa, &attr, new_argv, envp);
-        if (r == 0) {
-          posix_spawn_file_actions_destroy (&fa);
-          posix_spawnattr_destroy (&attr);
-          return pid;
-        }
-
-        errno = r; /* for later perror()s */
-        if (errno == ENOENT)
-          OS (error, NILF, _("%s: Shell program not found"), shell);
-        else
-          perror_with_name ("execvp: ", shell);
-        break;
-      }
-
-# ifdef __EMX__
-    case EINVAL:
-      /* this nasty error was driving me nuts :-( */
-      O (error, NILF, _("spawnvpe: environment space might be exhausted"));
-      /* FALLTHROUGH */
-# endif
-
-    default:
-      perror_with_name ("execvp: ", argv[0]);
-      break;
-    }
-
-  /* We could not spawn our program. Let's clean up, and exit.  */
+ cleanup:
   posix_spawn_file_actions_destroy (&fa);
   posix_spawnattr_destroy (&attr);
-  return -1;
-
 #endif /* have posix_spawn() */
+
+ done:
+  if (pid < 0)
+    OSS (error, NILF, "%s: %s", argv[0], strerror (r));
+
+  return pid;
 }
 #endif /* !AMIGA && !__MSDOS__ && !VMS */
 #endif /* !WINDOWS32 */
