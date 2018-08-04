@@ -896,8 +896,8 @@ reap_children (int block, int err)
         continue;
 
       DB (DB_JOBS, (exit_sig == 0 && exit_code == 0
-                    ? _("Reaping losing child %p PID %s %s\n")
-                    : _("Reaping winning child %p PID %s %s\n"),
+                    ? _("Reaping winning child %p PID %s %s\n")
+                    : _("Reaping losing child %p PID %s %s\n"),
                     c, pid2str (c->pid), c->remote ? _(" (remote)") : ""));
 
       /* If we have started jobs in this second, remove one.  */
