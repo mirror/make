@@ -1698,7 +1698,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
 #ifdef __MSDOS__
   FILE *fpipe;
 #endif
-  char **command_argv;
+  char **command_argv = NULL;
   const char *error_prefix;
   char **envp;
   int pipedes[2];
@@ -1761,7 +1761,8 @@ func_shell_base (char *o, char **argv, int trim_newlines)
   if (pipedes[0] < 0)
     {
       perror_with_name (error_prefix, "pipe");
-      return o;
+      pid = -1;
+      goto done;
     }
 
 #elif defined(WINDOWS32)
@@ -1774,14 +1775,16 @@ func_shell_base (char *o, char **argv, int trim_newlines)
       /* Open of the pipe failed, mark as failed execution.  */
       shell_completed (127, 0);
       perror_with_name (error_prefix, "pipe");
-      return o;
+      pid = -1;
+      goto done;
     }
 
 #else
   if (pipe (pipedes) < 0)
     {
       perror_with_name (error_prefix, "pipe");
-      return o;
+      pid = -1;
+      goto done;
     }
 
   /* Close handles that are unnecessary for the child process.  */
@@ -1798,10 +1801,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
   }
 
   if (pid < 0)
-    {
-      perror_with_name (error_prefix, "fork");
-      return o;
-    }
+    goto done;
 #endif
 
   {
@@ -1813,10 +1813,6 @@ func_shell_base (char *o, char **argv, int trim_newlines)
     shell_function_pid = pid;
 #ifndef  __MSDOS__
     shell_function_completed = 0;
-
-    /* Free the storage only the child needed.  */
-    free (command_argv[0]);
-    free (command_argv);
 
     /* Close the write side of the pipe.  We test for -1, since
        pipedes[1] is -1 on MS-Windows, and some versions of MS
@@ -1891,6 +1887,14 @@ func_shell_base (char *o, char **argv, int trim_newlines)
 
     free (buffer);
   }
+
+ done:
+  if (command_argv)
+    {
+      /* Free the storage only the child needed.  */
+      free (command_argv[0]);
+      free (command_argv);
+    }
 
   return o;
 }

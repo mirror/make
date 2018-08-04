@@ -25,9 +25,12 @@ struct child
     struct file *file;          /* File being remade.  */
 
     char **environment;         /* Environment for commands.  */
+
     char *sh_batch_file;        /* Script file for shell commands */
     char **command_lines;       /* Array of variable-expanded cmd lines.  */
     char *command_ptr;          /* Ptr into command_lines[command_line].  */
+
+    struct output output;       /* Output for this child.  */
 
 #ifdef VMS
     char *comname;              /* Temporary command file name */
@@ -37,7 +40,7 @@ struct child
 #endif
 
     unsigned int  command_line; /* Index into command_lines.  */
-    struct output output;       /* Output for this child.  */
+
     pid_t         pid;          /* Child process's ID number.  */
     unsigned int  remote:1;     /* Nonzero if executing remotely.  */
     unsigned int  noerror:1;    /* Nonzero if commands contained a '-'.  */
@@ -62,7 +65,8 @@ char **construct_command_argv (char *line, char **restp, struct file *file,
 #ifdef VMS
 int child_execute_job (struct child *child, char *argv);
 #else
-pid_t child_execute_job (struct output *out, int good_stdin, char **argv, char **envp);
+pid_t child_execute_job (struct output *out, int good_stdin,
+                         char **argv, char **envp);
 #endif
 
 #ifdef _AMIGA

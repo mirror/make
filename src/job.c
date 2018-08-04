@@ -684,10 +684,22 @@ reap_children (int block, int err)
 
       any_remote = 0;
       any_local = shell_function_pid != 0;
-      for (c = children; c != 0; c = c->next)
+      lastc = 0;
+      for (c = children; c != 0; lastc = c, c = c->next)
         {
           any_remote |= c->remote;
           any_local |= ! c->remote;
+
+          /* If pid < 0, this child never even started.  Handle it.  */
+          if (c->pid < 0)
+            {
+              exit_sig = 0;
+              coredump = 0;
+              /* According to POSIX, 127 is used for command not found.  */
+              exit_code = 127;
+              goto process_child;
+            }
+
           DB (DB_JOBS, (_("Live child %p (%s) PID %s %s\n"),
                         c, c->file->name, pid2str (c->pid),
                         c->remote ? _(" (remote)") : ""));
@@ -752,10 +764,6 @@ reap_children (int block, int err)
               exit_code = WEXITSTATUS (status);
               exit_sig = WIFSIGNALED (status) ? WTERMSIG (status) : 0;
               coredump = WCOREDUMP (status);
-
-              /* If we have started jobs in this second, remove one.  */
-              if (job_counter)
-                --job_counter;
             }
           else
             {
@@ -883,6 +891,16 @@ reap_children (int block, int err)
            Ignore it; it was inherited from our invoker.  */
         continue;
 
+      DB (DB_JOBS, (exit_sig == 0 && exit_code == 0
+                    ? _("Reaping losing child %p PID %s %s\n")
+                    : _("Reaping winning child %p PID %s %s\n"),
+                    c, pid2str (c->pid), c->remote ? _(" (remote)") : ""));
+
+      /* If we have started jobs in this second, remove one.  */
+      if (job_counter)
+        --job_counter;
+
+    process_child:
       /* Determine the failure status: 0 for success, 1 for updating target in
          question mode, 2 for anything else.  */
       if (exit_sig == 0 && exit_code == 0)
@@ -891,11 +909,6 @@ reap_children (int block, int err)
         child_failed = MAKE_TROUBLE;
       else
         child_failed = MAKE_FAILURE;
-
-      DB (DB_JOBS, (child_failed
-                    ? _("Reaping losing child %p PID %s %s\n")
-                    : _("Reaping winning child %p PID %s %s\n"),
-                    c, pid2str (c->pid), c->remote ? _(" (remote)") : ""));
 
       if (c->sh_batch_file)
         {
@@ -1004,7 +1017,7 @@ reap_children (int block, int err)
 
       /* At this point c->file->update_status is success or failed.  But
          c->file->command_state is still cs_running if all the commands
-         ran; notice_finish_file looks for cs_running to tell it that
+         ran; notice_finished_file looks for cs_running to tell it that
          it's interesting to check the file's modtime again now.  */
 
       if (! handling_fatal_signal)
@@ -1013,9 +1026,6 @@ reap_children (int block, int err)
            update_status to its also_make files.  */
         notice_finished_file (c->file);
 
-      DB (DB_JOBS, (_("Removing child %p PID %s%s from chain.\n"),
-                    c, pid2str (c->pid), c->remote ? _(" (remote)") : ""));
-
       /* Block fatal signals while frobnicating the list, so that
          children and job_slots_used are always consistent.  Otherwise
          a fatal signal arriving after the child is off the chain and
@@ -1023,9 +1033,15 @@ reap_children (int block, int err)
          live and call reap_children again.  */
       block_sigs ();
 
-      /* There is now another slot open.  */
-      if (job_slots_used > 0)
-        --job_slots_used;
+      if (c->pid > 0)
+        {
+          DB (DB_JOBS, (_("Removing child %p PID %s%s from chain.\n"),
+                        c, pid2str (c->pid), c->remote ? _(" (remote)") : ""));
+
+          /* There is now another slot open.  */
+          if (job_slots_used > 0)
+            --job_slots_used;
+        }
 
       /* Remove the child from the chain and free it.  */
       if (lastc == 0)
@@ -1110,8 +1126,10 @@ start_job_command (struct child *child)
   int flags;
   char *p;
 #ifdef VMS
+# define FREE_ARGV(_a)
   char *argv;
 #else
+# define FREE_ARGV(_a) do{ if (_a) { free ((_a)[0]); free (_a); } }while(0)
   char **argv;
 #endif
 
@@ -1229,10 +1247,7 @@ start_job_command (struct child *child)
      error is 2.  */
   if (argv != 0 && question_flag && !(flags & COMMANDS_RECURSE))
     {
-#ifndef VMS
-      free (argv[0]);
-      free (argv);
-#endif
+      FREE_ARGV (argv);
 #ifdef VMS
       /* On VMS, argv[0] can be a null string here */
       if (argv[0] != 0)
@@ -1250,13 +1265,7 @@ start_job_command (struct child *child)
     {
       /* Go on to the next command.  It might be the recursive one.
          We construct ARGV only to find the end of the command line.  */
-#ifndef VMS
-      if (argv)
-        {
-          free (argv[0]);
-          free (argv);
-        }
-#endif
+      FREE_ARGV (argv);
       argv = 0;
     }
 
@@ -1332,8 +1341,7 @@ start_job_command (struct child *child)
       && (argv[2] && argv[2][0] == ':' && argv[2][1] == '\0')
       && argv[3] == NULL)
     {
-      free (argv[0]);
-      free (argv);
+      FREE_ARGV (argv);
       goto next_command;
     }
 #endif  /* !VMS && !_AMIGA */
@@ -1342,10 +1350,7 @@ start_job_command (struct child *child)
 
   if (just_print_flag && !(flags & COMMANDS_RECURSE))
     {
-#ifndef VMS
-      free (argv[0]);
-      free (argv);
-#endif
+      FREE_ARGV (argv);
       goto next_command;
     }
 
@@ -1412,11 +1417,7 @@ start_job_command (struct child *child)
 
 #ifdef VMS
       if (!child_execute_job (child, argv))
-        {
-          /* Fork failed!  */
-          perror_with_name ("fork", "");
-          goto error;
-        }
+        child->pid = -1;
 
 #else
 
@@ -1424,18 +1425,11 @@ start_job_command (struct child *child)
 
       jobserver_pre_child (flags & COMMANDS_RECURSE);
 
-      child->pid = child_execute_job (&child->output, child->good_stdin, argv, child->environment);
+      child->pid = child_execute_job (&child->output, child->good_stdin,
+                                      argv, child->environment);
 
       environ = parent_environ; /* Restore value child may have clobbered.  */
       jobserver_post_child (flags & COMMANDS_RECURSE);
-
-      if (child->pid < 0)
-        {
-          /* Fork failed!  */
-          unblock_sigs ();
-          perror_with_name ("fork", "");
-          goto error;
-        }
 #endif /* !VMS */
     }
 
@@ -1550,33 +1544,25 @@ start_job_command (struct child *child)
           for (i = 0; argv[i]; i++)
             fprintf (stderr, "%s ", argv[i]);
           fprintf (stderr, _("\nCounted %d args in failed launch\n"), i);
-          goto error;
+          child->pid = -1;
         }
   }
 #endif /* WINDOWS32 */
 #endif  /* __MSDOS__ or Amiga or WINDOWS32 */
 
   /* Bump the number of jobs started in this second.  */
-  ++job_counter;
+  if (child->pid >= 0)
+    ++job_counter;
 
-  /* We are the parent side.  Set the state to
-     say the commands are running and return.  */
-
+  /* Set the state to running.  */
   set_command_state (child->file, cs_running);
 
   /* Free the storage used by the child's argument list.  */
-#ifndef VMS
-  free (argv[0]);
-  free (argv);
-#endif
+  FREE_ARGV (argv);
 
   OUTPUT_UNSET();
-  return;
 
- error:
-  child->file->update_status = us_failed;
-  notice_finished_file (child->file);
-  OUTPUT_UNSET();
+#undef FREE_ARGV
 }
 
 /* Try to start a child running.
@@ -1618,12 +1604,15 @@ start_waiting_job (struct child *c)
     {
     case cs_running:
       c->next = children;
-      DB (DB_JOBS, (_("Putting child %p (%s) PID %s%s on the chain.\n"),
-                    c, c->file->name, pid2str (c->pid),
-                    c->remote ? _(" (remote)") : ""));
+      if (c->pid > 0)
+        {
+          DB (DB_JOBS, (_("Putting child %p (%s) PID %s%s on the chain.\n"),
+                        c, c->file->name, pid2str (c->pid),
+                        c->remote ? _(" (remote)") : ""));
+          /* One more job slot is in use.  */
+          ++job_slots_used;
+        }
       children = c;
-      /* One more job slot is in use.  */
-      ++job_slots_used;
       unblock_sigs ();
       break;
 

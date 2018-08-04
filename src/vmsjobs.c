@@ -191,7 +191,8 @@ astYHandler (void)
 {
   struct child *c;
   for (c = children; c != 0; c = c->next)
-    sys$delprc (&c->pid, 0, 0);
+    if (c->pid > 0)
+      sys$delprc (&c->pid, 0, 0);
   ctrlYPressed= 1;
   kill (getpid(),SIGQUIT);
   return SS$_NORMAL;

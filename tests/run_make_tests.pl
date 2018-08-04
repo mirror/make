@@ -71,9 +71,16 @@ use FindBin;
 use lib "$FindBin::Bin";
 
 require "test_driver.pl";
-if (! eval { require "config-flags.pm" }) {
-    # Some target systems don't create config-flags.pm
-    %CONFIG_FLAGS = ();
+
+%CONFIG_FLAGS = ();
+
+my $statnm = "$FindBin::Bin/../config.status";
+if (open(my $fh, '<', $statnm)) {
+    while (my $line = <$fh>) {
+        $line =~ m/^[SD]\["([^\"]+)"\]=" *(.*)"/ and $CONFIG_FLAGS{$1} = $2;
+    }
+} else {
+    warn "Failed to open $statnm: $!";
 }
 
 # Some target systems might not have the POSIX module...

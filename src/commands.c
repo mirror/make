@@ -539,7 +539,7 @@ fatal_error_signal (int sig)
     {
       struct child *c;
       for (c = children; c != 0; c = c->next)
-        if (!c->remote)
+        if (!c->remote && c->pid > 0)
           (void) kill (c->pid, SIGTERM);
     }
 
@@ -560,7 +560,7 @@ fatal_error_signal (int sig)
       /* Remote children won't automatically get signals sent
          to the process group, so we must send them.  */
       for (c = children; c != 0; c = c->next)
-        if (c->remote)
+        if (c->remote && c->pid > 0)
           (void) remote_kill (c->pid, sig);
 
       for (c = children; c != 0; c = c->next)
@@ -661,7 +661,7 @@ delete_child_targets (struct child *child)
 {
   struct dep *d;
 
-  if (child->deleted)
+  if (child->deleted || child->pid < 0)
     return;
 
   /* Delete the target file if it changed.  */
