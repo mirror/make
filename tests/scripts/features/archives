@@ -213,5 +213,28 @@ if ($osname eq 'VMS') {
   remove_directory_tree('artest');
 }
 
+# Check long names for archive members.
+# See Savannah bug #54395
+
+if ($osname ne 'VMS') {
+    my $pre = '1234567890123456';
+    my $lib = 'foo.a';
+
+    run_make_test(qq!
+# Both member names > 16 characters long
+default: $lib(${pre}a) $lib(${pre}b)
+
+(%): % ; \$(AR) \$(ARFLAGS) \$@ \$%
+
+$pre%: ; touch \$\@
+!,
+                  $arvar, "touch ${pre}a\n$ar $arflags $lib ${pre}a\n$ar: creating $lib\na - ${pre}a\ntouch ${pre}b\n$ar $arflags $lib ${pre}b\na - ${pre}b\nrm ${pre}a ${pre}b\n");
+
+    # Run it again; nothing should happen
+    run_make_test(undef, $arvar, "#MAKE#: Nothing to be done for 'default'.\n");
+
+    unlink($lib);
+}
+
 # This tells the test driver that the perl test script executed properly.
 1;
