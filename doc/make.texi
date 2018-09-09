@@ -4281,8 +4281,7 @@ remove a file.
 When you run @code{make} with the @samp{-i} or @samp{--ignore-errors}
 flag, errors are ignored in all recipes of all rules.  A rule in the
 makefile for the special target @code{.IGNORE} has the same effect, if
-there are no prerequisites.  These ways of ignoring errors are obsolete
-because @samp{-} is more flexible.
+there are no prerequisites.  This is less flexible but sometimes useful.
 
 When errors are to be ignored, because of either a @samp{-} or the
 @samp{-i} flag, @code{make} treats an error return just like success,
@@ -5115,8 +5114,12 @@ this way!)
 A dollar sign followed by a character other than a dollar sign,
 open-parenthesis or open-brace treats that single character as the
 variable name.  Thus, you could reference the variable @code{x} with
-@samp{$x}.  However, this practice is strongly discouraged, except in
-the case of the automatic variables (@pxref{Automatic Variables}).
+@samp{$x}.  However, this practice can lead to confusion (e.g.,
+@samp{$foo} refers to the variable @code{f} followed by the string
+@code{oo}) so we recommend using parentheses or braces around all
+variables, even single-letter variables, unless omitting them gives
+significant readability improvements.  One place where readability is
+often improved is automatic variables (@pxref{Automatic Variables}).
 
 @node Flavors, Advanced, Reference, Using Variables
 @section The Two Flavors of Variables
@@ -9972,15 +9975,15 @@ lib: foo.o bar.o lose.o win.o
 @end example
 
 Of the variables listed above, four have values that are single file
-names, and three have values that are lists of file names.  These seven
-have variants that get just the file's directory name or just the file
-name within the directory.  The variant variables' names are formed by
-appending @samp{D} or @samp{F}, respectively.  These variants are
-semi-obsolete in GNU @code{make} since the functions @code{dir} and
-@code{notdir} can be used to get a similar effect (@pxref{File Name
-Functions, , Functions for File Names}).  Note, however, that the
-@samp{D} variants all omit the trailing slash which always appears in
-the output of the @code{dir} function.  Here is a table of the variants:
+names, and three have values that are lists of file names.  These
+seven have variants that get just the file's directory name or just
+the file name within the directory.  The variant variables' names are
+formed by appending @samp{D} or @samp{F}, respectively.  The functions
+@code{dir} and @code{notdir} can be used to obtain a similar effect
+(@pxref{File Name Functions, , Functions for File Names}).  Note,
+however, that the @samp{D} variants all omit the trailing slash which
+always appears in the output of the @code{dir} function.  Here is a
+table of the variants:
 
 @table @samp
 @vindex $(@@D)
@@ -10297,12 +10300,13 @@ general and clearer.  They are supported in GNU @code{make} for
 compatibility with old makefiles.  They come in two kinds:
 @dfn{double-suffix} and @dfn{single-suffix}.@refill
 
-A double-suffix rule is defined by a pair of suffixes: the target suffix
-and the source suffix.  It matches any file whose name ends with the
-target suffix.  The corresponding implicit prerequisite is made by
-replacing the target suffix with the source suffix in the file name.  A
-two-suffix rule whose target and source suffixes are @samp{.o} and
-@samp{.c} is equivalent to the pattern rule @samp{%.o : %.c}.
+A double-suffix rule is defined by a pair of suffixes: the target
+suffix and the source suffix.  It matches any file whose name ends
+with the target suffix.  The corresponding implicit prerequisite is
+made by replacing the target suffix with the source suffix in the file
+name.  A two-suffix rule @samp{.c.o} (whose target and source suffixes
+are @samp{.o} and @samp{.c}) is equivalent to the pattern rule
+@samp{%.o : %.c}.
 
 A single-suffix rule is defined by a single suffix, which is the source
 suffix.  It matches any file name, and the corresponding implicit
@@ -11883,7 +11887,7 @@ In System V and 4.3 BSD @code{make}, files found by @code{VPATH}
 search (@pxref{Directory Search, ,Searching Directories for
 Prerequisites}) have their names changed inside recipes.  We feel it
 is much cleaner to always use automatic variables and thus make this
-feature obsolete.@refill
+feature unnecessary.@refill
 
 @item
 In some Unix @code{make}s, the automatic variable @code{$*} appearing in
