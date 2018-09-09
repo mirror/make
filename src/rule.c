@@ -252,7 +252,10 @@ convert_to_pattern (void)
 
           memcpy (rulename + slen, dep_name (d2), s2len + 1);
           f = lookup_file (rulename);
-          if (f == 0 || f->cmds == 0)
+
+          /* No target, or no commands, or it has deps: it can't be a
+             suffix rule.  */
+          if (f == 0 || f->cmds == 0 || f->deps != 0)
             continue;
 
           if (s2len == 2 && rulename[slen] == '.' && rulename[slen + 1] == 'a')
