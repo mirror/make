@@ -9904,8 +9904,9 @@ implicit rule (@pxref{Implicit Rules}).
 @vindex ? @r{(automatic variable)}
 @item $?
 The names of all the prerequisites that are newer than the target, with
-spaces between them.  For prerequisites which are archive members, only
-the named member is used (@pxref{Archives}).
+spaces between them.  If the target does not exist, all prerequisites
+will be included.  For prerequisites which are archive members, only the
+named member is used (@pxref{Archives}).
 @cindex prerequisites, list of changed
 @cindex list of changed prerequisites
 
