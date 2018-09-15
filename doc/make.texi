@@ -1313,7 +1313,7 @@ Sometimes makefiles can be remade from other files, such as RCS or SCCS
 files.  If a makefile can be remade from other files, you probably want
 @code{make} to get an up-to-date version of the makefile to read in.
 
-To this end, after reading in all makefiles, @code{make} will consider
+To this end, after reading in all makefiles @code{make} will consider
 each as a goal target and attempt to update it.  If a makefile has a
 rule which says how to update it (found either in that very makefile or
 in another one) or if an implicit rule applies to it (@pxref{Implicit
@@ -1322,7 +1322,8 @@ all makefiles have been checked, if any have actually been changed,
 @code{make} starts with a clean slate and reads all the makefiles over
 again.  (It will also attempt to update each of them over again, but
 normally this will not change them again, since they are already up to
-date.)@refill
+date.)  Each restart will cause the special variable
+@code{MAKE_RESTARTS} to be updated (@pxref{Special Variables}).@refill
 
 If you know that one or more of your makefiles cannot be remade and
 you want to keep @code{make} from performing an implicit rule search
