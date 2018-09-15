@@ -188,6 +188,41 @@ file2: file1 ; @touch $@
 
 rmfiles('file1', 'file2', 'file3', 'file4');
 
+# Ensure that the jobserver is preserved across make re-exec.
+
+run_make_test(q!
+all: one two
+one: ;@ #PERL# jhelp.pl -w TWO -f ONE
+two: ;@ #PERL# jhelp.pl -f TWO
+include fff1.mk
+fff1.mk: ; touch $@
+!,
+              '-j2', "touch fff1.mk\nTWO\nONE\n");
+
+unlink('fff1.mk', 'ONE', 'TWO');
+
+# Test if a sub-make needs to re-exec and the makefile is built via
+# sub-make.  Reported by Masahiro Yamada <yamada.masahiro@socionext.com>
+
+run_make_test(q!
+all: ; @$(MAKE) -f #MAKEFILE# recurse
+
+recurse: one two ; @echo $@
+one: ;@ #PERL# jhelp.pl -w TWO -f ONE
+two: ;@ #PERL# jhelp.pl -f TWO
+
+mkinclude: ; touch fff1.mk
+
+ifeq ($(MAKECMDGOALS),recurse)
+include fff1.mk
+fff1.mk: ; @$(MAKE) -f #MAKEFILE# mkinclude
+endif
+!,
+              '--no-print-directory -j2', "touch fff1.mk\nTWO\nONE\nrecurse\n");
+
+unlink('fff1.mk', 'ONE', 'TWO');
+
+
 # Make sure that all jobserver FDs are closed if we need to re-exec the
 # master copy.
 #

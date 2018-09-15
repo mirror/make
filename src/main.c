@@ -2461,6 +2461,9 @@ main (int argc, char **argv, char **envp)
           fflush (stdout);
           fflush (stderr);
 
+          /* The exec'd "child" will be another make, of course.  */
+          jobserver_pre_child(1);
+
 #ifdef _AMIGA
           exec_command (nargv);
           exit (0);
@@ -2491,6 +2494,9 @@ main (int argc, char **argv, char **envp)
 #endif
           exec_command ((char **)nargv, environ);
 #endif
+
+          /* We shouldn't get here but just in case.  */
+          jobserver_post_child(1);
           free (aargv);
           break;
         }
