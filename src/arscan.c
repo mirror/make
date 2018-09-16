@@ -904,14 +904,12 @@ ar_member_touch (const char *arname, const char *memname)
   EINTRLOOP (r, fstat (fd, &statbuf));
   if (r < 0)
     goto lose;
-#if defined(ARFMAG) || defined(ARFZMAG) || defined(AIAMAG) || defined(WINDOWS32)
   /* Advance member's time to that time */
+#if defined(ARFMAG) || defined(ARFZMAG) || defined(AIAMAG) || defined(WINDOWS32)
   for (ui = 0; ui < sizeof ar_hdr.ar_date; ui++)
     ar_hdr.ar_date[ui] = ' ';
   sprintf (TOCHAR (ar_hdr.ar_date), "%lu", (long unsigned) statbuf.st_mtime);
-#ifdef AIAMAG
   ar_hdr.ar_date[strlen (ar_hdr.ar_date)] = ' ';
-#endif
 #else
   ar_hdr.ar_date = statbuf.st_mtime;
 #endif
