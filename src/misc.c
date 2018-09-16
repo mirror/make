@@ -335,6 +335,52 @@ find_next_token (const char **ptr, size_t *lengthptr)
   return (char *)p;
 }
 
+/* Write a BUFFER of size LEN to file descriptor FD.
+   Retry short writes from EINTR.  Return LEN, or -1 on error.  */
+ssize_t
+writebuf (int fd, const void *buffer, size_t len)
+{
+  const char *msg = buffer;
+  size_t l = len;
+  while (l)
+    {
+      ssize_t r;
+
+      EINTRLOOP (r, write (fd, msg, l));
+      if (r < 0)
+        return r;
+
+      l -= r;
+      msg += r;
+    }
+
+  return (ssize_t)len;
+}
+
+/* Read until we get LEN bytes from file descriptor FD, into BUFFER.
+   Retry short reads on EINTR.  If we get an error, return it.
+   Return 0 at EOF.  */
+ssize_t
+readbuf (int fd, void *buffer, size_t len)
+{
+  char *msg = buffer;
+  while (len)
+    {
+      ssize_t r;
+
+      EINTRLOOP (r, read (fd, msg, len));
+      if (r < 0)
+        return r;
+      if (r == 0)
+        break;
+
+      len -= r;
+      msg += r;
+    }
+
+  return (ssize_t)(msg - (char*)buffer);
+}
+
 
 /* Copy a chain of 'struct dep'.  For 2nd expansion deps, dup the name.  */
 

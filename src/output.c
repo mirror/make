@@ -53,26 +53,6 @@ unsigned int stdio_traced = 0;
 # define STREAM_OK(_s) 1
 #endif
 
-/* Write a BUFFER of size LEN to file descriptor FD.
-   Handle EINTR and other short writes.  If we get an error, ignore it.  */
-int
-output_write (int fd, const void *buffer, size_t len)
-{
-  const char *msg = buffer;
-  while (1)
-    {
-      ssize_t r;
-
-      EINTRLOOP (r, write (fd, msg, len));
-
-      if (r < 0 || (size_t)r == len)
-        return r;
-
-      len -= r;
-      msg += r;
-    }
-}
-
 /* Write a string to the current STDOUT or STDERR.  */
 static void
 _outputs (struct output *out, int is_err, const char *msg)
@@ -89,7 +69,7 @@ _outputs (struct output *out, int is_err, const char *msg)
       size_t len = strlen (msg);
       int r;
       EINTRLOOP (r, lseek (fd, 0, SEEK_END));
-      output_write (fd, msg, len);
+      writebuf (fd, msg, len);
     }
 }
 
@@ -696,7 +676,7 @@ pfatal_with_name (const char *name)
 void
 out_of_memory ()
 {
-  output_write (FD_STDOUT, program, strlen (program));
-  output_write (FD_STDOUT, STRING_SIZE_TUPLE (": *** virtual memory exhausted\n"));
+  writebuf (FD_STDOUT, program, strlen (program));
+  writebuf (FD_STDOUT, STRING_SIZE_TUPLE (": *** virtual memory exhausted\n"));
   exit (MAKE_FAILURE);
 }
