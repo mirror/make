@@ -329,7 +329,7 @@ changelog-check:
 po-check:
 	if test -f po/POTFILES.in; then \
 	  grep '^[^#]' po/POTFILES.in | sort > $@-1; \
-	  $(PERL) -wn -e 'if (/\b_\(/) { $$ARGV eq "./src/makeint.h" || print "$$ARGV\n" and close ARGV }' `find . -name '*.[ch]'` | sed 's,^\./,,' | sort > $@-2; \
+	  find [a-z]* -name '*.[ch]' | xargs grep -l '\b_(' | grep -v src/makeint.h | sort > $@-2; \
 	  diff -u $@-1 $@-2 || exit 1; \
 	  rm -f $@-1 $@-2; \
 	fi
@@ -371,8 +371,8 @@ gendocs: update-gnuweb update-makeweb
 	find '$(MAKEWEBDIR)'/manual \( -name CVS -prune \) -o \( -name '[!.]*' -type f -exec rm -f '{}' \; \)
 	cp -r doc/manual '$(MAKEWEBDIR)'
 	@echo 'Status of $(MAKEWEBDIR) repo:' && cd '$(MAKEWEBDIR)' \
-	    && cvs -q -n update | grep -v '^M ' \
-	    && echo '- cvs add <new files>' \
+	    && cvs -q -n update | grep -v '^M '
+	@echo '- cvs add <new files>' \
 	    && echo '- cvs remove <deleted files>' \
 	    && echo '- cvs commit' \
 	    && echo '- cvs tag make-$(subst .,-,$(VERSION))'

@@ -1,6 +1,10 @@
 # Development artifacts
 ID
 TAGS
+GPATH
+GRTAGS
+GTAGS
+.*cache
 .*gdbinit
 .gdb_history
 .vscode
@@ -15,7 +19,7 @@ Makefile
 Makefile.in
 Basic.mk
 aclocal.m4
-autom4te.cache
+autom4te.cache/
 build-aux/
 config.cache
 config.h
@@ -28,7 +32,7 @@ stamp-h1
 .dirstamp
 
 # Build artifacts
-.deps
+.deps/
 gmk-default.h
 loadavg
 make

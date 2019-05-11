@@ -1,0 +1,28 @@
+clang
+%c -std=c99
+%h --include=makeint.h
+-DHAVE_CONFIG_H
+-Isrc
+-Ilib
+-DLIBDIR="/usr/local/lib"
+-DINCLUDEDIR="/usr/local/include"
+-DLOCALEDIR="/usr/local/share/locale"
+-DMAKE_MAINTAINER_MODE
+-pthread
+-isystem
+/usr/include/guile/2.0
+-Wall
+-Wextra
+-Werror
+-Wwrite-strings
+-Wshadow
+-Wdeclaration-after-statement
+-Wbad-function-cast
+-Wformat-security
+-Wtype-limits
+-Wunused-but-set-parameter
+-Wlogical-op
+-Wpointer-arith
+-Wignored-qualifiers
+-Wformat-signedness
+-Wduplicated-cond
