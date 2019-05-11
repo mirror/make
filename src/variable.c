@@ -267,7 +267,7 @@ define_variable_in_set (const char *name, size_t length,
 
   /* Create a new variable definition and add it to the hash table.  */
 
-  v = xmalloc (sizeof (struct variable));
+  v = xcalloc (sizeof (struct variable));
   v->name = xstrndup (name, length);
   v->length = (unsigned int) length;
   hash_insert_at (&set->table, v, var_slot);
@@ -277,18 +277,10 @@ define_variable_in_set (const char *name, size_t length,
   v->value = xstrdup (value);
   if (flocp != 0)
     v->fileinfo = *flocp;
-  else
-    v->fileinfo.filenm = 0;
   v->origin = origin;
   v->recursive = recursive;
-  v->special = 0;
-  v->expanding = 0;
-  v->exp_count = 0;
-  v->per_target = 0;
-  v->append = 0;
-  v->private_var = 0;
-  v->export = v_default;
 
+  v->export = v_default;
   v->exportable = 1;
   if (*name != '_' && (*name < 'A' || *name > 'Z')
       && (*name < 'a' || *name > 'z'))
