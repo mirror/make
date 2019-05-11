@@ -67,6 +67,7 @@ char *alloca ();
 # define __NO_STRING_INLINES
 #endif
 
+#include <stddef.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <signal.h>

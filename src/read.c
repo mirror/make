@@ -72,7 +72,7 @@ struct vmodifiers
 enum make_word_type
   {
      w_bogus, w_eol, w_static, w_variable, w_colon, w_dcolon, w_semicolon,
-     w_varassign
+     w_varassign, w_ampcolon, w_ampdcolon
   };
 
 
@@ -142,7 +142,8 @@ static void do_undefine (char *name, enum variable_origin origin,
 static struct variable *do_define (char *name, enum variable_origin origin,
                                    struct ebuffer *ebuf);
 static int conditional_line (char *line, size_t len, const floc *flocp);
-static void record_files (struct nameseq *filenames, const char *pattern,
+static void record_files (struct nameseq *filenames, int are_also_makes,
+                          const char *pattern,
                           const char *pattern_percent, char *depstr,
                           unsigned int cmds_started, char *commands,
                           size_t commands_idx, int two_colon,
@@ -151,7 +152,7 @@ static void record_target_var (struct nameseq *filenames, char *defn,
                                enum variable_origin origin,
                                struct vmodifiers *vmod,
                                const floc *flocp);
-static enum make_word_type get_next_mword (char *buffer, char *delim,
+static enum make_word_type get_next_mword (char *buffer,
                                            char **startp, size_t *length);
 static void remove_comments (char *line);
 static char *find_map_unquote (char *string, int map);
@@ -574,6 +575,7 @@ eval (struct ebuffer *ebuf, int set_default)
   unsigned int cmds_started, tgts_started;
   int ignoring = 0, in_ignored_define = 0;
   int no_targets = 0;           /* Set when reading a rule without targets.  */
+  int also_make_targets = 0;    /* Set when reading grouped targets. */
   struct nameseq *filenames = 0;
   char *depstr = 0;
   long nlines = 0;
@@ -591,7 +593,8 @@ eval (struct ebuffer *ebuf, int set_default)
         {                                                                     \
           fi.lineno = tgts_started;                                           \
           fi.offset = 0;                                                      \
-          record_files (filenames, pattern, pattern_percent, depstr,          \
+          record_files (filenames, also_make_targets, pattern,                \
+                        pattern_percent, depstr,                              \
                         cmds_started, commands, commands_idx, two_colon,      \
                         prefix, &fi);                                         \
           filenames = 0;                                                      \
@@ -599,6 +602,7 @@ eval (struct ebuffer *ebuf, int set_default)
       commands_idx = 0;                                                       \
       no_targets = 0;                                                         \
       pattern = 0;                                                            \
+      also_make_targets = 0;                                                  \
     } while (0)
 
   pattern_percent = 0;
@@ -1023,7 +1027,7 @@ eval (struct ebuffer *ebuf, int set_default)
            variable we don't want to expand it.  So, walk from the
            beginning, expanding as we go, and looking for "interesting"
            chars.  The first word is always expandable.  */
-        wtype = get_next_mword (line, NULL, &lb_next, &wlen);
+        wtype = get_next_mword (line, &lb_next, &wlen);
         switch (wtype)
           {
           case w_eol:
@@ -1035,6 +1039,8 @@ eval (struct ebuffer *ebuf, int set_default)
 
           case w_colon:
           case w_dcolon:
+          case w_ampcolon:
+          case w_ampdcolon:
             /* We accept and ignore rules without targets for
                compatibility with SunOS 4 make.  */
             no_targets = 1;
@@ -1080,20 +1086,29 @@ eval (struct ebuffer *ebuf, int set_default)
               }
 
             colonp = find_char_unquote (p2, ':');
-#ifdef HAVE_DOS_PATHS
-            /* The drive spec brain-damage strikes again...  */
-            /* Note that the only separators of targets in this context
-               are whitespace and a left paren.  If others are possible,
-               they should be added to the string in the call to index.  */
-            while (colonp && (colonp[1] == '/' || colonp[1] == '\\') &&
-                   colonp > p2 && isalpha ((unsigned char)colonp[-1]) &&
-                   (colonp == p2 + 1 || strchr (" \t(", colonp[-2]) != 0))
-              colonp = find_char_unquote (colonp + 1, ':');
-#endif
-            if (colonp != 0)
-              break;
 
-            wtype = get_next_mword (lb_next, NULL, &lb_next, &wlen);
+#ifdef HAVE_DOS_PATHS
+            if (colonp > p2)
+              /* The drive spec brain-damage strikes again...
+                 Note that the only separators of targets in this context are
+                 whitespace and a left paren.  If others are possible, add them
+                 to the string in the call to strchr.  */
+              while (colonp && (colonp[1] == '/' || colonp[1] == '\\') &&
+                     isalpha ((unsigned char) colonp[-1]) &&
+                     (colonp == p2 + 1 || strchr (" \t(", colonp[-2]) != 0))
+                colonp = find_char_unquote (colonp + 1, ':');
+#endif
+
+            if (colonp)
+              {
+                /* If the previous character is '&', back up before '&:' */
+                if (colonp > p2 && colonp[-1] == '&')
+                  --colonp;
+
+                break;
+              }
+
+            wtype = get_next_mword (lb_next, &lb_next, &wlen);
             if (wtype == w_eol)
               break;
 
@@ -1123,12 +1138,21 @@ eval (struct ebuffer *ebuf, int set_default)
               O (fatal, fstart, _("missing separator"));
           }
 
-        /* Make the colon the end-of-string so we know where to stop
-           looking for targets.  Start there again once we're done.  */
-        *colonp = '\0';
-        filenames = PARSE_SIMPLE_SEQ (&p2, struct nameseq);
-        *colonp = ':';
-        p2 = colonp;
+        {
+          char save = *colonp;
+
+          /* If we have &:, it specifies that the targets are understood to be
+             updated/created together by a single invocation of the recipe. */
+          if (save == '&')
+            also_make_targets = 1;
+
+          /* Make the colon the end-of-string so we know where to stop
+             looking for targets.  Start there again once we're done.  */
+          *colonp = '\0';
+          filenames = PARSE_SIMPLE_SEQ (&p2, struct nameseq);
+          *colonp = save;
+          p2 = colonp + (save == '&');
+        }
 
         if (!filenames)
           {
@@ -1930,7 +1954,8 @@ record_target_var (struct nameseq *filenames, char *defn,
    that are not incorporated into other data structures.  */
 
 static void
-record_files (struct nameseq *filenames, const char *pattern,
+record_files (struct nameseq *filenames, int are_also_makes,
+              const char *pattern,
               const char *pattern_percent, char *depstr,
               unsigned int cmds_started, char *commands,
               size_t commands_idx, int two_colon,
@@ -1938,6 +1963,7 @@ record_files (struct nameseq *filenames, const char *pattern,
 {
   struct commands *cmds;
   struct dep *deps;
+  struct dep *also_make = NULL;
   const char *implicit_percent;
   const char *name;
 
@@ -1963,8 +1989,10 @@ record_files (struct nameseq *filenames, const char *pattern,
       cmds->command_lines = 0;
       cmds->recipe_prefix = prefix;
     }
+  else if (are_also_makes)
+    O (fatal, flocp, _("grouped targets must provide a recipe"));
   else
-     cmds = 0;
+     cmds = NULL;
 
   /* If there's a prereq string then parse it--unless it's eligible for 2nd
      expansion: if so, snap_deps() will do it.  */
@@ -2159,6 +2187,15 @@ record_files (struct nameseq *filenames, const char *pattern,
           f->cmds = cmds;
         }
 
+      if (are_also_makes)
+        {
+          struct dep *also = alloc_dep();
+          also->name = f->name;
+          also->file = f;
+          also->next = also_make;
+          also_make = also;
+        }
+
       f->is_target = 1;
 
       /* If this is a static pattern rule, set the stem to the part of its
@@ -2222,6 +2259,29 @@ record_files (struct nameseq *filenames, const char *pattern,
       if (find_percent_cached (&name))
         O (error, flocp,
            _("*** mixed implicit and normal rules: deprecated syntax"));
+    }
+
+  /* If there are also-makes, then populate a copy of the also-make list into
+     each one. For the last file, we take our original also_make list instead
+     wastefully copying it one more time and freeing it.  */
+  {
+    struct dep *i;
+
+    for (i = also_make; i != NULL; i = i->next)
+      {
+        struct file *f = i->file;
+        struct dep *cpy = i->next ? copy_dep_chain (also_make) : also_make;
+
+        if (f->also_make)
+          {
+            OS (error, &cmds->fileinfo,
+                _("warning: overriding group membership for target '%s'"),
+                f->name);
+            free_dep_chain (f->also_make);
+          }
+
+        f->also_make = cpy;
+      }
     }
 }
 
@@ -2660,6 +2720,8 @@ readline (struct ebuffer *ebuf)
      w_variable     A word containing one or more variables/functions
      w_colon        A colon
      w_dcolon       A double-colon
+     w_ampcolon     An ampersand-colon (&:) token
+     w_ampdcolon    An ampersand-double-colon (&::) token
      w_semicolon    A semicolon
      w_varassign    A variable assignment operator (=, :=, ::=, +=, ?=, or !=)
 
@@ -2668,7 +2730,7 @@ readline (struct ebuffer *ebuf)
    in a command list, etc.)  */
 
 static enum make_word_type
-get_next_mword (char *buffer, char *delim, char **startp, size_t *length)
+get_next_mword (char *buffer, char **startp, size_t *length)
 {
   enum make_word_type wtype;
   char *p = buffer, *beg;
@@ -2717,6 +2779,21 @@ get_next_mword (char *buffer, char *delim, char **startp, size_t *length)
         wtype = w_colon;
       goto done;
 
+    case '&':
+      if (*p == ':')
+        {
+          ++p;
+          if (*p != ':')
+            wtype = w_ampcolon; /* &: */
+          else
+            {
+              ++p;
+              wtype = w_ampdcolon; /* &:: */
+            }
+          goto done;
+        }
+      break;
+
     case '+':
     case '?':
     case '!':
@@ -2726,19 +2803,15 @@ get_next_mword (char *buffer, char *delim, char **startp, size_t *length)
           wtype = w_varassign; /* += or ?= or != */
           goto done;
         }
-      /* FALLTHROUGH */
+      break;
 
     default:
-      if (delim && strchr (delim, c))
-        {
-          wtype = w_static;
-          goto done;
-        }
+      break;
     }
 
   /* This is some non-operator word.  A word consists of the longest
      string of characters that doesn't contain whitespace, one of [:=#],
-     or [?+!]=, or one of the chars in the DELIM string.  */
+     or [?+!]=, or &:.  */
 
   /* We start out assuming a static word; if we see a variable we'll
      adjust our assumptions then.  */
@@ -2818,9 +2891,12 @@ get_next_mword (char *buffer, char *delim, char **startp, size_t *length)
             }
           break;
 
-        default:
-          if (delim && strchr (delim, c))
+        case '&':
+          if (*p == ':')
             goto done_word;
+          break;
+
+        default:
           break;
         }
 

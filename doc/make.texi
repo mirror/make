@@ -3012,13 +3012,22 @@ both pieces to the suffix list.  In practice, suffixes normally begin with
 @cindex targets, multiple
 @cindex rule, with multiple targets
 
-A rule with multiple targets is equivalent to writing many rules, each with
-one target, and all identical aside from that.  The same recipe applies to
-all the targets, but its effect may vary because you can substitute the
-actual target name into the recipe using @samp{$@@}.  The rule contributes
-the same prerequisites to all the targets also.
+When an explicit rule has multiple targets they can be treated in one
+of two possible ways: as independent targets or as grouped targets.
+The manner in which they are treated is determined by the separator that
+appears after the list of targets.
 
-This is useful in two cases.
+@subsubheading Rules with Independent Targets
+@cindex independent targets
+@cindex targets, independent
+
+Rules that use the standard target separator, @code{:}, define
+independent targets.  This is equivalent to writing the same rule once
+for each target, with duplicated prerequisites and recipes.  Typically,
+the recipe would use automatic variables such as @samp{$@@} to specify
+which target is being built.
+
+Rules with independent targets are useful in two cases:
 
 @itemize @bullet
 @item
@@ -3030,13 +3039,18 @@ kbd.o command.o files.o: command.h
 
 @noindent
 gives an additional prerequisite to each of the three object files
-mentioned.
+mentioned.  It is equivalent to writing:
+
+@example
+kbd.o: command.h
+command.o: command.h
+files.o: command.h
+@end example
 
 @item
-Similar recipes work for all the targets.  The recipes do not need
-to be absolutely identical, since the automatic variable @samp{$@@}
-can be used to substitute the particular target to be remade into the
-commands (@pxref{Automatic Variables}).  For example:
+Similar recipes work for all the targets.  The automatic variable
+@samp{$@@} can be used to substitute the particular target to be
+remade into the commands (@pxref{Automatic Variables}).  For example:
 
 @example
 @group
@@ -3069,6 +3083,57 @@ target, much as the variable @samp{$@@} allows you to vary the recipe.
 You cannot do this with multiple targets in an ordinary rule, but you
 can do it with a @dfn{static pattern rule}.  @xref{Static Pattern,
 ,Static Pattern Rules}.
+
+@subsubheading Rules with Grouped Targets
+@cindex grouped targets
+@cindex targets, grouped
+
+If instead of independent targets you have a recipe that generates
+multiple files from a single invocation, you can express that
+relationship by declaring your rule to use @emph{grouped targets}.  A
+grouped target rule uses the separator @code{&:} (the @samp{&} here is
+used to imply ``all'').
+
+When @code{make} builds any one of the grouped targets, it understands
+that all the other targets in the group are also created as a result
+of the invocation of the recipe.  Furthermore, if only some of the
+grouped targets are out of date or missing @code{make} will realize
+that running the recipe will update all of the targets.
+
+As an example, this rule defines a grouped target:
+
+@example
+@group
+foo bar biz &: baz boz
+        echo $^ > foo
+        echo $^ > bar
+        echo $^ > biz
+@end group
+@end example
+
+During the execution of a grouped target's recipe, the automatic
+variable @samp{$@@} is set to the name of the particular target in the
+group which triggered the rule.  Caution must be used if relying on
+this variable in the recipe of a grouped target rule.
+
+Unlike independent targets, a grouped target rule @emph{must} include
+a recipe.  However, targets that are members of a grouped target may
+also appear in independent target rule definitions that do not have
+recipes.
+
+Each target may have only one recipe associated with it.  If a grouped
+target appears in either an independent target rule or in another
+grouped target rule with a recipe, you will get a warning and the
+latter recipe will replace the former recipe.  Additionally the target
+will be removed from the previous group and appear only in the new
+group.
+
+If you would like a target to appear in multiple groups, then you must
+use the double-colon grouped target separator, @code{&::} when
+declaring all of the groups containing that target.  Grouped
+double-colon targets are each considered independently, and each
+grouped double-colon rule's recipe is executed at most once, if at
+least one of its multiple targets requires updating.
 
 @node Multiple Rules, Static Pattern, Multiple Targets, Rules
 @section Multiple Rules for One Target
@@ -9772,20 +9837,13 @@ More than one pattern rule may match a target.  In this case
 @code{make} will choose the ``best fit'' rule.  @xref{Pattern Match,
 ,How Patterns Match}.
 
-@c !!! The end of of this paragraph should be rewritten.  --bob
-Pattern rules may have more than one target.  Unlike normal rules,
-this does not act as many different rules with the same prerequisites
-and recipe.  If a pattern rule has multiple targets, @code{make} knows
-that the rule's recipe is responsible for making all of the targets.
-The recipe is executed only once to make all the targets.  When
-searching for a pattern rule to match a target, the target patterns of
-a rule other than the one that matches the target in need of a rule
-are incidental: @code{make} worries only about giving a recipe and
-prerequisites to the file presently in question.  However, when this
-file's recipe is run, the other targets are marked as having been
-updated themselves.
 @cindex multiple targets, in pattern rule
 @cindex target, multiple in pattern rule
+Pattern rules may have more than one target; however, every target
+must contain a @code{%} character.  Pattern rules are always treated
+as grouped targets (@pxref{Multiple Targets, , Multiple Targets in a
+Rule}) regardless of whether they use the @code{:} or @code{&:}
+separator.
 
 @node Pattern Examples, Automatic Variables, Pattern Intro, Pattern Rules
 @subsection Pattern Rule Examples

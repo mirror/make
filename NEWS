@@ -48,6 +48,14 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set
   treated BOTH as simple targets AND as pattern rules.  Behavior now matches
   the documentation, and pattern rules are no longer created in this case.
 
+* New feature: Grouped explicit targets
+  Pattern rules have always had the ability to generate multiple targets with
+  a single invocation of the recipe.  It's now possible to declare that an
+  explicit rule generates multiple targets with a single invocation.  To use
+  this, replace the ":" token with "&:" in the rule.  To detect this feature
+  search for 'grouped-target' in the .FEATURES special variable.
+  Implementation contributed by Kaz Kylheku <kaz@kylheku.com>
+
 * Makefiles can now specify the '-j' option in their MAKEFLAGS variable and
   this will cause make to enable that parallelism mode.
 
