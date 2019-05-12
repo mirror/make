@@ -164,8 +164,12 @@ int verify_flag;
 
 /* Nonzero means do not print commands to be executed (-s).  */
 
-int silent_flag;
+static int silent_flag;
 static const int default_silent_flag = 0;
+
+/* Nonzero means either -s was given, or .SILENT-with-no-deps was seen.  */
+
+int run_silent = 0;
 
 /* Nonzero means just touch the files
    that would appear to need remaking (-t)  */
@@ -3012,6 +3016,9 @@ decode_switches (int argc, const char **argv, int env)
   /* If there are any options that need to be decoded do it now.  */
   decode_debug_flags ();
   decode_output_sync_flags ();
+
+  /* Perform any special switch handling.  */
+  run_silent = silent_flag;
 }
 
 /* Decode switches from environment variable ENVAR (which is LEN chars long).

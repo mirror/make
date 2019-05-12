@@ -410,7 +410,7 @@ remove_intermediates (int sig)
                   {
                     if (! doneany)
                       DB (DB_BASIC, (_("Removing intermediate files...\n")));
-                    if (!silent_flag)
+                    if (!run_silent)
                       {
                         if (! doneany)
                           {
@@ -768,7 +768,7 @@ snap_deps (void)
   if (f != 0 && f->is_target)
     {
       if (f->deps == 0)
-        silent_flag = 1;
+        run_silent = 1;
       else
         for (d = f->deps; d != 0; d = d->next)
           for (f2 = d->file; f2 != 0; f2 = f2->prev)

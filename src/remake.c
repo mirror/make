@@ -221,7 +221,7 @@ update_goal_chain (struct goaldep *goaldeps)
                      any commands were actually started for this goal.  */
                   && file->update_status == us_success && !g->changed
                   /* Never give a message under -s or -q.  */
-                  && !silent_flag && !question_flag)
+                  && !run_silent && !question_flag)
                 OS (message, 1, ((file->phony || file->cmds == 0)
                                  ? _("Nothing to be done for '%s'.")
                                  : _("'%s' is up to date.")),
@@ -1144,7 +1144,7 @@ check_dep (struct file *file, unsigned int depth,
 static enum update_status
 touch_file (struct file *file)
 {
-  if (!silent_flag)
+  if (!run_silent)
     OS (message, 0, "touch %s", file->name);
 
   /* Print-only (-n) takes precedence over touch (-t).  */

@@ -541,7 +541,7 @@ child_error (struct child *child,
   const char *nm;
   size_t l;
 
-  if (ignored && silent_flag)
+  if (ignored && run_silent)
     return;
 
   if (exit_sig && coredump)
@@ -1312,7 +1312,7 @@ start_job_command (struct child *child)
 
   /* Print the command if appropriate.  */
   if (just_print_flag || trace_flag
-      || (!(flags & COMMANDS_SILENT) && !silent_flag))
+      || (!(flags & COMMANDS_SILENT) && !run_silent))
     OS (message, 0, "%s", p);
 
   /* Tell update_goal_chain that a command has been started on behalf of
