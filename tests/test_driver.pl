@@ -179,6 +179,8 @@ sub toplevel
   foreach (# UNIX-specific things
            'TZ', 'TMPDIR', 'HOME', 'USER', 'LOGNAME', 'PATH',
            'LD_LIBRARY_PATH',
+           # SAN things
+           'ASAN_OPTIONS', 'UBSAN_OPTIONS',
            # Purify things
            'PURIFYOPTIONS',
            # Windows NT-specific stuff
