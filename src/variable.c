@@ -782,22 +782,34 @@ merge_variable_set_lists (struct variable_set_list **setlist0,
   struct variable_set_list *last0 = 0;
 
   /* If there's nothing to merge, stop now.  */
-  if (!setlist1)
+  if (!setlist1 || setlist1 == &global_setlist)
     return;
 
-  /* This loop relies on the fact that all setlists terminate with the global
-     setlist (before NULL).  If that's not true, arguably we SHOULD die.  */
   if (to)
-    while (setlist1 != &global_setlist && to != &global_setlist)
-      {
-        struct variable_set_list *from = setlist1;
-        setlist1 = setlist1->next;
+    {
+      /* These loops rely on the fact that all setlists terminate with the
+         global setlist (before NULL).  If not, arguably we SHOULD die.  */
 
-        merge_variable_sets (to->set, from->set);
+      /* Make sure that setlist1 is not already a subset of setlist0.  */
+      while (to != &global_setlist)
+        {
+          if (to == setlist1)
+            return;
+          to = to->next;
+        }
 
-        last0 = to;
-        to = to->next;
-      }
+      to = *setlist0;
+      while (setlist1 != &global_setlist && to != &global_setlist)
+        {
+          struct variable_set_list *from = setlist1;
+          setlist1 = setlist1->next;
+
+          merge_variable_sets (to->set, from->set);
+
+          last0 = to;
+          to = to->next;
+        }
+    }
 
   if (setlist1 != &global_setlist)
     {
