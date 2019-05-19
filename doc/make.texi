@@ -143,7 +143,8 @@ Writing Makefiles
 * Remaking Makefiles::          How makefiles get remade.
 * Overriding Makefiles::        How to override part of one makefile
                                   with another makefile.
-* Reading Makefiles::           How makefiles are parsed.
+* Reading Makefiles::           How makefiles are read in.
+* Parsing Makefiles::           How makefiles are parsed.
 * Secondary Expansion::         How and when secondary expansion is performed.
 
 What Makefiles Contain
@@ -988,7 +989,8 @@ reading a data base called the @dfn{makefile}.
 * Remaking Makefiles::          How makefiles get remade.
 * Overriding Makefiles::        How to override part of one makefile
                                   with another makefile.
-* Reading Makefiles::           How makefiles are parsed.
+* Reading Makefiles::           How makefiles are read in.
+* Parsing Makefiles::           How makefiles are parsed.
 * Secondary Expansion::         How and when secondary expansion is performed.
 @end menu
 
@@ -1462,10 +1464,10 @@ empty recipe to prevent @code{make} from searching for an implicit rule to
 build it---otherwise it would apply the same match-anything rule to
 @file{force} itself and create a prerequisite loop!
 
-@node Reading Makefiles,  Secondary Expansion, Overriding Makefiles, Makefiles
+@node Reading Makefiles, Parsing Makefiles, Overriding Makefiles, Makefiles
 @section How @code{make} Reads a Makefile
 @cindex reading makefiles
-@cindex makefile, parsing
+@cindex makefile, reading
 
 GNU @code{make} does its work in two distinct phases.  During the first
 phase it reads all the makefiles, included makefiles, etc. and
@@ -1579,18 +1581,84 @@ and the recipe used to construct the target is always deferred.  This
 general rule is true for explicit rules, pattern rules, suffix rules,
 static pattern rules, and simple prerequisite definitions.
 
-@node Secondary Expansion, , Reading Makefiles, Makefiles
+@node Parsing Makefiles, Secondary Expansion, Reading Makefiles, Makefiles
+@section How Makefiles Are Parsed
+@cindex parsing makefiles
+@cindex makefiles, parsing
+
+GNU @code{make} parses makefiles line-by-line.  Parsing proceeds using
+the following steps:
+
+@enumerate
+@item
+Read in a full logical line, including backslash-escaped lines
+(@pxref{Splitting Lines, , Splitting Long Lines}).
+
+@item
+Remove comments (@pxref{Makefile Contents, , What Makefiles Contain}).
+
+@item
+If the line begins with the recipe prefix character and we are in a
+rule context, add the line to the current recipe and read the next
+line (@pxref{Recipe Syntax}).
+
+@item
+Expand elements of the line which appear in an @emph{immediate}
+expansion context (@pxref{Reading Makefiles, , How @code{make} Reads a
+Makefile}).@refill
+
+@item
+Scan the line for a separator character, such as @samp{:} or @samp{=},
+to determine whether the line is a macro assignment or a rule
+(@pxref{Recipe Syntax}).
+
+@item
+Internalize the resulting operation and read the next line.
+@end enumerate
+
+An important consequence of this is that a macro can expand to an
+entire rule, @emph{if it is one line long}.  This will work:
+
+@example
+myrule = target : ; echo built
+
+$(myrule)
+@end example
+
+However, this will not work because @code{make} does not re-split lines
+after it has expanded them:
+
+@example
+define myrule
+target:
+        echo built
+endef
+
+$(myrule)
+@end example
+
+The above makefile results in the definition of a target @samp{target}
+with prerequisites @samp{echo} and @samp{built}, as if the makefile
+contained @code{target: echo built}, rather than a rule with a recipe.
+Newlines still present in a line after expansion is complete are
+ignored as normal whitespace.
+
+In order to properly expand a multi-line macro you must use the
+@code{eval} function: this causes the @code{make} parser to be run on
+the results of the expanded macro (@pxref{Eval Function}).
+
+@node Secondary Expansion,  , Parsing Makefiles, Makefiles
 @section Secondary Expansion
 @cindex secondary expansion
 @cindex expansion, secondary
 
 @findex .SECONDEXPANSION
-In the previous section we learned that GNU @code{make} works in two
-distinct phases: a read-in phase and a target-update phase
-(@pxref{Reading Makefiles, , How @code{make} Reads a Makefile}).  GNU
-make also has the ability to enable a @emph{second expansion} of the
-prerequisites (only) for some or all targets defined in the makefile.
-In order for this second expansion to occur, the special target
+Previously we learned that GNU @code{make} works in two distinct
+phases: a read-in phase and a target-update phase (@pxref{Reading
+Makefiles, , How @code{make} Reads a Makefile}).  GNU make also has
+the ability to enable a @emph{second expansion} of the prerequisites
+(only) for some or all targets defined in the makefile.  In order for
+this second expansion to occur, the special target
 @code{.SECONDEXPANSION} must be defined before the first prerequisite
 list that makes use of this feature.
 
@@ -6025,11 +6093,24 @@ The @code{define} directive is followed on the same line by the name
 of the variable being defined and an (optional) assignment operator,
 and nothing more.  The value to give the variable appears on the
 following lines.  The end of the value is marked by a line containing
-just the word @code{endef}.  Aside from this difference in syntax,
-@code{define} works just like any other variable definition.  The
-variable name may contain function and variable references, which are
-expanded when the directive is read to find the actual variable name
-to use.
+just the word @code{endef}.
+
+Aside from this difference in syntax, @code{define} works just like
+any other variable definition.  The variable name may contain function
+and variable references, which are expanded when the directive is read
+to find the actual variable name to use.
+
+The final newline before the @code{endef} is not included in the
+value; if you want your value to contain a trailing newline you must
+include a blank line.  For example in order to define a variable that
+contains a newline character you must use @emph{two} empty lines, not one:
+
+@example
+define newline
+
+
+endef
+@end example
 
 You may omit the variable assignment operator if you prefer.  If
 omitted, @code{make} assumes it to be @samp{=} and creates a
@@ -6046,16 +6127,11 @@ or @code{endef} strings appearing on such a line will not be
 considered @code{make} directives.
 
 @example
-define two-lines =
+define two-lines
 echo foo
 echo $(bar)
 endef
 @end example
-
-The value in an ordinary assignment cannot contain a newline; but the
-newlines that separate the lines of the value in a @code{define} become
-part of the variable's value (except for the final newline which precedes
-the @code{endef} and is not considered part of the value).@refill
 
 @need 800
 When used in a recipe, the previous example is functionally equivalent
