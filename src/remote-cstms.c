@@ -3,7 +3,7 @@
    Please do not send bug reports or questions about it to
    the Make maintainers.
 
-Copyright (C) 1988-2018 Free Software Foundation, Inc.
+Copyright (C) 1988-2019 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the

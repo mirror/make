@@ -7,7 +7,7 @@
  * Author: John E. Malmberg
  */
 
-/* Copyright (C) 2014-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 GNU Make is free software; you can redistribute it and/or modify it under the
 terms of the GNU General Public License as published by the Free Software
