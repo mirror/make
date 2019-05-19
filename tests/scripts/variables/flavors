@@ -112,4 +112,45 @@ all: ; @: $(info recur=/$(recur)/ simple=/$(simple)/ recure=/$(recur_empty)/ sim
 !,
               '', "recur=/foo/ simple=/bar/ recure=/foo/ simplee=/bar/ erecur=// esimple=//\n");
 
+# TEST 9: Line continuation
+run_make_test(q!
+recur = $\
+  one$\
+  two$\
+  three
+simple := $\
+  four$\
+  five$\
+  six
+
+all: d$\
+     e$\
+     p; @:
+
+.PHONY: dep
+dep: ; @: $(info recur=/$(recur)/ simple=/$(simple)/)
+!,
+             '', "recur=/onetwothree/ simple=/fourfivesix/\n");
+
+# TEST 9: Line continuation
+run_make_test(q!
+.POSIX:
+recur = $\
+  one$\
+  two$\
+  three
+simple := $\
+  four$\
+  five$\
+  six
+
+all: d$\
+     e$\
+     p; @:
+
+.PHONY: dep
+dep: ; @: $(info recur=/$(recur)/ simple=/$(simple)/)
+!,
+             '', "recur=/onetwothree/ simple=/fourfivesix/\n");
+
 1;

@@ -1113,6 +1113,36 @@ handling is modified slightly to conform to POSIX.2: first, whitespace
 preceding a backslash is not removed and second, consecutive
 backslash/newlines are not condensed.
 
+@subsubheading Splitting Without Adding Whitespace
+@cindex whitespace, avoiding on line split
+@cindex removing whitespace from split lines
+
+If you need to split a line but do @emph{not} want any whitespace
+added, you can utilize a subtle trick: replace your backslash/newline
+pairs with the three characters dollar sign/backslash/newline:
+
+@example
+var := one$\
+       word
+@end example
+
+After @code{make} removes the backslash/newline and condenses the
+following line into a single space, this is equivalent to:
+
+@example
+var := one$ word
+@end example
+
+Then @code{make} will perform variable expansion.  The variable
+reference @samp{$ } refers to a variable with the one-character name
+`` '' (space) which does not exist, and so expands to the empty
+string, giving a final assignment which is the equivalent of:
+
+@example
+var := oneword
+@end example
+
+
 @node Makefile Names, Include, Makefile Contents, Makefiles
 @section What Name to Give Your Makefile
 @cindex makefile name
