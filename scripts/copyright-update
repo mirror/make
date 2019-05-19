@@ -5,11 +5,14 @@
 #
 # Update GNU make copyrights using gnulib update-copyright
 
-update=${UPDATE_COPYRIGHT:-../../gnulib/build-aux/update-copyright}
+update=${UPDATE_COPYRIGHT:-${GNULIB_SRCDIR:-../../gnulib}/build-aux/update-copyright}
 
 die () { echo "$*"; exit 1; }
 
 run () {
+    cmd=$(command -v "$update") || die "Cannot locate update-copyright ($update)"
+    [ -x "$cmd" ] || die "Cannot locate update-copyright ($update)"
+
     EXCLUDE='^\(.*/\.[a-z].*\|.*COPYING\|glob/.*\|src/hash\.[ch]\|ChangeLog\.[0-9]*\|.*/ChangeLog\.[0-9]*\|INSTALL\|doc/make\.texi\)$'
 
     force=false
@@ -29,12 +32,10 @@ run () {
         die "Run in a clean workspace (git clean -fdX)"
     fi
 
-    [ -x "$update" ] || die "Cannot locate update-copyright ($update)"
-
     # We use intervals
     export UPDATE_COPYRIGHT_USE_INTERVALS=1
 
-    "$update" $(find * -type f | grep -v "$EXCLUDE")
+    "$cmd" $(find * -type f | grep -v "$EXCLUDE")
 
     echo "*** Update doc/make.texi copyright by hand!"
     echo "*** Update src/main.c:print_version() copyright by hand!"

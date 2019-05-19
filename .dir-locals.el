@@ -14,4 +14,5 @@
                                     "/tests/work$"
                                     "/make-[0-9]"))
          ))
+ (c-mode . ((c-file-style . "gnu")))
 )

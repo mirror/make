@@ -1,5 +1,4 @@
 clang
-%c -std=c99
 %h --include=makeint.h
 -DHAVE_CONFIG_H
 -Isrc

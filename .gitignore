@@ -36,6 +36,7 @@ stamp-h1
 gmk-default.h
 loadavg
 make
+*.i
 *.o
 *.a
 *.exe
