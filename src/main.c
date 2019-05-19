@@ -3119,8 +3119,8 @@ quote_for_env (char *out, const char *in)
 static struct variable *
 define_makeflags (int all, int makefile)
 {
-  const char ref[] = "$(MAKEOVERRIDES)";
-  const char posixref[] = "$(-*-command-variables-*-)";
+  const char ref[] = "MAKEOVERRIDES";
+  const char posixref[] = "-*-command-variables-*-";
   const char evalref[] = "$(-*-eval-flags-*-)";
   const struct command_switch *cs;
   char *flagstring;
@@ -3247,7 +3247,7 @@ define_makeflags (int all, int makefile)
 #undef  ADD_FLAG
 
   /* Four more for the possible " -- ", plus variable references.  */
-  flagslen += 4 + CSTRLEN (posixref) + 1 + CSTRLEN (evalref) + 1;
+  flagslen += 4 + CSTRLEN (posixref) + 4 + CSTRLEN (evalref) + 4;
 
   /* Construct the value in FLAGSTRING.
      We allocate enough space for a preceding dash and trailing null.  */
@@ -3315,25 +3315,26 @@ define_makeflags (int all, int makefile)
       p += CSTRLEN (evalref);
     }
 
-  if (all && command_variables)
+  if (all)
     {
-      /* Write a reference to $(MAKEOVERRIDES), which contains all the
-         command-line variable definitions.  Separate the variables from the
-         switches with a "--" arg.  */
+      /* If there are any overrides to add, write a reference to
+         $(MAKEOVERRIDES), which contains command-line variable definitions.
+         Separate the variables from the switches with a "--" arg.  */
 
-      strcpy (p, " -- ");
-      p += 4;
+      const char *r = posix_pedantic ? posixref : ref;
+      size_t l = strlen (r);
+      struct variable *v = lookup_variable (r, l);
 
-      /* Copy in the string.  */
-      if (posix_pedantic)
+      if (v && v->value && v->value[0] != '\0')
         {
-          memcpy (p, posixref, CSTRLEN (posixref));
-          p += CSTRLEN (posixref);
-        }
-      else
-        {
-          memcpy (p, ref, CSTRLEN (ref));
-          p += CSTRLEN (ref);
+          strcpy (p, " -- ");
+          p += 4;
+
+          *(p++) = '$';
+          *(p++) = '(';
+          memcpy (p, r, l);
+          p += l;
+          *(p++) = ')';
         }
     }
 
