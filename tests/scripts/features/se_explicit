@@ -190,4 +190,14 @@ libcat.a: ; @touch $@
 #MAKEFILE#:16: Recipe for 'libcat.a' will be ignored in favor of the one for '-lcat'.!);
 unlink('libcat.a');
 
+# SV 28456 : Don't reset $$< for default recipes
+run_make_test(q!
+.SECONDEXPANSION:
+
+.PHONY: biz baz
+biz: baz ;
+biz: $$(info $$<)
+!,
+              '', "baz\n#MAKE#: Nothing to be done for 'biz'.\n");
+
 1;

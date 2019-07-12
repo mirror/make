@@ -140,7 +140,7 @@ set_file_variables (struct file *file)
         break;
       }
 
-  if (file->cmds == default_file->cmds)
+  if (file->cmds != 0 && file->cmds == default_file->cmds)
     /* This file got its commands from .DEFAULT.
        In this case $< is the same as $@.  */
     less = at;
