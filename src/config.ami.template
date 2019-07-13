@@ -258,9 +258,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the stricmp function.  */
 /* #undef HAVE_STRICMP */
 
-/* Define if you have the strerror function.  */
-#define HAVE_STRERROR 1
-
 /* Define if you have the strsignal function.  */
 /* #undef HAVE_STRSIGNAL */
 

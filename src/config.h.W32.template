@@ -261,9 +261,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the 'strdup' function. */
 #define HAVE_STRDUP 1
 
-/* Define to 1 if you have the 'strerror' function. */
-#define HAVE_STRERROR 1
-
 /* Define to 1 if you have the 'stricmp' function. */
 #define HAVE_STRICMP 1
 

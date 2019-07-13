@@ -172,26 +172,6 @@ concat (unsigned int num, ...)
   return result;
 }
 
-
-#ifndef HAVE_STRERROR
-#undef  strerror
-char *
-strerror (int errnum)
-{
-  extern int errno, sys_nerr;
-#ifndef __DECC
-  extern char *sys_errlist[];
-#endif
-  static char buf[] = "Unknown error 12345678901234567890";
-
-  if (errno < sys_nerr)
-    return sys_errlist[errnum];
-
-  sprintf (buf, _("Unknown error %d"), errnum);
-  return buf;
-}
-#endif
-
 /* Like malloc but get fatal error if memory is exhausted.  */
 /* Don't bother if we're using dmalloc; it provides these for us.  */
 
