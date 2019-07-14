@@ -3104,11 +3104,13 @@ tilde_expand (const char *name)
 
    The string is passed as STRINGP, the address of a string pointer.
    The string pointer is updated to point at the first character
-   not parsed, which either is a null char or equals STOPCHAR.
+   not parsed, which either is a null char or equals STOPMAP.
 
-   SIZE is how big to construct chain elements.
+   SIZE is how large (in bytes) each element in the new chain should be.
    This is useful if we want them actually to be other structures
    that have room for additional info.
+
+   STOPMAP is a map of characters that tell us to stop parsing.
 
    PREFIX, if non-null, is added to the beginning of each filename.
 
