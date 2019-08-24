@@ -2236,7 +2236,7 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
   int fderr = FD_STDERR;
   pid_t pid;
   int r;
-#if USE_POSIX_SPAWN
+#if defined(USE_POSIX_SPAWN)
   short flags = 0;
   posix_spawnattr_t attr;
   posix_spawn_file_actions_t fa;
@@ -2279,8 +2279,6 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
   exec_command (argv, envp);
 
 #else /* use posix_spawn() */
-
-  pid = -1;
 
   if ((r = posix_spawnattr_init (&attr)) != 0)
     goto done;
@@ -2338,9 +2336,13 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
  cleanup:
   posix_spawn_file_actions_destroy (&fa);
   posix_spawnattr_destroy (&attr);
-#endif /* have posix_spawn() */
 
  done:
+  if (r != 0)
+    pid = -1;
+
+#endif /* have posix_spawn() */
+
   if (pid < 0)
     OSS (error, NILF, "%s: %s", argv[0], strerror (r));
 
