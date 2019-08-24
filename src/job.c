@@ -2463,7 +2463,7 @@ exec_command (char **argv, char **envp)
       break;
     case ENOEXEC:
       {
-        /* The file is not executable.  Try it as a shell script.  */
+        /* The file was not a program.  Try it as a shell script.  */
         const char *shell;
         char **new_argv;
         int argc;
@@ -3537,43 +3537,6 @@ construct_command_argv (char *line, char **restp, struct file *file,
   char *shell, *ifs, *shellflags;
   char **argv;
 
-#ifdef VMS
-  char *cptr;
-  int argc;
-
-  argc = 0;
-  cptr = line;
-  for (;;)
-    {
-      while ((*cptr != 0) && (ISSPACE (*cptr)))
-        cptr++;
-      if (*cptr == 0)
-        break;
-      while ((*cptr != 0) && (!ISSPACE (*cptr)))
-        cptr++;
-      argc++;
-    }
-
-  argv = xmalloc (argc * sizeof (char *));
-  if (argv == 0)
-    abort ();
-
-  cptr = line;
-  argc = 0;
-  for (;;)
-    {
-      while ((*cptr != 0) && (ISSPACE (*cptr)))
-        cptr++;
-      if (*cptr == 0)
-        break;
-      DB (DB_JOBS, ("argv[%d] = [%s]\n", argc, cptr));
-      argv[argc++] = cptr;
-      while ((*cptr != 0) && (!ISSPACE (*cptr)))
-        cptr++;
-      if (*cptr != 0)
-        *cptr++ = 0;
-    }
-#else
   {
     /* Turn off --warn-undefined-variables while we expand SHELL and IFS.  */
     int save = warn_undefined_variables_flag;
@@ -3648,7 +3611,7 @@ construct_command_argv (char *line, char **restp, struct file *file,
   free (shell);
   free (shellflags);
   free (ifs);
-#endif /* !VMS */
+
   return argv;
 }
 
