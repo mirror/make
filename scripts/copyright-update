@@ -5,20 +5,24 @@
 #
 # Update GNU make copyrights using gnulib update-copyright
 
+EXCLUDE='^\(\.[a-z].*\|.*/\.[a-z].*\|.*COPYING\|src/hash\.[ch]\|ChangeLog.*\|.*/ChangeLog.*\|INSTALL\|doc/make\.texi\|bootstrap\)$'
+
 update=${UPDATE_COPYRIGHT:-${GNULIB_SRCDIR:-../../gnulib}/build-aux/update-copyright}
 
 die () { echo "$*"; exit 1; }
+
+getfiles () {
+    git ls-files | grep -v "$EXCLUDE"
+}
 
 run () {
     cmd=$(command -v "$update") || die "Cannot locate update-copyright ($update)"
     [ -x "$cmd" ] || die "Cannot locate update-copyright ($update)"
 
-    EXCLUDE='^\(.*/\.[a-z].*\|.*COPYING\|glob/.*\|src/hash\.[ch]\|ChangeLog\.[0-9]*\|.*/ChangeLog\.[0-9]*\|INSTALL\|doc/make\.texi\)$'
-
     force=false
 
     case $1 in
-        (-v) find * -type f | grep -v "$EXCLUDE" | sort; exit 0 ;;
+        (-v) getfiles | sort; exit 0 ;;
         (-f) force=true ;;
         (--) : ;;
         (-*) echo "usage: $0 [-v]"; exit 1 ;;
@@ -35,7 +39,7 @@ run () {
     # We use intervals
     export UPDATE_COPYRIGHT_USE_INTERVALS=1
 
-    "$cmd" $(find * -type f | grep -v "$EXCLUDE")
+    "$cmd" $(getfiles)
 
     echo "*** Update doc/make.texi copyright by hand!"
     echo "*** Update src/main.c:print_version() copyright by hand!"
