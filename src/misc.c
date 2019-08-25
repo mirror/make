@@ -405,6 +405,28 @@ free_ns_chain (struct nameseq *ns)
 }
 
 
+#ifdef MAKE_MAINTAINER_MODE
+
+void spin(const char* type)
+{
+  char filenm[256];
+  struct stat dummy;
+
+  sprintf (filenm, ".make-spin-%s", type);
+
+  if (stat (filenm, &dummy) == 0)
+    {
+      fprintf (stderr, "SPIN on %s\n", filenm);
+      do
+        sleep (1);
+      while (stat (filenm, &dummy) == 0);
+    }
+}
+
+#endif
+
+
+
 /* Provide support for temporary files.  */
 
 #ifndef HAVE_STDLIB_H

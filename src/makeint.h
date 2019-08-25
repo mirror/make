@@ -598,6 +598,14 @@ typedef int (*load_func_t)(const floc *flocp);
 int load_file (const floc *flocp, const char **filename, int noerror);
 void unload_file (const char *name);
 
+/* Maintainer mode support */
+#ifdef MAKE_MAINTAINER_MODE
+# define SPIN(_s) spin (_s)
+void spin (const char* suffix);
+#else
+# define SPIN(_s)
+#endif
+
 /* We omit these declarations on non-POSIX systems which define _POSIX_VERSION,
    because such systems often declare them in header files anyway.  */
 
@@ -726,14 +734,12 @@ extern unsigned int commands_started;
 
 extern int handling_fatal_signal;
 
-
 #ifndef MIN
 #define MIN(_a,_b) ((_a)<(_b)?(_a):(_b))
 #endif
 #ifndef MAX
 #define MAX(_a,_b) ((_a)>(_b)?(_a):(_b))
 #endif
-
 
 #define MAKE_SUCCESS 0
 #define MAKE_TROUBLE 1

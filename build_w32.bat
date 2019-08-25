@@ -38,6 +38,12 @@ set O=obj
 set ARCH=x64
 set DEBUG=N
 
+if exist maintMakefile (
+    set MAINT=Y
+) else (
+    set MAINT=N
+)
+
 :ParseSW
 if "%1" == "--debug" goto SetDebug
 if "%1" == "--without-guile" goto NoGuile
@@ -72,6 +78,8 @@ shift
 goto ParseSW
 
 :DoneSW
+if "%MAINT%" == "Y" echo - Enabling maintainer mode
+
 if "%COMPILER%" == "gcc" goto FindGcc
 
 :: Find a compiler.  Visual Studio requires a lot of effort to locate :-/.
@@ -151,6 +159,7 @@ set LINKOPTS=
 if "%DEBUG%" == "Y" set OUTDIR=.\WinDebug
 if "%DEBUG%" == "Y" set "OPTS=/Zi /Od /D _DEBUG"
 if "%DEBUG%" == "Y" set LINKOPTS=/DEBUG
+if "%MAINT%" == "Y" set "OPTS=%OPTS% /D MAKE_MAINTAINER_MODE"
 :: Show the compiler version that we found
 :: Unfortunately this also shows a "usage" note; I can't find anything better.
 echo.
@@ -162,6 +171,7 @@ set OUTDIR=.\GccRel
 set OPTS=-O2
 if "%DEBUG%" == "Y" set OPTS=-O0
 if "%DEBUG%" == "Y" set OUTDIR=.\GccDebug
+if "%MAINT%" == "Y" set "OPTS=%OPTS% -DMAKE_MAINTAINER_MODE"
 :: Show the compiler version that we found
 echo.
 %COMPILER% --version

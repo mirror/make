@@ -192,12 +192,6 @@ int db_level = 0;
 
 char *output_sync_option = 0;
 
-#ifdef WINDOWS32
-/* Suspend make in main for a short time to allow debugger to attach */
-
-int suspend_flag = 0;
-#endif
-
 /* Environment variables override makefile definitions.  */
 
 int env_overrides = 0;
@@ -425,9 +419,6 @@ static const struct command_switch switches[] =
     { 'b', ignore, 0, 0, 0, 0, 0, 0, 0 },
     { 'B', flag, &always_make_set, 1, 1, 0, 0, 0, "always-make" },
     { 'd', flag, &debug_flag, 1, 1, 0, 0, 0, 0 },
-#ifdef WINDOWS32
-    { 'D', flag, &suspend_flag, 1, 1, 0, 0, 0, "suspend-for-debug" },
-#endif
     { 'e', flag, &env_overrides, 1, 1, 0, 0, 0, "environment-overrides", },
     { 'E', strlist, &eval_strings, 1, 0, 0, 0, 0, "eval" },
     { 'h', flag, &print_usage_flag, 0, 0, 0, 0, 0, "help" },
@@ -1081,6 +1072,9 @@ main (int argc, char **argv, char **envp)
   no_default_sh_exe = 1;
 #endif
 
+  /* Useful for attaching debuggers, etc.  */
+  SPIN ("main-entry");
+
   output_init (&make_sync);
 
   initialize_stopchar_map();
@@ -1338,6 +1332,9 @@ main (int argc, char **argv, char **envp)
 #ifdef MAKE_LOAD
                            " load"
 #endif
+#ifdef MAKE_MAINTAINER_MODE
+                           " maintainer"
+#endif
                            ;
 
     define_variable_cname (".FEATURES", features, o_default, 0);
@@ -1522,16 +1519,6 @@ main (int argc, char **argv, char **envp)
     else
       makelevel = 0;
   }
-
-#ifdef WINDOWS32
-  if (suspend_flag)
-    {
-      fprintf (stderr, "%s (pid = %ld)\n", argv[0], GetCurrentProcessId ());
-      fprintf (stderr, _("%s is suspending for 30 seconds..."), argv[0]);
-      Sleep (30 * 1000);
-      fprintf (stderr, _("done sleep(30). Continuing.\n"));
-    }
-#endif
 
   /* Set always_make_flag if -B was given and we've not restarted already.  */
   always_make_flag = always_make_set && (restarts == 0);
