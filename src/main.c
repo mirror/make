@@ -2639,8 +2639,8 @@ init_switches (void)
 
   for (i = 0; switches[i].c != '\0'; ++i)
     {
-      long_options[i].name = (switches[i].long_name == 0 ? "" :
-                              switches[i].long_name);
+      long_options[i].name = (char *) (switches[i].long_name == 0 ? "" :
+				       switches[i].long_name);
       long_options[i].flag = 0;
       long_options[i].val = switches[i].c;
       if (short_option (switches[i].c))
