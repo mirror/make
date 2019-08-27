@@ -9,7 +9,7 @@ $details = "Here we test for requirements like\n"
 run_make_test(q{
 .PHONY: all
 &:;
-all: ;@echo -n
+all: ;@printf ''
 },
 '', "");
 
