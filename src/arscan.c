@@ -40,7 +40,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <rmsdef.h>
 
 /* This symbol should be present in lbrdef.h. */
-#ifndef LBR$_HDRTRUNC
+#if !defined LBR$_HDRTRUNC
 #pragma extern_model save
 #pragma extern_model globalvalue
 extern unsigned int LBR$_HDRTRUNC;
