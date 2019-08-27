@@ -1395,14 +1395,7 @@ eval (struct ebuffer *ebuf, int set_default)
                   }
               }
           }
-
-        continue;
       }
-
-      /* We get here except in the case that we just read a rule line.
-         Record now the last rule we read, so following spurious
-         commands are properly diagnosed.  */
-      record_waiting_files ();
     }
 
 #undef word1eq
