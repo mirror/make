@@ -44,11 +44,11 @@ struct nameseq
     NAMESEQ (_t);                               \
     struct file *file;                          \
     const char *stem;                           \
-    unsigned short flags : 8;                   \
-    unsigned short changed : 1;                 \
-    unsigned short ignore_mtime : 1;            \
-    unsigned short staticpattern : 1;           \
-    unsigned short need_2nd_expansion : 1
+    unsigned int flags : 8;                     \
+    unsigned int changed : 1;                   \
+    unsigned int ignore_mtime : 1;              \
+    unsigned int staticpattern : 1;             \
+    unsigned int need_2nd_expansion : 1
 
 struct dep
   {

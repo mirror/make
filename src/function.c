@@ -38,8 +38,8 @@ struct function_table_entry
     unsigned char len;
     unsigned char minimum_args;
     unsigned char maximum_args;
-    unsigned char expand_args:1;
-    unsigned char alloc_fn:1;
+    unsigned int expand_args:1;
+    unsigned int alloc_fn:1;
   };
 
 static unsigned long
