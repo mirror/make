@@ -281,7 +281,7 @@ release_semaphore (void *sem)
 int
 output_tmpfd (void)
 {
-  MODE_T mask = UMASK (0077);
+  mode_t mask = umask (0077);
   int fd = -1;
   FILE *tfile = tmpfile ();
 
@@ -297,7 +297,7 @@ output_tmpfd (void)
 
   set_append_mode (fd);
 
-  UMASK (mask);
+  umask (mask);
 
   return fd;
 }

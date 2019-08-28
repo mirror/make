@@ -154,9 +154,11 @@ exit 1
 
 :FoundMSVC
 set OUTDIR=.\WinRel
+set LNKOUT=./WinRel
 set "OPTS=/O2 /D NDEBUG"
 set LINKOPTS=
 if "%DEBUG%" == "Y" set OUTDIR=.\WinDebug
+if "%DEBUG%" == "Y" set LNKOUT=./WinDebug
 if "%DEBUG%" == "Y" set "OPTS=/Zi /Od /D _DEBUG"
 if "%DEBUG%" == "Y" set LINKOPTS=/DEBUG
 if "%MAINT%" == "Y" set "OPTS=%OPTS% /D MAKE_MAINTAINER_MODE"
@@ -168,9 +170,11 @@ goto Build
 
 :FindGcc
 set OUTDIR=.\GccRel
+set LNKOUT=./GccRel
 set OPTS=-O2
 if "%DEBUG%" == "Y" set OPTS=-O0
 if "%DEBUG%" == "Y" set OUTDIR=.\GccDebug
+if "%DEBUG%" == "Y" set LNKOUT=./GccDebug
 if "%MAINT%" == "Y" set "OPTS=%OPTS% -DMAKE_MAINTAINER_MODE"
 :: Show the compiler version that we found
 echo.
@@ -204,43 +208,43 @@ copy lib\fnmatch.in.h %OUTDIR%\lib\fnmatch.h
 
 if exist %OUTDIR%\link.sc del %OUTDIR%\link.sc
 
-call :Compile src\ar
-call :Compile src\arscan
-call :Compile src\commands
-call :Compile src\default
-call :Compile src\dir
-call :Compile src\expand
-call :Compile src\file
-call :Compile src\function
-call :Compile src\getopt
-call :Compile src\getopt1
-call :Compile src\guile GUILE
-call :Compile src\hash
-call :Compile src\implicit
-call :Compile src\job
-call :Compile src\load
-call :Compile src\loadapi
-call :Compile src\main GUILE
-call :Compile src\misc
-call :Compile src\output
-call :Compile src\read
-call :Compile src\remake
-call :Compile src\remote-stub
-call :Compile src\rule
-call :Compile src\signame
-call :Compile src\strcache
-call :Compile src\variable
-call :Compile src\version
-call :Compile src\vpath
-call :Compile src\w32\pathstuff
-call :Compile src\w32\w32os
-call :Compile src\w32\compat\posixfcn
-call :Compile src\w32\subproc\misc
-call :Compile src\w32\subproc\sub_proc
-call :Compile src\w32\subproc\w32err
-call :Compile lib\fnmatch
-call :Compile lib\glob
-call :Compile lib\getloadavg
+call :Compile src/ar
+call :Compile src/arscan
+call :Compile src/commands
+call :Compile src/default
+call :Compile src/dir
+call :Compile src/expand
+call :Compile src/file
+call :Compile src/function
+call :Compile src/getopt
+call :Compile src/getopt1
+call :Compile src/guile GUILE
+call :Compile src/hash
+call :Compile src/implicit
+call :Compile src/job
+call :Compile src/load
+call :Compile src/loadapi
+call :Compile src/main GUILE
+call :Compile src/misc
+call :Compile src/output
+call :Compile src/read
+call :Compile src/remake
+call :Compile src/remote-stub
+call :Compile src/rule
+call :Compile src/signame
+call :Compile src/strcache
+call :Compile src/variable
+call :Compile src/version
+call :Compile src/vpath
+call :Compile src/w32/pathstuff
+call :Compile src/w32/w32os
+call :Compile src/w32/compat/posixfcn
+call :Compile src/w32/subproc/misc
+call :Compile src/w32/subproc/sub_proc
+call :Compile src/w32/subproc/w32err
+call :Compile lib/fnmatch
+call :Compile lib/glob
+call :Compile lib/getloadavg
 
 if not "%COMPILER%" == "gcc" call :Compile src\w32\compat\dirent
 
@@ -262,7 +266,7 @@ goto :EOF
 ::
 
 :Compile
-echo %OUTDIR%\%1.%O% >>%OUTDIR%\link.sc
+echo %LNKOUT%/%1.%O% >>%OUTDIR%\link.sc
 set EXTRAS=
 if "%2" == "GUILE" set "EXTRAS=%GUILECFLAGS%"
 if exist "%OUTDIR%\%1.%O%" del "%OUTDIR%\%1.%O%"
@@ -277,7 +281,7 @@ goto CompileDone
 :GccCompile
 :: GCC Compile
 echo on
-%COMPILER% -mthreads -Wall -std=gnu99 -gdwarf-2 -g3 %OPTS% -I%OUTDIR%/src -I./src -I%OUTDIR%/lib -I./lib -I./src/w32/include -DWINDOWS32 -DHAVE_CONFIG_H %EXTRAS% -o %OUTDIR%\%1.%O% -c %1.c
+%COMPILER% -mthreads -Wall -std=gnu99 -gdwarf-2 -g3 %OPTS% -I%OUTDIR%/src -I./src -I%OUTDIR%/lib -I./lib -I./src/w32/include -DWINDOWS32 -DHAVE_CONFIG_H %EXTRAS% -o %OUTDIR%/%1.%O% -c %1.c
 @echo off
 
 :CompileDone
@@ -285,13 +289,14 @@ if not exist "%OUTDIR%\%1.%O%" exit 1
 goto :EOF
 
 :Link
-echo Linking %OUTDIR%/%MAKE%.exe
+echo.
+echo Linking %LNKOUT%/%MAKE%.exe
 if "%COMPILER%" == "gcc" goto GccLink
 
 :: MSVC Link
 echo %GUILELIBS% kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib >>%OUTDIR%\link.sc
 echo on
-link.exe /NOLOGO /SUBSYSTEM:console /PDB:%OUTDIR%\%MAKE%.pdb %LINKOPTS% /OUT:%OUTDIR%\%MAKE%.exe @%OUTDIR%\link.sc
+link.exe /NOLOGO /SUBSYSTEM:console /PDB:%LNKOUT%\%MAKE%.pdb %LINKOPTS% /OUT:%LNKOUT%\%MAKE%.exe @%LNKOUT%\link.sc
 @echo off
 goto :EOF
 
@@ -299,7 +304,7 @@ goto :EOF
 :: GCC Link
 echo on
 echo %GUILELIBS% -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32 >>%OUTDIR%\link.sc
-%COMPILER% -mthreads -gdwarf-2 -g3 %OPTS% -o %OUTDIR%\%MAKE%.exe @%OUTDIR%\link.sc -Wl,--out-implib=%OUTDIR%\libgnumake-1.dll.a
+%COMPILER% -mthreads -gdwarf-2 -g3 %OPTS% -o %LNKOUT%/%MAKE%.exe @%LNKOUT%/link.sc -Wl,--out-implib=%LNKOUT%/libgnumake-1.dll.a
 @echo off
 goto :EOF
 
@@ -390,6 +395,7 @@ set NOGUILE=
 set O=
 set OPTS=
 set OUTDIR=
+set LNKOUT=
 set PKGMSC=
 set VSVARS=
 goto :EOF

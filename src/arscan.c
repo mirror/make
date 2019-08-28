@@ -909,7 +909,7 @@ ar_member_touch (const char *arname, const char *memname)
   for (ui = 0; ui < sizeof ar_hdr.ar_date; ui++)
     ar_hdr.ar_date[ui] = ' ';
   sprintf (TOCHAR (ar_hdr.ar_date), "%lu", (long unsigned) statbuf.st_mtime);
-  ar_hdr.ar_date[strlen (ar_hdr.ar_date)] = ' ';
+  ar_hdr.ar_date[strlen ((char *) ar_hdr.ar_date)] = ' ';
 #else
   ar_hdr.ar_date = statbuf.st_mtime;
 #endif

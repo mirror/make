@@ -292,12 +292,8 @@ char *strerror (int errnum);
 char *strsignal (int signum);
 #endif
 
-#if defined(HAVE_UMASK)
-# define UMASK(_m)  umask (_m)
-# define MODE_T     mode_t
-#else
-# define UMASK(_m)  0
-# define MODE_T     int
+#if !defined(HAVE_UMASK)
+extern mode_t umask (mode_t);
 #endif
 
 /* ISDIGIT offers the following features:

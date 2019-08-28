@@ -437,6 +437,14 @@ char *mktemp (char *template);
 # endif
 #endif
 
+#ifndef HAVE_UMASK
+mode_t
+umask (mode_t mask)
+{
+  return 0;
+}
+#endif
+
 FILE *
 get_tmpfile (char **name, const char *template)
 {
@@ -446,7 +454,7 @@ get_tmpfile (char **name, const char *template)
 #endif
 
   /* Preserve the current umask, and set a restrictive one for temp files.  */
-  MODE_T mask = UMASK (0077);
+  mode_t mask = umask (0077);
 
 #if defined(HAVE_MKSTEMP) || defined(HAVE_MKTEMP)
 # define TEMPLATE_LEN   strlen (template)
@@ -482,7 +490,7 @@ get_tmpfile (char **name, const char *template)
 # endif
 #endif
 
-  UMASK (mask);
+  umask (mask);
 
   return file;
 }

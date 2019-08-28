@@ -724,7 +724,9 @@ reap_children (int block, int err)
       else if (pid < 0)
         {
           /* A remote status command failed miserably.  Punt.  */
+#if !defined(__MSDOS__) && !defined(_AMIGA) && !defined(WINDOWS32)
         remote_status_lose:
+#endif
           pfatal_with_name ("remote_status");
         }
       else

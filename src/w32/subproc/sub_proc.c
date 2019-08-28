@@ -108,7 +108,7 @@ DWORD process_wait_for_multiple_objects(
             continue;
             break;
           case WAIT_FAILED:
-            fprintf(stderr,"WaitForMultipleOjbects failed waiting with error %d\n", GetLastError());
+            fprintf(stderr,"WaitForMultipleOjbects failed waiting with error %lu\n", GetLastError());
             break;
           default:
             if (retVal >= WAIT_ABANDONED_0) {
