@@ -37,8 +37,8 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set
 
 * WARNING: Backward-incompatibility!
   On Linux, and any other systems that provide a /proc/loadavg with similar
-  syntax, the -l/--load-average option will use the contents of that file to
-  determine how many jobs are running at any given instant, and compare that
+  syntax, the -l/--load-average option will consult that file to
+  determine how many jobs are  at any given instant, and compare that
   value to the load value requested.  This allows usage such as "-j -lN" for
   N-processor systems without fear of overload.
   Patch provided by Sven C. Dack <sven.c.dack@sky.com>
@@ -59,11 +59,10 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set
 * Makefiles can now specify the '-j' option in their MAKEFLAGS variable and
   this will cause make to enable that parallelism mode.
 
-* GNU make will now use pthread_spawn() on systems where it is available.
-  It will select POSIX_SPAWN_USEVFORK where that is available.  If you prefer
-  to use fork/exec even on systems where pthread_spawn() is present, you can
-  use the --disable-pthread-spawn option to configure.
-  Aron Barath <baratharon@caesar.elte.hu> provided the basic implementation.
+* GNU make will now use posix_spawn() on systems where it is available.
+  If you prefer to use fork/exec even on systems where posix_spawn() is
+  present, you can use the --disable-posix-spawn option to configure.  Aron
+  Barath <baratharon@caesar.elte.hu> provided the basic implementation.
 
 * Error messages printed when invoking non-existent commands have been cleaned
   up and made consistent.
