@@ -3182,7 +3182,7 @@ parse_file_seq (char **stringp, size_t size, int stopmap,
 #endif
       char *s;
       size_t nlen;
-      int i;
+      int tot, i;
 
       /* Skip whitespace; at the end of the string or STOPCHAR we're done.  */
       NEXT_TOKEN (p);
@@ -3391,7 +3391,7 @@ parse_file_seq (char **stringp, size_t size, int stopmap,
       if (NONE_SET (flags, PARSEFS_EXISTS) && strpbrk (name, "?*[") == NULL)
         {
           globme = 0;
-          i = 1;
+          tot = 1;
           nlist = &name;
         }
       else
@@ -3402,7 +3402,7 @@ parse_file_seq (char **stringp, size_t size, int stopmap,
 
           case 0:
             /* Success.  */
-            i = gl.gl_pathc;
+            tot = gl.gl_pathc;
             nlist = (const char **)gl.gl_pathv;
             break;
 
@@ -3410,20 +3410,20 @@ parse_file_seq (char **stringp, size_t size, int stopmap,
             /* If we want only existing items, skip this one.  */
             if (ANY_SET (flags, PARSEFS_EXISTS))
               {
-                i = 0;
+                tot = 0;
                 break;
               }
             /* FALLTHROUGH */
 
           default:
             /* By default keep this name.  */
-            i = 1;
+            tot = 1;
             nlist = &name;
             break;
           }
 
       /* For each matched element, add it to the list.  */
-      while (i-- > 0)
+      for (i = 0; i < tot; ++i)
 #ifndef NO_ARCHIVES
         if (memname != 0)
           {
