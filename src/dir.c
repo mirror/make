@@ -1332,6 +1332,7 @@ local_lstat (const char *path, struct stat *buf)
 void
 dir_setup_glob (glob_t *gl)
 {
+  gl->gl_offs = 0;
   gl->gl_opendir = open_dirstream;
   gl->gl_readdir = read_dirstream;
   gl->gl_closedir = free;

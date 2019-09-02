@@ -67,13 +67,65 @@ all: ; @echo $(wildcard xz--y*.7)
 
 touch('xxx.yyy');
 
-run_make_test(q!exists: ; @echo file=$(wildcard xxx.yyy)!,
-              '', "file=xxx.yyy\n");
+run_make_test(q!exists: ; @echo file=$(wildcard xxx.yyy)!, '', "file=xxx.yyy\n");
 
 unlink('xxx.yyy');
 
-run_make_test(q!exists: ; @echo file=$(wildcard xxx.yyy)!,
-              '', "file=\n");
+run_make_test(q!exists: ; @echo file=$(wildcard xxx.yyy)!, '', "file=\n");
+
+# TEST #7: verify that when the input pattern has a trailing slash wildcard
+# returns only directories.
+# -------
+
+touch("hellof");
+mkdir("hellod", 0770);
+mkdir("hellod/worldd", 0770);
+touch("hellod/worldf");
+mkdir("hellod/worldd/kend1", 0770);
+mkdir("hellod/worldd/kend2", 0770);
+touch("hellod/worldd/kenf1");
+touch("hellod/worldd/kenf2");
+
+run_make_test(qq!
+print3:
+\t\@echo \$(wildcard hello*)
+\t\@echo \$(wildcard hello*/)
+\t\@echo \$(wildcard hellod/world*)
+\t\@echo \$(wildcard hellod/world*/)
+\t\@echo \$(wildcard hello* hellod/world*)
+\t\@echo \$(wildcard hello*/ hellod/world*/)
+\t\@echo \$(wildcard hellod/*)
+\t\@echo \$(wildcard hellod/*/)
+\t\@echo \$(wildcard */world*)
+\t\@echo \$(wildcard */worldd/)
+\t\@echo \$(wildcard hellod/*/ken*/)
+\t\@echo \$(wildcard hellod/*/ken?[12])
+\t\@echo \$(wildcard hellod/*/ken?[12]/)
+!, '',
+              "hellod hellof\n"
+              ."hellod/\n"
+              ."hellod/worldd hellod/worldf\n"
+              ."hellod/worldd/\n"
+              ."hellod hellof hellod/worldd hellod/worldf\n"
+              ."hellod/ hellod/worldd/\n"
+              ."hellod/worldd hellod/worldf\n"
+              ."hellod/worldd/\n"
+              ."hellod/worldd hellod/worldf\n"
+              ."hellod/worldd/\n"
+              ."hellod/worldd/kend1/ hellod/worldd/kend2/\n"
+              ."hellod/worldd/kend1 hellod/worldd/kend2 "
+              ."hellod/worldd/kenf1 hellod/worldd/kenf2\n"
+              ."hellod/worldd/kend1/ hellod/worldd/kend2/\n");
+
+unlink('hellof', 'hellod/worldf', 'hellod/worldd/kenf1', 'hellod/worldd/kenf2');
+foreach $d ('hellod/worldd/kend1', 'hellod/worldd/kend2', 'hellod/worldd', 'hellod') {
+    rmdir($d);
+}
+
+if ($port_type ne 'W32') {
+    # Check wildcard on the root directory
+    run_make_test('print4: ; @echo $(wildcard /)', '', "/\n");
+}
 
 if ($port_type ne 'W32' && eval { symlink("",""); 1 }) {
 
