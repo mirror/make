@@ -1240,12 +1240,11 @@ start_job_command (struct child *child)
       }
 
     argv = p;
-    /* Although construct_command_argv contains some code for VMS, it was/is
-       not called/used.  Please note, for VMS argv is a string (not an array
-       of strings) which contains the complete command line, which for
-       multi-line variables still includes the newlines.  So detect newlines
-       and set 'end' (which is used for child->command_ptr) instead of
-       (re-)writing construct_command_argv */
+    /* Please note, for VMS argv is a string (not an array of strings) which
+       contains the complete command line, which for multi-line variables
+       still includes the newlines.  So detect newlines and set 'end' (which
+       is used for child->command_ptr) instead of (re-)writing
+       construct_command_argv */
     if (!one_shell)
       {
         char *s = p;
