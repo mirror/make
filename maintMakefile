@@ -265,7 +265,7 @@ $(CONFIG_CHECKS): checkcfg.%: distdir
 	exec >>'checkcfg.$*.log' 2>&1; set -x; \
 	   cd $(distdir)/_build \
 	&& ./build.sh \
-	&& ./make $(AM_MAKEFLAGS) check \
+	&& ./make $(AM_MAKEFLAGS) check-local \
 	&& ./make $(AM_MAKEFLAGS) clean
 	exec >>'checkcfg.$*.log' 2>&1; set -x; \
 	   cd $(distdir)/_build \
