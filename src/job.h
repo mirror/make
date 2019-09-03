@@ -29,6 +29,7 @@ struct child
     char *sh_batch_file;        /* Script file for shell commands */
     char **command_lines;       /* Array of variable-expanded cmd lines.  */
     char *command_ptr;          /* Ptr into command_lines[command_line].  */
+    char *cmd_name;             /* Alloced copy of argv[0] that was run.  */
 
     struct output output;       /* Output for this child.  */
 

@@ -907,6 +907,36 @@ reap_children (int block, int err)
         --job_counter;
 
     process_child:
+
+#if defined(USE_POSIX_SPAWN)
+      /* Some versions of posix_spawn() do not detect errors such as command
+         not found until after they fork.  In that case they will exit with a
+         code of 127.  Try to detect that and provide a useful error message.
+         Otherwise we'll just show the error below, as normal.  */
+      if (exit_sig == 0 && exit_code == 127 && c->cmd_name)
+        {
+          const char *e = NULL;
+          struct stat st;
+          int r;
+
+          /* There are various ways that this will show a different error than
+             fork/exec.  To really get the right error we'd have to fall back
+             to fork/exec but I don't want to bother with that.  Just do the
+             best we can.  */
+
+          EINTRLOOP(r, stat(c->cmd_name, &st));
+          if (r < 0)
+            e = strerror (errno);
+          else if (S_ISDIR(st.st_mode) || !(st.st_mode & S_IXUSR))
+            e = strerror (EACCES);
+          else if (st.st_size == 0)
+            e = strerror (ENOEXEC);
+
+          if (e)
+            OSS(error, NILF, "%s: %s", c->cmd_name, e);
+        }
+#endif
+
       /* Determine the failure status: 0 for success, 1 for updating target in
          question mode, 2 for anything else.  */
       if (exit_sig == 0 && exit_code == 0)
@@ -1115,6 +1145,7 @@ free_child (struct child *child)
       free (child->environment);
     }
 
+  free (child->cmd_name);
   free (child);
 }
 
@@ -1436,6 +1467,9 @@ start_job_command (struct child *child)
 
       environ = parent_environ; /* Restore value child may have clobbered.  */
       jobserver_post_child (flags & COMMANDS_RECURSE);
+
+      free (child->cmd_name);
+      child->cmd_name = child->pid > 0 ? xstrdup(argv[0]) : NULL;
 #endif /* !VMS */
     }
 
