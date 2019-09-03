@@ -56,6 +56,7 @@ if ($? == 0) {
 # Some versions of ar print different things on creation.  Find out.
 unlink('libxx.a');
 my $created = `$ar $arflags libxx.a a1.o $redir`;
+$created =~ s/a1\.o/#OBJECT#/g;
 
 # Some versions of ar print different things on add.  Find out.
 my $add = `$ar $arflags libxx.a a2.o $redir`;
@@ -68,7 +69,8 @@ $repl =~ s/a2\.o/#OBJECT#/g;
 unlink('libxx.a');
 
 # Very simple
-my $answer = "$ar $arflags libxx.a a1.o\n$created";
+($_ = $created) =~ s/#OBJECT#/a1.o/g;
+my $answer = "$ar $arflags libxx.a a1.o\n$_";
 if ($port_type eq 'VMS-DCL') {
   $answer = 'library /replace libxx.a a1.o';
 }
@@ -220,7 +222,9 @@ if ($osname ne 'VMS') {
     my $pre = '1234567890123456';
     my $lib = 'libxx.a';
     my $cr = $created;
-    $cr =~ s#a1\.o#${pre}a#;
+    $cr =~ s/#OBJECT#/${pre}a/g;
+    my $ad = $add;
+    $ad =~ s/#OBJECT#/${pre}b/g;
 
     run_make_test(qq!
 # Both member names > 16 characters long
@@ -230,7 +234,7 @@ default: $lib(${pre}a) $lib(${pre}b)
 
 $pre%: ; touch \$\@
 !,
-                  $arvar, "touch ${pre}a\n$ar $arflags $lib ${pre}a\n${cr}touch ${pre}b\n$ar $arflags $lib ${pre}b\na - ${pre}b\nrm ${pre}a ${pre}b\n");
+                  $arvar, "touch ${pre}a\n$ar $arflags $lib ${pre}a\n${cr}touch ${pre}b\n$ar $arflags $lib ${pre}b\n${ad}rm ${pre}a ${pre}b\n");
 
     # Run it again; nothing should happen
     run_make_test(undef, $arvar, "#MAKE#: Nothing to be done for 'default'.\n");
