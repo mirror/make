@@ -85,6 +85,8 @@ need to install the following extra software:
 * autopoint
 * pkg-config
 * texinfo (for makeinfo)
+* GCC (Clang's GCC emulation is not sufficient)
+* GNU make (POSIX make is not sufficient)
 
 And any tools that those utilities require (GNU m4, Perl, etc.)
 
@@ -93,10 +95,13 @@ a local installation of gnulib you can set GNULIB_SRCDIR to point to it.
 Otherwise, ./bootstrap will obtain a clone for you.
 
 Unfortunately due to issues with gnulib's getloadavg, you must have automake
-1.16.1 or above.  This version is not yet widely available in GNU/Linux
+1.16.1 or above.  This version may not yet be available through GNU/Linux
 package managers.  If you need to install from source be sure to set
 ACLOCAL_PATH to point to the pkg-config location (e.g., /usr/share/aclocal).
 
+If you want to build from Git with a non-GCC compiler, add "MAKE_CFLAGS=" to
+your make command line (or at least remove any flags your compiler does not
+support).
 
 When building from Git you must build in the source directory: "VPATH
 builds" from remote directories are not supported.  Once you've created
@@ -117,6 +122,11 @@ That is, you can just run:
   $ make install
 
 to build and install GNU make.
+
+NOTE! This method builds GNU make in "maintainer mode".  In this mode it will
+      be slower, possibly MUCH slower: there are various sanity checks
+      enabled.  If you want to build from Git with "maintainer mode" disabled,
+      add "MAKE_MAINTAINER_MODE=" to your make command line.
 
 
 Building From Git for Windows

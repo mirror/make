@@ -29,10 +29,12 @@ MAKEWEBDIR ?= $(SRCROOTDIR)/make/make-web
 # We like mondo-warnings!
 # Also force comments to be preserved.  This helps when using ccache, in
 # combination with GCC 7's implicit-fallthrough warning.
-AM_CFLAGS += -C -Wall -Wextra -Werror -Wwrite-strings -Wshadow \
+MAKE_CFLAGS := -C -Wall -Wextra -Werror -Wwrite-strings -Wshadow \
 	-Wdeclaration-after-statement -Wbad-function-cast -Wformat-security \
 	-Wtype-limits -Wunused-but-set-parameter -Wlogical-op -Wpointer-arith \
 	-Wignored-qualifiers -Wformat-signedness -Wduplicated-cond
+
+AM_CFLAGS += $(MAKE_CFLAGS)
 
 # Unfortunately the Guile headers are sometimes broken.  Convince GCC
 # to treat them as system headers so warnings are ignored.
