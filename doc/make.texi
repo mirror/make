@@ -5523,17 +5523,19 @@ replaced; other occurrences of @var{a} in the value are unaltered.  For
 example:@refill
 
 @example
-foo := a.o b.o c.o
+foo := a.o b.o l.a c.o
 bar := $(foo:.o=.c)
 @end example
 
 @noindent
-sets @samp{bar} to @samp{a.c b.c c.c}.  @xref{Setting, ,Setting Variables}.
+sets @samp{bar} to @samp{a.c b.c l.a c.c}.  @xref{Setting, ,Setting Variables}.
 
-A substitution reference is actually an abbreviation for use of the
-@code{patsubst} expansion function (@pxref{Text Functions, ,Functions for String Substitution and Analysis}).  We provide
-substitution references as well as @code{patsubst} for compatibility with
-other implementations of @code{make}.
+A substitution reference is shorthand for the @code{patsubst}
+expansion function (@pxref{Text Functions, ,Functions for String Substitution and Analysis}):
+@samp{$(@var{var}:@var{a}=@var{b})} is equivalent to
+@samp{$(patsubst %@var{a},%@var{b},@var{var})}.  We provide
+substitution references as well as @code{patsubst} for compatibility
+with other implementations of @code{make}.
 
 @findex patsubst
 Another type of substitution reference lets you use the full power of
@@ -5548,13 +5550,13 @@ for a description of the @code{patsubst} function.@refill
 @group
 @exdent For example:
 
-foo := a.o b.o c.o
+foo := a.o b.o l.a c.o
 bar := $(foo:%.o=%.c)
 @end group
 @end example
 
 @noindent
-sets @samp{bar} to @samp{a.c b.c c.c}.
+sets @samp{bar} to @samp{a.c b.c l.a c.c}.
 
 @node Computed Names,  , Substitution Refs, Advanced
 @subsection Computed Variable Names
