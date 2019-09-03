@@ -2308,10 +2308,6 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
   flags |= POSIX_SPAWN_USEVFORK;
 #endif
 
-#ifdef SET_STACK_SIZE
-  /* No support for resetting the stack limit with posix_spawn().  */
-#endif
-
   /* For any redirected FD, dup2() it to the standard FD.
      They are all marked close-on-exec already.  */
   if (fdin >= 0 && fdin != FD_STDIN)
