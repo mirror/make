@@ -424,14 +424,6 @@ AM_CONDITIONAL([USE_SYSTEM_GLOB], [test "$make_cv_sys_gnu_glob" = yes])
 USE_SYSTEM_GLOB="$make_cv_sys_gnu_glob"
 AC_SUBST([USE_SYSTEM_GLOB])
 
-# See if we need a replacement for getloadavg()
-gl_GETLOADAVG
-if test $HAVE_GETLOADAVG = 0; then
-  AC_LIBOBJ([getloadavg])
-  gl_PREREQ_GETLOADAVG
-fi
-gl_STDLIB_MODULE_INDICATOR([getloadavg])
-
 # Let the makefile know what our build host is
 
 AC_DEFINE_UNQUOTED([MAKE_HOST],["$host"],[Build host information.])
