@@ -436,7 +436,7 @@ sub set_more_defaults
 
    my $redir = '2>&1';
    $redir = '' if os_name eq 'VMS';
-   $string = `sh -c "$make_path -f null.mk $redir"`;
+   $string = `$make_path -f null.mk $redir`;
    if ($string =~ /(.*): \*\*\* No targets\.  Stop\./) {
      $make_name = $1;
    }
@@ -485,7 +485,7 @@ sub set_more_defaults
      $purify_errors = 0;
    }
 
-   $string = `sh -c "$make_path -j 2 -f null.mk $redir"`;
+   $string = `$make_path -j 2 -f null.mk $redir`;
    if ($string =~ /not supported/) {
      $parallel_jobs = 0;
    }
