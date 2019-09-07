@@ -1780,12 +1780,16 @@ func_shell_base (char *o, char **argv, int trim_newlines)
   fd_noinherit (pipedes[0]);
 
   {
-    struct output out;
-    out.syncout = 1;
-    out.out = pipedes[1];
-    out.err = errfd;
+    struct childbase child;
+    child.cmd_name = NULL;
+    child.output.syncout = 1;
+    child.output.out = pipedes[1];
+    child.output.err = errfd;
+    child.environment = envp;
 
-    pid = child_execute_job (&out, 1, command_argv, envp);
+    pid = child_execute_job (&child, 1, command_argv);
+
+    free (child.cmd_name);
   }
 
   if (pid < 0)

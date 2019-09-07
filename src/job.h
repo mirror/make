@@ -18,31 +18,44 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Structure describing a running or dead child process.  */
 
+#ifdef VMS
+#define VMSCHILD                                                        \
+    char *comname;              /* Temporary command file name */       \
+    int efn;                    /* Completion event flag number */      \
+    int cstatus;                /* Completion status */                 \
+    int vms_launch_status;      /* non-zero if lib$spawn, etc failed */
+#else
+#define VMSCHILD
+#endif
+
+#define CHILDBASE                                               \
+    char *cmd_name;       /* Alloced copy of command run.  */   \
+    char **environment;   /* Environment for commands. */       \
+    VMSCHILD                                                    \
+    struct output output  /* Output for this child.  */
+
+
+struct childbase
+  {
+    CHILDBASE;
+  };
+
 struct child
   {
+    CHILDBASE;
+
     struct child *next;         /* Link in the chain.  */
 
     struct file *file;          /* File being remade.  */
 
-    char **environment;         /* Environment for commands.  */
-
     char *sh_batch_file;        /* Script file for shell commands */
     char **command_lines;       /* Array of variable-expanded cmd lines.  */
     char *command_ptr;          /* Ptr into command_lines[command_line].  */
-    char *cmd_name;             /* Alloced copy of argv[0] that was run.  */
-
-    struct output output;       /* Output for this child.  */
-
-#ifdef VMS
-    char *comname;              /* Temporary command file name */
-    int efn;                    /* Completion event flag number */
-    int cstatus;                /* Completion status */
-    int vms_launch_status;      /* non-zero if lib$spawn, etc failed */
-#endif
 
     unsigned int  command_line; /* Index into command_lines.  */
 
-    pid_t         pid;          /* Child process's ID number.  */
+    pid_t pid;                  /* Child process's ID number.  */
+
     unsigned int  remote:1;     /* Nonzero if executing remotely.  */
     unsigned int  noerror:1;    /* Nonzero if commands contained a '-'.  */
     unsigned int  good_stdin:1; /* Nonzero if this child has a good stdin.  */
@@ -63,12 +76,7 @@ void start_waiting_jobs (void);
 char **construct_command_argv (char *line, char **restp, struct file *file,
                                int cmd_flags, char** batch_file);
 
-#ifdef VMS
-int child_execute_job (struct child *child, char *argv);
-#else
-pid_t child_execute_job (struct output *out, int good_stdin,
-                         char **argv, char **envp);
-#endif
+pid_t child_execute_job (struct childbase *child, int good_stdin, char **argv);
 
 #ifdef _AMIGA
 void exec_command (char **argv) __attribute__ ((noreturn));

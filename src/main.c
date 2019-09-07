@@ -2469,7 +2469,12 @@ main (int argc, char **argv, char **envp)
                termination. */
             pid_t pid;
             int r;
-            pid = child_execute_job (NULL, 1, nargv, environ);
+            struct childbase child;
+            child.cmd_name = NULL;
+            child.output.syncout = 0;
+            child.environment = environ;
+
+            pid = child_execute_job (&child, 1, nargv);
 
             /* is this loop really necessary? */
             do {
@@ -2640,7 +2645,7 @@ init_switches (void)
   for (i = 0; switches[i].c != '\0'; ++i)
     {
       long_options[i].name = (char *) (switches[i].long_name == 0 ? "" :
-				       switches[i].long_name);
+                                       switches[i].long_name);
       long_options[i].flag = 0;
       long_options[i].val = switches[i].c;
       if (short_option (switches[i].c))

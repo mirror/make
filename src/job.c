@@ -1452,8 +1452,7 @@ start_job_command (struct child *child)
       child->remote = 0;
 
 #ifdef VMS
-      if (!child_execute_job (child, argv))
-        child->pid = -1;
+      child->pid = child_execute_job ((struct childbase *)child, 1, argv);
 
 #else
 
@@ -1461,8 +1460,8 @@ start_job_command (struct child *child)
 
       jobserver_pre_child (flags & COMMANDS_RECURSE);
 
-      child->pid = child_execute_job (&child->output, child->good_stdin,
-                                      argv, child->environment);
+      child->pid = child_execute_job ((struct childbase *)child,
+                                      child->good_stdin, argv);
 
       environ = parent_environ; /* Restore value child may have clobbered.  */
       jobserver_post_child (flags & COMMANDS_RECURSE);
@@ -2163,7 +2162,7 @@ start_waiting_jobs (void)
 /* EMX: Start a child process. This function returns the new pid.  */
 # if defined __EMX__
 pid_t
-child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
+child_execute_job (struct childbase *child, int good_stdin, char **argv)
 {
   pid_t pid;
   int fdin = good_stdin ? FD_STDIN : get_bad_stdin ();
@@ -2174,12 +2173,12 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
   int save_fderr = -1;
 
   /* Divert child output if we want to capture output.  */
-  if (out && out->syncout)
+  if (child->output.syncout)
     {
-      if (out->out >= 0)
-        fdout = out->out;
-      if (out->err >= 0)
-        fderr = out->err;
+      if (child->output.out >= 0)
+        fdout = child->output.out;
+      if (child->output.err >= 0)
+        fderr = child->output.err;
     }
 
   /* For each FD which needs to be redirected first make a dup of the standard
@@ -2225,7 +2224,7 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
     }
 
   /* Run the command.  */
-  pid = exec_command (argv, envp);
+  pid = exec_command (argv, child->environment);
 
   /* Restore stdout/stdin/stderr of the parent and close temporary FDs.  */
   if (save_fdin >= 0)
@@ -2262,9 +2261,9 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
 
 /* POSIX:
    Create a child process executing the command in ARGV.
-   ENVP is the environment of the new program.  Returns the PID or -1.  */
+   Returns the PID or -1.  */
 pid_t
-child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
+child_execute_job (struct childbase *child, int good_stdin, char **argv)
 {
   const int fdin = good_stdin ? FD_STDIN : get_bad_stdin ();
   int fdout = FD_STDOUT;
@@ -2278,12 +2277,12 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
 #endif
 
   /* Divert child output if we want to capture it.  */
-  if (out && out->syncout)
+  if (child->output.syncout)
     {
-      if (out->out >= 0)
-        fdout = out->out;
-      if (out->err >= 0)
-        fderr = out->err;
+      if (child->output.out >= 0)
+        fdout = child->output.out;
+      if (child->output.err >= 0)
+        fderr = child->output.err;
     }
 
 #if !defined(USE_POSIX_SPAWN)
@@ -2311,7 +2310,7 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
     EINTRLOOP (r, dup2 (fderr, FD_STDERR));
 
   /* Run the command.  */
-  exec_command (argv, envp);
+  exec_command (argv, child->environment);
 
 #else /* use posix_spawn() */
 
@@ -2361,7 +2360,7 @@ child_execute_job (struct output *out, int good_stdin, char **argv, char **envp)
     goto cleanup;
 
   /* Start the program.  */
-  while ((r = posix_spawnp (&pid, argv[0], &fa, &attr, argv, envp)) == EINTR)
+  while ((r = posix_spawnp (&pid, argv[0], &fa, &attr, argv, child->environment)) == EINTR)
     ;
 
  cleanup:

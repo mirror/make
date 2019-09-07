@@ -104,11 +104,12 @@ static int ctrlYPressed= 0;
    inner mode level AST.
 */
 static int
-vmsHandleChildTerm (struct child *child)
+vmsHandleChildTerm (struct childbase *cbase)
 {
-  int exit_code;
+  struct child *child = (struct child*)cbase;
   struct child *lastc, *c;
   int child_failed;
+  int exit_code;
 
   /* The child efn is 0 when a built-in or null command is executed
      successfully with out actually creating a child.
@@ -803,8 +804,8 @@ build_vms_cmd (char **cmd_tokens,
   return cmd_dsc;
 }
 
-int
-child_execute_job (struct child *child, char *argv)
+pid_t
+child_execute_job (struct childbase *child, int good_stdin UNUSED, char *argv)
 {
   int i;
 
@@ -841,11 +842,10 @@ child_execute_job (struct child *child, char *argv)
       /* Only a built-in or a null command - Still need to run term AST */
       child->cstatus = VMS_POSIX_EXIT_MASK;
       child->vms_launch_status = SS$_NORMAL;
-      /* TODO what is this "magic number" */
-      child->pid = 270163; /* Special built-in */
       child->efn = 0;
       vmsHandleChildTerm (child);
-      return 1;
+      /* TODO what is this "magic number" */
+      return 270163; /* Special built-in */
     }
 
   sprintf (procname, "GMAKE_%05x", getpid () & 0xfffff);
@@ -1162,11 +1162,9 @@ child_execute_job (struct child *child, char *argv)
         free (cmd_tokens[cmd_tkn_index++]);
       child->cstatus = VMS_POSIX_EXIT_MASK | (MAKE_TROUBLE << 3);
       child->vms_launch_status = SS$_ABORT;
-      /* TODO what is this "magic number" */
-      child->pid = 270163; /* Special built-in */
       child->efn = 0;
       errno = token.cmd_errno;
-      return 0;
+      return -1;
     }
 
   /* Save any redirection to append file */
@@ -1206,21 +1204,18 @@ child_execute_job (struct child *child, char *argv)
           free (cmd_dsc);
           child->cstatus = VMS_POSIX_EXIT_MASK | (MAKE_TROUBLE << 3);
           child->vms_launch_status = SS$_ABORT;
-          /* TODO what is this "magic number" */
-          child->pid = 270163; /* Special built-in */
           child->efn = 0;
-          return 0;
+          return -1;
         }
 
       /* Only a built-in or a null command - Still need to run term AST */
       free (cmd_dsc);
       child->cstatus = VMS_POSIX_EXIT_MASK;
       child->vms_launch_status = SS$_NORMAL;
-      /* TODO what is this "magic number" */
-      child->pid = 270163; /* Special built-in */
       child->efn = 0;
       vmsHandleChildTerm (child);
-      return 1;
+      /* TODO what is this "magic number" */
+      return 270163; /* Special built-in */
     }
 
   if (cmd_dsc->dsc$w_length > MAX_DCL_LINE_LENGTH)
@@ -1339,7 +1334,7 @@ child_execute_job (struct child *child, char *argv)
                 unlink (child->comname);
               free (child->comname);
             }
-          return 0;
+          return -1;
         }
     }
 
@@ -1465,5 +1460,6 @@ child_execute_job (struct child *child, char *argv)
         }
     }
 
-  return (status & 1);
+  /* TODO what is this "magic number" */
+  return (status & 1) ? 270163 : -1 ;
 }
