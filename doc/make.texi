@@ -11625,7 +11625,8 @@ On POSIX systems the jobserver is implemented as a simple UNIX pipe.
 The pipe will be pre-loaded with one single-character token for each
 available job.  To obtain an extra slot you must read a single
 character from the jobserver pipe; to release a slot you must write a
-single character back into the jobserver pipe.
+single character back into the jobserver pipe.  Note that the read
+side of the jobserver pipe is set to ``blocking'' mode.
 
 To access the pipe you must parse the @code{MAKEFLAGS} variable and
 look for the argument string @code{--jobserver-auth=R,W} where
