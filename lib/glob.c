@@ -117,7 +117,7 @@ extern int errno;
 
 /* When used in the GNU libc the symbol _DIRENT_HAVE_D_TYPE is available
    if the `d_type' member for `struct dirent' is available.  */
-#ifdef _DIRENT_HAVE_D_TYPE
+#if defined(_DIRENT_HAVE_D_TYPE) || defined(HAVE_STRUCT_DIRENT_D_TYPE)
 # define HAVE_D_TYPE	1
 #endif
 

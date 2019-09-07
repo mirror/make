@@ -164,6 +164,9 @@ AC_CHECK_FUNCS([strcasecmp strncasecmp strcmpi strncmpi stricmp strnicmp])
 AC_FUNC_STRCOLL
 AC_FUNC_CLOSEDIR_VOID
 
+# dir.c and our glob.c use dirent.d_type if available
+AC_STRUCT_DIRENT_D_TYPE
+
 # See if the user wants to add (or not) GNU Guile support
 AC_ARG_WITH([guile], [AS_HELP_STRING([--with-guile],
             [Support GNU Guile for embedded scripting])])
