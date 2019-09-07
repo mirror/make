@@ -17,6 +17,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "makeint.h"
 
 #include <assert.h>
+#include <string.h>
 
 #include "job.h"
 #include "debug.h"
@@ -24,8 +25,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "commands.h"
 #include "variable.h"
 #include "os.h"
-
-#include <string.h>
 
 /* Default shell to use.  */
 #ifdef WINDOWS32
@@ -139,6 +138,7 @@ extern int wait3 ();
 
 #ifdef USE_POSIX_SPAWN
 # include <spawn.h>
+# include "findprog.h"
 #endif
 
 #if !defined (wait) && !defined (POSIX)
@@ -1466,8 +1466,6 @@ start_job_command (struct child *child)
       environ = parent_environ; /* Restore value child may have clobbered.  */
       jobserver_post_child (flags & COMMANDS_RECURSE);
 
-      free (child->cmd_name);
-      child->cmd_name = child->pid > 0 ? xstrdup(argv[0]) : NULL;
 #endif /* !VMS */
     }
 
@@ -2271,9 +2269,10 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
   pid_t pid;
   int r;
 #if defined(USE_POSIX_SPAWN)
-  short flags = 0;
+  char *cmd;
   posix_spawnattr_t attr;
   posix_spawn_file_actions_t fa;
+  short flags = 0;
 #endif
 
   /* Divert child output if we want to capture it.  */
@@ -2312,7 +2311,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
   /* Run the command.  */
   exec_command (argv, child->environment);
 
-#else /* use posix_spawn() */
+#else /* USE_POSIX_SPAWN */
 
   if ((r = posix_spawnattr_init (&attr)) != 0)
     goto done;
@@ -2359,9 +2358,66 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
   if ((r = posix_spawnattr_setflags (&attr, flags)) != 0)
     goto cleanup;
 
+  /* Look up the program on the child's PATH, if needed.  */
+  {
+    const char *p = NULL;
+    char **pp;
+
+    for (pp = child->environment; *pp != NULL; ++pp)
+      if ((*pp)[0] == 'P' && (*pp)[1] == 'A' && (*pp)[2] == 'T'
+          && (*pp)[3] == 'H' &&(*pp)[4] == '=')
+        {
+          p = (*pp) + 5;
+          break;
+        }
+
+    cmd = (char *)find_in_given_path (argv[0], p);
+  }
+
+  if (!cmd)
+    {
+      r = ENOENT;
+      goto cleanup;
+    }
+
   /* Start the program.  */
-  while ((r = posix_spawnp (&pid, argv[0], &fa, &attr, argv, child->environment)) == EINTR)
+  while ((r = posix_spawn (&pid, cmd, &fa, &attr, argv,
+                           child->environment)) == EINTR)
     ;
+
+  /* posix_spawn() doesn't provide sh fallback like exec() does; implement
+     it here.  POSIX doesn't specify the path to sh so use the default.  */
+
+  if (r == ENOEXEC)
+    {
+      char **nargv;
+      char **pp;
+      size_t l = 0;
+
+      for (pp = argv; *pp != NULL; ++pp)
+        ++l;
+
+      nargv = xmalloc (sizeof (char *) * (l + 2));
+      nargv[0] = (char *)default_shell;
+      nargv[1] = cmd;
+      memcpy (&nargv[2], &argv[1], sizeof (char *) * l);
+
+      while ((r = posix_spawn (&pid, nargv[0], &fa, &attr, nargv,
+                               child->environment)) == EINTR)
+        ;
+
+      free (nargv);
+    }
+
+  if (r == 0)
+    {
+      /* Spawn succeeded but may fail later: remember the command.  */
+      free (child->cmd_name);
+      if (cmd != argv[0])
+        child->cmd_name = cmd;
+      else
+        child->cmd_name = xstrdup(cmd);
+    }
 
  cleanup:
   posix_spawn_file_actions_destroy (&fa);
@@ -2371,7 +2427,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
   if (r != 0)
     pid = -1;
 
-#endif /* have posix_spawn() */
+#endif /* USE_POSIX_SPAWN */
 
   if (pid < 0)
     OSS (error, NILF, "%s: %s", argv[0], strerror (r));
