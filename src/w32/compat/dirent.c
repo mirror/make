@@ -135,6 +135,13 @@ readdir(DIR* pDir)
         pDir->dir_sdReturn.d_ino = (ino_t)-1;
         strcpy(pDir->dir_sdReturn.d_name, wfdFindData.cFileName);
 
+        if (wfdFindData.dwFileAttributes & FILE_ATTRIBUTE_DEVICE)
+          pDir->dir_sdReturn.d_type = DT_CHR;
+        else if (wfdFindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+          pDir->dir_sdReturn.d_type = DT_DIR;
+        else
+          pDir->dir_sdReturn.d_type = DT_REG;
+
         return &pDir->dir_sdReturn;
 }
 
