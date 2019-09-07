@@ -293,6 +293,7 @@ char *strsignal (int signum);
 #endif
 
 #if !defined(HAVE_UMASK)
+typedef int mode_t;
 extern mode_t umask (mode_t);
 #endif
 
