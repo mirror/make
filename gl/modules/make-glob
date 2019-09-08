@@ -2,6 +2,33 @@ Description:
 GNU make version of fnmatch()/glob() functions.  This is a holdover from
 a very old version of the globbing library.
 
+
+configure.ac:
+# Check the system to see if it provides GNU glob.  If not, use our
+# local version.
+AC_CACHE_CHECK([if system libc has GNU glob], [make_cv_sys_gnu_glob],
+[ AC_EGREP_CPP([gnu glob],[
+#include <features.h>
+#include <glob.h>
+#include <fnmatch.h>
+
+#if !defined _LIBC && defined __GNU_LIBRARY__ && __GNU_LIBRARY__ > 1
+# include <gnu-versions.h>
+# if _GNU_GLOB_INTERFACE_VERSION == 1 || _GNU_GLOB_INTERFACE_VERSION == 2
+   gnu glob
+# endif
+#endif],
+        [make_cv_sys_gnu_glob=yes],
+        [make_cv_sys_gnu_glob=no])])
+
+# Tell automake about this, so it can build the right .c files.
+AM_CONDITIONAL([USE_SYSTEM_GLOB], [test "$make_cv_sys_gnu_glob" = yes])
+
+# Tell build.sh which to use
+USE_SYSTEM_GLOB="$make_cv_sys_gnu_glob"
+AC_SUBST([USE_SYSTEM_GLOB])
+
+
 Makefile.am:
 if !USE_SYSTEM_GLOB
 libgnu_a_SOURCES += fnmatch.c
