@@ -3980,7 +3980,7 @@ the statements in sequence.  For example:
 
 @example
 foo : bar/lose
-        cd $(@@D) && gobble $(@@F) > ../$@@
+        cd $(<D) && gobble $(<F) > ../$@@
 @end example
 
 @noindent
