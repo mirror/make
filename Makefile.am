@@ -97,7 +97,7 @@ test_FILES =	tests/run_make_tests tests/run_make_tests.bat \
 		tests/mkshadow tests/jhelp.pl tests/guile.supp tests/README
 # test/scripts are added via dist-hook below.
 
-EXTRA_DIST =	ChangeLog README build.sh.in $(man_MANS) \
+EXTRA_DIST =	ChangeLog README build.sh build.cfg.in $(man_MANS) \
 		README.customs README.OS2 \
 		README.Amiga SCOPTIONS src/config.ami \
 		README.DOS builddos.bat src/configh.dos \
@@ -106,11 +106,6 @@ EXTRA_DIST =	ChangeLog README build.sh.in $(man_MANS) \
 		vms_export_symbol_test.com \
 		src/gmk-default.scm src/gmk-default.h \
 		$(mk_FILES) $(m4_FILES) $(test_FILES)
-
-
-# This is built during configure, but behind configure's back
-
-DISTCLEANFILES = build.sh
 
 # --------------- Generate the Guile default module content
 

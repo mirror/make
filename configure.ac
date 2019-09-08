@@ -492,7 +492,7 @@ AS_IF([test "x$make_cv_posix_spawn" = xno && test "x$user_posix_spawn" = xyes],
 ])
 
 # Specify what files are to be created.
-AC_CONFIG_FILES([Makefile lib/Makefile po/Makefile.in doc/Makefile \
+AC_CONFIG_FILES([Makefile build.cfg lib/Makefile po/Makefile.in doc/Makefile \
                  tests/config-flags.pm])
 # We don't need this: the standard automake output suffices for POSIX systems.
 #mk/Posix.mk
@@ -500,13 +500,6 @@ AC_CONFIG_FILES([Makefile lib/Makefile po/Makefile.in doc/Makefile \
 # OK, do it!
 
 AC_OUTPUT
-
-# We only generate the build.sh if we have a build.sh.in; we won't have
-# one before we've created a distribution.
-AS_IF([test -f "$srcdir/build.sh.in"],
-[ ./config.status --file build.sh
-  chmod +x build.sh
-])
 
 dnl Local Variables:
 dnl comment-start: "dnl "

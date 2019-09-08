@@ -85,16 +85,6 @@ Basic.mk: Basic.mk.template .dep_segment Makefile
 	  $(word 2,$^) >>$@
 	chmod a-w $@
 
-# Construct build.sh.in
-#
-build.sh.in: build.template Makefile
-	rm -f $@
-	sed -e 's@%objs%@$(patsubst %.o,%.$${OBJEXT},$(filter-out src/remote-%,$(make_OBJECTS)))@g' \
-	  $< > $@
-	chmod a-w+x $@
-
-all: build.sh.in
-
 
 # Use automake to build a dependency list file, for Makebase.mk.
 #
@@ -266,9 +256,9 @@ $(CONFIG_CHECKS): checkcfg.%: distdir
 		$(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS)
 	exec >>'checkcfg.$*.log' 2>&1; set -x; \
 	   cd $(distdir)/_build \
-	&& ./build.sh \
-	&& ./make $(AM_MAKEFLAGS) check-local \
-	&& ./make $(AM_MAKEFLAGS) clean
+	&& OUTDIR=_bld ../build.sh \
+	&& _bld/make $(AM_MAKEFLAGS) check-local \
+	&& _bld/make $(AM_MAKEFLAGS) clean
 	exec >>'checkcfg.$*.log' 2>&1; set -x; \
 	   cd $(distdir)/_build \
 	&& $(NR_MAKE) $(AM_MAKEFLAGS) CFLAGS='$(AM_CFLAGS)' \
@@ -405,7 +395,7 @@ $(COV_BUILD_FILE): $(filter %.c %.h,$(DISTFILES))
 		CFLAGS='$(AM_CFLAGS)'
 	PATH="$${COVERITY_PATH:+$$COVERITY_PATH/bin:}$$PATH"; \
 	    cd '$(distdir)'/_build \
-		&& cov-build --dir cov-int ./build.sh
+		&& cov-build --dir cov-int ../build.sh
 	rm -f '$@'
 	(cd '$(distdir)'/_build && tar czf - cov-int) > '$@'
 

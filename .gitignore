@@ -60,8 +60,7 @@ README
 README.DOS
 README.OS2
 README.W32
-build.sh
-build.sh.in
+build.cfg
 config.ami
 config.h-vms
 config.h.W32
