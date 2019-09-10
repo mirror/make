@@ -2748,7 +2748,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
      can handle quoted file names just fine, removing the quote lifts
      the limit from a very frequent use case, because using quoted
      file names is commonplace on MS-Windows.  */
-  static const char *sh_chars_dos = "|&<>%";
+  static const char *sh_chars_dos = "|&<>";
   static const char *sh_cmds_dos[] =
     { "assoc", "break", "call", "cd", "chcp", "chdir", "cls", "color", "copy",
       "ctty", "date", "del", "dir", "echo", "echo.", "endlocal", "erase",
@@ -2949,9 +2949,9 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
           else if (instring == '"' && strchr ("\\$`", *p) != 0 && unixy_shell)
             goto slow;
 #ifdef WINDOWS32
-          /* Quoted wildcard and % characters must be passed quoted to the
+          /* Quoted wildcard characters must be passed quoted to the
              command, so give up the fast route.  */
-          else if (instring == '"' && strchr ("*?%", *p) != 0 && !unixy_shell)
+          else if (instring == '"' && strchr ("*?", *p) != 0 && !unixy_shell)
             goto slow;
           else if (instring == '"' && strncmp (p, "\\\"", 2) == 0)
             *ap++ = *++p;
