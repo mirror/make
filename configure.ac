@@ -127,8 +127,8 @@ AC_CACHE_CHECK([for standard gettimeofday], [ac_cv_func_gettimeofday],
                   int main ()
                   {
                     struct timeval t; t.tv_sec = -1; t.tv_usec = -1;
-                    exit (gettimeofday (&t, 0) != 0
-                          || t.tv_sec < 0 || t.tv_usec < 0);
+                    return gettimeofday (&t, 0) != 0
+                          || t.tv_sec < 0 || t.tv_usec < 0;
                   }]])],
                   [ac_cv_func_gettimeofday=yes],
                   [ac_cv_func_gettimeofday=no],
