@@ -2371,7 +2371,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
           break;
         }
 
-    cmd = (char *)find_in_given_path (argv[0], p);
+    cmd = (char *)find_in_given_path (argv[0], p, 0);
   }
 
   if (!cmd)
