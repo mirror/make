@@ -60,15 +60,17 @@ run_make_test(undef, 'two',
 
 # Try failing due to non-executable file
 
-my $noexe = './barfooblatboz';
-touch($noexe);
+if ($ERR_nonexe_file) {
+    my $noexe = './barfooblatboz';
+    touch($noexe);
 
-run_make_test(qq!
-one: ; -$noexe xx yy
-two: ; $noexe aa bb
-!,
-              'one', "$noexe xx yy\n#MAKE#: $noexe: Permission denied\n#MAKE#: [#MAKEFILE#;2: one] Error 127 (ignored)\n");
+    run_make_test(qq!
+    one: ; -$noexe xx yy
+    two: ; $noexe aa bb
+    !,
+                  'one', "$noexe xx yy\n#MAKE#: $noexe: $ERR_nonexe_file\n#MAKE#: [#MAKEFILE#;2: one] Error 127 (ignored)\n");
 
-unlink($noexe);
+    unlink($noexe);
+}
 
 1;

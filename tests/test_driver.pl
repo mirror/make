@@ -68,6 +68,7 @@ if ($has_POSIX) {
 $ERR_no_such_file = undef;
 $ERR_read_only_file = undef;
 $ERR_unreadable_file = undef;
+$ERR_noexe_file = undef;
 
 if (open(my $F, '<', 'file.none')) {
     print "Opened non-existent file! Skipping related tests.\n";
@@ -84,6 +85,13 @@ if (open(my $F, '>', 'file.out')) {
     close($F);
 } else {
     $ERR_read_only_file = "$!";
+}
+
+$_ = `./file.out`;
+if ($? == 0) {
+    print "Executed non-executable file!  Skipping related tests.\n";
+} else {
+    $ERR_nonexe_file = "$!";
 }
 
 chmod(0000, 'file.out');

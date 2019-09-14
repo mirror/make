@@ -2376,7 +2376,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
 
   if (!cmd)
     {
-      r = ENOENT;
+      r = errno;
       goto cleanup;
     }
 
