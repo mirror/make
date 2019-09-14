@@ -73,4 +73,23 @@ if ($ERR_nonexe_file) {
     unlink($noexe);
 }
 
+# Try failing by "running" a directory
+
+if ($ERR_exe_dir) {
+    mkdir('sd', 0775);
+
+    run_make_test(q!
+PATH := .
+all: ; sd
+!,
+              '', "sd\n#MAKE#: sd: $ERR_exe_dir\n#MAKE#: *** [#MAKEFILE#;3: all] Error 127", 512);
+
+    run_make_test(q!
+all: ; ./sd
+!,
+              '', "./sd\n#MAKE#: ./sd: $ERR_exe_dir\n#MAKE#: *** [#MAKEFILE#;2: all] Error 127", 512);
+
+    rmdir('sd');
+}
+
 1;

@@ -69,6 +69,7 @@ $ERR_no_such_file = undef;
 $ERR_read_only_file = undef;
 $ERR_unreadable_file = undef;
 $ERR_noexe_file = undef;
+$ERR_exe_dir = undef;
 
 if (open(my $F, '<', 'file.none')) {
     print "Opened non-existent file! Skipping related tests.\n";
@@ -92,6 +93,13 @@ if ($? == 0) {
     print "Executed non-executable file!  Skipping related tests.\n";
 } else {
     $ERR_nonexe_file = "$!";
+}
+
+$_ = `./.`;
+if ($? == 0) {
+    print "Executed directory!  Skipping related tests.\n";
+} else {
+    $ERR_exe_dir = "$!";
 }
 
 chmod(0000, 'file.out');
