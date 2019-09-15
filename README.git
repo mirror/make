@@ -119,14 +119,24 @@ That is, you can just run:
 
   $ ./configure
   $ make check
-  $ make install
 
-to build and install GNU make.
+to build and test GNU make.
 
-NOTE! This method builds GNU make in "maintainer mode".  In this mode it will
-      be slower, possibly MUCH slower: there are various sanity checks
-      enabled.  If you want to build from Git with "maintainer mode" disabled,
-      add "MAKE_MAINTAINER_MODE=" to your make command line.
+NOTE! This method builds GNU make in "maintainer mode".  Make programs built
+      in this mode it will be slower, possibly MUCH slower: there are various
+      sanity checks enabled.  Further this mode assumes a modern GCC, GNU
+      libc, and well-formed system headers and enables a high level of
+      warnings AND enables -Werror to turn warnings into failures.
+
+      If you want to build from Git with "maintainer mode" disabled, add
+      "MAKE_MAINTAINER_MODE=" to the make command line.  If you want to turn
+      off the extra warning flags, add "MAKE_CFLAGS=" to the make command
+      line.
+
+      For example:
+        $ ./configure
+        $ make check MAKE_MAINTAINER_MODE= MAKE_CFLAGS=
+        $ make install
 
 
 Building From Git for Windows
@@ -165,9 +175,10 @@ Even better, you should run this:
 Which will build both .gz and .bz2 package files, then unpack them into
 a temporary location, try to build them, and repack them, verifying that
 everything works, you get the same results, _and_ no extraneous files
-are left over after the "distclean" rule--whew!!  Now, _that_ is why
-converting to Automake is worth the trouble!  A big "huzzah!" to Tom
-T. and the AutoToolers!
+are left over after the "distclean" rule.
+
+This package can be unpacked and built to give a "normal" (non-maintainer
+mode) result.
 
 
 Steps to Release

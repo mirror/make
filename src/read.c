@@ -2829,9 +2829,9 @@ get_next_mword (char *buffer, char **startp, size_t *length)
           /* A word CAN include a colon in its drive spec.  The drive
              spec is allowed either at the beginning of a word, or as part
              of the archive member name, like in "libfoo.a(d:/foo/bar.o)".  */
-          if (!(p - beg >= 2
-                && (*p == '/' || *p == '\\') && isalpha ((unsigned char)p[-2])
-                && (p - beg == 2 || p[-3] == '(')))
+          if ((p - beg == 2 || (p - beg > 2 && p[-3] == '('))
+              && isalpha ((unsigned char)p[-2]))
+            break;
 #endif
           goto done_word;
 
