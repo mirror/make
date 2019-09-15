@@ -139,7 +139,6 @@ sub xlate
     s/\\r/\r/g;
     s/\\t/\t/g;
     s/\\f/\f/g;
-    s/\\v/\v/g;
     s/\\n/\n/g;
     return $_;
 }

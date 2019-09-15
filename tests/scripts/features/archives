@@ -14,8 +14,6 @@ $port_type eq 'W32' and return -1;
 
 # Create some .o files to work with
 if ($osname eq 'VMS') {
-  use Cwd;
-  my $pwd = getcwd;
   # VMS AR needs real object files at this time.
   foreach $afile ('a1', 'a2', 'a3') {
     # Use non-standard extension to prevent implicit rules from recreating
@@ -210,7 +208,7 @@ run_make_test(undef, $arvar, "#MAKE#: Nothing to be done for 'default'.\n");
 
 unlink('foo.vhd');
 if ($osname eq 'VMS') {
-  remove_directory_tree("$pwd/artest");
+  remove_directory_tree("$cwdpath/artest");
 } else {
   remove_directory_tree('artest');
 }

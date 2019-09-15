@@ -81,9 +81,7 @@ all: ; \@echo hi
 
 # SV-56834 Ensure setting PATH in the makefile works properly
 mkdir('sd', 0775);
-open(my $fh, '>', 'sd/foobar');
-print $fh "exit 0\n";
-close($fh);
+create_file('sd/foobar', "exit 0\n");
 chmod 0755, 'sd/foobar';
 
 run_make_test(q!
@@ -107,9 +105,7 @@ rmdir('sd');
 
 # Ensure that local programs are not found if "." is not on the PATH
 
-open(my $fh, '>', 'foobar');
-print $fh "exit 0\n";
-close($fh);
+create_file('foobar', "exit 0\n");
 chmod 0755, 'foobar';
 
 run_make_test(q!

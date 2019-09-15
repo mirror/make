@@ -27,6 +27,21 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Add the working directory to @INC and load the test driver
+use FindBin;
+use lib "$FindBin::Bin";
+
+require "test_driver.pl";
+
+use File::Spec::Functions qw(:DEFAULT splitdir splitpath catpath);
+
+use Cwd;
+$cwdpath = cwd();
+($cwdvol, $cwddir, $_) = splitpath($cwdpath, 1);
+
+# Some target systems might not have the POSIX module...
+$has_POSIX = eval { require "POSIX.pm" };
+
 %FEATURES = ();
 
 $valgrind = 0;              # invoke make with valgrind
@@ -36,7 +51,12 @@ $massif_args = '--num-callers=15 --tool=massif --alloc-fn=xmalloc --alloc-fn=xca
 $pure_log = undef;
 
 # The location of the GNU make source directory
-$srcdir = '';
+$srcdir = undef;
+$srcvol = undef;
+
+# The location of the build directory
+$blddir = undef;
+$bldvol = undef;
 
 $command_string = '';
 
@@ -67,24 +87,71 @@ if ($^O eq 'VMS')
   $CMD_rmfile = 'delete_file -no_ask';
 }
 
-use FindBin;
-use lib "$FindBin::Bin";
-
-require "test_driver.pl";
-
 %CONFIG_FLAGS = ();
 
-my $statnm = "$FindBin::Bin/../config.status";
-if (open(my $fh, '<', $statnm)) {
-    while (my $line = <$fh>) {
-        $line =~ m/^[SD]\["([^\"]+)"\]=" *(.*)"/ and $CONFIG_FLAGS{$1} = $2;
-    }
-} else {
-    warn "Failed to open $statnm: $!";
-}
+# Find the strings that will be generated for various error codes.
+# We want them from the C locale regardless of our current locale.
 
-# Some target systems might not have the POSIX module...
-$has_POSIX = eval { require "POSIX.pm" };
+$ERR_no_such_file = undef;
+$ERR_read_only_file = undef;
+$ERR_unreadable_file = undef;
+$ERR_noexe_file = undef;
+$ERR_exe_dir = undef;
+
+{
+  use locale;
+
+  my $loc = undef;
+  if ($has_POSIX) {
+      POSIX->import(qw(locale_h));
+      # Windows has POSIX locale, but only LC_ALL not LC_MESSAGES
+      $loc = POSIX::setlocale(&POSIX::LC_ALL);
+      POSIX::setlocale(&POSIX::LC_ALL, 'C');
+  }
+
+  if (open(my $F, '<', 'file.none')) {
+      print "Opened non-existent file! Skipping related tests.\n";
+  } else {
+      $ERR_no_such_file = "$!";
+  }
+
+  unlink('file.out');
+  touch('file.out');
+
+  chmod(0444, 'file.out');
+  if (open(my $F, '>', 'file.out')) {
+      print "Opened read-only file! Skipping related tests.\n";
+      close($F);
+  } else {
+      $ERR_read_only_file = "$!";
+  }
+
+  $_ = `./file.out 2>/dev/null`;
+  if ($? == 0) {
+      print "Executed non-executable file!  Skipping related tests.\n";
+  } else {
+      $ERR_nonexe_file = "$!";
+  }
+
+  $_ = `./. 2>/dev/null`;
+  if ($? == 0) {
+      print "Executed directory!  Skipping related tests.\n";
+  } else {
+      $ERR_exe_dir = "$!";
+  }
+
+  chmod(0000, 'file.out');
+  if (open(my $F, '<', 'file.out')) {
+      print "Opened unreadable file!  Skipping related tests.\n";
+      close($F);
+  } else {
+      $ERR_unreadable_file = "$!";
+  }
+
+  unlink('file.out') or die "Failed to delete file.out: $!\n";
+
+  $loc and POSIX::setlocale(&POSIX::LC_ALL, $loc);
+}
 
 #$SIG{INT} = sub { print STDERR "Caught a signal!\n"; die @_; };
 
@@ -103,7 +170,7 @@ sub valid_option
 
    if ($option =~ /^-srcdir$/i) {
        $srcdir = shift @argv;
-       if (! -f "$srcdir/src/gnumake.h") {
+       if (! -f catfile($srcdir, 'src', 'gnumake.h')) {
            print "$option $srcdir: Not a valid GNU make source directory.\n";
            exit 0;
        }
@@ -155,7 +222,7 @@ sub subst_make_string
     s/#MAKEPATH#/$mkpath/g;
     s/#MAKE#/$make_name/g;
     s/#PERL#/$perl_name/g;
-    s/#PWD#/$pwd/g;
+    s/#PWD#/$cwdpath/g;
     return $_;
 }
 
@@ -170,7 +237,7 @@ sub run_make_test
 
   if (! defined $makestring) {
     defined $old_makefile
-      || die "run_make_test(undef) invoked before run_make_test('...')\n";
+      or die "run_make_test(undef) invoked before run_make_test('...')\n";
     $makefile = $old_makefile;
   } else {
     if (! defined($makefile)) {
@@ -182,9 +249,9 @@ sub run_make_test
     $makestring = subst_make_string($makestring);
 
     # Populate the makefile!
-    open(MAKEFILE, "> $makefile") || die "Failed to open $makefile: $!\n";
+    open(MAKEFILE, "> $makefile") or die "Failed to open $makefile: $!\n";
     print MAKEFILE $makestring;
-    close(MAKEFILE) || die "Failed to write $makefile: $!\n";
+    close(MAKEFILE) or die "Failed to write $makefile: $!\n";
   }
 
   # Do the same processing on $answer as we did on $makestring.
@@ -317,8 +384,7 @@ sub run_make_with_options {
       # If we have a purify log, save it
       $tn = $pure_testname . ($num_of_logfiles ? ".$num_of_logfiles" : "");
       print("Renaming purify log file to $tn\n") if $debug;
-      rename($pure_log, "$tn")
-        || die "Can't rename $log to $tn: $!\n";
+      rename($pure_log, "$tn") or die "Can't rename $log to $tn: $!\n";
       ++$purify_errors;
     } else {
       unlink($pure_log);
@@ -363,168 +429,220 @@ sub print_help
         "\tRun the test suite under valgrind's memcheck tool.",
         "\tChange the default valgrind args with the VALGRIND_ARGS env var.",
         "-massif",
-        "\tRun the test suite under valgrind's massif toool.",
+        "\tRun the test suite under valgrind's massif tool.",
         "\tChange the default valgrind args with the VALGRIND_ARGS env var."
        );
 }
 
-sub get_this_pwd {
-  if ($has_POSIX) {
-    $__pwd = POSIX::getcwd();
-  } elsif ($vos) {
-    $__pwd = `++(current_dir)`;
-  } else {
-    # No idea... just try using pwd as a last resort.
-    chop ($__pwd = `pwd`);
-  }
-
-  return $__pwd;
-}
-
 sub set_defaults
 {
-   # $profile = 1;
-   $testee = "GNU make";
-   $make_path = "make";
-   $tmpfilesuffix = "mk";
-   $pwd = &get_this_pwd;
+  # $profile = 1;
+  $testee = "GNU make";
+  $make_path = "make";
+  $tmpfilesuffix = "mk";
+}
+
+# This is no longer used: we import config-flags.pm instead
+# sub parse_status
+# {
+#   if (open(my $fh, '<', "$_[0]/config.status")) {
+#     while (my $line = <$fh>) {
+#       $line =~ m/^[SD]\["([^\"]+)"\]=" *(.*)"/ and $CONFIG_FLAGS{$1} = $2;
+#     }
+#     return 1;
+#   }
+#   return 0;
+# }
+
+sub find_prog
+{
+  my $prog = $_[0];
+  my ($v, $d, $f) = splitpath($prog);
+
+  # If there's no directory then we need to search the PATH
+  if (! $d) {
+    foreach my $e (path()) {
+      $prog = catfile($e, $f);
+      -x $prog or continue;
+      ($v, $d, $f) = splitpath($prog);
+      last;
+    }
+  }
+
+  return ($v, $d, $f);
 }
 
 sub set_more_defaults
 {
-   local($string);
-   local($index);
+  local($string);
+  local($index);
 
-   # On DOS/Windows system the filesystem apparently can't track
-   # timestamps with second granularity (!!).  Change the sleep time
-   # needed to force a file to be considered "old".
-   $wtime = $port_type eq 'UNIX' ? 1 : $port_type eq 'OS/2' ? 2 : 4;
+  # Now that we have located make_path, locate the srcdir and blddir
+  my ($mpv, $mpd, $mpf) = find_prog($make_path);
 
-   # Find the full pathname of Make.  For DOS systems this is more
-   # complicated, so we ask make itself.
-   if ($osname eq 'VMS') {
-     $port_type = 'VMS-DCL' unless defined $ENV{"SHELL"};
-     # On VMS pre-setup make to be found with simply 'make'.
-     $make_path = 'make';
-   } else {
-     create_file('make.mk', 'all:;$(info $(MAKE))');
-     my $mk = `$make_path -sf make.mk`;
-     unlink('make.mk');
-     chop $mk;
-     $mk or die "FATAL ERROR: Cannot determine the value of \$(MAKE)\n";
-     $make_path = $mk;
-   }
+  # We have a make program so try to compute the blddir.
+  if ($mpd) {
+    my $f = catpath($mpv, catdir($mpd, 'tests'), 'config-flags.pm');
+    if (-f $f) {
+      $bldvol = $mpv;
+      $blddir = $mpd;
+    }
+  }
 
-   # Ask make what shell to use
-   create_file('shell.mk', 'all:;$(info $(SHELL))');
-   $sh_name = `$make_path -sf shell.mk`;
-   unlink('shell.mk');
-   chop $sh_name;
-   if (! $sh_name) {
-       print "Cannot determine shell\n";
-       $is_posix_sh = 0;
-   } else {
-       my $o = `$sh_name -c ': do nothing' 2>&1`;
-       $is_posix_sh = $? == 0 && $o == '';
-   }
+  # If srcdir wasn't provided on the command line, try to find it.
+  if (! $srcdir && $blddir) {
+    # See if the blddir is the srcdir
+    my $f = catpath($bldvol, catdir($blddir, 'src'), 'gnumake.h');
+    if (-f $f) {
+      $srcdir = $blddir;
+      $srcvol = $bldvol;
+    }
+  }
 
-   $string = `$make_path -v`;
-   $string =~ /^(GNU Make [^,\n]*)/ or die "$make_path is not GNU make.  Version:\n$string";
-   $testee_version = "$1\n";
+  if (! $srcdir) {
+    # Not found, see if our parent is the source dir
+    my $f = catpath($cwdvol, catdir(updir(), 'src'), 'gnumake.h');
+    if (-f $f) {
+      $srcdir = updir();
+      $srcvol = $cwdvol;
+    }
+  }
 
-   create_file('null.mk', '');
+  # If we have srcdir but not blddir, set them equal
+  if ($srcdir && !$blddir) {
+    $blddir = $srcdir;
+    $bldvol = $srcvol;
+  }
 
-   my $redir = '2>&1';
-   $redir = '' if os_name eq 'VMS';
-   $string = `$make_path -f null.mk $redir`;
-   if ($string =~ /(.*): \*\*\* No targets\.  Stop\./) {
-     $make_name = $1;
-   }
-   else {
-     $make_path =~ /^(?:.*$pathsep)?(.+)$/;
-     $make_name = $1;
-   }
+  # Load the config flags
+  if (!$blddir) {
+    warn "Cannot locate config-flags.pm (no blddir)\n";
+  } else {
+    my $f = catpath($bldvol, catdir($blddir, 'tests'), 'config-flags.pm');
+    if (! -f $f) {
+      warn "Cannot locate $f\n";
+    } else {
+      unshift(@INC, catpath($bldvol, catdir($blddir, 'tests'), ''));
+      require "config-flags.pm";
+    }
+  }
 
-   # prepend pwd if this is a relative path (ie, does not
-   # start with a slash, but contains one).  Thanks for the
-   # clue, Roland.
+  # On DOS/Windows system the filesystem apparently can't track
+  # timestamps with second granularity (!!).  Change the sleep time
+  # needed to force a file to be considered "old".
+  $wtime = $port_type eq 'UNIX' ? 1 : $port_type eq 'OS/2' ? 2 : 4;
 
-   if (index ($make_path, ":") != 1 && index ($make_path, "/") > 0)
-   {
-      $mkpath = "$pwd$pathsep$make_path";
-   }
-   else
-   {
-      $mkpath = $make_path;
-   }
+  # Find the full pathname of Make.  For DOS systems this is more
+  # complicated, so we ask make itself.
+  if ($osname eq 'VMS') {
+    $port_type = 'VMS-DCL' unless defined $ENV{"SHELL"};
+    # On VMS pre-setup make to be found with simply 'make'.
+    $make_path = 'make';
+  } else {
+    create_file('make.mk', 'all:;$(info $(MAKE))');
+    my $mk = `$make_path -sf make.mk`;
+    unlink('make.mk');
+    chop $mk;
+    $mk or die "FATAL ERROR: Cannot determine the value of \$(MAKE)\n";
+    $make_path = $mk;
+  }
+  ($mpv, $mpd, $mpf) = splitpath($make_path);
 
-   # If srcdir wasn't provided on the command line, see if the
-   # location of the make program gives us a clue.  Don't fail if not;
-   # we'll assume it's been installed into /usr/include or wherever.
-   if (! $srcdir) {
-       $make_path =~ /^(.*$pathsep)?/;
-       my $d = $1 || '../';
-       -f "${d}/src/gnumake.h" and $srcdir = $d;
-   }
+  # Ask make what shell to use
+  create_file('shell.mk', 'all:;$(info $(SHELL))');
+  $sh_name = `$make_path -sf shell.mk`;
+  unlink('shell.mk');
+  chop $sh_name;
+  if (! $sh_name) {
+      print "Cannot determine shell\n";
+      $is_posix_sh = 0;
+  } else {
+      my $o = `$sh_name -c ': do nothing' 2>&1`;
+      $is_posix_sh = $? == 0 && $o eq '';
+  }
 
-   # Not with the make program, so see if we can get it out of the makefile
-   if (! $srcdir && open(MF, "< ../Makefile")) {
-       local $/ = undef;
-       $_ = <MF>;
-       close(MF);
-       /^abs_srcdir\s*=\s*(.*?)\s*$/m;
-       -f "$1/src/gnumake.h" and $srcdir = $1;
-   }
+  $string = `$make_path -v`;
+  $string =~ /^(GNU Make [^,\n]*)/ or die "$make_path is not GNU make.  Version:\n$string";
+  $testee_version = "$1\n";
 
-   # Get Purify log info--if any.
+  create_file('null.mk', '');
 
-   if (exists $ENV{PURIFYOPTIONS}
-       && $ENV{PURIFYOPTIONS} =~ /.*-logfile=([^ ]+)/) {
-     $pure_log = $1 || '';
-     $pure_log =~ s/%v/$make_name/;
-     $purify_errors = 0;
-   }
+  my $redir = '2>&1';
+  $redir = '' if os_name eq 'VMS';
+  $string = `$make_path -f null.mk $redir`;
+  if ($string =~ /(.*): \*\*\* No targets\.  Stop\./) {
+    $make_name = $1;
+  } else {
+    $make_name = $mpf;
+  }
 
-   $string = `$make_path -j 2 -f null.mk $redir`;
-   if ($string =~ /not supported/) {
-     $parallel_jobs = 0;
-   }
-   else {
-     $parallel_jobs = 1;
-   }
+  # prepend pwd if this is a relative path (ie, does not
+  # start with a slash, but contains one).  Thanks for the
+  # clue, Roland.
 
-   unlink('null.mk');
+  if ($mpd && !file_name_is_absolute($make_path) && $cwdvol == $mpv) {
+     $mkpath = catpath($cwdvol, catdir($cwd, $mpd), $mpf);
+  } else {
+     $mkpath = $make_path;
+  }
 
-   create_file('features.mk', 'all:;$(info $(.FEATURES))');
-   %FEATURES = map { $_ => 1 } split /\s+/, `$make_path -sf features.mk`;
-   unlink('features.mk');
+  # Not with the make program, so see if we can get it out of the makefile
+  if (! $srcdir && open(MF, '<', catfile(updir(), 'Makefile'))) {
+    local $/ = undef;
+    $_ = <MF>;
+    close(MF);
+    /^abs_srcdir\s*=\s*(.*?)\s*$/m;
+    -f catfile($1, 'src', 'gnumake.h') and $srcdir = $1;
+  }
 
-   # Set up for valgrind, if requested.
+  # Get Purify log info--if any.
 
-   $make_command = $make_path;
+  if (exists $ENV{PURIFYOPTIONS}
+      && $ENV{PURIFYOPTIONS} =~ /.*-logfile=([^ ]+)/) {
+    $pure_log = $1 || '';
+    $pure_log =~ s/%v/$make_name/;
+    $purify_errors = 0;
+  }
 
-   if ($valgrind) {
-     my $args = $valgrind_args;
-     open(VALGRIND, "> valgrind.out")
-       || die "Cannot open valgrind.out: $!\n";
-     #  -q --leak-check=yes
-     exists $ENV{VALGRIND_ARGS} and $args = $ENV{VALGRIND_ARGS};
-     $make_path = "valgrind --log-fd=".fileno(VALGRIND)." $args $make_path";
-     # F_SETFD is 2
-     fcntl(VALGRIND, 2, 0) or die "fcntl(setfd) failed: $!\n";
-     system("echo Starting on `date` 1>&".fileno(VALGRIND));
-     print "Enabled valgrind support.\n";
-   }
+  $string = `$make_path -j 2 -f null.mk $redir`;
+  if ($string =~ /not supported/) {
+    $parallel_jobs = 0;
+  }
+  else {
+    $parallel_jobs = 1;
+  }
 
-   if ($debug) {
-     print "Port type:  $port_type\n";
-     print "Make path:  $make_path\n";
-     print "Shell path: $sh_name".($is_posix_sh ? ' (POSIX)' : '')."\n";
-     print "#PWD#:      $pwd\n";
-     print "#PERL#:     $perl_name\n";
-     print "#MAKEPATH#: $mkpath\n";
-     print "#MAKE#:     $make_name\n";
-   }
+  unlink('null.mk');
+
+  create_file('features.mk', 'all:;$(info $(.FEATURES))');
+  %FEATURES = map { $_ => 1 } split /\s+/, `$make_path -sf features.mk`;
+  unlink('features.mk');
+
+  # Set up for valgrind, if requested.
+
+  $make_command = $make_path;
+
+  if ($valgrind) {
+    my $args = $valgrind_args;
+    open(VALGRIND, "> valgrind.out") or die "Cannot open valgrind.out: $!\n";
+    #  -q --leak-check=yes
+    exists $ENV{VALGRIND_ARGS} and $args = $ENV{VALGRIND_ARGS};
+    $make_path = "valgrind --log-fd=".fileno(VALGRIND)." $args $make_path";
+    # F_SETFD is 2
+    fcntl(VALGRIND, 2, 0) or die "fcntl(setfd) failed: $!\n";
+    system("echo Starting on `date` 1>&".fileno(VALGRIND));
+    print "Enabled valgrind support.\n";
+  }
+
+  if ($debug) {
+    print "Port type:  $port_type\n";
+    print "Make path:  $make_path\n";
+    print "Shell path: $sh_name".($is_posix_sh ? ' (POSIX)' : '')."\n";
+    print "#PWD#:      $cwdpath\n";
+    print "#PERL#:     $perl_name\n";
+    print "#MAKEPATH#: $mkpath\n";
+    print "#MAKE#:     $make_name\n";
+  }
 }
 
 sub setup_for_test
