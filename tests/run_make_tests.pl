@@ -440,6 +440,13 @@ sub set_defaults
   $testee = "GNU make";
   $make_path = "make";
   $tmpfilesuffix = "mk";
+  if ($port_type eq 'UNIX') {
+    $scriptsuffix = '.sh';
+  } elsif ($port_type eq 'VMS') {
+    $scriptsuffix = '.com';
+  } else {
+    $scriptsuffix = '.bat';
+  }
 }
 
 # This is no longer used: we import config-flags.pm instead
