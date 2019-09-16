@@ -1,6 +1,6 @@
 GNU make NEWS                                               -*-indented-text-*-
   History of user-visible changes.
-  3 September 2019
+  16 September 2019
 
 See the end of this file for copyrights and conditions.
 
@@ -9,7 +9,7 @@ which is contained in this distribution as the file doc/make.texi.
 See the README file and the GNU make manual for instructions for
 reporting bugs.
 
-Version 4.2.91 (3 Sep 2019)
+Version 4.2.91 (16 Sep 2019)
 
 A complete list of bugs fixed in this version is available here:
 
@@ -37,10 +37,10 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set
 
 * WARNING: Backward-incompatibility!
   On Linux, and any other systems that provide a /proc/loadavg with similar
-  syntax, the -l/--load-average option will consult that file to
-  determine how many jobs are  at any given instant, and compare that
-  value to the load value requested.  This allows usage such as "-j -lN" for
-  N-processor systems without fear of overload.
+  syntax, the -l/--load-average option will consult that file to determine how
+  many CPUs are busy at that moment and compare that value to the load value
+  requested.  This allows usage such as "-j -lN" for N-processor systems
+  without fear of overload during initial startup.
   Patch provided by Sven C. Dack <sven.c.dack@sky.com>
 
 * WARNING: Backward-incompatibility!
