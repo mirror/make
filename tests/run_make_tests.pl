@@ -58,6 +58,9 @@ $srcvol = undef;
 $blddir = undef;
 $bldvol = undef;
 
+$make_path = undef;
+@make_command = ();
+
 $command_string = '';
 
 $all_tests = 0;
@@ -283,7 +286,7 @@ sub add_options {
 }
 
 sub create_command {
-  return !$_[0] || ref($_[0]) ? [$make_path] : $make_path;
+  return !$_[0] || ref($_[0]) ? [@make_command] : join(' ', @make_command);
 }
 
 # The old-fashioned way...
@@ -392,7 +395,7 @@ sub run_make_with_options {
   }
 
   if ($code != $expected_code) {
-    print "Error running $make_path (expected $expected_code; got $code): $cmdstr\n";
+    print "Error running @make_command (expected $expected_code; got $code): $cmdstr\n";
     $test_passed = 0;
     $runf = &get_runfile;
     &create_file (&get_runfile, $command_string);
@@ -405,7 +408,7 @@ sub run_make_with_options {
   }
 
   if ($profile & $vos) {
-    system "add_profile $make_path";
+    system "add_profile @make_command";
   }
 
   return 1;
@@ -627,14 +630,16 @@ sub set_more_defaults
 
   # Set up for valgrind, if requested.
 
-  $make_command = $make_path;
+  @make_command = ($make_path);
 
   if ($valgrind) {
     my $args = $valgrind_args;
     open(VALGRIND, "> valgrind.out") or die "Cannot open valgrind.out: $!\n";
     #  -q --leak-check=yes
     exists $ENV{VALGRIND_ARGS} and $args = $ENV{VALGRIND_ARGS};
-    $make_path = "valgrind --log-fd=".fileno(VALGRIND)." $args $make_path";
+    @make_command = ('valgrind', '--log-fd='.fileno(VALGRIND));
+    push(@make_command, split(' ', $args));
+    push(@make_command, $make_path);
     # F_SETFD is 2
     fcntl(VALGRIND, 2, 0) or die "fcntl(setfd) failed: $!\n";
     system("echo Starting on `date` 1>&".fileno(VALGRIND));
@@ -642,13 +647,13 @@ sub set_more_defaults
   }
 
   if ($debug) {
-    print "Port type:  $port_type\n";
-    print "Make path:  $make_path\n";
-    print "Shell path: $sh_name".($is_posix_sh ? ' (POSIX)' : '')."\n";
-    print "#PWD#:      $cwdpath\n";
-    print "#PERL#:     $perl_name\n";
-    print "#MAKEPATH#: $mkpath\n";
-    print "#MAKE#:     $make_name\n";
+    print "Port type:    $port_type\n";
+    print "Make command: @make_command\n";
+    print "Shell path:   $sh_name".($is_posix_sh ? ' (POSIX)' : '')."\n";
+    print "#PWD#:        $cwdpath\n";
+    print "#PERL#:       $perl_name\n";
+    print "#MAKEPATH#:   $mkpath\n";
+    print "#MAKE#:       $make_name\n";
   }
 }
 
