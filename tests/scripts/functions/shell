@@ -61,11 +61,21 @@ all: ; @echo $(.SHELLSTATUS)
 
     # Test SHELLSTATUS for kill.
     # This test could be ported to Windows, using taskkill ... ?
+
+    # Figure out the exit code for SIGINT
+    my $pid = fork();
+    if (! $pid) {
+        exec('kill -2 $$') or die "exec: Cannot execute sleep\n";
+    }
+    waitpid($pid, 0);
+    # .SHELLSTATUS for a signal gives 128 + the signal number
+    my $ret = $? + 128;
+
     run_make_test('.PHONY: all
 $(shell kill -2 $$$$)
-SIG := $(.SHELLSTATUS)
-all: ; @echo SIG=$(SIG)
-              ','','SIG=130');
+STAT := $(.SHELLSTATUS)
+all: ; @echo STAT=$(STAT)
+              ','',"STAT=$ret\n");
 }
 
 1;
