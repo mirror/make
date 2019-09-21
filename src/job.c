@@ -2399,7 +2399,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
       for (pp = argv; *pp != NULL; ++pp)
         ++l;
 
-      nargv = xmalloc (sizeof (char *) * (l + 2));
+      nargv = xmalloc (sizeof (char *) * (l + 3));
       nargv[0] = (char *)default_shell;
       nargv[1] = cmd;
       memcpy (&nargv[2], &argv[1], sizeof (char *) * l);
