@@ -703,7 +703,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
         }
 
 #ifndef M_XENIX
-        sscanf (TOCHAR (member_header.ar_mode), "%o", &eltmode);
+        sscanf (TOCHAR (member_header.ar_mode), "%8o", &eltmode);
         eltsize = atol (TOCHAR (member_header.ar_size));
 #else   /* Xenix.  */
         eltmode = (unsigned short int) member_header.ar_mode;
