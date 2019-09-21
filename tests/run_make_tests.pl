@@ -470,7 +470,7 @@ sub find_prog
   if (! $d) {
     foreach my $e (path()) {
       $prog = catfile($e, $f);
-      -x $prog or continue;
+      -x $prog or next;
       ($v, $d, $f) = splitpath($prog);
       last;
     }
