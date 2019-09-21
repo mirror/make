@@ -15,13 +15,15 @@ if ($port_type eq 'W32' || !( eval { symlink("",""); 1 })) {
   return -1;
 }
 
+use File::Spec;
+
 # Set up a symlink sym -> dep
 # We'll make both dep and targ older than sym
 &utouch(-10, 'dep');
 &utouch(-5, 'targ');
 
-$dirnm = (splitdir($cwddir))[-1];
-symlink(catfile(updir(), $dirnm, 'dep'), 'sym');
+$dirnm = (File::Spec->splitdir($cwddir))[-1];
+symlink(File::Spec->catfile(File::Spec->updir(), $dirnm, 'dep'), 'sym');
 
 # Without -L, nothing should happen
 # With -L, it should update targ

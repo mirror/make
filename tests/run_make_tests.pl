@@ -33,11 +33,11 @@ use lib "$FindBin::Bin";
 
 require "test_driver.pl";
 
-use File::Spec::Functions qw(:DEFAULT splitdir splitpath catpath);
+use File::Spec;
 
 use Cwd;
 $cwdpath = cwd();
-($cwdvol, $cwddir, $_) = splitpath($cwdpath, 1);
+($cwdvol, $cwddir, $_) = File::Spec->splitpath($cwdpath, 1);
 
 # Some target systems might not have the POSIX module...
 $has_POSIX = eval { require "POSIX.pm" };
@@ -467,15 +467,16 @@ sub set_defaults
 sub find_prog
 {
   my $prog = $_[0];
-  my ($v, $d, $f) = splitpath($prog);
+  my ($v, $d, $f) = File::Spec->splitpath($prog);
 
   # If there's no directory then we need to search the PATH
   if (! $d) {
-    foreach my $e (path()) {
-      $prog = catfile($e, $f);
-      -x $prog or next;
-      ($v, $d, $f) = splitpath($prog);
-      last;
+    foreach my $e (File::Spec->path()) {
+      $prog = File::Spec->catfile($e, $f);
+      if (-x $prog) {
+        ($v, $d, $f) = File::Spec->splitpath($prog);
+        last;
+      }
     }
   }
 
@@ -492,7 +493,7 @@ sub set_more_defaults
 
   # We have a make program so try to compute the blddir.
   if ($mpd) {
-    my $f = catpath($mpv, catdir($mpd, 'tests'), 'config-flags.pm');
+    my $f = File::Spec->catpath($mpv, File::Spec->catdir($mpd, 'tests'), 'config-flags.pm');
     if (-f $f) {
       $bldvol = $mpv;
       $blddir = $mpd;
@@ -502,7 +503,7 @@ sub set_more_defaults
   # If srcdir wasn't provided on the command line, try to find it.
   if (! $srcdir && $blddir) {
     # See if the blddir is the srcdir
-    my $f = catpath($bldvol, catdir($blddir, 'src'), 'gnumake.h');
+    my $f = File::Spec->catpath($bldvol, File::Spec->catdir($blddir, 'src'), 'gnumake.h');
     if (-f $f) {
       $srcdir = $blddir;
       $srcvol = $bldvol;
@@ -511,9 +512,9 @@ sub set_more_defaults
 
   if (! $srcdir) {
     # Not found, see if our parent is the source dir
-    my $f = catpath($cwdvol, catdir(updir(), 'src'), 'gnumake.h');
+    my $f = File::Spec->catpath($cwdvol, File::Spec->catdir(File::Spec->updir(), 'src'), 'gnumake.h');
     if (-f $f) {
-      $srcdir = updir();
+      $srcdir = File::Spec->updir();
       $srcvol = $cwdvol;
     }
   }
@@ -528,11 +529,11 @@ sub set_more_defaults
   if (!$blddir) {
     warn "Cannot locate config-flags.pm (no blddir)\n";
   } else {
-    my $f = catpath($bldvol, catdir($blddir, 'tests'), 'config-flags.pm');
+    my $f = File::Spec->catpath($bldvol, File::Spec->catdir($blddir, 'tests'), 'config-flags.pm');
     if (! -f $f) {
       warn "Cannot locate $f\n";
     } else {
-      unshift(@INC, catpath($bldvol, catdir($blddir, 'tests'), ''));
+      unshift(@INC, File::Spec->catpath($bldvol, File::Spec->catdir($blddir, 'tests'), ''));
       require "config-flags.pm";
     }
   }
@@ -556,7 +557,7 @@ sub set_more_defaults
     $mk or die "FATAL ERROR: Cannot determine the value of \$(MAKE)\n";
     $make_path = $mk;
   }
-  ($mpv, $mpd, $mpf) = splitpath($make_path);
+  ($mpv, $mpd, $mpf) = File::Spec->splitpath($make_path);
 
   # Ask make what shell to use
   create_file('shell.mk', 'all:;$(info $(SHELL))');
@@ -590,19 +591,19 @@ sub set_more_defaults
   # start with a slash, but contains one).  Thanks for the
   # clue, Roland.
 
-  if ($mpd && !file_name_is_absolute($make_path) && $cwdvol == $mpv) {
-     $mkpath = catpath($cwdvol, catdir($cwd, $mpd), $mpf);
+  if ($mpd && !File::Spec->file_name_is_absolute($make_path) && $cwdvol == $mpv) {
+     $mkpath = File::Spec->catpath($cwdvol, File::Spec->catdir($cwd, $mpd), $mpf);
   } else {
      $mkpath = $make_path;
   }
 
   # Not with the make program, so see if we can get it out of the makefile
-  if (! $srcdir && open(MF, '<', catfile(updir(), 'Makefile'))) {
+  if (! $srcdir && open(MF, '<', File::Spec->catfile(File::Spec->updir(), 'Makefile'))) {
     local $/ = undef;
     $_ = <MF>;
     close(MF);
     /^abs_srcdir\s*=\s*(.*?)\s*$/m;
-    -f catfile($1, 'src', 'gnumake.h') and $srcdir = $1;
+    -f File::Spec->catfile($1, 'src', 'gnumake.h') and $srcdir = $1;
   }
 
   # Get Purify log info--if any.
