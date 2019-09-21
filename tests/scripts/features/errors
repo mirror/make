@@ -42,21 +42,31 @@ my $err = $ERR_no_such_file;
 
 run_make_test(qq!
 one: ; -$unk xx yy
-two: ; $unk aa bb
 !,
               'one', "$unk xx yy\n#MAKE#: $unk: $err\n#MAKE#: [#MAKEFILE#;2: one] Error 127 (ignored)\n");
 
 # TEST #4
 # -------
 
-run_make_test(undef, 'two -i',
-              "$unk aa bb\n#MAKE#: $unk: $err\n#MAKE#: [#MAKEFILE#;3: two] Error 127 (ignored)\n");
+run_make_test(qq!
+two: ; $unk aa bb
+!, 'two -i',
+              "$unk aa bb\n#MAKE#: $unk: $err\n#MAKE#: [#MAKEFILE#;2: two] Error 127 (ignored)\n");
 
 # TEST #5
 # -------
 
 run_make_test(undef, 'two',
-              "$unk aa bb\n#MAKE#: $unk: $err\n#MAKE#: *** [#MAKEFILE#;3: two] Error 127\n", 512);
+              "$unk aa bb\n#MAKE#: $unk: $err\n#MAKE#: *** [#MAKEFILE#;2: two] Error 127\n", 512);
+
+# SV #56918 : Test the unknown command as the second recipe line
+
+run_make_test(qq!
+three:
+\t\@echo one
+\t$unk qq rr
+!, 'three',
+              "one\n$unk qq rr\n#MAKE#: $unk: $err\n#MAKE#: *** [#MAKEFILE#;4: three] Error 127\n", 512);
 
 # Try failing due to non-executable file
 

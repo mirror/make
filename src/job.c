@@ -1073,11 +1073,11 @@ reap_children (int block, int err)
         {
           DB (DB_JOBS, (_("Removing child %p PID %s%s from chain.\n"),
                         c, pid2str (c->pid), c->remote ? _(" (remote)") : ""));
-
-          /* There is now another slot open.  */
-          if (job_slots_used > 0)
-            --job_slots_used;
         }
+
+      /* There is now another slot open.  */
+      if (job_slots_used > 0)
+        job_slots_used -= c->jobslot;
 
       /* Remove the child from the chain and free it.  */
       if (lastc == 0)
@@ -1647,6 +1647,8 @@ start_waiting_job (struct child *c)
                         c->remote ? _(" (remote)") : ""));
           /* One more job slot is in use.  */
           ++job_slots_used;
+          assert (c->jobslot == 0);
+          c->jobslot = 1;
         }
       children = c;
       unblock_sigs ();
