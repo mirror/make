@@ -221,7 +221,7 @@ include inc1
 inc1: foo; echo > $@
 foo:; exit 1
 !,
-                  '', "exit 1\n#MAKEFILE#:3: inc1: $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#;5: foo] Error 1\n", 512);
+                  '', "exit 1\n#MAKEFILE#:3: inc1: $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:5: foo] Error 1\n", 512);
 
     rmfiles('inc1');
 

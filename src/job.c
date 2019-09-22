@@ -557,11 +557,8 @@ child_error (struct child *child,
     nm = _("<builtin>");
   else
     {
-      /* We can't use the standard <FILE>:<LINENO> syntax here because
-         Emacs misinterprets it and matches a bogus filename in the compile
-         buffer.  */
       char *a = alloca (strlen (flocp->filenm) + 6 + INTSTR_LENGTH + 1);
-      sprintf (a, "%s;%lu", flocp->filenm, flocp->lineno + flocp->offset);
+      sprintf (a, "%s:%lu", flocp->filenm, flocp->lineno + flocp->offset);
       nm = a;
     }
 
