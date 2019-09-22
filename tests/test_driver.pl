@@ -1008,7 +1008,7 @@ sub _run_with_timeout
   } else {
     my $pid = fork();
     if (! $pid) {
-      exec(@_) or die "exec: Cannot execute $_[0]\n";
+      exec(@_) or die "exec: Cannot execute $_[0]: $!\n";
     }
     local $SIG{ALRM} = sub {
       my $e = $ERRSTACK[0];
