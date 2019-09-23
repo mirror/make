@@ -2173,6 +2173,15 @@ func_realpath (char *o, char **argv, const char *funcname UNUSED)
 
 #ifdef HAVE_REALPATH
           ENULLLOOP (rp, realpath (in, out));
+# if defined _AIX
+          /* AIX realpath() doesn't remove trailing slashes correctly.  */
+          if (rp)
+            {
+              char *ep = rp + strlen (rp) - 1;
+              while (ep > rp && ep[0] == '/')
+                *(ep--) = '\0';
+            }
+# endif
 #else
           rp = abspath (in, out);
 #endif
