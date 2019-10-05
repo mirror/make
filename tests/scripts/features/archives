@@ -29,11 +29,8 @@ if ($osname eq 'VMS') {
   utouch(-60, qw(a1.o a2.o a3.o));
 }
 
-my $ar = $CONFIG_FLAGS{AR};
-
-# Fallback if configure did not find AR, such as VMS
-# which does not run configure.
-$ar = 'ar' if $ar eq '';
+# Fallback if configure did not find AR
+my $ar = get_config('AR') || 'ar';
 
 my $redir = '2>&1';
 $redir = '' if $osname eq 'VMS';

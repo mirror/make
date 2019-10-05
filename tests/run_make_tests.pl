@@ -483,10 +483,14 @@ sub find_prog
   return ($v, $d, $f);
 }
 
+sub get_config
+{
+  return exists($CONFIG_FLAGS{$_[0]}) ? $CONFIG_FLAGS{$_[0]} : '';
+}
+
 sub set_more_defaults
 {
-  local($string);
-  local($index);
+  my $string;
 
   # Now that we have located make_path, locate the srcdir and blddir
   my ($mpv, $mpd, $mpf) = find_prog($make_path);

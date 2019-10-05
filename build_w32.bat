@@ -258,6 +258,7 @@ exit 1
 :Success
 echo %OUTDIR% build succeeded.
 if exist Basic.mk copy /Y Basic.mk Makefile
+if not exist tests\config-flags.pm copy /Y tests\config-flags.pm.W32 tests\config-flags.pm
 call :Reset
 goto :EOF
 
