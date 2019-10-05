@@ -173,7 +173,7 @@ sub valid_option
 
    if ($option =~ /^-srcdir$/i) {
        $srcdir = shift @argv;
-       if (! -f catfile($srcdir, 'src', 'gnumake.h')) {
+       if (! -f File::Spec->catfile($srcdir, 'src', 'gnumake.h')) {
            print "$option $srcdir: Not a valid GNU make source directory.\n";
            exit 0;
        }
