@@ -16,6 +16,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "makeint.h"
 #include "hash.h"
+#include <assert.h>
 
 #define CALLOC(t, n) ((t *) xcalloc (sizeof (t) * (n)))
 #define MALLOC(t, n) ((t *) xmalloc (sizeof (t) * (n)))
@@ -364,7 +365,8 @@ round_up_2 (unsigned long n)
     r += val;                                   \
   } while(0);
 
-unsigned jhash(unsigned const char *k, int length)
+unsigned int
+jhash(unsigned const char *k, int length)
 {
   unsigned int a, b, c;
 
@@ -408,12 +410,16 @@ unsigned jhash(unsigned const char *k, int length)
   return c;
 }
 
+#define UINTSZ sizeof (unsigned int)
+
 #ifdef WORDS_BIGENDIAN
 /* The ifs are ordered from the first byte in memory to the last.  */
-#define sum_up_to_nul(r, p, flag)         \
+#define sum_up_to_nul(r, p, plen, flag)   \
   do {                                    \
-    unsigned int val;                     \
-    memcpy(&val, (p), 4);                 \
+    unsigned int val = 0;                 \
+    size_t pn = (plen);                   \
+    size_t n = pn < UINTSZ ? pn : UINTSZ; \
+    memcpy (&val, (p), n);                \
     if ((val & 0xFF000000) == 0)          \
       flag = 1;                           \
     else if ((val & 0xFF0000) == 0)       \
@@ -427,51 +433,60 @@ unsigned jhash(unsigned const char *k, int length)
 /* First detect the presence of zeroes.  If there is none, we can
    sum the 4 bytes directly.  Otherwise, the ifs are ordered as in the
    big endian case, from the first byte in memory to the last.  */
-#define sum_up_to_nul(r, p, flag)                   \
-  do {                                              \
-    unsigned int val;                               \
-    unsigned int zeroes;                            \
-    memcpy(&val, (p), 4);                           \
-    zeroes = ((val - 0x01010101) & ~val);           \
-    if (!(zeroes & 0x80808080))                     \
-      r += val;                                     \
-    else if ((val & 0xFF) == 0)                     \
-      flag = 1;                                     \
-    else if ((val & 0xFF00) == 0)                   \
-      r += val & 0xFF, flag = 1;                    \
-    else if ((val & 0xFF0000) == 0)                 \
-      r += val & 0xFFFF, flag = 1;                  \
-    else                                            \
-      r += val, flag = 1;                           \
+#define sum_up_to_nul(r, p, plen, flag)              \
+  do {                                               \
+    unsigned int val = 0;                            \
+    size_t pn = (plen);                              \
+    size_t n = pn < UINTSZ ? pn : UINTSZ;            \
+    memcpy (&val, (p), n);                           \
+    flag = ((val - 0x01010101) & ~val) & 0x80808080; \
+    if (!flag)                                       \
+      r += val;                                      \
+    else if (val & 0xFF)                             \
+      {                                              \
+        if ((val & 0xFF00) == 0)                     \
+          r += val & 0xFF;                           \
+        else if ((val & 0xFF0000) == 0)              \
+          r += val & 0xFFFF;                         \
+        else                                         \
+          r += val;                                  \
+      }                                              \
   } while (0)
 #endif
 
-/* This function performs magic which is correct but causes ASAN heartburn
-   when we pass in a global constant string (at least).  */
-__attribute__((no_sanitize_address))
-unsigned jhash_string(unsigned const char *k)
+unsigned int
+jhash_string(unsigned const char *k)
 {
   unsigned int a, b, c;
   unsigned int have_nul = 0;
   unsigned const char *start = k;
+  size_t klen = strlen ((const char*)k);
 
   /* Set up the internal state */
   a = b = c = JHASH_INITVAL;
 
   /* All but the last block: affect some 32 bits of (a,b,c) */
   for (;;) {
-    sum_up_to_nul(a, k, have_nul);
+    sum_up_to_nul(a, k, klen, have_nul);
     if (have_nul)
       break;
-    k += 4;
-    sum_up_to_nul(b, k, have_nul);
+    k += UINTSZ;
+    assert (klen >= UINTSZ);
+    klen -= UINTSZ;
+
+    sum_up_to_nul(b, k, klen, have_nul);
     if (have_nul)
       break;
-    k += 4;
-    sum_up_to_nul(c, k, have_nul);
+    k += UINTSZ;
+    assert (klen >= UINTSZ);
+    klen -= UINTSZ;
+
+    sum_up_to_nul(c, k, klen, have_nul);
     if (have_nul)
       break;
-    k += 4;
+    k += UINTSZ;
+    assert (klen >= UINTSZ);
+    klen -= UINTSZ;
     jhash_mix(a, b, c);
   }
 
