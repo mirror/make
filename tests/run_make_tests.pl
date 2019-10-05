@@ -98,7 +98,7 @@ if ($^O eq 'VMS')
 $ERR_no_such_file = undef;
 $ERR_read_only_file = undef;
 $ERR_unreadable_file = undef;
-$ERR_noexe_file = undef;
+$ERR_nonexe_file = undef;
 $ERR_exe_dir = undef;
 
 {
@@ -387,7 +387,7 @@ sub run_make_with_options {
       # If we have a purify log, save it
       $tn = $pure_testname . ($num_of_logfiles ? ".$num_of_logfiles" : "");
       print("Renaming purify log file to $tn\n") if $debug;
-      rename($pure_log, "$tn") or die "Can't rename $log to $tn: $!\n";
+      rename($pure_log, "$tn") or die "Can't rename $pure_log to $tn: $!\n";
       ++$purify_errors;
     } else {
       unlink($pure_log);
@@ -397,7 +397,6 @@ sub run_make_with_options {
   if ($code != $expected_code) {
     print "Error running @make_command (expected $expected_code; got $code): $cmdstr\n";
     $test_passed = 0;
-    $runf = &get_runfile;
     &create_file (&get_runfile, $command_string);
     # If it's a SIGINT, stop here
     if ($code & 127) {
@@ -541,11 +540,6 @@ sub set_more_defaults
       require "config-flags.pm";
     }
   }
-
-  # On DOS/Windows system the filesystem apparently can't track
-  # timestamps with second granularity (!!).  Change the sleep time
-  # needed to force a file to be considered "old".
-  $wtime = $port_type eq 'UNIX' ? 1 : $port_type eq 'OS/2' ? 2 : 4;
 
   # Find the full pathname of Make.  For DOS systems this is more
   # complicated, so we ask make itself.
