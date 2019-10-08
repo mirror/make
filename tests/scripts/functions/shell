@@ -69,7 +69,12 @@ all: ; @echo $(.SHELLSTATUS)
     }
     waitpid($pid, 0);
     # .SHELLSTATUS for a signal gives 128 + the signal number
-    my $ret = $? + 128;
+    my $ret = $?;
+    if ($ret > 255) {
+       # Solaris 10 perl 5.8.4 puts signal number + 128 into the high 8 bits.
+       $ret >>= 8;
+    }
+    $ret |= 128;
 
     run_make_test('.PHONY: all
 $(shell kill -2 $$$$)
