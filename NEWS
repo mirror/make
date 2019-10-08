@@ -1,6 +1,6 @@
 GNU make NEWS                                               -*-indented-text-*-
   History of user-visible changes.
-  16 September 2019
+  8 October 2019
 
 See the end of this file for copyrights and conditions.
 
@@ -9,7 +9,7 @@ which is contained in this distribution as the file doc/make.texi.
 See the README file and the GNU make manual for instructions for
 reporting bugs.
 
-Version 4.2.91 (16 Sep 2019)
+Version 4.2.92 (08 Oct 2019)
 
 A complete list of bugs fixed in this version is available here:
 
