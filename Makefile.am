@@ -95,7 +95,7 @@ test_FILES =	tests/run_make_tests tests/run_make_tests.bat \
 		tests/run_make_tests.pl tests/test_driver.pl \
 		tests/config-flags.pm.in tests/config_flags_pm.com \
 		tests/config-flags.pm.W32 \
-		tests/mkshadow tests/jhelp.pl tests/guile.supp tests/README
+		tests/mkshadow tests/thelp.pl tests/guile.supp tests/README
 # test/scripts are added via dist-hook below.
 
 EXTRA_DIST =	ChangeLog README build.sh build.cfg.in $(man_MANS) \

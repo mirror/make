@@ -31,6 +31,8 @@
 use FindBin;
 use lib "$FindBin::Bin";
 
+our $testsroot = $FindBin::Bin;
+
 require "test_driver.pl";
 
 use File::Spec;
@@ -52,10 +54,12 @@ $pure_log = undef;
 
 # The location of the GNU make source directory
 $srcdir = undef;
+$fqsrcdir = undef;
 $srcvol = undef;
 
 # The location of the build directory
 $blddir = undef;
+$fqblddir = undef;
 $bldvol = undef;
 
 $make_path = undef;
@@ -226,6 +230,9 @@ sub subst_make_string
     s/#MAKE#/$make_name/g;
     s/#PERL#/$perl_name/g;
     s/#PWD#/$cwdpath/g;
+    my $help = File::Spec->catfile($fqsrcdir, 'tests', 'thelp.pl');
+    # If we're using a shell
+    s/#HELPER#/$perl_name $help/g;
     return $_;
 }
 
@@ -603,6 +610,10 @@ sub set_more_defaults
     /^abs_srcdir\s*=\s*(.*?)\s*$/m;
     -f File::Spec->catfile($1, 'src', 'gnumake.h') and $srcdir = $1;
   }
+
+  # At this point we should have srcdir and blddir: get fq versions
+  $fqsrcdir = File::Spec->rel2abs($srcdir);
+  $fqblddir = File::Spec->rel2abs($blddir);
 
   # Get Purify log info--if any.
 
