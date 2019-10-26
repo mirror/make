@@ -265,7 +265,7 @@ pattern_search (struct file *file, int archive,
       /* Set LASTSLASH to point at the last slash in FILENAME
          but not counting any slash at the end.  (foo/bar/ counts as
          bar/ in directory foo/, not empty in directory foo/bar/.)  */
-      lastslash = strrchr (filename, '/');
+      lastslash = memrchr (filename, '/', namelen - 1);
 #ifdef VMS
       if (lastslash == NULL)
         lastslash = strrchr (filename, ']');
@@ -278,18 +278,16 @@ pattern_search (struct file *file, int archive,
       /* Handle backslashes (possibly mixed with forward slashes)
          and the case of "d:file".  */
       {
-        char *bslash = strrchr (filename, '\\');
+        char *bslash = memrchr (filename, '\\', namelen - 1);
         if (lastslash == 0 || bslash > lastslash)
           lastslash = bslash;
         if (lastslash == 0 && filename[0] && filename[1] == ':')
           lastslash = filename + 1;
       }
 #endif
-      if (lastslash != 0 && lastslash[1] == '\0')
-        lastslash = 0;
     }
 
-  pathlen = lastslash - filename + 1;
+  pathlen = lastslash ? lastslash - filename + 1 : 0;
 
   /* First see which pattern rules match this target and may be considered.
      Put them in TRYRULES.  */

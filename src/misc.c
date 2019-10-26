@@ -260,6 +260,30 @@ xstrndup (const char *str, size_t length)
 
   return result;
 }
+
+#ifndef HAVE_MEMRCHR
+void *
+memrchr(const void* str, int ch, size_t len)
+{
+  const char* sp = str;
+  const char* cp = sp;
+
+  if (len == 0)
+    return NULL;
+
+  cp += len - 1;
+
+  while (cp[0] != ch)
+    {
+      if (cp == sp)
+        return NULL;
+      --cp;
+    }
+
+  return (void*)cp;
+}
+#endif
+
 
 
 /* Limited INDEX:
