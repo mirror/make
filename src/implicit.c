@@ -443,7 +443,6 @@ pattern_search (struct file *file, int archive,
           unsigned int deps_found = 0;
           /* NPTR points to the part of the prereq we haven't processed.  */
           const char *nptr = 0;
-          const char *dir = NULL;
           int order_only = 0;
           unsigned int matches;
 
@@ -478,7 +477,6 @@ pattern_search (struct file *file, int archive,
                   memcpy (pathdir, filename, pathlen);
                   pathdir[pathlen] = '\0';
                 }
-              dir = pathdir;
             }
 
           if (stemlen > GET_PATH_MAX)
@@ -646,7 +644,7 @@ pattern_search (struct file *file, int archive,
                       /* Parse the expanded string. */
                       struct dep *dp = PARSE_FILE_SEQ (&p, struct dep,
                                                        order_only ? MAP_NUL : MAP_PIPE,
-                                                       add_dir ? dir : NULL, PARSEFS_NONE);
+                                                       add_dir ? pathdir : NULL, PARSEFS_NONE);
                       *dptr = dp;
 
                       for (d = dp; d != NULL; d = d->next)
@@ -931,17 +929,13 @@ pattern_search (struct file *file, int archive,
     }
   else
     {
-      size_t dirlen = (lastslash + 1) - filename;
-      char *sp;
-
       /* We want to prepend the directory from
          the original FILENAME onto the stem.  */
-      fullstemlen = dirlen + stemlen;
-      sp = alloca (fullstemlen + 1);
-      memcpy (sp, filename, dirlen);
-      memcpy (sp + dirlen, stem, stemlen);
-      sp[fullstemlen] = '\0';
-      file->stem = strcache_add (sp);
+      fullstemlen = pathlen + stemlen;
+      memcpy (stem_str, filename, pathlen);
+      memcpy (stem_str + pathlen, stem, stemlen);
+      stem_str[fullstemlen] = '\0';
+      file->stem = strcache_add (stem_str);
     }
 
   file->cmds = rule->cmds;
