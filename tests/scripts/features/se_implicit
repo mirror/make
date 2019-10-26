@@ -254,5 +254,13 @@ foo: $$(info $$<)
 !,
               '', "bar\n#MAKE#: Nothing to be done for 'foo'.\n");
 
+# SV 54161: Expand $$* properly when it contains a path
+
+run_make_test(q!
+.SECONDEXPANSION:
+%x: $$(info $$*); @echo '$*'
+!,
+              'q/ux', "q/u\nq/u\n");
+
 # This tells the test driver that the perl test script executed properly.
 1;

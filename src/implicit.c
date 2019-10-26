@@ -220,8 +220,9 @@ pattern_search (struct file *file, int archive,
   struct patdeps *deplist = xmalloc (max_deps * sizeof (struct patdeps));
   struct patdeps *pat = deplist;
 
-  /* Names of possible dependencies are constructed in this buffer.  */
-  char *depname = alloca (namelen + max_pattern_dep_length);
+  /* Names of possible dependencies are constructed in this buffer.
+     We may replace % by $(*F) for second expansion, increasing the length.  */
+  char *depname = alloca (namelen + max_pattern_dep_length + 4);
 
   /* The start and length of the stem of FILENAME for the current rule.  */
   const char *stem = 0;
@@ -477,9 +478,10 @@ pattern_search (struct file *file, int archive,
                 }
             }
 
-          if (stemlen > GET_PATH_MAX)
+          if (stemlen + (check_lastslash ? pathlen : 0) > GET_PATH_MAX)
             {
-              DBS (DB_IMPLICIT, (_("Stem too long: '%.*s'.\n"),
+              DBS (DB_IMPLICIT, (_("Stem too long: '%s%.*s'.\n"),
+                                 check_lastslash ? pathdir : "",
                                  (int) stemlen, stem));
               continue;
             }
@@ -487,8 +489,19 @@ pattern_search (struct file *file, int archive,
           DBS (DB_IMPLICIT, (_("Trying pattern rule with stem '%.*s'.\n"),
                              (int) stemlen, stem));
 
-          strncpy (stem_str, stem, stemlen);
-          stem_str[stemlen] = '\0';
+          if (!check_lastslash)
+            {
+              memcpy (stem_str, stem, stemlen);
+              stem_str[stemlen] = '\0';
+            }
+          else
+            {
+              /* We want to prepend the directory from
+                 the original FILENAME onto the stem.  */
+              memcpy (stem_str, filename, pathlen);
+              memcpy (stem_str + pathlen, stem, stemlen);
+              stem_str[pathlen + stemlen] = '\0';
+            }
 
           /* If there are no prerequisites, then this rule matches.  */
           if (rule->deps == 0)
@@ -539,7 +552,7 @@ pattern_search (struct file *file, int archive,
                         }
                       memcpy (o, nptr, p - nptr);
                       o += p - nptr;
-                      memcpy (o, stem_str, stemlen);
+                      memcpy (o, stem, stemlen);
                       o += stemlen;
                       strcpy (o, p + 1);
                     }
@@ -590,10 +603,10 @@ pattern_search (struct file *file, int archive,
                      again.  This is not good if you have certain characters
                      in your stem (like $).
 
-                     Instead, we will replace % with $* and allow the second
-                     expansion to take care of it for us.  This way (since $*
-                     is a simple variable) there won't be additional
-                     re-expansion of the stem.  */
+                     Instead, we will replace % with $* or $(*F) and allow the
+                     second expansion to take care of it for us.  This way
+                     (since $* and $(*F) are simple variables) there won't be
+                     additional re-expansion of the stem.  */
 
                   p = lindex (nptr, nptr + len, '%');
                   if (p == 0)
@@ -604,13 +617,22 @@ pattern_search (struct file *file, int archive,
                   else
                     {
                       size_t i = p - nptr;
-                      memcpy (depname, nptr, i);
-                      memcpy (depname + i, "$*", 2);
-                      memcpy (depname + i + 2, p + 1, len - i - 1);
-                      depname[len + 2 - 1] = '\0';
-
+                      char *o = depname;
+                      memcpy (o, nptr, i);
+                      o += i;
                       if (check_lastslash)
-                        add_dir = 1;
+                        {
+                          add_dir = 1;
+                          memcpy (o, "$(*F)", 5);
+                          o += 5;
+                        }
+                      else
+                        {
+                          memcpy (o, "$*", 2);
+                          o += 2;
+                        }
+                      memcpy (o, p + 1, len - i - 1);
+                      o[len - i - 1] = '\0';
                     }
 
                   /* Set up for the next word.  */
