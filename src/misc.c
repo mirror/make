@@ -24,6 +24,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdarg.h>
 
 #ifdef WINDOWS32
+# include <windows.h>
 # include <io.h>
 #endif
 
@@ -431,7 +432,8 @@ free_ns_chain (struct nameseq *ns)
 
 #ifdef MAKE_MAINTAINER_MODE
 
-void spin(const char* type)
+void
+spin (const char* type)
 {
   char filenm[256];
   struct stat dummy;
@@ -442,7 +444,11 @@ void spin(const char* type)
     {
       fprintf (stderr, "SPIN on %s\n", filenm);
       do
+#ifdef WINDOWS32
+        Sleep (1000);
+#else
         sleep (1);
+#endif
       while (stat (filenm, &dummy) == 0);
     }
 }
