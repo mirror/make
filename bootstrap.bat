@@ -30,5 +30,5 @@ if ERRORLEVEL 1 exit /b 1
 goto :EOF
 
 :Done
-echo Done.  Run buld_w32.bat to build GNU make.
+echo Done.  Run build_w32.bat to build GNU make.
 goto :EOF
