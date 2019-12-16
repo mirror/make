@@ -220,7 +220,11 @@ sub valid_option
 #  [2] (string):  Answer we should get back.
 #  [3] (integer): Exit code we expect.  A missing code means 0 (success)
 
+$makefile = undef;
 $old_makefile = undef;
+$mkpath = undef;
+$make_name = undef;
+$helptool = undef;
 
 sub subst_make_string
 {
@@ -230,9 +234,8 @@ sub subst_make_string
     s/#MAKE#/$make_name/g;
     s/#PERL#/$perl_name/g;
     s/#PWD#/$cwdpath/g;
-    my $help = File::Spec->catfile($fqsrcdir, 'tests', 'thelp.pl');
     # If we're using a shell
-    s/#HELPER#/$perl_name $help/g;
+    s/#HELPER#/$perl_name $helptool/g;
     return $_;
 }
 
@@ -614,6 +617,14 @@ sub set_more_defaults
   # At this point we should have srcdir and blddir: get fq versions
   $fqsrcdir = File::Spec->rel2abs($srcdir);
   $fqblddir = File::Spec->rel2abs($blddir);
+
+  # Find the helper tool
+  $helptool = File::Spec->catfile($fqsrcdir, 'tests', 'thelp.pl');
+
+  # It's difficult to quote this properly in all the places it's used so
+  # ensure it doesn't need to be quoted.
+  $helptool =~ s,\\,/,g if $port_type = 'W32';
+  $helptool =~ s, ,\\ ,g;
 
   # Get Purify log info--if any.
 
