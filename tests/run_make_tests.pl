@@ -623,7 +623,7 @@ sub set_more_defaults
 
   # It's difficult to quote this properly in all the places it's used so
   # ensure it doesn't need to be quoted.
-  $helptool =~ s,\\,/,g if $port_type = 'W32';
+  $helptool =~ s,\\,/,g if $port_type eq 'W32';
   $helptool =~ s, ,\\ ,g;
 
   # Get Purify log info--if any.
