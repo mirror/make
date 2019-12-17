@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AUTOMAKE_OPTIONS = dist-bzip2 silent-rules std-options subdir-objects nostdinc
+AUTOMAKE_OPTIONS = dist-lzip silent-rules std-options subdir-objects nostdinc
 ACLOCAL_AMFLAGS = -I m4
 
 MAKE_HOST =	@MAKE_HOST@

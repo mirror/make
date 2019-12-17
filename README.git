@@ -88,7 +88,11 @@ need to install the following extra software:
 * GCC (Clang's GCC emulation is not sufficient)
 * GNU make (POSIX make is not sufficient)
 
-And any tools that those utilities require (GNU m4, Perl, etc.)
+And any tools that those utilities require (GNU m4, etc.)
+
+To run the tests you must install Perl.
+
+To build a release you'll need to install lzip.
 
 GNU make requires gnulib to provide some facilities.  If you want to maintain
 a local installation of gnulib you can set GNULIB_SRCDIR to point to it.
@@ -166,16 +170,16 @@ run:
 
 and, if you like:
 
-  $ make dist-bzip2
+  $ make dist-lzip
 
 Even better, you should run this:
 
   $ make distcheck
 
-Which will build both .gz and .bz2 package files, then unpack them into
-a temporary location, try to build them, and repack them, verifying that
-everything works, you get the same results, _and_ no extraneous files
-are left over after the "distclean" rule.
+Which will build both .gz and .lz package files, then unpack one into a
+temporary location, try to build it and repack it, then verifying that
+everything works, you get the same results, _and_ no extraneous files are
+left over after the "distclean" rule.
 
 This package can be unpacked and built to give a "normal" (non-maintainer
 mode) result.
