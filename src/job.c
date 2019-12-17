@@ -2008,7 +2008,18 @@ load_too_high (void)
 #else
   static double last_sec;
   static time_t last_now;
-  static int proc_fd = -2;
+
+  /* This is disabled by default for now, because it will behave badly if the
+     user gives a value > the number of cores; in that situation the load will
+     never be exceeded, this function always returns false, and we'll start
+     all the jobs.  Also, it's not quite right to limit jobs to the number of
+     cores not busy since a job takes some time to start etc.  Maybe that's
+     OK, I'm not sure exactly how to handle that, but for sure we need to
+     clamp this value at the number of cores before this can be enabled.
+   */
+#define PROC_FD_INIT -1
+  static int proc_fd = PROC_FD_INIT;
+
   double load, guess;
   time_t now;
 
