@@ -559,7 +559,7 @@ pattern_search (struct file *file, int archive,
 
                   /* Parse the expanded string.  It might have wildcards.  */
                   p = depname;
-                  dl = PARSE_SIMPLE_SEQ (&p, struct dep);
+                  dl = PARSE_FILE_SEQ (&p, struct dep, MAP_NUL, NULL, PARSEFS_ONEWORD);
                   for (d = dl; d != NULL; d = d->next)
                     {
                       ++deps_found;

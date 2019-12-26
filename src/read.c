@@ -3138,7 +3138,10 @@ parse_file_seq (char **stringp, size_t size, int stopmap,
   char *p;
   glob_t gl;
   char *tp;
-  int findmap = stopmap|MAP_VMSCOMMA|MAP_BLANK|MAP_NUL;
+  int findmap = stopmap|MAP_VMSCOMMA|MAP_NUL;
+
+  if (NONE_SET (flags, PARSEFS_ONEWORD))
+    findmap |= MAP_BLANK;
 
   /* Always stop on NUL.  */
   stopmap |= MAP_NUL;
