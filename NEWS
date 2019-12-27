@@ -36,14 +36,6 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set
   add a trailing space.
 
 * WARNING: Backward-incompatibility!
-  On Linux, and any other systems that provide a /proc/loadavg with similar
-  syntax, the -l/--load-average option will consult that file to determine how
-  many CPUs are busy at that moment and compare that value to the load value
-  requested.  This allows usage such as "-j -lN" for N-processor systems
-  without fear of overload during initial startup.
-  Patch provided by Sven C. Dack <sven.c.dack@sky.com>
-
-* WARNING: Backward-incompatibility!
   Contrary to the documentation, suffix rules with prerequisites were being
   treated BOTH as simple targets AND as pattern rules.  Behavior now matches
   the documentation, and pattern rules are no longer created in this case.
