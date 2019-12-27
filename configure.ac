@@ -371,7 +371,28 @@ AC_ARG_ENABLE([posix-spawn],
 AS_CASE([/$ac_cv_header_spawn/$ac_cv_func_posix_spawn/],
   [*/no/*], [make_cv_posix_spawn=no])
 
-AS_CASE([/$make_cv_posix_spawn/$user_posix_spawn/],
+AS_IF([test "$make_cv_posix_spawn" = yes],
+  AC_CACHE_CHECK([for posix_spawn that fails synchronously],
+    [make_cv_synchronous_posix_spawn],
+    [make_cv_synchronous_posix_spawn=no
+     AC_RUN_IFELSE([AC_LANG_SOURCE([[
+       #include <spawn.h>
+       #include <string.h>
+
+       extern char **environ;
+
+       int main() {
+         char* path = strdup("./non-existent");
+         char *argv[[2]];
+         argv[[0]] = path;
+         argv[[1]] =  0;
+         return posix_spawn(0, path, 0, 0, argv, environ);
+       }]])],
+       [make_cv_synchronous_posix_spawn=no],
+       [make_cv_synchronous_posix_spawn=yes],
+       [make_cv_synchronous_posix_spawn="no (cross-compiling)"])]))
+
+AS_CASE([/$user_posix_spawn/$make_cv_posix_spawn/$make_cv_synchronous_posix_spawn/],
   [*/no/*], [make_cv_posix_spawn=no],
   [AC_DEFINE(USE_POSIX_SPAWN, 1, [Define to 1 to use posix_spawn().])
   ])
