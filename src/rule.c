@@ -60,36 +60,43 @@ struct file *suffix_file;
 
 static size_t maxsuffix;
 
-/* Compute the maximum dependency length and maximum number of
-   dependencies of all implicit rules.  Also sets the subdir
-   flag for a rule when appropriate, possibly removing the rule
-   completely when appropriate.  */
+/* Compute the maximum dependency length and maximum number of dependencies of
+   all implicit rules.  Also sets the subdir flag for a rule when appropriate,
+   possibly removing the rule completely when appropriate.
+
+   Add any global EXTRA_PREREQS here as well.  */
 
 void
-count_implicit_rule_limits (void)
+snap_implicit_rules (void)
 {
-  char *name;
-  size_t namelen;
-  struct rule *rule;
+  char *name = NULL;
+  size_t namelen = 0;
+  struct dep *prereqs = expand_extra_prereqs (lookup_variable (STRING_SIZE_TUPLE(".EXTRA_PREREQS")));
+  unsigned int pre_deps = 0;
 
-  num_pattern_rules = max_pattern_targets = max_pattern_deps = 0;
   max_pattern_dep_length = 0;
 
-  name = 0;
-  namelen = 0;
-  rule = pattern_rules;
-  while (rule != 0)
+  for (struct dep *d = prereqs; d; d = d->next)
     {
-      unsigned int ndeps = 0;
-      struct dep *dep;
-      struct rule *next = rule->next;
+      size_t l = strlen (dep_name (d));
+      if (l > max_pattern_dep_length)
+        max_pattern_dep_length = l;
+      ++pre_deps;
+    }
+
+  num_pattern_rules = max_pattern_targets = max_pattern_deps = 0;
+
+  for (struct rule *rule = pattern_rules; rule; rule = rule->next)
+    {
+      unsigned int ndeps = pre_deps;
+      struct dep *lastdep = NULL;
 
       ++num_pattern_rules;
 
       if (rule->num > max_pattern_targets)
         max_pattern_targets = rule->num;
 
-      for (dep = rule->deps; dep != 0; dep = dep->next)
+      for (struct dep *dep = rule->deps; dep != 0; dep = dep->next)
         {
           const char *dname = dep_name (dep);
           size_t len = strlen (dname);
@@ -99,17 +106,20 @@ count_implicit_rule_limits (void)
           const char *p2;
           if (p == 0)
             p = strrchr (dname, ':');
-          p2 = p != 0 ? strchr (dname, '%') : 0;
+          p2 = p ? strchr (p, '%') : 0;
 #else
           const char *p = strrchr (dname, '/');
-          const char *p2 = p != 0 ? strchr (dname, '%') : 0;
+          const char *p2 = p ? strchr (p, '%') : 0;
 #endif
           ndeps++;
 
           if (len > max_pattern_dep_length)
             max_pattern_dep_length = len;
 
-          if (p != 0 && p2 > p)
+          if (!dep->next)
+            lastdep = dep;
+
+          if (p2)
             {
               /* There is a slash before the % in the dep name.
                  Extract the directory name.  */
@@ -134,13 +144,20 @@ count_implicit_rule_limits (void)
             dep->changed = 0;
         }
 
+      if (prereqs)
+        {
+          if (lastdep)
+            lastdep->next = copy_dep_chain (prereqs);
+          else
+            rule->deps = copy_dep_chain (prereqs);
+        }
+
       if (ndeps > max_pattern_deps)
         max_pattern_deps = ndeps;
-
-      rule = next;
     }
 
   free (name);
+  free_dep_chain (prereqs);
 }
 
 /* Create a pattern rule from a suffix rule.

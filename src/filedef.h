@@ -21,6 +21,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "hash.h"
 
+struct commands;
+struct dep;
+struct variable;
+struct variable_set_list;
+
 struct file
   {
     const char *name;
@@ -110,6 +115,7 @@ struct file *lookup_file (const char *name);
 struct file *enter_file (const char *name);
 struct dep *split_prereqs (char *prereqstr);
 struct dep *enter_prereqs (struct dep *prereqs, const char *stem);
+struct dep *expand_extra_prereqs (const struct variable *extra);
 void remove_intermediates (int sig);
 void snap_deps (void);
 void rename_file (struct file *file, const char *name);

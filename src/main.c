@@ -1313,7 +1313,7 @@ main (int argc, char **argv, char **envp)
   {
     const char *features = "target-specific order-only second-expansion"
                            " else-if shortest-stem undefine oneshell nocomment"
-                           " grouped-target"
+                           " grouped-target extra-prereqs"
 #ifndef NO_ARCHIVES
                            " archives"
 #endif
@@ -2134,9 +2134,9 @@ main (int argc, char **argv, char **envp)
 
   install_default_implicit_rules ();
 
-  /* Compute implicit rule limits.  */
+  /* Compute implicit rule limits and do magic for pattern rules.  */
 
-  count_implicit_rule_limits ();
+  snap_implicit_rules ();
 
   /* Construct the listings of directories in VPATH lists.  */
 

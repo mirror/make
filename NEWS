@@ -48,6 +48,13 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set
   search for 'grouped-target' in the .FEATURES special variable.
   Implementation contributed by Kaz Kylheku <kaz@kylheku.com>
 
+* New feature: .EXTRA_PREREQS variable
+  Words in this variable are considered prerequisites of targets but they are
+  not added to any of the automatic variable values when expanding the
+  recipe.  This variable can either be global (applies to all targets) or
+  a target-specific variable.  To detect this feature search for 'extra-prereqs'
+  in the .FEATURES special variable.
+
 * Makefiles can now specify the '-j' option in their MAKEFLAGS variable and
   this will cause make to enable that parallelism mode.
 

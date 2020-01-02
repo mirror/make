@@ -152,6 +152,7 @@ struct patdeps
     const char *pattern;
     struct file *file;
     unsigned int ignore_mtime : 1;
+    unsigned int ignore_automatic_vars : 1;
   };
 
 /* This structure stores information about pattern rules that we need
@@ -564,6 +565,7 @@ pattern_search (struct file *file, int archive,
                     {
                       ++deps_found;
                       d->ignore_mtime = dep->ignore_mtime;
+                      d->ignore_automatic_vars = dep->ignore_automatic_vars;
                     }
 
                   /* We've used up this dep, so next time get a new one.  */
@@ -723,6 +725,7 @@ pattern_search (struct file *file, int archive,
 
                   memset (pat, '\0', sizeof (struct patdeps));
                   pat->ignore_mtime = d->ignore_mtime;
+                  pat->ignore_automatic_vars = d->ignore_automatic_vars;
 
                   DBS (DB_IMPLICIT,
                        (is_rule
@@ -913,6 +916,7 @@ pattern_search (struct file *file, int archive,
 
       dep = alloc_dep ();
       dep->ignore_mtime = pat->ignore_mtime;
+      dep->ignore_automatic_vars = pat->ignore_automatic_vars;
       s = strcache_add (pat->name);
       if (recursions)
         dep->name = s;

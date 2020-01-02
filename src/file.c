@@ -550,15 +550,6 @@ enter_prereqs (struct dep *deps, const char *stem)
   return deps;
 }
 
-/* Set the intermediate flag.  */
-
-static void
-set_intermediate (const void *item)
-{
-  struct file *f = (struct file *) item;
-  f->intermediate = 1;
-}
-
 /* Expand and parse each dependency line. */
 static void
 expand_deps (struct file *f)
@@ -644,13 +635,69 @@ expand_deps (struct file *f)
     }
 }
 
-/* Reset the updating flag.  */
+/* Add extra prereqs to the file in question.  */
+
+struct dep *
+expand_extra_prereqs (const struct variable *extra)
+{
+  struct dep *prereqs = extra ? split_prereqs (variable_expand (extra->value)) : NULL;
+
+  for (struct dep *d = prereqs; d; d = d->next)
+    {
+      d->file = lookup_file (d->name);
+      if (!d->file)
+        d->file = enter_file (d->name);
+      d->name = NULL;
+      d->ignore_automatic_vars = 1;
+    }
+
+  return prereqs;
+}
+
+/* Perform per-file snap operations. */
 
 static void
-reset_updating (const void *item)
+snap_file (const void *item, void *arg)
 {
-  struct file *f = (struct file *) item;
-  f->updating = 0;
+  struct file *f = (struct file*)item;
+  struct dep *prereqs = NULL;
+
+  /* If we're not doing second expansion then reset updating.  */
+  if (!second_expansion)
+    f->updating = 0;
+
+  /* If .SECONDARY is set with no deps, mark all targets as intermediate.  */
+  if (all_secondary)
+    f->intermediate = 1;
+
+  /* If .EXTRA_PREREQS is set, add them as ignored by automatic variables.  */
+  if (f->variables)
+    prereqs = expand_extra_prereqs (lookup_variable_in_set (STRING_SIZE_TUPLE(".EXTRA_PREREQS"), f->variables->set));
+
+  else if (f->is_target)
+    prereqs = copy_dep_chain (arg);
+
+  if (prereqs)
+    {
+      struct dep *d;
+      for (d = prereqs; d; d = d->next)
+        if (streq (f->name, dep_name (d)))
+          /* Skip circular dependencies.  */
+          break;
+
+      if (d)
+        /* We broke early: must have found a circular dependency.  */
+        free_dep_chain (prereqs);
+      else if (!f->deps)
+        f->deps = prereqs;
+      else
+        {
+          d = f->deps;
+          while (d->next)
+            d = d->next;
+          d->next = prereqs;
+        }
+    }
 }
 
 /* For each dependency of each file, make the 'struct dep' point
@@ -700,9 +747,6 @@ snap_deps (void)
             expand_deps (f);
       free (file_slot_0);
     }
-  else
-    /* We're not doing second expansion, so reset updating.  */
-    hash_map (&files, reset_updating);
 
   /* Now manage all the special targets.  */
 
@@ -744,10 +788,7 @@ snap_deps (void)
           f2->intermediate = f2->secondary = 1;
     /* .SECONDARY with no deps listed marks *all* files that way.  */
     else
-      {
-        all_secondary = 1;
-        hash_map (&files, set_intermediate);
-      }
+      all_secondary = 1;
 
   f = lookup_file (".EXPORT_ALL_VARIABLES");
   if (f != 0 && f->is_target)
@@ -778,6 +819,15 @@ snap_deps (void)
   f = lookup_file (".NOTPARALLEL");
   if (f != 0 && f->is_target)
     not_parallel = 1;
+
+  {
+    struct dep *prereqs = expand_extra_prereqs (lookup_variable (STRING_SIZE_TUPLE(".EXTRA_PREREQS")));
+
+    /* Perform per-file snap operations.  */
+    hash_map_arg(&files, snap_file, prereqs);
+
+    free_dep_chain (prereqs);
+  }
 
 #ifndef NO_MINUS_C_MINUS_O
   /* If .POSIX was defined, remove OUTPUT_OPTION to comply.  */

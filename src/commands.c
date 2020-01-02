@@ -133,7 +133,7 @@ set_file_variables (struct file *file)
   /* $< is the first not order-only dependency.  */
   less = "";
   for (d = file->deps; d != 0; d = d->next)
-    if (!d->ignore_mtime)
+    if (!d->ignore_mtime && !d->ignore_automatic_vars)
       {
         if (!d->need_2nd_expansion)
           less = dep_name (d);
@@ -178,7 +178,7 @@ set_file_variables (struct file *file)
     bar_len = 0;
     for (d = file->deps; d != 0; d = d->next)
       {
-        if (!d->need_2nd_expansion)
+        if (!d->need_2nd_expansion && !d->ignore_automatic_vars)
           {
             if (d->ignore_mtime)
               bar_len += strlen (dep_name (d)) + 1;
@@ -200,7 +200,7 @@ set_file_variables (struct file *file)
 
     qmark_len = plus_len + 1;   /* Will be this or less.  */
     for (d = file->deps; d != 0; d = d->next)
-      if (! d->ignore_mtime && ! d->need_2nd_expansion)
+      if (! d->ignore_mtime && ! d->need_2nd_expansion && ! d->ignore_automatic_vars)
         {
           const char *c = dep_name (d);
 
@@ -247,7 +247,7 @@ set_file_variables (struct file *file)
 
     for (d = file->deps; d != 0; d = d->next)
       {
-        if (d->need_2nd_expansion)
+        if (d->need_2nd_expansion || d->ignore_automatic_vars)
           continue;
 
         slot = hash_find_slot (&dep_hash, d);
@@ -269,7 +269,7 @@ set_file_variables (struct file *file)
       {
         const char *c;
 
-        if (d->need_2nd_expansion || hash_find_item (&dep_hash, d) != d)
+        if (d->need_2nd_expansion || d->ignore_automatic_vars || hash_find_item (&dep_hash, d) != d)
           continue;
 
         c = dep_name (d);

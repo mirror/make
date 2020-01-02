@@ -6631,6 +6631,57 @@ Supports dynamically loadable objects for creating custom extensions.
 Expands to a list of directories that @code{make} searches for
 included makefiles (@pxref{Include, , Including Other Makefiles}).
 
+@vindex .EXTRA_PREREQS @r{(prerequisites not added to automatic variables)}
+@item .EXTRA_PREREQS
+Each word in this variable is a new prerequisite which is added to
+targets for which it is set.  These prerequisites differ from normal
+prerequisites in that they do not appear in any of the automatic
+variables (@pxref{Automatic Variables}).  This allows prerequisites to
+be defined which do not impact the recipe.
+
+Consider a rule to link a program:
+
+@example
+myprog: myprog.o file1.o file2.o
+       $(CC) $(CFLAGS) $(LDFLAGS) -o $@@ $^ $(LDLIBS)
+@end example
+
+Now suppose you want to enhance this makefile to ensure that updates
+to the compiler cause the program to be re-linked.  You can add the
+compiler as a prerequisite, but you must ensure that it's not passed
+as an argument to link command.  You'll need something like this:
+
+@example
+myprog: myprog.o file1.o file2.o $(CC)
+       $(CC) $(CFLAGS) $(LDFLAGS) -o $@@ $(filter-out $(CC),$^) $(LDLIBS)
+@end example
+
+Then consider having multiple extra prerequisites: they would all have
+to be filtered out.  Using @code{.EXTRA_PREREQS} and target-specific
+variables provides a simpler solution:
+
+@example
+myprog: myprog.o file1.o file2.o
+       $(CC) $(CFLAGS) $(LDFLAGS) -o $@@ $^ $(LDLIBS)
+myprog: .EXTRA_PREREQS = $(CC)
+@end example
+
+This feature can also be useful if you want to add prerequisites to a
+makefile you cannot easily modify: you can create a new file such as
+@file{extra.mk}:
+
+@example
+myprog: .EXTRA_PREREQS = $(CC)
+@end example
+
+then invoke @code{make -f extra.mk -f Makefile}.
+
+Setting @code{.EXTRA_PREREQS} globally will cause those prerequisites
+to be added to all targets (which did not themselves override it with
+a target-specific value).  Note @code{make} is smart enough not to add
+a prerequisite listed in @code{.EXTRA_PREREQS} as a prerequisite to
+itself.
+
 @end table
 
 @node Conditionals, Functions, Using Variables, Top
