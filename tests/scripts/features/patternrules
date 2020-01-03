@@ -240,7 +240,7 @@ unlink('a.c');
 touch('some file.yy');
 run_make_test(q!
 %.xx : %.yy ; @echo matched
-!, 'some\ file.xx', "matched\n");
+!, '"some file.xx"', "matched\n");
 
 unlink('some file.xx', 'some file.yy');
 
