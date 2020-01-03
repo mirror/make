@@ -30,6 +30,7 @@ configure
 /mk/Posix.mk
 stamp-h1
 .dirstamp
+gnulib
 
 # Build artifacts
 .deps/
