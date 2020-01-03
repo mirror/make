@@ -184,13 +184,21 @@ AS_IF([test "x$with_guile" != xno],
     PKG_CHECK_EXISTS([guile-$v], [guile_version=$v; have_guile=yes; break], [])
   done
   AC_MSG_RESULT([$guile_version])
-  if test "$have_guile" = yes; then
-    PKG_CHECK_MODULES(GUILE, [guile-$guile_version])
-    AC_DEFINE([HAVE_GUILE], [1], [Embed GNU Guile support])
-  fi
+  AS_IF([test "$have_guile" = yes],
+  [ PKG_CHECK_MODULES(GUILE, [guile-$guile_version])
+    # Unfortunately Guile requires a C99 compiler but GNU make doesn't, so
+    # verify we can actually compile the header.
+    keep_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS $pkg_cv_GUILE_CFLAGS"
+    AC_CHECK_HEADER([libguile.h],
+                    [AC_DEFINE([HAVE_GUILE], [1], [Embed GNU Guile support])],
+                    [have_guile=no],
+                    [/* Avoid configuration error warnings. */])
+    CPPFLAGS="$keep_CPPFLAGS"
+  ])
 ])
 
-AM_CONDITIONAL([HAVE_GUILE], [test "$have_guile" = yes])
+AM_CONDITIONAL([HAVE_GUILE], [test "$have_guile" = "yes"])
 
 AC_CHECK_DECLS([sys_siglist, _sys_siglist, __sys_siglist], , ,
   [AC_INCLUDES_DEFAULT

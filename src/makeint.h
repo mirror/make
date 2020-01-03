@@ -220,19 +220,22 @@ extern int vms_legacy_behavior;
 extern int vms_unix_simulation;
 #endif
 
-#ifndef __attribute__
-/* This feature is available in gcc versions 2.5 and later.  */
-# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 5) || __STRICT_ANSI__
-#  define __attribute__(x)
-# endif
+#if !defined(__attribute__) && (__GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 5) || __STRICT_ANSI__)
+/* Don't use __attribute__ if it's not supported.  */
+# define ATTRIBUTE(x)
+#else
+# define ATTRIBUTE(x) __attribute__ (x)
+#endif
+
 /* The __-protected variants of 'format' and 'printf' attributes
    are accepted by gcc versions 2.6.4 (effectively 2.7) and later.  */
-# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 7)
-#  define __format__ format
-#  define __printf__ printf
-# endif
+#if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 7)
+# define __format__ format
+# define __printf__ printf
 #endif
-#define UNUSED  __attribute__ ((unused))
+
+#define UNUSED   ATTRIBUTE ((unused))
+#define NORETURN ATTRIBUTE ((noreturn))
 
 #if defined (STDC_HEADERS) || defined (__GNU_LIBRARY__)
 # include <stdlib.h>
@@ -255,8 +258,8 @@ void *malloc (int);
 void *realloc (void *, int);
 void free (void *);
 
-void abort (void) __attribute__ ((noreturn));
-void exit (int) __attribute__ ((noreturn));
+void abort (void) NORETURN;
+void exit (int) NORETURN;
 # endif /* HAVE_STDLIB_H.  */
 
 #endif /* Standard headers.  */
@@ -327,7 +330,7 @@ extern mode_t umask (mode_t);
 
 #define strneq(a, b, l) (strncmp ((a), (b), (l)) == 0)
 
-#if defined(__GNUC__) || defined(ENUM_BITFIELDS)
+#if defined(ENUM_BITFIELDS) || (defined(__GNUC__) && !defined(__STRICT_ANSI__))
 # define ENUM_BITFIELD(bits)    :bits
 #else
 # define ENUM_BITFIELD(bits)
@@ -486,12 +489,12 @@ typedef struct
 
 const char *concat (unsigned int, ...);
 void message (int prefix, size_t length, const char *fmt, ...)
-              __attribute__ ((__format__ (__printf__, 3, 4)));
+              ATTRIBUTE ((__format__ (__printf__, 3, 4)));
 void error (const floc *flocp, size_t length, const char *fmt, ...)
-            __attribute__ ((__format__ (__printf__, 3, 4)));
+            ATTRIBUTE ((__format__ (__printf__, 3, 4)));
 void fatal (const floc *flocp, size_t length, const char *fmt, ...)
-            __attribute__ ((noreturn, __format__ (__printf__, 3, 4)));
-void out_of_memory () __attribute__((noreturn));
+            ATTRIBUTE ((noreturn, __format__ (__printf__, 3, 4)));
+void out_of_memory () NORETURN;
 
 /* When adding macros to this list be sure to update the value of
    XGETTEXT_OPTIONS in the po/Makevars file.  */
@@ -509,8 +512,8 @@ void out_of_memory () __attribute__((noreturn));
 #define ONS(_t,_a,_f,_n,_s)   _t((_a), INTSTR_LENGTH + strlen (_s), \
                                  (_f), (_n), (_s))
 
-void die (int) __attribute__ ((noreturn));
-void pfatal_with_name (const char *) __attribute__ ((noreturn));
+void die (int) NORETURN;
+void pfatal_with_name (const char *) NORETURN;
 void perror_with_name (const char *, const char *);
 #define xstrlen(_s) ((_s)==NULL ? 0 : strlen (_s))
 void *xmalloc (size_t);

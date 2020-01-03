@@ -231,15 +231,36 @@ get-doc/make-stds.texi get-doc/fdl.texi:
 # Alternative configuration checks.  #
 # ---------------------------------- #
 
+CFGCHECK_CONFIGFLAGS =
+CFGCHECK_BUILDFLAGS  =
+CFGCHECK_MAKEFLAGS   = CFLAGS='$(AM_CFLAGS)'
+
+checkcfg.strict-c90:  CFGCHECK_CONFIGFLAGS = CFLAGS='-std=c90 -pedantic'
+checkcfg.strict-c90:  CFGCHECK_MAKEFLAGS   =
+
+checkcfg.no-jobserver:CFGCHECK_CONFIGFLAGS = --disable-job-server
+checkcfg.no-load:     CFGCHECK_CONFIGFLAGS = --disable-load
+checkcfg.no-guile:    CFGCHECK_CONFIGFLAGS = --without-guile
+checkcfg.no-spawn:    CFGCHECK_CONFIGFLAGS = --disable-posix-spawn
+checkcfg.no-sysglob:  CFGCHECK_CONFIGFLAGS = make_cv_sys_gnu_glob=no
+checkcfg.no-loadavg:  CFGCHECK_CONFIGFLAGS = ac_cv_func_getloadavg=no \
+	                                     ac_cv_have_decl_getloadavg=no \
+                                             gl_cv_have_raw_decl_getloadavg=no \
+                                             ac_cv_lib_util_getloadavg=no \
+                                             ac_cv_lib_getloadavg_getloadavg=no
+checkcfg.no-sync:     CFGCHECK_CONFIGFLAGS = CPPFLAGS=-DNO_OUTPUT_SYNC
+checkcfg.no-archives: CFGCHECK_CONFIGFLAGS = CPPFLAGS=-DNO_ARCHIVES
+
 CONFIG_CHECKS := \
-	checkcfg.--disable-job-server \
-	checkcfg.--disable-load \
-	checkcfg.--without-guile \
-	checkcfg.--disable-posix-spawn \
-	checkcfg.make_cv_sys_gnu_glob^no \
-	checkcfg.ac_cv_func_getloadavg^no+ac_cv_have_decl_getloadavg^no+gl_cv_have_raw_decl_getloadavg^no+ac_cv_lib_util_getloadavg^no+ac_cv_lib_getloadavg_getloadavg^no \
-	checkcfg.CPPFLAGS^-DNO_OUTPUT_SYNC \
-	checkcfg.CPPFLAGS^-DNO_ARCHIVES
+	checkcfg.strict-c90 \
+	checkcfg.no-jobserver \
+	checkcfg.no-load \
+	checkcfg.no-guile \
+	checkcfg.no-spawn \
+	checkcfg.no-sysglob \
+	checkcfg.no-loadavg \
+	checkcfg.no-sync \
+	checkcfg.no-archives
 
 .PHONY: check-alt-config
 check-alt-config: $(CONFIG_CHECKS)
@@ -251,20 +272,20 @@ NR_MAKE = $(MAKE)
 $(CONFIG_CHECKS): checkcfg.%: distdir
 	@echo "Building $@ (output in checkcfg.$*.log)"
 	exec >'checkcfg.$*.log' 2>&1; \
-	   echo "Testing configure with $(subst ^,=,$(subst +, ,$*))"; set -x; \
+	   echo "Testing configure with $(CFGCHECK_CONFIGFLAGS)"; set -x; \
 	   rm -rf $(distdir)/_build \
 	&& mkdir $(distdir)/_build \
 	&& cd $(distdir)/_build \
-	&& ../configure --srcdir=.. $(subst ^,=,$(subst +, ,$*)) \
+	&& ../configure --srcdir=.. $(CFGCHECK_CONFIGFLAGS) \
 		$(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS)
 	exec >>'checkcfg.$*.log' 2>&1; set -x; \
 	   cd $(distdir)/_build \
-	&& OUTDIR=_bld ../build.sh \
+	&& OUTDIR=_bld ../build.sh $(CFGCHECK_BUILD_FLAGS) \
 	&& _bld/make $(AM_MAKEFLAGS) check-local \
 	&& _bld/make $(AM_MAKEFLAGS) clean
 	exec >>'checkcfg.$*.log' 2>&1; set -x; \
 	   cd $(distdir)/_build \
-	&& $(NR_MAKE) $(AM_MAKEFLAGS) CFLAGS='$(AM_CFLAGS)' \
+	&& $(NR_MAKE) $(AM_MAKEFLAGS) $(CFGCHECK_MAKEFLAGS) \
 	&& ./make $(AM_MAKEFLAGS) check \
 	&& ./make $(AM_MAKEFLAGS) clean
 

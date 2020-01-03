@@ -100,7 +100,7 @@ struct nameseq *ar_glob (const char *arname, const char *member_pattern, size_t 
 #define alloc_seq_elt(_t)   xcalloc (sizeof (_t))
 void free_ns_chain (struct nameseq *n);
 
-#if defined(MAKE_MAINTAINER_MODE) && defined(__GNUC__)
+#if defined(MAKE_MAINTAINER_MODE) && defined(__GNUC__) && !defined(__STRICT_ANSI__)
 /* Use inline to get real type-checking.  */
 #define SI static inline
 SI struct nameseq *alloc_ns()      { return alloc_seq_elt (struct nameseq); }

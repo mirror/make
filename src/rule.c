@@ -71,14 +71,16 @@ snap_implicit_rules (void)
 {
   char *name = NULL;
   size_t namelen = 0;
+  struct rule *rule;
+  struct dep *dep;
   struct dep *prereqs = expand_extra_prereqs (lookup_variable (STRING_SIZE_TUPLE(".EXTRA_PREREQS")));
   unsigned int pre_deps = 0;
 
   max_pattern_dep_length = 0;
 
-  for (struct dep *d = prereqs; d; d = d->next)
+  for (dep = prereqs; dep; dep = dep->next)
     {
-      size_t l = strlen (dep_name (d));
+      size_t l = strlen (dep_name (dep));
       if (l > max_pattern_dep_length)
         max_pattern_dep_length = l;
       ++pre_deps;
@@ -86,7 +88,7 @@ snap_implicit_rules (void)
 
   num_pattern_rules = max_pattern_targets = max_pattern_deps = 0;
 
-  for (struct rule *rule = pattern_rules; rule; rule = rule->next)
+  for (rule = pattern_rules; rule; rule = rule->next)
     {
       unsigned int ndeps = pre_deps;
       struct dep *lastdep = NULL;
@@ -96,7 +98,7 @@ snap_implicit_rules (void)
       if (rule->num > max_pattern_targets)
         max_pattern_targets = rule->num;
 
-      for (struct dep *dep = rule->deps; dep != 0; dep = dep->next)
+      for (dep = rule->deps; dep != 0; dep = dep->next)
         {
           const char *dname = dep_name (dep);
           size_t len = strlen (dname);

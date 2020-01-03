@@ -640,9 +640,10 @@ expand_deps (struct file *f)
 struct dep *
 expand_extra_prereqs (const struct variable *extra)
 {
+  struct dep *d;
   struct dep *prereqs = extra ? split_prereqs (variable_expand (extra->value)) : NULL;
 
-  for (struct dep *d = prereqs; d; d = d->next)
+  for (d = prereqs; d; d = d->next)
     {
       d->file = lookup_file (d->name);
       if (!d->file)

@@ -96,7 +96,7 @@ int chdir ();
 #endif
 #ifndef STDC_HEADERS
 # ifndef sun                    /* Sun has an incorrect decl in a header.  */
-void exit (int) __attribute__ ((noreturn));
+void exit (int) NORETURN;
 # endif
 double atof ();
 #endif

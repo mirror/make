@@ -80,11 +80,11 @@ char **construct_command_argv (char *line, char **restp, struct file *file,
 pid_t child_execute_job (struct childbase *child, int good_stdin, char **argv);
 
 #ifdef _AMIGA
-void exec_command (char **argv) __attribute__ ((noreturn));
+void exec_command (char **argv) NORETURN;
 #elif defined(__EMX__)
 int exec_command (char **argv, char **envp);
 #else
-void exec_command (char **argv, char **envp) __attribute__ ((noreturn));
+void exec_command (char **argv, char **envp) NORETURN;
 #endif
 
 void unblock_all_sigs (void);
