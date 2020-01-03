@@ -30,7 +30,9 @@
 
 # $Id$
 
+use Config;
 use Cwd;
+use File::Spec;
 
 # The number of test categories we've run
 $categories_run = 0;
@@ -53,8 +55,32 @@ $test_passed = 1;
 $test_timeout = 5;
 $test_timeout = 10 if $^O eq 'VMS';
 
-# Path to Perl--make sure it uses forward-slashes
+# Path to Perl
 $perl_name = $^X;
+if ($^O ne 'VMS') {
+    $perl_name .= $Config{_exe} unless $perl_name =~ m/$Config{_exe}$/i;
+}
+# If it's a simple name, look it up on PATH
+{
+    my ($v,$d,$f) = File::Spec->splitpath($perl_name);
+    if (!$d) {
+        my $perl = undef;
+        foreach my $p (File::Spec->path()) {
+            my $f = File::Spec->catfile($p, $f);
+            if (-e $f) {
+                $perl = $f;
+                last;
+            }
+        }
+        if ($perl) {
+            $perl_name = $perl;
+        } else {
+            print "Cannot locate Perl interpreter $perl_name\n";
+        }
+    }
+}
+# Make sure it uses forward-slashes even on Windows, else it won't work
+# in recipes
 $perl_name =~ tr,\\,/,;
 
 # %makeENV is the cleaned-out environment.
