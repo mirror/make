@@ -4,8 +4,8 @@ use warnings;
 
 my $description = "Test that make can execute binaries as well as scripts with"
                  ." various shabangs and without a shebang";
-my $details = "The various shells that this test uses are the default "
-             ."/bin/sh, $origENV{SHELL} and the perl interpreter that is "
+my $details = "The various shells that this test uses are the default"
+             ." /bin/sh, \$SHELL and the perl interpreter that is"
              ." executing this test program. The shells are used for the value"
              ." of SHELL inside the test makefile and also as a shebang in the"
              ." executed script. There is also a test which executes a script"
