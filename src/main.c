@@ -1,5 +1,5 @@
 /* Argument parsing and main program of GNU Make.
-Copyright (C) 1988-2019 Free Software Foundation, Inc.
+Copyright (C) 1988-2020 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the
@@ -3370,7 +3370,7 @@ print_version (void)
      year, and none of the rest of it should be translated (including the
      word "Copyright"), so it hardly seems worth it.  */
 
-  printf ("%sCopyright (C) 1988-2019 Free Software Foundation, Inc.\n",
+  printf ("%sCopyright (C) 1988-2020 Free Software Foundation, Inc.\n",
           precede);
 
   printf (_("%sLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\

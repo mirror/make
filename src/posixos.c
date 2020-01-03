@@ -1,5 +1,5 @@
 /* POSIX-based operating system interface for GNU Make.
-Copyright (C) 2016-2019 Free Software Foundation, Inc.
+Copyright (C) 2016-2020 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the
