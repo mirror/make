@@ -528,8 +528,12 @@ void print_spaces (unsigned int);
 char *find_percent (char *);
 const char *find_percent_cached (const char **);
 FILE *get_tmpfile (char **, const char *);
-ssize_t writebuf (int, const void*, size_t);
-ssize_t readbuf (int, void*, size_t);
+ssize_t writebuf (int, const void *, size_t);
+ssize_t readbuf (int, void *, size_t);
+
+#ifndef HAVE_MEMRCHR
+void *memrchr(const void *, int, size_t);
+#endif
 
 #ifndef NO_ARCHIVES
 int ar_name (const char *);
