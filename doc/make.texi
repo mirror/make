@@ -1932,8 +1932,8 @@ more recent than it.
 @item
 How to update the file @file{foo.o}: by running @code{cc} as stated.
 The recipe does not explicitly mention @file{defs.h}, but we presume
-that @file{foo.c} includes it, and that that is why @file{defs.h} was
-added to the prerequisites.
+that @file{foo.c} includes it, and that is why @file{defs.h} was added
+to the prerequisites.
 @end itemize
 @end ifnottex
 
@@ -13013,7 +13013,7 @@ tar.zoo: $(SRCS) $(AUX)
 @end example
 
 @node GNU Free Documentation License, Concept Index, Complex Makefile, Top
-@appendixsec GNU Free Documentation License
+@appendix GNU Free Documentation License
 @cindex FDL, GNU Free Documentation License
 @include fdl.texi
 
