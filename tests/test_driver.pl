@@ -237,7 +237,7 @@ sub toplevel
   if (-d $workpath) {
     print "Clearing $workpath...\n";
     &remove_directory_tree("$workpath/")
-        or &error ("Couldn't wipe out $workpath\n");
+        or &error ("Couldn't wipe out $workpath: $!\n");
   } else {
     mkdir ($workpath, 0777) or &error ("Couldn't mkdir $workpath: $!\n");
   }
@@ -1129,8 +1129,9 @@ sub remove_directory_tree
   -e $targetdir or return 1;
 
   &remove_directory_tree_inner ("RDT00", $targetdir) or return 0;
-  if ($nuketop) {
-    rmdir($targetdir) or return 0;
+  if ($nuketop && !rmdir ($targetdir)) {
+    print "Cannot remove $targetdir: $!\n";
+    return 0;
   }
 
   return 1;
@@ -1149,10 +1150,16 @@ sub remove_directory_tree_inner
 
     lstat ($object);
     if (-d _ && &remove_directory_tree_inner ($subdirhandle, $object)) {
-      rmdir $object or return 0;
+      if (!rmdir($object)) {
+        print "Cannot remove $object: $!\n";
+        return 0;
+      }
     } else {
       if ($^O ne 'VMS') {
-        unlink $object or return 0;
+        if (!unlink $object) {
+          print "Cannot unlink $object: $!\n";
+          return 0;
+        }
       } else {
         # VMS can have multiple versions of a file.
         1 while unlink $object;
