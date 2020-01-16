@@ -12731,6 +12731,18 @@ receive only part of the information necessary.  In this case, the child
 will generate this warning message and proceed with its build in a
 sequential manner.
 
+@item warning: ignoring prerequisites on suffix rule definition
+According to POSIX, a suffix rule cannot contain prerequisites.  If a rule
+that could be a suffix rule has prerequisites it is interpreted as a simple
+explicit rule, with an odd target name.  This requirement is obeyed when
+POSIX-conforming mode is enabled (the @code{.POSIX} target is defined).  In
+versions of GNU @code{make} prior to 4.3, no warning was emitted and a
+suffix rule was created, however all prerequisites were ignored and were not
+part of the suffix rule.  Starting with GNU @code{make} 4.3 the behavior is
+the same, and in addition this warning is generated.  In a future version
+the POSIX-conforming behavior will be the only behavior: no rule with a
+prerequisite can be suffix rule and this warning will be removed.
+
 @end table
 
 @node Complex Makefile, GNU Free Documentation License, Error Messages, Top

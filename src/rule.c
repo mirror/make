@@ -272,10 +272,22 @@ convert_to_pattern (void)
           memcpy (rulename + slen, dep_name (d2), s2len + 1);
           f = lookup_file (rulename);
 
-          /* No target, or no commands, or it has deps: it can't be a
-             suffix rule.  */
-          if (f == 0 || f->cmds == 0 || f->deps != 0)
+          /* No target, or no commands: it can't be a suffix rule.  */
+          if (f == 0 || f->cmds == 0)
             continue;
+
+          /* POSIX says that suffix rules can't have prerequisites.
+             In POSIX mode, don't make this a suffix rule.  Previous versions
+             of GNU make did treat this as a suffix rule and ignored the
+             prerequisites, which is bad.  In the future we'll do the same as
+             POSIX, but for now preserve the old behavior and warn about it.  */
+          if (f->deps != 0)
+            {
+              if (posix_pedantic)
+                continue;
+              error (&f->cmds->fileinfo, 0,
+                     _("warning: ignoring prerequisites on suffix rule definition"));
+            }
 
           if (s2len == 2 && rulename[slen] == '.' && rulename[slen + 1] == 'a')
             /* A suffix rule '.X.a:' generates the pattern rule '(%.o): %.X'.

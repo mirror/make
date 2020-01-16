@@ -35,10 +35,18 @@ http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set
   already contains some value.  Similarly, appending an empty string does not
   add a trailing space.
 
-* WARNING: Backward-incompatibility!
-  Contrary to the documentation, suffix rules with prerequisites were being
-  treated BOTH as simple targets AND as pattern rules.  Behavior now matches
-  the documentation, and pattern rules are no longer created in this case.
+* NOTE: Deprecated behavior.
+  Contrary to the documentation, suffix rules with prerequisites are being
+  treated BOTH as simple targets AND as pattern rules.  Further, the
+  prerequisites are ignored by the pattern rules.  POSIX specifies that in
+  order to be a suffix rule there can be no prerequisites defined.  In this
+  release if POSIX mode is enabled then rules with prerequisites cannot be
+  suffix rules.  If POSIX mode is not enabled then the previous behavior is
+  preserved (a pattern rule with no extra prerequisites is created) AND a
+  warning about this behavior is generated:
+    warning: ignoring prerequisites on suffix rule definition
+  The POSIX behavior will be adopted as the only behavior in a future release
+  of GNU make so please resolve any warnings.
 
 * New feature: Grouped explicit targets
   Pattern rules have always had the ability to generate multiple targets with

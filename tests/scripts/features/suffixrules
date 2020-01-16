@@ -51,7 +51,9 @@ run_make_test(q!
 
 unlink('foo.baz');
 
-# Test #4: Suffix rules with deps are not suffix rules
+# SV 40657: Test #4: "Suffix rules" with deps are normal rules
+
+my $prewarn = 'warning: ignoring prerequisites on suffix rule definition';
 
 touch('foo.bar');
 
@@ -59,20 +61,39 @@ run_make_test(q!
 .SUFFIXES:
 .SUFFIXES: .biz .baz
 
+$X.POSIX:
+
 .baz.biz: foo.bar ; @echo make $@ from $<
 !,
-              '.baz.biz', "make .baz.biz from foo.bar\n");
+              'X=1 .baz.biz', "#MAKEFILE#:7: $prewarn\nmake .baz.biz from foo.bar\n");
+
+# SV 40657: Test #5: In POSIX mode we don't get a warning
+
+run_make_test(undef, 'X= .baz.biz', "make .baz.biz from foo.bar\n");
 
 unlink('foo.bar');
 
-# Test #5: Should not create pattern rules for it either
+# SV 40657: Test #6: In POSIX mode, no pattern rules should be created
 
-touch('foo.baz');
+utouch(-20, 'foo.baz');
 
 run_make_test(undef,
-              'foo.biz', "#MAKE#: *** No rule to make target 'foo.biz'.  Stop.\n", 512);
+              'X= foo.biz', "#MAKE#: *** No rule to make target 'foo.biz'.  Stop.\n", 512);
 
-unlink('foo.baz');
+# SV 40657: Test #7: In Non-POSIX mode, a pattern rule is created
+
+run_make_test(undef,
+              'X=1 foo.biz', "#MAKEFILE#:7: $prewarn\nmake foo.biz from foo.baz\n");
+
+# SV 40657: Test #8: ... but any prerequisites are ignored
+
+utouch(-10, 'foo.biz');
+touch('foo.bar');
+
+run_make_test(undef,
+              'X=1 foo.biz', "#MAKEFILE#:7: $prewarn\n#MAKE#: 'foo.biz' is up to date.\n");
+
+unlink('foo.baz', 'foo.biz', 'foo.bar');
 
 # Complete
 1;
