@@ -4533,6 +4533,19 @@ target is updated in some atomic fashion, or exists only to record a
 modification-time (its contents do not matter), or must exist at all
 times to prevent other sorts of trouble.
 
+Although @code{make} does its best to clean up there are certain situations
+in which cleanup is impossible.  For example, @code{make} may be killed by
+an uncatchable signal.  Or, one of the programs make invokes may be killed
+or crash, leaving behind an up-to-date but corrupt target file: @code{make}
+will not realize that this failure requires the target to be cleaned.  Or
+@code{make} itself may encounter a bug and crash.
+
+For these reasons it's best to write @emph{defensive recipes}, which won't
+leave behind corrupted targets even if they fail.  Most commonly these
+recipes create temporary files rather than updating the target directly,
+then rename the temporary file to the final target name.  Some compilers
+already behave this way, so that you don't need to write a defensive recipe.
+
 @node Recursion, Canned Recipes, Interrupts, Recipes
 @section Recursive Use of @code{make}
 @cindex recursion
@@ -9918,6 +9931,10 @@ and linking with a single @code{cc} command.  The optimized rule is used in
 preference to the step-by-step chain because it comes earlier in the
 ordering of rules.
 
+Finally, for performance reasons @code{make} will not consider non-terminal
+match-anything rules (i.e., @samp{%:}) when searching for a rule to
+build a prerequisite of an implicit rule (@pxref{Match-Anything Rules}).
+
 @node Pattern Rules, Last Resort, Chained Rules, Implicit Rules
 @section Defining and Redefining Pattern Rules
 
@@ -10407,9 +10424,10 @@ remade from any other files; therefore, @code{make} can save time by not
 looking for ways to remake them.@refill
 
 If you do not mark the match-anything rule as terminal, then it is
-non-terminal.  A non-terminal match-anything rule cannot apply to a file name
-that indicates a specific type of data.  A file name indicates a specific
-type of data if some non-match-anything implicit rule target matches it.
+non-terminal.  A non-terminal match-anything rule cannot apply to a
+prerequisite of an implicit rule, or to a file name that indicates a
+specific type of data.  A file name indicates a specific type of data
+if some non-match-anything implicit rule target matches it.
 
 For example, the file name @file{foo.c} matches the target for the pattern
 rule @samp{%.c : %.y} (the rule to run Yacc).  Regardless of whether this
@@ -10646,8 +10664,9 @@ Make a list of all the pattern rules one of whose targets matches
 matched against @var{t}; otherwise, against @var{n}.
 
 @item
-If any rule in that list is @emph{not} a match-anything rule, then
-remove all non-terminal match-anything rules from the list.
+If any rule in that list is @emph{not} a match-anything rule, or if
+@var{t} is a prerequisite of an implicit rule, then remove all
+non-terminal match-anything rules from the list.
 
 @item
 Remove from the list all rules with no recipe.
