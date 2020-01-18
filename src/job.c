@@ -2785,9 +2785,10 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
 #else  /* must be UNIX-ish */
   static const char *sh_chars = "#;\"*?[]&|<>(){}$`^~!";
   static const char *sh_cmds[] =
-    { ".", ":", "break", "case", "cd", "command", "continue", "eval", "exec",
-      "exit", "export", "for", "if", "login", "logout", "read", "readonly",
-      "set", "shift", "switch", "test", "times", "trap", "ulimit", "umask",
+    { ".", ":", "alias", "bg", "break", "case", "cd", "command", "continue",
+      "eval", "exec", "exit", "export", "fc", "fg", "for", "getopts", "hash",
+      "if", "jobs", "login", "logout", "read", "readonly", "return", "set",
+      "shift", "test", "times", "trap", "type", "ulimit", "umask", "unalias",
       "unset", "wait", "while", 0 };
 
 # ifdef HAVE_DOS_PATHS
