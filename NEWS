@@ -1,6 +1,6 @@
 GNU make NEWS                                               -*-indented-text-*-
   History of user-visible changes.
-  3 January 2020
+  19 January 2020
 
 See the end of this file for copyrights and conditions.
 
@@ -9,11 +9,11 @@ which is contained in this distribution as the file doc/make.texi.
 See the README file and the GNU make manual for instructions for
 reporting bugs.
 
-Version 4.2.93 (03 Jan 2020)
+Version 4.3 (19 Jan 2020)
 
 A complete list of bugs fixed in this version is available here:
 
-http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set=custom
+https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&set=custom
 
 * WARNING: Backward-incompatibility!
   Number signs (#) appearing inside a macro reference or function invocation
@@ -108,7 +108,7 @@ Version 4.2.1 (10 Jun 2016)
 
 A complete list of bugs fixed in this version is available here:
 
-http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=107&set=custom
+https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=107&set=custom
 
 This release is a bug-fix release.
 
@@ -117,7 +117,7 @@ Version 4.2 (22 May 2016)
 
 A complete list of bugs fixed in this version is available here:
 
-http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=106&set=custom
+https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=106&set=custom
 
 * New variable: $(.SHELLSTATUS) is set to the exit status of the last != or
   $(shell ...) function invoked in this instance of make.  This will be "0" if
@@ -156,7 +156,7 @@ Version 4.1 (05 Oct 2014)
 
 A complete list of bugs fixed in this version is available here:
 
-http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=105&set=custom
+https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=105&set=custom
 
 * New variables: $(MAKE_TERMOUT) and $(MAKE_TERMERR) are set to non-empty
   values if stdout or stderr, respectively, are believed to be writing to a
@@ -204,7 +204,7 @@ Version 4.0 (09 Oct 2013)
 
 A complete list of bugs fixed in this version is available here:
 
-http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set=custom
+https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&set=custom
 
 * WARNING: Backward-incompatibility!
   If .POSIX is specified, then make adheres to the POSIX backslash/newline
@@ -308,7 +308,7 @@ Version 3.82 (28 Jul 2010)
 
 A complete list of bugs fixed in this version is available here:
 
-http://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=104&set=custom
+https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=104&set=custom
 
 * Compiling GNU make now requires a conforming ISO C 1989 compiler and
   standard runtime library.
@@ -473,7 +473,7 @@ Version 3.81 (01 Apr 2006)
   might have caused the target to rebuild.  Starting with the _next_
   release of GNU make, '$?' will contain all prerequisites that caused
   the target to be considered out of date.
-  See http://savannah.gnu.org/bugs/?16051
+  See https://savannah.gnu.org/bugs/?16051
 
 * WARNING: Backward-incompatibility!
   GNU make now implements a generic "second expansion" feature on the
@@ -597,7 +597,7 @@ Version 3.81 (01 Apr 2006)
 
 A complete list of bugs fixed in this version is available here:
 
-  http://savannah.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=103
+  https://savannah.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=103
 
 
 Version 3.80 (03 Oct 2002)
@@ -715,7 +715,7 @@ Version 3.80 (03 Oct 2002)
 
 A complete list of bugs fixed in this version is available here:
 
-  http://savannah.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=102
+  https://savannah.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=102
 
 
 Version 3.79.1 (23 Jun 2000)

@@ -3,7 +3,7 @@
 @setfilename make.info
 
 @include version.texi
-@set EDITION 0.74
+@set EDITION 0.75
 
 @settitle GNU @code{make}
 @setchapternewpage odd
