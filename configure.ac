@@ -176,7 +176,7 @@ AC_ARG_WITH([guile], [AS_HELP_STRING([--with-guile],
 PKG_PROG_PKG_CONFIG
 
 AS_IF([test "x$with_guile" != xno],
-[ guile_versions="2.2 2.0 1.8"
+[ guile_versions="3.0 2.2 2.0 1.8"
   guile_version=no
   have_guile=no
   AC_MSG_CHECKING([for GNU Guile])
