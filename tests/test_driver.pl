@@ -266,7 +266,7 @@ sub toplevel
     foreach my $dir (@dirs) {
       next if ($dir =~ /^(\..*|CVS|RCS)$/ || ! -d "$scriptpath/$dir");
       push (@rmdirs, $dir);
-      # VMS can have overlayed file systems, so directories may repeat.
+      # VMS can have overlaid file systems, so directories may repeat.
       next if -d "$workpath/$dir";
       mkdir ("$workpath/$dir", 0777)
           or &error ("Couldn't mkdir $workpath/$dir: $!\n");

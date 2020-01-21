@@ -107,7 +107,7 @@ bar: ;',
 
 unlink('foo');
 
-# TEST #4: ensure prereq ordering is correct when the commmand target has none
+# TEST #4: ensure prereq ordering is correct when the command target has none
 # See Savannah bug #21198
 
 run_make_test('

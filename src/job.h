@@ -29,7 +29,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #define CHILDBASE                                               \
-    char *cmd_name;       /* Alloced copy of command run.  */   \
+    char *cmd_name;       /* Allocated copy of command run.  */ \
     char **environment;   /* Environment for commands. */       \
     VMSCHILD                                                    \
     struct output output  /* Output for this child.  */

@@ -2754,7 +2754,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
   /* We used to have a double quote (") in sh_chars_dos[] below, but
      that caused any command line with quoted file names be run
      through a temporary batch file, which introduces command-line
-     limit of 4K charcaters imposed by cmd.exe.  Since CreateProcess
+     limit of 4K characters imposed by cmd.exe.  Since CreateProcess
      can handle quoted file names just fine, removing the quote lifts
      the limit from a very frequent use case, because using quoted
      file names is commonplace on MS-Windows.  */

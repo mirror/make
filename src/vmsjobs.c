@@ -331,7 +331,7 @@ posix_parse_sq (struct token_info *token)
 static char *
 posix_parse_dq (struct token_info *token)
 {
-  /* Unix mode:  Any imbedded \" becomes doubled.
+  /* Unix mode:  Any embedded \" becomes doubled.
                  \t is tab, \\, \$ leading character stripped.
                  $ character replaced with \' unless escaped.
   */
@@ -463,7 +463,7 @@ vms_parse_quotes (struct token_info *token)
                 }
               break;
             case '\'':
-              /* Symbol substitution ony in double quotes */
+              /* Symbol substitution only in double quotes */
               if ((p[1] == '\'') && (parse_level[nest] == '"'))
                 {
                   nest++;

@@ -417,7 +417,7 @@ set_program_name (const char *argv0)
                 }
             }
 
-            /* Find the .exe on the name (case insenstive) and toss it */
+            /* Find the .exe on the name (case insensitive) and toss it */
             dotexe = strrchr (vms_new_nam, '.');
             if (dotexe != NULL) {
                 if ((dotexe[1] == 'e' || dotexe[1] == 'E') &&

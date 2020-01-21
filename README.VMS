@@ -11,7 +11,7 @@ Overview:                                                       -*-text-mode-*-
   There is an older implementation of GNU Make that was ported to GNV.
   Work is now in progress to merge that port to get a single version
   of GNU Make available.  When that merge is done, GNU Make will auto
-  detect that it is running under a Posix shell and then operate as close to
+  detect that it is running under a POSIX shell and then operate as close to
   GNU Make on Unix as possible.
 
   The descriptions below are for running GNU make from DCL or equivalent.
@@ -62,15 +62,15 @@ Recipe differences:
   enabled if the GNU Make is set to the older behavior.
 
   The name GNV$MAKE_SHELL_SIM when enabled will cause GNU Make to try to
-  simulate a Posix shell more closely.  The following behaviors occur:
+  simulate a POSIX shell more closely.  The following behaviors occur:
 
     * Single quotes are converted to double quotes and any double
       quotes inside of them are doubled.  No environment variable expansion
       is simulated.
-    * A exit command status will be converted to a Posix Exit
+    * A exit command status will be converted to a POSIX Exit
       where 0 is success and non-zero is failure.
     * The $ character will cause environment variable expansion.
-    * Environent variables can be set on the command line before a command.
+    * Environment variables can be set on the command line before a command.
 
   VMS generally uses logical name search lists instead of path variables
   where the resolution is handled by VMS independent of the program.  Which
@@ -88,7 +88,7 @@ Recipe differences:
 
   If you are creating a OpenVMS specific makefile from scratch, you should also
   look at MMK (Madgoat Make) available at https://github.com/endlesssoftware/mmk
-  MMK uses full OpenVMS syntax and a persistent subprocess is used for the
+  MMK uses full OpenVMS syntax and a persistent sub-process is used for the
   recipe lines, allowing multiple line rules.
 
   The default makefile search order is "makefile.vms", "gnumakefile",
@@ -207,15 +207,15 @@ foo: $(addsuffix .3,$(subs $(comma),$(space),$^)
   override OpenVMS symbols/logicals.
 
   OpenVMS logical and symbols names show up as "environment" using the
-  origin function.  when the "-e" option is specified, the origion function
-  shows them as "environment override".  On Posix the test scripts indicate
+  origin function.  when the "-e" option is specified, the origin function
+  shows them as "environment override".  On POSIX the test scripts indicate
   that they should show up just as "environment".
 
   When GNU make reads in a symbol or logical name into the environment, it
   converts any dollar signs found to double dollar signs for convenience in
   using DCL symbols and logical names in recipes.  When GNU make exports a
   DCL symbol for a child process, if the first dollar sign found is followed
-  by second dollar sign, then all double dollar signs will be convirted to
+  by second dollar sign, then all double dollar signs will be converted to
   single dollar signs.
 
   The variable $(ARCH) is predefined as IA64, ALPHA or VAX respectively.
@@ -233,17 +233,17 @@ endif
 
   Empty commands are handled correctly and don't end in a new DCL process.
 
-  The exit command needs to have OpenVMS exit codes.  To pass a Posix code
+  The exit command needs to have OpenVMS exit codes.  To pass a POSIX code
   back to the make script, you need to encode it by multiplying it by 8
   and then adding %x1035a002 for a failure code and %x1035a001 for a
-  success.  Make will interpret any posix code other than 0 as a failure.
-  TODO: Add an option have simulate Posix exit commands in recipes.
+  success.  Make will interpret any POSIX code other than 0 as a failure.
+  TODO: Add an option have simulate POSIX exit commands in recipes.
 
   Lexical functions can be used in pipes to simulate shell file test rules.
 
   Example:
 
-  Posix:
+  POSIX:
 b : c ; [ -f $@ ] || echo >> $@
 
   OpenVMS:
@@ -261,16 +261,16 @@ x = %x1035a00a
 
 Runtime issues:
 
-  The OpenVMS C Runtime has a convention for encoding a Posix exit status into
+  The OpenVMS C Runtime has a convention for encoding a POSIX exit status into
   to OpenVMS exit codes.  These status codes will have the hex value of
   0x35a000.  OpenVMS exit code may also have a hex value of %x10000000 set on
   them.  This is a flag to tell DCL not to write out the exit code.
 
-  To convert an OpenVMS encoded Posix exit status code to the original code
+  To convert an OpenVMS encoded POSIX exit status code to the original code
   You subtract %x35a000 and any flags from the OpenVMS code and divide it by 8.
 
   WARNING: Backward-incompatibility!
-  The make program exit now returns the same encoded Posix exit code as on
+  The make program exit now returns the same encoded POSIX exit code as on
   Unix. Previous versions returned the OpenVMS exit status code if that is what
   caused the recipe to fail.
   TODO: Provide a way for scripts calling make to obtain that OpenVMS status
@@ -280,9 +280,9 @@ Runtime issues:
   will have the error "-E-" severity set on exit.
 
   MAKE_TROUBLE is returned only if the option "-q" or "--question" is used and
-  has a Posix value of 1 and an OpenVMS status of %x1035a00a.
+  has a POSIX value of 1 and an OpenVMS status of %x1035a00a.
 
-  MAKE_FAILURE has a Posix value of 2 and an OpenVMS status of %x1035a012.
+  MAKE_FAILURE has a POSIX value of 2 and an OpenVMS status of %x1035a012.
 
   Output from GNU make may have single quotes around some values where on
   other platforms it does not.  Also output that would be in double quotes
@@ -294,10 +294,10 @@ Runtime issues:
   There may be a "Waiting for unfinished jobs..." show up in the output.
 
   Error messages generated by Make or Unix utilities may slightly vary from
-  Posix platforms.  Typically the case may be different.
+  POSIX platforms.  Typically the case may be different.
 
-  When make deletes files, on posix platforms it writes out 'rm' and the list
-  of files.  On VMS, only the files are writen out, one per line.
+  When make deletes files, on POSIX platforms it writes out 'rm' and the list
+  of files.  On VMS, only the files are written out, one per line.
   TODO: VMS
 
   There may be extra leading white space or additional or missing whitespace
@@ -323,15 +323,15 @@ Runtime issues:
   to override this in your makefile, or whatever).
 
 
-Unix compatibilty features:
----------------------------
+Unix compatibility features:
+----------------------------
 
   If the command 'echo' is seen, any single quotes on the line will be
   converted to double quotes.
 
   The variable $(CD) is implemented as a built in Change Directory
   command. This invokes the 'builtin_cd'  Executing a 'set default'
-  recipe doesn't do the trick, since it only affects the subprocess
+  recipe doesn't do the trick, since it only affects the sub-process
   spawned for that command.
 
   The 'builtin_cd' is generally expected to be on its own line.
@@ -347,7 +347,7 @@ Unix compatibilty features:
   Unix shell style I/O redirection is supported. You can now write lines like:
   "<tab>mcr sys$disk:[]program.exe < input.txt > output.txt &> error.txt"
 
-  Posix shells have ":" as a null command.  These are now handled.
+  POSIX shells have ":" as a null command.  These are now handled.
   https://savannah.gnu.org/bugs/index.php?41761
 
   A note on appending the redirected output.  A simple mechanism is
@@ -367,10 +367,10 @@ Unix compatibilty features:
   The older implementation wrote the output to a temporary file in
   in sys$scratch: and then attempted to append the file to the existing file.
   The temporary file names looked like "CMDxxxxx.". Any time the created
-  command procedure can not complete, this happens. Pressing Ctrl+Y to
+  command procedure can not complete, this happens. Pressing CTRL+Y to
   abort make is one case.
 
-  In case of Ctrl+Y the associated command procedure is left in SYS$SCRATCH:.
+  In case of CTRL+Y the associated command procedure is left in SYS$SCRATCH:.
   The command procedures will be named gnv$make_cmd*.com.
 
   The CtrlY handler now uses $delprc to delete all children. This way also
@@ -378,12 +378,12 @@ Unix compatibilty features:
   then sends SIGQUIT to itself, which is handled in common code.
 
   Temporary command files are now deleted in the OpenVMS child termination
-  handler. That deletes them even if a Ctrl+C was pressed.
+  handler. That deletes them even if a CTRL+C was pressed.
   TODO: Does the previous section about >> leaving files still apply?
 
-  The behavior of pressing Ctrl+C is not changed. It still has only an effect,
+  The behavior of pressing CTRL+C is not changed. It still has only an effect,
   after the current action is terminated. If that doesn't happen or takes too
-  long, Ctrl+Y should be used instead.
+  long, CTRL+Y should be used instead.
 
 
 Build Options:
@@ -422,7 +422,7 @@ Self test failures and todos:
   child.
 
   GNU make was not currently translating the OpenVMS encoded POSIX values
-  returned to it back to the Posix values.  I have temporarily modified the
+  returned to it back to the POSIX values.  I have temporarily modified the
   Perl test script to compensate for it.  This should be being handled
   internally to Make.
   TODO: Verify and update the Perl test script.
@@ -435,7 +435,7 @@ Self test failures and todos:
   Symlink support is not present.  Symlinks are supported by OpenVMS 8.3 and
   later.
 
-  Error messages should be supressed with the "-" at the beginning of a line.
+  Error messages should be suppressed with the "-" at the beginning of a line.
   On openVMS they were showing up.  TODO: Is this still an issue?
 
   The internal vmsify and unixify OpenVMS to/from UNIX are not handling logical
@@ -443,7 +443,7 @@ Self test failures and todos:
 
 
 Build instructions:
-------------------
+-------------------
 
   Don't use the HP C V7.2-001 compiler, which has an incompatible change
   how __STDC__ is defined. This results at least in compile time warnings.
@@ -478,7 +478,7 @@ Running the tests:
    https://sourceforge.net/projects/gnv/files/
 
    As the test scripts need to create some foreign commands that persist
-   after the test is run, it is recommend that either you use a subprocess or
+   after the test is run, it is recommend that either you use a sub-process or
    a dedicated login to run the tests.
 
    To get detailed information for running the tests:
@@ -499,12 +499,12 @@ Running the tests:
    $ perl run_make_tests.pl
 
 
-Acknowlegements:
+Acknowledgments:
 ----------------
 
 See NEWS. for details of past changes.
 
-  These are the currently known contributers to this port.
+  These are the currently known contributors to this port.
 
   Hartmut Becker
   John Malmberg

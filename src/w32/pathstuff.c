@@ -177,7 +177,7 @@ convert_path_to_nutc(char *path)
         *pathp = '\0';
 
         /*
-         * Loop through PATH and convert one elemnt of the path at at
+         * Loop through PATH and convert one element of the path at at
          * a time. Single file pathnames will fail this and fall
          * to the logic below loop.
          */

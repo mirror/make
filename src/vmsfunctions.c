@@ -149,7 +149,7 @@ vms_command(const char* argv0)
    If something goes wrong in sys$parse (unlikely, this is a VMS/CRTL supplied
    file specification) or if there is an empty name part (not easy to produce,
    but it is possible) just return "make".
-   Somes notes ...
+   Some notes ...
    NAM[L]$M_SYNCHK requests a syntax check, only.
    NAM is for ODS2 names (shorter parts, output usually converted to UPPERCASE).
    NAML is for ODS2/ODS5 names (longer parts, output unchanged).

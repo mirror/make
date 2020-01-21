@@ -1,6 +1,6 @@
 /* vms_exit.c
  *
- * Wrapper for the VMS exit() command to tranlate UNIX codes to be
+ * Wrapper for the VMS exit() command to translate UNIX codes to be
  * encoded for POSIX, but also have VMS severity levels.
  * The posix_exit() variant only sets a severity level for status code 1.
  *

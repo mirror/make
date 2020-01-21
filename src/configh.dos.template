@@ -100,7 +100,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "%VERSION%"
 
-/* Output sync sypport */
+/* Output sync support */
 #define NO_OUTPUT_SYNC
 
 /* Version number of package */

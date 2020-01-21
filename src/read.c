@@ -3215,10 +3215,10 @@ parse_file_seq (char **stringp, size_t size, int stopmap,
       /* Strip leading "this directory" references.  */
       if (NONE_SET (flags, PARSEFS_NOSTRIP))
 #ifdef VMS
-        /* Skip leading '[]'s. should only be one set or bug somwhere else */
+        /* Skip leading '[]'s. should only be one set or bug somewhere else */
         if (p - s > 2 && s[0] == '[' && s[1] == ']')
             s += 2;
-        /* Skip leading '<>'s. should only be one set or bug somwhere else */
+        /* Skip leading '<>'s. should only be one set or bug somewhere else */
         if (p - s > 2 && s[0] == '<' && s[1] == '>')
             s += 2;
 #endif

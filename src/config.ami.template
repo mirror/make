@@ -324,10 +324,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if you have the sun library (-lsun).  */
 /* #undef HAVE_LIBSUN */
 
-/* Output sync sypport */
+/* Output sync support */
 #define NO_OUTPUT_SYNC
 
-/* Define for Case Insensitve behavior */
+/* Define for Case Insensitive behavior */
 #define HAVE_CASE_INSENSITIVE_FS
 
 /* Build host information. */

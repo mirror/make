@@ -508,7 +508,7 @@ fatal_error_signal (int sig)
 #ifdef WINDOWS32
   extern HANDLE main_thread;
 
-  /* Windows creates a sperate thread for handling Ctrl+C, so we need
+  /* Windows creates a separate thread for handling Ctrl+C, so we need
      to suspend the main thread, or else we will have race conditions
      when both threads call reap_children.  */
   if (main_thread)
