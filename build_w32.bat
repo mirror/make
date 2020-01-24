@@ -37,6 +37,7 @@ set COMPILER=cl.exe
 set O=obj
 set ARCH=x64
 set DEBUG=N
+set DIRENT=Y
 
 if exist maintMakefile (
     set MAINT=Y
@@ -49,6 +50,7 @@ if "%1" == "--debug" goto SetDebug
 if "%1" == "--without-guile" goto NoGuile
 if "%1" == "--x86" goto Set32Bit
 if "%1" == "gcc" goto SetCC
+if "%1" == "tcc" goto SetTCC
 if "%1" == "" goto DoneSW
 goto Usage
 
@@ -77,10 +79,18 @@ echo - Building with GCC
 shift
 goto ParseSW
 
+:SetTCC
+set COMPILER=tcc
+set O=o
+echo - Building with TinyC
+shift
+goto ParseSW
+
 :DoneSW
 if "%MAINT%" == "Y" echo - Enabling maintainer mode
 
 if "%COMPILER%" == "gcc" goto FindGcc
+if "%COMPILER%" == "tcc" goto FindTcc
 
 :: Find a compiler.  Visual Studio requires a lot of effort to locate :-/.
 %COMPILER% >nul 2>&1
@@ -172,6 +182,7 @@ goto Build
 set OUTDIR=.\GccRel
 set LNKOUT=./GccRel
 set OPTS=-O2
+set DIRENT=N
 if "%DEBUG%" == "Y" set OPTS=-O0
 if "%DEBUG%" == "Y" set OUTDIR=.\GccDebug
 if "%DEBUG%" == "Y" set LNKOUT=./GccDebug
@@ -179,6 +190,21 @@ if "%MAINT%" == "Y" set "OPTS=%OPTS% -DMAKE_MAINTAINER_MODE"
 :: Show the compiler version that we found
 echo.
 %COMPILER% --version
+if not ERRORLEVEL 1 goto Build
+echo No %COMPILER% found.
+exit 1
+
+:FindTcc
+set OUTDIR=.\TccRel
+set LNKOUT=./TccRel
+set OPTS=-O2
+if "%DEBUG%" == "Y" set OPTS=-O0
+if "%DEBUG%" == "Y" set OUTDIR=.\TccDebug
+if "%DEBUG%" == "Y" set LNKOUT=./TccDebug
+if "%MAINT%" == "Y" set "OPTS=%OPTS% -DMAKE_MAINTAINER_MODE"
+:: Show the compiler version that we found
+echo.
+%COMPILER% -v
 if not ERRORLEVEL 1 goto Build
 echo No %COMPILER% found.
 exit 1
@@ -246,7 +272,8 @@ call :Compile lib/fnmatch
 call :Compile lib/glob
 call :Compile lib/getloadavg
 
-if not "%COMPILER%" == "gcc" call :Compile src\w32\compat\dirent
+:: Compile dirent unless it is supported by compiler library (like with gcc).
+if "%DIRENT%" == "Y" call :Compile src\w32\compat\dirent
 
 call :Link
 
@@ -272,6 +299,7 @@ set EXTRAS=
 if "%2" == "GUILE" set "EXTRAS=%GUILECFLAGS%"
 if exist "%OUTDIR%\%1.%O%" del "%OUTDIR%\%1.%O%"
 if "%COMPILER%" == "gcc" goto GccCompile
+if "%COMPILER%" == "tcc" goto TccCompile
 
 :: MSVC Compile
 echo on
@@ -284,6 +312,14 @@ goto CompileDone
 echo on
 %COMPILER% -mthreads -Wall -std=gnu99 -gdwarf-2 -g3 %OPTS% -I%OUTDIR%/src -I./src -I%OUTDIR%/lib -I./lib -I./src/w32/include -DWINDOWS32 -DHAVE_CONFIG_H %EXTRAS% -o %OUTDIR%/%1.%O% -c %1.c
 @echo off
+goto CompileDone
+
+:TccCompile
+:: TCC Compile
+echo on
+%COMPILER% -mthreads -Wall -std=c11 %OPTS% -I%OUTDIR%/src -I./src -I%OUTDIR%/lib -I./lib -I./src/w32/include -D_cdecl= -D_MSC_VER -DWINDOWS32 -DHAVE_CONFIG_H %EXTRAS% -o %OUTDIR%/%1.%O% -c %1.c
+@echo off
+goto CompileDone
 
 :CompileDone
 if not exist "%OUTDIR%\%1.%O%" exit 1
@@ -293,6 +329,7 @@ goto :EOF
 echo.
 echo Linking %LNKOUT%/%MAKE%.exe
 if "%COMPILER%" == "gcc" goto GccLink
+if "%COMPILER%" == "tcc" goto TccLink
 
 :: MSVC Link
 echo %GUILELIBS% kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib >>%OUTDIR%\link.sc
@@ -306,6 +343,14 @@ goto :EOF
 echo on
 echo %GUILELIBS% -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32 >>%OUTDIR%\link.sc
 %COMPILER% -mthreads -gdwarf-2 -g3 %OPTS% -o %LNKOUT%/%MAKE%.exe @%LNKOUT%/link.sc -Wl,--out-implib=%LNKOUT%/libgnumake-1.dll.a
+@echo off
+goto :EOF
+
+:TccLink
+:: TCC Link
+echo on
+echo %GUILELIBS% -lkernel32 -luser32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -lodbc32 -lodbccp32 >>%OUTDIR%\link.sc
+%COMPILER% -mthreads %OPTS% -o %LNKOUT%/%MAKE%.exe @%LNKOUT%/link.sc 
 @echo off
 goto :EOF
 
@@ -375,12 +420,14 @@ if ERRORLEVEL 1 exit /b 1
 goto :EOF
 
 :Usage
-echo Usage: %0 [options] [gcc]
+echo Usage: %0 [options] [gcc] OR [tcc]
 echo Options:
 echo.  --without-guile   Do not compile Guile support even if found
 echo.  --debug           Make a Debug build--default is Release
 echo.  --x86             Make a 32bit binary--default is 64bit
 echo.  --help            Display these instructions and exit
+echo.
+echo. "gcc" means compile with GCC, "tcc" means compile with Tiny C's TCC
 goto :EOF
 
 :Reset
