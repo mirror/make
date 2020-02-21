@@ -67,14 +67,21 @@ void output_dump (struct output *out);
 
 # ifdef WINDOWS32
 /* For emulations in w32/compat/posixfcn.c.  */
-#  define F_GETFD 1
-#  define F_SETLKW 2
+#  ifndef F_GETFD
+#   define F_GETFD 1
+#  endif
+#  ifndef F_SETLKW
+#   define F_SETLKW 2
+#  endif
 /* Implementation note: None of the values of l_type below can be zero
    -- they are compared with a static instance of the struct, so zero
    means unknown/invalid, see w32/compat/posixfcn.c. */
-#  define F_WRLCK 1
-#  define F_UNLCK 2
-
+#  ifndef F_WRLCK
+#   define F_WRLCK 1
+#  endif
+#  ifndef F_UNLCK
+#   define F_UNLCK 2
+#  endif
 struct flock
   {
     short l_type;
@@ -89,7 +96,9 @@ struct flock
 typedef intptr_t sync_handle_t;
 
 /* Public functions emulated/provided in posixfcn.c.  */
+#  if !defined(GNULIB_defined_rpl_fcntl) && !defined(GNULIB_defined_fcntl)
 int fcntl (intptr_t fd, int cmd, ...);
+#  endif
 intptr_t create_mutex (void);
 int same_stream (FILE *f1, FILE *f2);
 
