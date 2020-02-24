@@ -23,7 +23,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdlib.h>
 #include "dirent.h"
 
-
+#ifndef __MINGW32__
 DIR*
 opendir(const char* pDirName)
 {
@@ -193,3 +193,4 @@ seekdir(DIR* pDir, long nPosition)
 
         return;
 }
+#endif  /* !__MINGW32__ */
