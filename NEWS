@@ -15,7 +15,7 @@ A complete list of bugs fixed in this version is available here:
 
 https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&set=custom
 
-* GNU Make can now be built for MS-Windows using the Tiny C's tcc compiler.
+* GNU Make can now be built for MS-Windows using the Tiny C tcc compiler.
 
 
 Version 4.3 (19 Jan 2020)
@@ -43,6 +43,14 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&se
   starting with a space.  Now the initial space is only added if the variable
   already contains some value.  Similarly, appending an empty string does not
   add a trailing space.
+
+* WARNING: Backward-incompatibility!
+  Previously using the .SILENT pseudo-target in a makefile would force all
+  sub-makes to be invoked with the '-s' option, effectively making all
+  sub-makes silent as well.  In this release, .SILENT only has effect for the
+  current invocation of make.  As a side-effect of this, .SILENT no longer has
+  a side-effect of enabling the --no-print-directory option, which using -s
+  will do.
 
 * NOTE: Deprecated behavior.
   Contrary to the documentation, suffix rules with prerequisites are being
