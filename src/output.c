@@ -144,14 +144,18 @@ log_working_directory (int entering)
   return 1;
 }
 
-/* Set a file descriptor to be in O_APPEND mode.
-   If it fails, just ignore it.  */
+/* Set a file descriptor referring to a regular file
+   to be in O_APPEND mode.  If it fails, just ignore it.  */
 
 static void
 set_append_mode (int fd)
 {
 #if defined(F_GETFL) && defined(F_SETFL) && defined(O_APPEND)
-  int flags = fcntl (fd, F_GETFL, 0);
+  struct stat stbuf;
+  int flags;
+  if (fstat (fd, &stbuf) != 0 || !S_ISREG (stbuf.st_mode))
+    return;
+  flags = fcntl (fd, F_GETFL, 0);
   if (flags >= 0)
     {
       int r;
