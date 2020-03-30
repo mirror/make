@@ -367,7 +367,7 @@ output_dump (struct output *out)
       void *sem = acquire_semaphore ();
 
       /* Log the working directory for this dump.  */
-      if (print_directory_flag && output_sync != OUTPUT_SYNC_RECURSE)
+      if (print_directory && output_sync != OUTPUT_SYNC_RECURSE)
         traced = log_working_directory (1);
 
       if (outfd_not_empty)
@@ -517,7 +517,7 @@ output_start (void)
   /* If we're not syncing this output per-line or per-target, make sure we emit
      the "Entering..." message where appropriate.  */
   if (output_sync == OUTPUT_SYNC_NONE || output_sync == OUTPUT_SYNC_RECURSE)
-    if (! stdio_traced && print_directory_flag)
+    if (! stdio_traced && print_directory)
       stdio_traced = log_working_directory (1);
 }
 

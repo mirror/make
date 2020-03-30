@@ -15,6 +15,12 @@ A complete list of bugs fixed in this version is available here:
 
 https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&set=custom
 
+* WARNING: Backward-incompatibility!
+  Previously if --no-print-directory was seen anywhere in the environment or
+  command line it would take precedence over --print-directory.  Now, the
+  last setting of directory printing options seen will be used, so a command
+  line such as "--no-print-directory -w" _will_ show directory entry/exits.
+
 * GNU Make can now be built for MS-Windows using the Tiny C tcc compiler.
 
 

@@ -35,7 +35,7 @@ all: ; @echo $@; echo MAKEFLAGS = $$MAKEFLAGS; echo GNUMAKEFLAGS = $$GNUMAKEFLAG
 -include x.mk
 x.mk: ; @echo $@; echo MAKEFLAGS = $$MAKEFLAGS; echo GNUMAKEFLAGS = $$GNUMAKEFLAGS; echo > $@
 !,
-              "", "x.mk\nMAKEFLAGS = -Itst/bad\nGNUMAKEFLAGS =\nrecurse\nMAKEFLAGS = -Itst/bad\nGNUMAKEFLAGS =\n#MAKE#[1]: Entering directory '#PWD#'\nall\nMAKEFLAGS = w -Itst/bad\nGNUMAKEFLAGS =\n#MAKE#[1]: Leaving directory '#PWD#'\n");
+              "", "x.mk\nMAKEFLAGS = -Itst/bad\nGNUMAKEFLAGS =\nrecurse\nMAKEFLAGS = -Itst/bad\nGNUMAKEFLAGS =\n#MAKE#[1]: Entering directory '#PWD#'\nall\nMAKEFLAGS = -Itst/bad\nGNUMAKEFLAGS =\n#MAKE#[1]: Leaving directory '#PWD#'\n");
 
 unlink('x.mk');
 

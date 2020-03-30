@@ -227,12 +227,9 @@ int check_symlink_flag = 0;
 
 /* Nonzero means print directory before starting and when done (-w).  */
 
-int print_directory_flag = 0;
-
-/* Nonzero means ignore print_directory_flag and never print the directory.
-   This is necessary because print_directory_flag is set implicitly.  */
-
-int inhibit_print_directory_flag = 0;
+int print_directory;
+static int print_directory_flag = -1;
+static const int default_print_directory_flag = -1;
 
 /* Nonzero means print version information.  */
 
@@ -438,7 +435,8 @@ static const struct command_switch switches[] =
       "no-keep-going" },
     { 't', flag, &touch_flag, 1, 1, 1, 0, 0, "touch" },
     { 'v', flag, &print_version_flag, 1, 1, 0, 0, 0, "version" },
-    { 'w', flag, &print_directory_flag, 1, 1, 0, 0, 0, "print-directory" },
+    { 'w', flag, &print_directory_flag, 1, 1, 0, 0,
+      &default_print_directory_flag, "print-directory" },
 
     /* These options take arguments.  */
     { 'C', filename, &directories, 0, 0, 0, 0, 0, "directory" },
@@ -457,12 +455,13 @@ static const struct command_switch switches[] =
     { CHAR_MAX+1, strlist, &db_flags, 1, 1, 0, "basic", 0, "debug" },
     { CHAR_MAX+2, string, &jobserver_auth, 1, 1, 0, 0, 0, "jobserver-auth" },
     { CHAR_MAX+3, flag, &trace_flag, 1, 1, 0, 0, 0, "trace" },
-    { CHAR_MAX+4, flag, &inhibit_print_directory_flag, 1, 1, 0, 0, 0,
-      "no-print-directory" },
+    { CHAR_MAX+4, flag_off, &print_directory_flag, 1, 1, 0, 0,
+      &default_print_directory_flag, "no-print-directory" },
     { CHAR_MAX+5, flag, &warn_undefined_variables_flag, 1, 1, 0, 0, 0,
       "warn-undefined-variables" },
     { CHAR_MAX+7, string, &sync_mutex, 1, 1, 0, 0, 0, "sync-mutex" },
-    { CHAR_MAX+8, flag_off, &silent_flag, 1, 1, 0, 0, &default_silent_flag, "no-silent" },
+    { CHAR_MAX+8, flag_off, &silent_flag, 1, 1, 0, 0, &default_silent_flag,
+      "no-silent" },
     { CHAR_MAX+9, string, &jobserver_auth, 1, 0, 0, 0, 0, "jobserver-fds" },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
   };
@@ -1722,13 +1721,13 @@ main (int argc, char **argv, char **envp)
    no_default_sh_exe = !find_and_set_default_shell (NULL);
 #endif /* WINDOWS32 */
 
-  /* Except under -s, always do -w in sub-makes and under -C.  */
-  if (!silent_flag && (directories != 0 || makelevel > 0))
-    print_directory_flag = 1;
+  /* If the user didn't specify any print-directory options, compute the
+     default setting: disable under -s / print in sub-makes and under -C.  */
 
-  /* Let the user disable that with --no-print-directory.  */
-  if (inhibit_print_directory_flag)
-    print_directory_flag = 0;
+  if (print_directory_flag == -1)
+    print_directory = !silent_flag && (directories != 0 || makelevel > 0);
+  else
+    print_directory = print_directory_flag;
 
   /* If -R was given, set -r too (doesn't make sense otherwise!)  */
   if (no_builtin_variables_flag)
