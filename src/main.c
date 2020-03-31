@@ -1522,6 +1522,18 @@ main (int argc, char **argv, char **envp)
   /* Set always_make_flag if -B was given and we've not restarted already.  */
   always_make_flag = always_make_set && (restarts == 0);
 
+  /* If the user didn't specify any print-directory options, compute the
+     default setting: disable under -s / print in sub-makes and under -C.  */
+
+  if (print_directory_flag == -1)
+    print_directory = !silent_flag && (directories != 0 || makelevel > 0);
+  else
+    print_directory = print_directory_flag;
+
+  /* If -R was given, set -r too (doesn't make sense otherwise!)  */
+  if (no_builtin_variables_flag)
+    no_builtin_rules_flag = 1;
+
   /* Print version information, and exit.  */
   if (print_version_flag)
     {
@@ -1586,6 +1598,68 @@ main (int argc, char **argv, char **envp)
 
   /* We may move, but until we do, here we are.  */
   starting_directory = current_directory;
+
+  /* If there were -C flags, move ourselves about.  */
+  if (directories != 0)
+    {
+      unsigned int i;
+      for (i = 0; directories->list[i] != 0; ++i)
+        {
+          const char *dir = directories->list[i];
+#ifdef WINDOWS32
+          /* WINDOWS32 chdir() doesn't work if the directory has a trailing '/'
+             But allow -C/ just in case someone wants that.  */
+          {
+            char *p = (char *)dir + strlen (dir) - 1;
+            while (p > dir && (p[0] == '/' || p[0] == '\\'))
+              --p;
+            p[1] = '\0';
+          }
+#endif
+          if (chdir (dir) < 0)
+            pfatal_with_name (dir);
+        }
+    }
+
+#ifdef WINDOWS32
+  /*
+   * THIS BLOCK OF CODE MUST COME AFTER chdir() CALL ABOVE IN ORDER
+   * TO NOT CONFUSE THE DEPENDENCY CHECKING CODE IN implicit.c.
+   *
+   * The functions in dir.c can incorrectly cache information for "."
+   * before we have changed directory and this can cause file
+   * lookups to fail because the current directory (.) was pointing
+   * at the wrong place when it was first evaluated.
+   */
+   no_default_sh_exe = !find_and_set_default_shell (NULL);
+#endif /* WINDOWS32 */
+
+  /* Construct the list of include directories to search.  */
+
+  construct_include_path (include_directories == 0
+                          ? 0 : include_directories->list);
+
+  /* If we chdir'ed, figure out where we are now.  */
+  if (directories)
+    {
+#ifdef WINDOWS32
+      if (getcwd_fs (current_directory, GET_PATH_MAX) == 0)
+#else
+      if (getcwd (current_directory, GET_PATH_MAX) == 0)
+#endif
+        {
+#ifdef  HAVE_GETCWD
+          perror_with_name ("getcwd", "");
+#else
+          OS (error, NILF, "getwd: %s", current_directory);
+#endif
+          starting_directory = 0;
+        }
+      else
+        starting_directory = current_directory;
+    }
+
+  define_variable_cname ("CURDIR", current_directory, o_file, 0);
 
   /* Validate the arg_job_slots configuration before we define MAKEFLAGS so
      users get an accurate value in their makefiles.
@@ -1685,80 +1759,6 @@ main (int argc, char **argv, char **envp)
       vms_export_dcl_symbol ("MAKEOVERRIDES", "${-*-command-variables-*-}");
 #endif
     }
-
-  /* If there were -C flags, move ourselves about.  */
-  if (directories != 0)
-    {
-      unsigned int i;
-      for (i = 0; directories->list[i] != 0; ++i)
-        {
-          const char *dir = directories->list[i];
-#ifdef WINDOWS32
-          /* WINDOWS32 chdir() doesn't work if the directory has a trailing '/'
-             But allow -C/ just in case someone wants that.  */
-          {
-            char *p = (char *)dir + strlen (dir) - 1;
-            while (p > dir && (p[0] == '/' || p[0] == '\\'))
-              --p;
-            p[1] = '\0';
-          }
-#endif
-          if (chdir (dir) < 0)
-            pfatal_with_name (dir);
-        }
-    }
-
-#ifdef WINDOWS32
-  /*
-   * THIS BLOCK OF CODE MUST COME AFTER chdir() CALL ABOVE IN ORDER
-   * TO NOT CONFUSE THE DEPENDENCY CHECKING CODE IN implicit.c.
-   *
-   * The functions in dir.c can incorrectly cache information for "."
-   * before we have changed directory and this can cause file
-   * lookups to fail because the current directory (.) was pointing
-   * at the wrong place when it was first evaluated.
-   */
-   no_default_sh_exe = !find_and_set_default_shell (NULL);
-#endif /* WINDOWS32 */
-
-  /* If the user didn't specify any print-directory options, compute the
-     default setting: disable under -s / print in sub-makes and under -C.  */
-
-  if (print_directory_flag == -1)
-    print_directory = !silent_flag && (directories != 0 || makelevel > 0);
-  else
-    print_directory = print_directory_flag;
-
-  /* If -R was given, set -r too (doesn't make sense otherwise!)  */
-  if (no_builtin_variables_flag)
-    no_builtin_rules_flag = 1;
-
-  /* Construct the list of include directories to search.  */
-
-  construct_include_path (include_directories == 0
-                          ? 0 : include_directories->list);
-
-  /* If we chdir'ed, figure out where we are now.  */
-  if (directories)
-    {
-#ifdef WINDOWS32
-      if (getcwd_fs (current_directory, GET_PATH_MAX) == 0)
-#else
-      if (getcwd (current_directory, GET_PATH_MAX) == 0)
-#endif
-        {
-#ifdef  HAVE_GETCWD
-          perror_with_name ("getcwd", "");
-#else
-          OS (error, NILF, "getwd: %s", current_directory);
-#endif
-          starting_directory = 0;
-        }
-      else
-        starting_directory = current_directory;
-    }
-
-  define_variable_cname ("CURDIR", current_directory, o_file, 0);
 
   /* Read any stdin makefiles into temporary files.  */
 
