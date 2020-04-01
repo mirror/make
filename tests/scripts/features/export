@@ -32,16 +32,17 @@ ifdef EXPORT_ALL_PSEUDO
 .EXPORT_ALL_VARIABLES:
 endif
 
+.RECIPEPREFIX := >
 all:
-	@echo "FOO=$(FOO) BAR=$(BAR) BAZ=$(BAZ) BOZ=$(BOZ) BITZ=$(BITZ) BOTZ=$(BOTZ)"
-	@echo "FOO=$$FOO BAR=$$BAR BAZ=$$BAZ BOZ=$$BOZ BITZ=$$BITZ BOTZ=$$BOTZ"
+> @echo "FOO=$(FOO) BAR=$(BAR) BAZ=$(BAZ) BOZ=$(BOZ) BITZ=$(BITZ) BOTZ=$(BOTZ)"
+> @echo "FOO=$$FOO BAR=$$BAR BAZ=$$BAZ BOZ=$$BOZ BITZ=$$BITZ BOTZ=$$BOTZ"
 ',
            '', "FOO=foo BAR=bar BAZ=baz BOZ=boz BITZ=bitz BOTZ=botz
 FOO= BAR= BAZ=baz BOZ=boz BITZ=bitz BOTZ=\n");
 
 # TEST 1: make sure vars inherited from the parent are exported
 
-$extraENV{FOO} = 1;
+$ENV{FOO} = 1;
 
 &run_make_test(undef, '', "FOO=foo BAR=bar BAZ=baz BOZ=boz BITZ=bitz BOTZ=botz
 FOO=foo BAR= BAZ=baz BOZ=boz BITZ=bitz BOTZ=\n");
@@ -85,9 +86,10 @@ B = b
 export $(FOO)
 export $(B)ar
 
+.RECIPEPREFIX := >
 all:
-	@echo foo=$(foo) bar=$(bar)
-	@echo foo=$$foo bar=$$bar
+> @echo foo=$(foo) bar=$(bar)
+> @echo foo=$$foo bar=$$bar
 ',
              "", "foo=f-ok bar=b-ok\nfoo=f-ok bar=b-ok\n");
 
@@ -108,9 +110,10 @@ export foo bar
 unexport $(FOO)
 unexport $(B)ar
 
+.RECIPEPREFIX := >
 all:
-	@echo foo=$(foo) bar=$(bar)
-	@echo foo=$$foo bar=$$bar
+> @echo foo=$(foo) bar=$(bar)
+> @echo foo=$$foo bar=$$bar
 ',
               '', "foo=f-ok bar=b-ok\nfoo= bar=\n");
 
@@ -140,7 +143,8 @@ all: ; @echo A=$$A B=$$B C=$$C D=$$D E=$$E F=$$F G=$$G H=$$H I=$$I J=$$J
 
 # TEST 8: Test unexporting multiple variables on the same line
 
-@extraENV{qw(A B C D E F G H I J)} = qw(1 2 3 4 5 6 7 8 9 10);
+@args{qw(A B C D E F G H I J)} = qw(1 2 3 4 5 6 7 8 9 10);
+%ENV = (%ENV, %args);
 
 &run_make_test('
 A = a

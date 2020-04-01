@@ -16,26 +16,27 @@ defined per the following list:
 'automatic'            Automatic variable\n";
 
 # Set an environment variable
-$extraENV{MAKETEST} = 1;
+$ENV{MAKETEST} = 1;
 
 run_make_test('
 foo := bletch garf
 auto_var = undefined CC MAKETEST MAKE foo CFLAGS WHITE @
 av = $(foreach var, $(auto_var), $(origin $(var)) )
 override WHITE := BLACK
+.RECIPEPREFIX = >
 all: auto
-	@echo $(origin undefined)
-	@echo $(origin CC)
-	@echo $(origin MAKETEST)
-	@echo $(origin MAKE)
-	@echo $(origin foo)
-	@echo $(origin CFLAGS)
-	@echo $(origin WHITE)
-	@echo $(origin @)
+> @echo $(origin undefined)
+> @echo $(origin CC)
+> @echo $(origin MAKETEST)
+> @echo $(origin MAKE)
+> @echo $(origin foo)
+> @echo $(origin CFLAGS)
+> @echo $(origin WHITE)
+> @echo $(origin @)
 auto :
-	@echo $(av)',
-	      '-e WHITE=WHITE CFLAGS=',
-	      'undefined default environment default file command line override automatic
+> @echo $(av)',
+    '-e WHITE=WHITE CFLAGS=',
+    'undefined default environment default file command line override automatic
 undefined
 default
 environment
@@ -44,8 +45,5 @@ file
 command line
 override
 automatic');
-
-# Reset an environment variable
-delete $extraENV{MAKETEST};
 
 1;

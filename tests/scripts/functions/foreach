@@ -14,7 +14,7 @@ types of foreach loops are tested\n";
 # TEST 0
 
 # Set an environment variable that we can test in the makefile.
-$extraENV{FOOFOO} = 'foo foo';
+$ENV{FOOFOO} = 'foo foo';
 
 run_make_test("space = ' '".'
 null :=
@@ -30,8 +30,6 @@ for2: ; @echo $(fe)',
               '-e WHITE=WHITE CFLAGS=',
               "undefined file default file environment default file command line override automatic automatic
 foo.o bletch.o null.o @.o garf.o .o    .o undefined.o file.o default.o file.o environment.o default.o file.o command.o line.o override.o automatic.o automatic.o");
-
-delete $extraENV{FOOFOO};
 
 # TEST 1: Test that foreach variables take precedence over global
 # variables in a global scope (like inside an eval).  Tests bug #11913

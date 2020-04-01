@@ -83,12 +83,8 @@ if ($^O ne 'VMS') {
 # in recipes
 $perl_name =~ tr,\\,/,;
 
-# %makeENV is the cleaned-out environment.
+# %makeENV is the cleaned-out environment.  Tests must not modify it.
 %makeENV = ();
-
-# %extraENV are any extra environment variables the tests might want to set.
-# These are RESET AFTER EVERY TEST!
-%extraENV = ();
 
 sub vms_get_process_logicals {
   # Sorry for the long note here, but to keep this test running on
@@ -149,11 +145,6 @@ sub resetENV
         delete $ENV{$v};
       }
     }
-  }
-
-  foreach $v (keys %extraENV) {
-    $ENV{$v} = $extraENV{$v};
-    delete $extraENV{$v};
   }
 }
 
@@ -1059,14 +1050,12 @@ sub _run_with_timeout
 # This runs a command without any debugging info.
 sub _run_command
 {
-  # We reset this before every invocation.  On Windows I think there is only
-  # one environment, not one per process, so I think that variables set in
-  # test scripts might leak into subsequent tests if this isn't reset--???
-  resetENV();
-
   my $orig = $SIG{ALRM};
   my $code = eval { _run_with_timeout(@_); };
   $SIG{ALRM} = $orig;
+
+  # Reset then environment so that it's clean for the next test.
+  resetENV();
 
   if ($@) {
     # The eval failed.  If it wasn't SIGALRM then die.

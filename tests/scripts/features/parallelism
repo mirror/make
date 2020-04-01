@@ -148,7 +148,7 @@ rmfiles('target');
 # TEST #11: Make sure -jN from MAKEFLAGS is processed even when we re-exec
 # See Savannah bug #33873
 
-$extraENV{MAKEFLAGS} = '-j4';
+$ENV{MAKEFLAGS} = '-j4';
 
 run_make_test(q!
 things = thing1 thing2
@@ -160,7 +160,6 @@ inc.mk: ; @touch $@
 !,
               '', "file thing2start\nwait thing2start\nfile thing1start\nwait thing1start\nfile thing2end\nwait thing2end\nthing1end\n");
 
-delete $extraENV{MAKEFLAGS};
 rmfiles(qw(inc.mk thing1start thing1end thing2start thing2end));
 
 # Ensure intermediate/secondary files are not pruned incorrectly.

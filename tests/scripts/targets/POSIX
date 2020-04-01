@@ -47,7 +47,7 @@ $make
               '', $r);
 
 # Make sure that local settings take precedence
-%extraENV = map { $_ => "xx-$_" } keys %POSIX;
+%ENV = (%ENV, map { $_ => "xx-$_" } keys %POSIX);
 $r = join('', map { "$_=xx-$_\n"} sort keys %POSIX);
 run_make_test(undef, '', $r);
 

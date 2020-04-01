@@ -25,17 +25,16 @@ all:;@echo $@: "/$(SHOW)/"
 
 # Setting parallelism with the environment
 # Command line should take precedence over the environment
-$extraENV{MAKEFLAGS} = "-j2 $np";
+$ENV{MAKEFLAGS} = "-j2 $np";
 run_make_test(q!
 SHOW = $(patsubst --jobserver-auth=%,--jobserver-auth=<auth>,$(MAKEFLAGS))
 recurse: ; @echo $@: "/$(SHOW)/"; $(MAKE) -f #MAKEFILE# all
 all:;@echo $@: "/$(SHOW)/"
 !,
               '', "recurse: /-j2 --jobserver-auth=<auth> $np/\nall: /-j2 --jobserver-auth=<auth> $np/\n");
-delete $extraENV{MAKEFLAGS};
 
 # Test override of -jN
-$extraENV{MAKEFLAGS} = "-j9 $np";
+$ENV{MAKEFLAGS} = "-j9 $np";
 run_make_test(q!
 SHOW = $(patsubst --jobserver-auth=%,--jobserver-auth=<auth>,$(MAKEFLAGS))
 recurse: ; @echo $@: "/$(SHOW)/"; $(MAKE) -j3 -f #MAKEFILE# recurse2
@@ -43,7 +42,6 @@ recurse2: ; @echo $@: "/$(SHOW)/"; $(MAKE) -f #MAKEFILE# all
 all:;@echo $@: "/$(SHOW)/"
 !,
               "-j2 $np", "recurse: /-j2 --jobserver-auth=<auth> $np/\n#MAKE#[1]: warning: -j3 forced in submake: resetting jobserver mode.\nrecurse2: /-j3 --jobserver-auth=<auth> $np/\nall: /-j3 --jobserver-auth=<auth> $np/\n");
-delete $extraENV{MAKEFLAGS};
 
 # Test override of -jN with -j
 run_make_test(q!

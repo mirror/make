@@ -94,7 +94,7 @@ all: ; $sname >/dev/null
 
 # Don't use the general PATH if not found on the target path
 
-$extraENV{PATH} = "$ENV{PATH}:sd";
+$ENV{PATH} = "$ENV{PATH}:sd";
 
 run_make_test(qq!
 PATH := ..

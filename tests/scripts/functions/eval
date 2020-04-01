@@ -127,7 +127,7 @@ EOF
 
 close(MAKEFILE);
 
-$extraENV{EVAR} = '1';
+$ENV{EVAR} = '1';
 &run_make_with_options($makefile4, "", &get_logfile);
 $answer = "OK\n";
 &compare_output($answer,&get_logfile(1));
