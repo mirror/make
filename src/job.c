@@ -2381,6 +2381,18 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
           break;
         }
 
+    /* execvp() will use a default PATH if none is set; emulate that.  */
+    if (p == NULL)
+      {
+        size_t l = confstr (_CS_PATH, NULL, 0);
+        if (l)
+          {
+            char *dp = alloca (l);
+            confstr (_CS_PATH, dp, l);
+            p = dp;
+          }
+      }
+
     cmd = (char *)find_in_given_path (argv[0], p, 0);
   }
 
