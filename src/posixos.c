@@ -145,6 +145,11 @@ jobserver_parse_auth (const char *auth)
   /* When using pselect() we want the read to be non-blocking.  */
   set_blocking (job_fds[0], 0);
 
+  /* By default we don't send the job pipe FDs to our children.
+     See jobserver_pre_child() and jobserver_post_child().  */
+  fd_noinherit (job_fds[0]);
+  fd_noinherit (job_fds[1]);
+
   return 1;
 }
 
