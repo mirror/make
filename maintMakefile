@@ -210,20 +210,20 @@ target = $(patsubst get-%,%,$@)
 
 config-url = $(git-url)/config.git/plain/$(patsubst get-build-aux/%,%,$@)
 get-build-aux/config.guess get-build-aux/config.sub:
-	@echo $(WGET) $(config-url) -O $(target) \
-	  && $(WGET) $(config-url) -O $(target).t \
+	@echo Retrieving $(target) from $(config-url)
+	$(WGET) $(config-url) -O $(target).t \
 	  && $(move_if_change)
 
 gnulib-url = $(git-url)/gnulib.git/plain/build-aux/$(patsubst get-build-aux/%,%,$@)
 get-build-aux/texinfo.tex:
-	@echo $(WGET) $(gnulib-url) -O $(target) \
-	  && $(WGET) $(gnulib-url) -O $(target).t \
+	@echo Retrieving $(target) from $(gnulib-url)
+	$(WGET) $(gnulib-url) -O $(target).t \
 	  && $(move_if_change)
 
 gnustandards-url = $(cvs-url)/gnustandards/gnustandards/$(patsubst get-doc/%,%,$@)
 get-doc/make-stds.texi get-doc/fdl.texi:
-	@echo $(WGET) $(gnustandards-url) -O $(target) \
-	  && $(WGET) $(gnustandards-url) -O $(target).t \
+	@echo Retrieving $(target) from $(gnustandards-url)
+	$(WGET) $(gnustandards-url) -O $(target).t \
 	  && $(move_if_change)
 
 
