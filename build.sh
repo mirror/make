@@ -103,7 +103,7 @@ convert ()
     esac
 
     fn="$top_srcdir/lib/${fn##*/}"
-    [ -f "$fn" ] || { echo "Missing file: $fn"; exit 1; }
+    test -f "$fn" || { echo "Missing file: $fn"; exit 1; }
 
     sed "/definitions* of $inc/r $fn" "$int" > "${int}_"
     int=${int}_

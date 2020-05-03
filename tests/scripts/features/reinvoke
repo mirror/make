@@ -45,17 +45,17 @@ all: ; @echo hello
 
 a : b ; echo >> $@
 
-b : c ; [ -f $@ ] || echo >> $@
+b : c ; test -f $@ || echo >> $@
 
 c: ; echo >> $@
 
 include $(F)',
-              'F=a', "[ -f b ] || echo >> b\nhello\n");
+              'F=a', "test -f b || echo >> b\nhello\n");
 
 # Now try with the file we're not updating being the actual file we're
 # including: this and the previous one test different parts of the code.
 
-run_make_test(undef, 'F=b', "[ -f b ] || echo >> b\nhello\n");
+run_make_test(undef, 'F=b', "test -f b || echo >> b\nhello\n");
 
 &rmfiles('a','b','c');
 

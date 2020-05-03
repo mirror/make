@@ -17,7 +17,7 @@ getfiles () {
 
 run () {
     cmd=$(command -v "$update") || die "Cannot locate update-copyright ($update)"
-    [ -x "$cmd" ] || die "Cannot locate update-copyright ($update)"
+    test -x "$cmd" || die "Cannot locate update-copyright ($update)"
 
     force=false
 
@@ -30,9 +30,9 @@ run () {
 
     if $force; then
         : just do it
-    elif [ ! -f src/makeint.h ]; then
+    elif test ! -f src/makeint.h; then
         die "Run in the root of the GNU make workspace"
-    elif [ -f configure ]; then
+    elif test -f configure; then
         die "Run in a clean workspace (git clean -fdX)"
     fi
 
