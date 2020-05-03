@@ -195,7 +195,7 @@ load_file (const floc *flocp, const char **ldname, int noerror)
         fp = *ldname;
       else
         ++fp;
-      while (isalnum (*fp) || *fp == '_')
+      while (isalnum ((unsigned char) *fp) || *fp == '_')
         *(p++) = *(fp++);
       strcpy (p, SYMBOL_EXTENSION);
       symname = new;

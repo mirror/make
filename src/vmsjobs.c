@@ -367,7 +367,7 @@ posix_parse_dq (struct token_info *token)
             }
           INC_TOKEN_LEN_OR_BREAK;
         }
-      else if (*p == '$' && isalpha (p[1]))
+      else if (*p == '$' && isalpha ((unsigned char) p[1]))
         {
           /* A symbol we should be able to substitute */
           *q++ = '\'';
@@ -506,7 +506,7 @@ posix_parse_dollar (struct token_info *token)
   *q++ = '\'';
   INC_TOKEN_LEN_OR_RETURN (p);
 
-  while ((isalnum (*p)) || (*p == '_'))
+  while ((isalnum ((unsigned char) *p)) || (*p == '_'))
     {
       *q++ = *p++;
       INC_TOKEN_LEN_OR_BREAK;
@@ -707,7 +707,7 @@ build_vms_cmd (char **cmd_tokens,
             }
 
           /* Optional whitespace */
-          if (isspace (cmd_tokens[cmd_tkn_index][0]))
+          if (isspace ((unsigned char) cmd_tokens[cmd_tkn_index][0]))
             {
               strcpy (&cmd[cmd_len], cmd_tokens[cmd_tkn_index]);
               cmd_len += strlen (cmd_tokens[cmd_tkn_index]);
@@ -789,7 +789,7 @@ build_vms_cmd (char **cmd_tokens,
       if (cmd_tkn_index == append_token)
         {
           free (cmd_tokens[cmd_tkn_index++]);
-          if (isspace (cmd_tokens[cmd_tkn_index][0]))
+          if (isspace ((unsigned char) cmd_tokens[cmd_tkn_index][0]))
             free (cmd_tokens[cmd_tkn_index++]);
           free (cmd_tokens[cmd_tkn_index++]);
         }
@@ -987,7 +987,7 @@ child_execute_job (struct childbase *child, int good_stdin UNUSED, char *argv)
           /* TODO: Should we diagnose if paren_level goes negative? */
           break;
         case '&':
-          if (isalpha (p[1]) && !vms_unix_simulation)
+          if (isalpha ((unsigned char) p[1]) && !vms_unix_simulation)
             {
               /* VMS symbol substitution */
               p = parse_text (&token, 0);
@@ -1061,7 +1061,7 @@ child_execute_job (struct childbase *child, int good_stdin UNUSED, char *argv)
           UPDATE_TOKEN;
           break;
         case ':':
-          if ((p[1] == 0) || isspace (p[1]))
+          if ((p[1] == 0) || isspace ((unsigned char) p[1]))
             {
               /* Unix Null command - treat as comment until next command */
               unix_echo_cmd = 0;
@@ -1115,7 +1115,7 @@ child_execute_job (struct childbase *child, int good_stdin UNUSED, char *argv)
           break;
         default:
           /* Skip repetitive whitespace */
-          if (isspace (*p))
+          if (isspace ((unsigned char) *p))
             {
               p = parse_char (&token, 1);
 
@@ -1125,7 +1125,7 @@ child_execute_job (struct childbase *child, int good_stdin UNUSED, char *argv)
                 token_str[0] = ' ';
               UPDATE_TOKEN;
 
-              while (isspace (*p))
+              while (isspace ((unsigned char) *p))
                 p++;
               if (assignment_hack != 0)
                 assignment_hack++;
@@ -1176,7 +1176,7 @@ child_execute_job (struct childbase *child, int good_stdin UNUSED, char *argv)
       char * raw_append_file;
       file_token = append_token;
       file_token++;
-      if (isspace (cmd_tokens[file_token][0]))
+      if (isspace ((unsigned char) cmd_tokens[file_token][0]))
         file_token++;
       raw_append_file = vmsify (cmd_tokens[file_token], 0);
       /* VMS DCL needs a trailing dot if null file extension */

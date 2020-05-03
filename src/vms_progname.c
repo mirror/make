@@ -409,7 +409,7 @@ set_program_name (const char *argv0)
                 int i;
 
                 i = 1;
-                while (isdigit (lastdot[i])) {
+                while (isdigit ((unsigned char) lastdot[i])) {
                     i++;
                 }
                 if (lastdot[i] == 0) {

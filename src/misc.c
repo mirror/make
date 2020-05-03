@@ -535,8 +535,8 @@ strcasecmp (const char *s1, const char *s2)
 {
   while (1)
     {
-      int c1 = (int) *(s1++);
-      int c2 = (int) *(s2++);
+      int c1 = (unsigned char) *(s1++);
+      int c2 = (unsigned char) *(s2++);
 
       if (isalpha (c1))
         c1 = tolower (c1);
@@ -560,8 +560,8 @@ strncasecmp (const char *s1, const char *s2, int n)
 {
   while (n-- > 0)
     {
-      int c1 = (int) *(s1++);
-      int c2 = (int) *(s2++);
+      int c1 = (unsigned char) *(s1++);
+      int c2 = (unsigned char) *(s2++);
 
       if (isalpha (c1))
         c1 = tolower (c1);
