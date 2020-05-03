@@ -227,6 +227,26 @@ get-doc/make-stds.texi get-doc/fdl.texi:
 	  && $(move_if_change)
 
 
+# ---------------------------- #
+# Extra configuration checks.  #
+# ---------------------------- #
+
+# When I released 4.3 somehow the INSTALL file was missing.
+# When I tried to build it again, it was there.  I have no idea what happened
+# but add a new check to be sure it doesn't happen again.
+mk_dist_files = INSTALL
+
+dist: mk-distcheck
+
+.PHONY: mk-distcheck
+mk-distcheck: distdir
+	@echo "Checking for extra installed files..."
+	for fn in $(mk_dist_files); do \
+	    test -f '$(distdir)'/"$$fn" \
+	        || { echo "Missing dist file: $$fn"; exit 1; }; \
+	done; true
+
+
 # ---------------------------------- #
 # Alternative configuration checks.  #
 # ---------------------------------- #
