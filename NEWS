@@ -53,10 +53,9 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&se
 * WARNING: Backward-incompatibility!
   Previously using the .SILENT pseudo-target in a makefile would force all
   sub-makes to be invoked with the '-s' option, effectively making all
-  sub-makes silent as well.  In this release, .SILENT only has effect for the
-  current invocation of make.  As a side-effect of this, .SILENT no longer has
-  a side-effect of enabling the --no-print-directory option, which using -s
-  will do.
+  sub-makes silent as well.  In this release .SILENT only affects the current
+  invocation of make.  A side-effect of this is that .SILENT will no longer
+  enable the --no-print-directory option, which using -s will do.
 
 * NOTE: Deprecated behavior.
   Contrary to the documentation, suffix rules with prerequisites are being
