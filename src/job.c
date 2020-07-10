@@ -504,7 +504,7 @@ block_sigs ()
 static void
 unblock_sigs ()
 {
-  sigsetmask (siggetmask (0) & ~fatal_signal_mask)
+  sigsetmask (siggetmask () & ~fatal_signal_mask);
 }
 
 void
