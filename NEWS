@@ -17,9 +17,16 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
 
 * WARNING: Backward-incompatibility!
   Previously if --no-print-directory was seen anywhere in the environment or
-  command line it would take precedence over --print-directory.  Now, the
+  command line it would take precedence over any --print-directory.  Now, the
   last setting of directory printing options seen will be used, so a command
   line such as "--no-print-directory -w" _will_ show directory entry/exits.
+
+* WARNING: Backward-incompatibility!
+  Previously the order in which makefiles were remade was not explicitly
+  stated, but it was (roughly) the inverse of the order in which they were
+  processed by make.  In this release, the order in which makefiles are
+  rebuilt is the same order in which make processed them, and this is defined
+  to be true in the GNU make manual.
 
 * GNU Make can now be built for MS-Windows using the Tiny C tcc compiler.
 

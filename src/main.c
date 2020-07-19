@@ -2188,11 +2188,20 @@ main (int argc, char **argv, char **envp)
 
       DB (DB_BASIC, (_("Updating makefiles....\n")));
 
+      /* Count the makefiles, and reverse the order so that we attempt to
+         rebuild them in the order they were read.  */
       {
-        struct goaldep *d;
         unsigned int num_mkfiles = 0;
-        for (d = read_files; d != NULL; d = d->next)
-          ++num_mkfiles;
+        struct goaldep *d = read_files;
+        read_files = NULL;
+        while (d != NULL)
+          {
+            struct goaldep *t = d;
+            d = d->next;
+            t->next = read_files;
+            read_files = t;
+            ++num_mkfiles;
+          }
 
         makefile_mtimes = alloca (num_mkfiles * sizeof (FILE_TIMESTAMP));
       }

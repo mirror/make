@@ -263,10 +263,6 @@ read_all_makefiles (const char **makefiles)
         {
           /* No default makefile was found.  Add the default makefiles to the
              'read_files' chain so they will be updated if possible.  */
-          struct goaldep *tail = read_files;
-          /* Add them to the tail, after any MAKEFILES variable makefiles.  */
-          while (tail != 0 && tail->next != 0)
-            tail = tail->next;
           for (p = default_makefiles; *p != 0; ++p)
             {
               struct goaldep *d = alloc_goaldep ();
@@ -274,14 +270,9 @@ read_all_makefiles (const char **makefiles)
               /* Tell update_goal_chain to bail out as soon as this file is
                  made, and main not to die if we can't make this file.  */
               d->flags = RM_DONTCARE;
-              if (tail == 0)
-                read_files = d;
-              else
-                tail->next = d;
-              tail = d;
+              d->next = read_files;
+              read_files = d;
             }
-          if (tail != 0)
-            tail->next = 0;
         }
     }
 

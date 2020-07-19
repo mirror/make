@@ -1346,16 +1346,21 @@ files.  If a makefile can be remade from other files, you probably want
 @code{make} to get an up-to-date version of the makefile to read in.
 
 To this end, after reading in all makefiles @code{make} will consider
-each as a goal target and attempt to update it.  If a makefile has a
-rule which says how to update it (found either in that very makefile or
-in another one) or if an implicit rule applies to it (@pxref{Implicit
-Rules, ,Using Implicit Rules}), it will be updated if necessary.  After
-all makefiles have been checked, if any have actually been changed,
-@code{make} starts with a clean slate and reads all the makefiles over
-again.  (It will also attempt to update each of them over again, but
-normally this will not change them again, since they are already up to
-date.)  Each restart will cause the special variable
-@code{MAKE_RESTARTS} to be updated (@pxref{Special Variables}).@refill
+each as a goal target, in the order in which they were processed, and
+attempt to update it.  If parallel builds (@pxref{Parallel, ,Parallel
+Execution}) are enabled then makefiles will be rebuilt in parallel as
+well.
+
+If a makefile has a rule which says how to update it (found either in
+that very makefile or in another one) or if an implicit rule applies
+to it (@pxref{Implicit Rules, ,Using Implicit Rules}), it will be
+updated if necessary.  After all makefiles have been checked, if any
+have actually been changed, @code{make} starts with a clean slate and
+reads all the makefiles over again.  (It will also attempt to update
+each of them over again, but normally this will not change them again,
+since they are already up to date.)  Each restart will cause the
+special variable @code{MAKE_RESTARTS} to be updated (@pxref{Special
+Variables}).@refill
 
 If you know that one or more of your makefiles cannot be remade and
 you want to keep @code{make} from performing an implicit rule search
@@ -1384,12 +1389,11 @@ if a default makefile does not exist but can be created by running
 @code{make} rules, you probably want the rules to be run so that the
 makefile can be used.
 
-Therefore, if none of the default makefiles exists, @code{make} will try
-to make each of them in the same order in which they are searched for
-(@pxref{Makefile Names, ,What Name to Give Your Makefile})
-until it succeeds in making one, or it runs out of names to try.  Note
-that it is not an error if @code{make} cannot find or make any makefile;
-a makefile is not always necessary.@refill
+Therefore, if none of the default makefiles exists, @code{make} will
+try to make each of them until it succeeds in making one, or it runs
+out of names to try.  Note that it is not an error if @code{make}
+cannot find or make any makefile; a makefile is not always
+necessary.@refill
 
 When you use the @samp{-t} or @samp{--touch} option
 (@pxref{Instead of Execution, ,Instead of Executing Recipes}),

@@ -157,7 +157,7 @@ include inc1
 include inc2
 inc2:; echo > $@
 !,
-              '', "echo > inc2\necho > inc1\nDONE\n");
+              '', "echo > inc1\necho > inc2\nDONE\n");
 
 rmfiles('inc1', 'inc2');
 
@@ -209,7 +209,7 @@ inc1:; echo > $@
 include inc1
 include inc2
 !,
-                  '', "#MAKEFILE#:7: inc2: $ERR_no_such_file\n#MAKE#: *** No rule to make target 'inc2'.  Stop.\n", 512);
+                  '', "echo > inc1\n#MAKEFILE#:7: inc2: $ERR_no_such_file\n#MAKE#: *** No rule to make target 'inc2'.  Stop.\n", 512);
 
     rmfiles('inc1');
 
@@ -259,5 +259,26 @@ inc1:; @%s $@ && echo FOO := bar > $@
 
     rmfiles('inc1');
 }
+
+# Check that the order of remaking include files is correct: should remake
+# them in the same order they were encountered in the makefile.  SV 58735
+
+run_make_test(q!
+-include i1 i2
+-include i3
+-include i4
+%:;@echo $@
+all:;
+!,
+              '', "i1\ni2\ni3\ni4\n#MAKE#: 'all' is up to date.\n");
+rmfiles('foo');
+
+# Check the default makefiles... this requires us to invoke make with no
+# arguments.  Also check MAKEFILES
+
+$ENV{MAKEFILES} = 'foobar barfoo';
+run_make_with_options(undef, q!-E '%:;@echo $@' -E 'all:;' -E '-include bizbaz' -E '-include bazbiz'!, get_logfile(0));
+$answer = "bizbaz\nbazbiz\nfoobar\nbarfoo\nGNUmakefile\nmakefile\nMakefile\n#MAKE#: 'all' is up to date.\n";
+&compare_output(subst_make_string($answer), &get_logfile(1));
 
 1;
