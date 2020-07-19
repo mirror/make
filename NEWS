@@ -28,6 +28,12 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   rebuilt is the same order in which make processed them, and this is defined
   to be true in the GNU make manual.
 
+* WARNING: New build requirement
+  GNU make utilizes facilities from GNU Gnulib: Gnulib requires certain C99
+  features in the C compiler and so these features are required by GNU make:
+  https://www.gnu.org/software/gnulib/manual/html_node/C99-features-assumed.html
+  The configure script should verify the compiler has these features.
+
 * GNU Make can now be built for MS-Windows using the Tiny C tcc compiler.
 
 

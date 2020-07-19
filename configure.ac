@@ -38,6 +38,9 @@ AM_INIT_AUTOMAKE([1.16.1 foreign -Werror -Wall])
 AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
 
+# GNU Gnulib requires C99, so I guess we might as well too...
+AC_PROG_CC_C99
+
 # Configure gnulib
 gl_EARLY
 gl_INIT
