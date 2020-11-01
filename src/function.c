@@ -908,6 +908,56 @@ func_foreach (char *o, char **argv, const char *funcname UNUSED)
   return o;
 }
 
+static char *
+func_let (char *o, char **argv, const char *funcname UNUSED)
+{
+  /* expand only the first two.  */
+  char *varnames = expand_argument (argv[0], NULL);
+  char *list = expand_argument (argv[1], NULL);
+  const char *body = argv[2];
+
+  const char *vp;
+  const char *vp_next = varnames;
+  const char *list_iterator = list;
+  char *p;
+  size_t len;
+  size_t vlen;
+
+  push_new_variable_scope ();
+
+  /* loop through LIST for all but the last VARNAME */
+  vp = find_next_token (&vp_next, &vlen);
+  NEXT_TOKEN (vp_next);
+  while (*vp_next != '\0')
+    {
+      p = find_next_token (&list_iterator, &len);
+      if (*list_iterator != '\0')
+        {
+          ++list_iterator;
+          p[len] = '\0';
+        }
+      define_variable (vp, vlen, p ? p : "", o_automatic, 0);
+
+      vp = find_next_token (&vp_next, &vlen);
+      NEXT_TOKEN (vp_next);
+    }
+
+  /* set the last VARNAME to the remainder of LIST */
+  if (vp)
+    define_variable (vp, vlen, next_token (list_iterator), o_automatic, 0);
+
+  /* Expand the body in the context of the arguments, adding the result to
+     the variable buffer.  */
+
+  o = variable_expand_string (o, body, SIZE_MAX);
+
+  pop_variable_scope ();
+  free (varnames);
+  free (list);
+
+  return o + strlen (o);
+}
+
 struct a_word
 {
   struct a_word *chain;
@@ -2344,7 +2394,8 @@ func_abspath (char *o, char **argv, const char *funcname UNUSED)
    comma-separated values are treated as arguments.
 
    EXPAND_ARGS means that all arguments should be expanded before invocation.
-   Functions that do namespace tricks (foreach) don't automatically expand.  */
+   Functions that do namespace tricks (foreach, let) don't automatically
+   expand.  */
 
 static char *func_call (char *o, char **argv, const char *funcname);
 
@@ -2380,6 +2431,7 @@ static struct function_table_entry function_table_init[] =
   FT_ENTRY ("words",         0,  1,  1,  func_words),
   FT_ENTRY ("origin",        0,  1,  1,  func_origin),
   FT_ENTRY ("foreach",       3,  3,  0,  func_foreach),
+  FT_ENTRY ("let",           3,  3,  0,  func_let),
   FT_ENTRY ("call",          1,  0,  1,  func_call),
   FT_ENTRY ("info",          0,  1,  1,  func_error),
   FT_ENTRY ("error",         0,  1,  1,  func_error),

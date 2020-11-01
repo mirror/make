@@ -276,6 +276,7 @@ Functions for Transforming Text
 * Text Functions::              General-purpose text manipulation functions.
 * File Name Functions::         Functions for manipulating file names.
 * Conditional Functions::       Functions that implement conditions.
+* Let Function::                Lexically scoped variables.
 * Foreach Function::            Repeat some text with controlled variation.
 * File Function::               Write text to a file.
 * Call Function::               Expand a user-defined function.
@@ -7038,6 +7039,7 @@ be substituted.
 * Text Functions::              General-purpose text manipulation functions.
 * File Name Functions::         Functions for manipulating file names.
 * Conditional Functions::       Functions that implement conditions.
+* Let Function::                Lexically scoped variables.
 * Foreach Function::            Repeat some text with controlled variation.
 * File Function::               Write text to a file.
 * Call Function::               Expand a user-defined function.
@@ -7638,7 +7640,7 @@ the file names to refer to an existing file or directory.  Use the
 @code{wildcard} function to test for existence.
 @end table
 
-@node Conditional Functions, Foreach Function, File Name Functions, Functions
+@node Conditional Functions, Let Function, File Name Functions, Functions
 @section Functions for Conditionals
 @findex if
 @cindex conditional expansion
@@ -7691,14 +7693,84 @@ the result of the expansion is the expansion of the last argument.
 
 @end table
 
-@node Foreach Function, File Function, Conditional Functions, Functions
+@node Let Function, Foreach Function, Conditional Functions, Functions
+@section The @code{let} Function
+@findex let
+@cindex variables, lexically scoped
+
+The @code{let} function provides a means to limit the scope of a
+variable.  The assignment of the named variables in a @code{let}
+expression is in effect only within the text provided by the
+@code{let} expression, and this assignment doesn't impact that named
+variable in any outer scope.
+
+Additionally, the @code{let} function enables list unpacking by
+assigning all unassigned values to the last named variable.
+
+The syntax of the @code{let} function is:
+
+@example
+$(let @var{var} [@var{var} ...],[@var{list}],@var{text})
+@end example
+
+@noindent
+The first two arguments, @var{var} and @var{list}, are expanded before
+anything else is done; note that the last argument, @var{text}, is
+@strong{not} expanded at the same time.  Next, each word of the
+expanded value of @var{list} is bound to each of the variable names,
+@var{var}, in turn, with the final variable name being bound to the
+remainder of the expanded @var{list}.  In other words, the first word
+of @var{list} is bound to the first variable @var{var}, the second
+word to the second variable @var{var}, and so on.
+
+If there are more variable names in @var{var} than there are words in
+@var{list}, the remaining @var{var} variable names are set to the
+empty string.  If there are fewer @var{var}s than words in @var{list}
+then the last @var{var} is set to all remaining words in @var{list}.
+
+The variables in @var{var} are assigned as simply-expanded variables
+during the execution of @code{let}.  @xref{Flavors, ,The Two Flavors
+of Variables}.@refill
+
+After all variables are thus bound, @var{text} is expanded to provide
+the result of the @code{let} function.
+
+For example, this macro reverses the order of the words in the list
+that it is given as its first argument:
+
+@example
+reverse = $(let first rest,$1,$(if $(rest),$(call reverse,$(rest)) )$(first))
+
+all: ; @@echo $(call reverse,d c b a)
+@end example
+
+@noindent
+will print @code{a b c d}.  When first called, @code{let} will expand
+@var{$1} to @code{d c b a}.  It will then assign @var{first} to
+@code{d} and assign @var{rest} to @code{c b a}.  It will then expand
+the if-statement, where @code{$(rest)} is not empty so we recursively
+invoke the @var{reverse} function with the value of @var{rest} which
+is now @code{c b a}.  The recursive invocation of @code{let} assigns
+@var{first} to @code{c} and @var{rest} to @code{b a}.  The recursion
+continues until @code{let} is called with just a single value,
+@code{a}.  Here @var{first} is @code{a} and @var{rest} is empty, so we
+do not recurse but simply expand @code{$(first)} to @code{a} and
+return, which adds @code{ b}, etc.
+
+After the @var{reverse} call is complete, the @var{first} and
+@var{rest} variables are no longer set.  If variables by those names
+existed beforehand, they are not affected by the expansion of the
+@code{reverse} macro.
+
+@node Foreach Function, File Function, Let Function, Functions
 @section The @code{foreach} Function
 @findex foreach
 @cindex words, iterating over
 
-The @code{foreach} function is very different from other functions.  It
-causes one piece of text to be used repeatedly, each time with a different
-substitution performed on it.  It resembles the @code{for} command in the
+The @code{foreach} function is similar to the @code{let} function, but very
+different from other functions.  It causes one piece of text to be used
+repeatedly, each time with a different substitution performed on it.  The
+@code{foreach} function resembles the @code{for} command in the
 shell @code{sh} and the @code{foreach} command in the C-shell @code{csh}.
 
 The syntax of the @code{foreach} function is:
@@ -7757,13 +7829,14 @@ actual function call to be re-expanded under the control of @code{foreach};
 a simply-expanded variable would not do, since @code{wildcard} would be
 called only once at the time of defining @code{find_files}.
 
-The @code{foreach} function has no permanent effect on the variable
-@var{var}; its value and flavor after the @code{foreach} function call are
-the same as they were beforehand.  The other values which are taken from
-@var{list} are in effect only temporarily, during the execution of
-@code{foreach}.  The variable @var{var} is a simply-expanded variable
-during the execution of @code{foreach}.  If @var{var} was undefined
-before the @code{foreach} function call, it is undefined after the call.
+Like the @code{let} function, the @code{foreach} function has no permanent
+effect on the variable @var{var}; its value and flavor after the
+@code{foreach} function call are the same as they were beforehand.  The
+other values which are taken from @var{list} are in effect only
+temporarily, during the execution of @code{foreach}.  The variable
+@var{var} is a simply-expanded variable during the execution of
+@code{foreach}.  If @var{var} was undefined before the @code{foreach}
+function call, it is undefined after the call.
 @xref{Flavors, ,The Two Flavors of Variables}.@refill
 
 You must take care when using complex variable expressions that result in
@@ -12408,6 +12481,11 @@ defined.@*
 Return a string describing the flavor of the @code{make} variable
 @var{variable}.@*
 @xref{Flavor Function, , The @code{flavor} Function}.
+
+@item $(let @var{var} [@var{var} ...],@var{words},@var{text})
+Evaluate @var{text} with the @var{var}s bound to the words in
+@var{words}.@*
+@xref{Let Function, ,The @code{let} Function}.
 
 @item $(foreach @var{var},@var{words},@var{text})
 Evaluate @var{text} with @var{var} bound to each word in @var{words},
