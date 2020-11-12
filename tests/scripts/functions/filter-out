@@ -27,6 +27,22 @@ all: ; @echo '$(files1) $(files2)'
 !,
               '', "foo.elc foo.elc\n");
 
+# Force use of hash (see function.c:func_filter_filterout for params)
+
+my $base = 'foo.1 foo.2 foo.3 foo.4 foo.5 foo.6 foo.7 foo.8 foo.9 foo.10';
+
+my $base10 = join(' ', ($base) x 10);
+my $out3 = join(' ', ('foo.3') x 10);
+my $out456 = join(' ', ('foo.4 foo.5 foo.6') x 10);
+
+run_make_test("words := $base10" . q!
+files1 := $(filter %.3, $(words))
+files2 := $(filter %.4 foo.5 foo.6, $(words))
+all: ; @echo '$(files1) $(files2)'
+!,
+              '', "$out3 $out456\n");
+
+
 # Escaped patterns
 run_make_test(q!all:;@echo '$(filter foo\%bar,foo%bar fooXbar)'!,
               '', "foo%bar\n");

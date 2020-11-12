@@ -910,7 +910,6 @@ func_foreach (char *o, char **argv, const char *funcname UNUSED)
 
 struct a_word
 {
-  struct a_word *next;
   struct a_word *chain;
   char *str;
   size_t length;
@@ -941,7 +940,6 @@ a_word_hash_cmp (const void *x, const void *y)
 
 struct a_pattern
 {
-  struct a_pattern *next;
   char *str;
   char *percent;
   size_t length;
@@ -950,78 +948,84 @@ struct a_pattern
 static char *
 func_filter_filterout (char *o, char **argv, const char *funcname)
 {
-  struct a_word *wordhead;
-  struct a_word **wordtail;
+  struct a_word *words;
+  struct a_word *word_end;
   struct a_word *wp;
-  struct a_pattern *pathead;
-  struct a_pattern **pattail;
+  struct a_pattern *patterns;
+  struct a_pattern *pat_end;
   struct a_pattern *pp;
+  size_t pat_count = 0, word_count = 0;
 
   struct hash_table a_word_table;
   int is_filter = funcname[CSTRLEN ("filter")] == '\0';
-  const char *pat_iterator = argv[0];
-  const char *word_iterator = argv[1];
+  const char *cp;
   int literals = 0;
-  int words = 0;
   int hashing = 0;
   char *p;
   size_t len;
+  int doneany = 0;
 
-  /* Chop ARGV[0] up into patterns to match against the words.
-     We don't need to preserve it because our caller frees all the
-     argument memory anyway.  */
+  /* Find the number of words and get memory for them.  */
+  cp = argv[1];
+  while ((p = find_next_token (&cp, NULL)) != 0)
+    ++word_count;
 
-  pattail = &pathead;
-  while ((p = find_next_token (&pat_iterator, &len)) != 0)
+  if (!word_count)
+    return o;
+
+  words = xcalloc (word_count * sizeof (struct a_word));
+  word_end = words + word_count;
+
+  /* Find the number of patterns and get memory for them.  */
+  cp = argv[0];
+  while ((p = find_next_token (&cp, NULL)) != 0)
+    ++pat_count;
+
+  patterns = xcalloc (pat_count * sizeof (struct a_pattern));
+  pat_end = patterns + pat_count;
+
+  /* Chop argv[0] up into patterns to match against the words.  */
+
+  cp = argv[0];
+  pp = patterns;
+  while ((p = find_next_token (&cp, &len)) != 0)
     {
-      struct a_pattern *pat = alloca (sizeof (struct a_pattern));
+      if (*cp != '\0')
+        ++cp;
 
-      *pattail = pat;
-      pattail = &pat->next;
-
-      if (*pat_iterator != '\0')
-        ++pat_iterator;
-
-      pat->str = p;
       p[len] = '\0';
-      pat->percent = find_percent (p);
-      if (pat->percent == 0)
+      pp->str = p;
+      pp->percent = find_percent (p);
+      if (pp->percent == 0)
         literals++;
-
       /* find_percent() might shorten the string so LEN is wrong.  */
-      pat->length = strlen (pat->str);
+      pp->length = strlen (pp->str);
+
+      ++pp;
     }
-  *pattail = 0;
 
   /* Chop ARGV[1] up into words to match against the patterns.  */
 
-  wordtail = &wordhead;
-  while ((p = find_next_token (&word_iterator, &len)) != 0)
+  cp = argv[1];
+  wp = words;
+  while ((p = find_next_token (&cp, &len)) != 0)
     {
-      struct a_word *word = alloca (sizeof (struct a_word));
-
-      *wordtail = word;
-      wordtail = &word->next;
-
-      if (*word_iterator != '\0')
-        ++word_iterator;
+      if (*cp != '\0')
+        ++cp;
 
       p[len] = '\0';
-      word->str = p;
-      word->length = len;
-      word->matched = 0;
-      word->chain = 0;
-      words++;
+      wp->str = p;
+      wp->length = len;
+      ++wp;
     }
-  *wordtail = 0;
 
   /* Only use a hash table if arg list lengths justifies the cost.  */
-  hashing = (literals >= 2 && (literals * words) >= 10);
+  hashing = (literals > 1 && (literals * word_count) >= 10);
   if (hashing)
     {
-      hash_init (&a_word_table, words, a_word_hash_1, a_word_hash_2,
+      hash_init (&a_word_table, word_count, a_word_hash_1, a_word_hash_2,
                  a_word_hash_cmp);
-      for (wp = wordhead; wp != 0; wp = wp->next)
+      for (wp = words; wp < word_end; ++wp)
         {
           struct a_word *owp = hash_insert (&a_word_table, wp);
           if (owp)
@@ -1029,50 +1033,48 @@ func_filter_filterout (char *o, char **argv, const char *funcname)
         }
     }
 
-  if (words)
+  /* Run each pattern through the words, killing words.  */
+  for (pp = patterns; pp < pat_end; ++pp)
     {
-      int doneany = 0;
-
-      /* Run each pattern through the words, killing words.  */
-      for (pp = pathead; pp != 0; pp = pp->next)
+      if (pp->percent)
+        for (wp = words; wp < word_end; ++wp)
+          wp->matched |= pattern_matches (pp->str, pp->percent, wp->str);
+      else if (hashing)
         {
-          if (pp->percent)
-            for (wp = wordhead; wp != 0; wp = wp->next)
-              wp->matched |= pattern_matches (pp->str, pp->percent, wp->str);
-          else if (hashing)
+          struct a_word a_word_key;
+          a_word_key.str = pp->str;
+          a_word_key.length = pp->length;
+          wp = hash_find_item (&a_word_table, &a_word_key);
+          while (wp)
             {
-              struct a_word a_word_key;
-              a_word_key.str = pp->str;
-              a_word_key.length = pp->length;
-              wp = hash_find_item (&a_word_table, &a_word_key);
-              while (wp)
-                {
-                  wp->matched |= 1;
-                  wp = wp->chain;
-                }
+              wp->matched |= 1;
+              wp = wp->chain;
             }
-          else
-            for (wp = wordhead; wp != 0; wp = wp->next)
-              wp->matched |= (wp->length == pp->length
-                              && strneq (pp->str, wp->str, wp->length));
         }
-
-      /* Output the words that matched (or didn't, for filter-out).  */
-      for (wp = wordhead; wp != 0; wp = wp->next)
-        if (is_filter ? wp->matched : !wp->matched)
-          {
-            o = variable_buffer_output (o, wp->str, strlen (wp->str));
-            o = variable_buffer_output (o, " ", 1);
-            doneany = 1;
-          }
-
-      if (doneany)
-        /* Kill the last space.  */
-        --o;
+      else
+        for (wp = words; wp < word_end; ++wp)
+          wp->matched |= (wp->length == pp->length
+                          && strneq (pp->str, wp->str, wp->length));
     }
+
+  /* Output the words that matched (or didn't, for filter-out).  */
+  for (wp = words; wp < word_end; ++wp)
+    if (is_filter ? wp->matched : !wp->matched)
+      {
+        o = variable_buffer_output (o, wp->str, strlen (wp->str));
+        o = variable_buffer_output (o, " ", 1);
+        doneany = 1;
+      }
+
+  if (doneany)
+    /* Kill the last space.  */
+    --o;
 
   if (hashing)
     hash_free (&a_word_table, 0);
+
+  free (patterns);
+  free (words);
 
   return o;
 }
