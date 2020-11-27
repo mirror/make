@@ -1881,7 +1881,6 @@ static void check_specials (const struct nameseq* files, int set_default)
           /* These default values are based on IEEE Std 1003.1-2008.
              It requires '-O 1' for [CF]FLAGS, but GCC doesn't allow
              space between -O and the number so omit it here.  */
-          define_variable_cname ("ARFLAGS", "-rv", o_default, 0);
           define_variable_cname ("CC", "c99", o_default, 0);
           define_variable_cname ("CFLAGS", "-O1", o_default, 0);
           define_variable_cname ("FC", "fort77", o_default, 0);

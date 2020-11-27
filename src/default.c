@@ -518,7 +518,12 @@ static const char *default_variables[] =
 #else /* !VMS */
 
     "AR", "ar",
-    "ARFLAGS", "rv",
+#ifdef _AIX
+    /* AIX requires object file format specification: choose -Xany.  */
+    "ARFLAGS", "-Xany -rv",
+#else
+    "ARFLAGS", "-rv",
+#endif
     "AS", "as",
 #ifdef GCC_IS_NATIVE
     "CC", "gcc",
