@@ -322,6 +322,12 @@ struct variable shell_var;
 
 char cmd_prefix = '\t';
 
+/* Count the number of commands we've invoked, that might change something in
+   the filesystem.  Start with 1 so calloc'd memory never matches.  */
+
+unsigned long command_count = 1;
+
+
 
 /* The usage output.  We write it this way to make life easier for the
    translators, especially those trying to translate to right-to-left

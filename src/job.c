@@ -721,9 +721,6 @@ reap_children (int block, int err)
       else if (pid < 0)
         {
           /* A remote status command failed miserably.  Punt.  */
-#if !defined(__MSDOS__) && !defined(_AMIGA) && !defined(WINDOWS32)
-        remote_status_lose:
-#endif
           pfatal_with_name ("remote_status");
         }
       else
@@ -779,8 +776,9 @@ reap_children (int block, int err)
               /* Now try a blocking wait for a remote child.  */
               pid = remote_status (&exit_code, &exit_sig, &coredump, 1);
               if (pid < 0)
-                goto remote_status_lose;
-              else if (pid == 0)
+                pfatal_with_name ("remote_status");
+
+              if (pid == 0)
                 /* No remote children either.  Finally give up.  */
                 break;
 
@@ -875,6 +873,9 @@ reap_children (int block, int err)
           }
 #endif /* WINDOWS32 */
         }
+
+      /* Some child finished: increment the command count.  */
+      ++command_count;
 
       /* Check if this is the child of the 'shell' function.  */
       if (!remote && pid == shell_function_pid)

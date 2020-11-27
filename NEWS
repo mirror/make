@@ -42,6 +42,10 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
 * Special targets like .POSIX are detected upon definition, ensuring that any
   change in behavior takes effect immediately, before the next line is parsed.
 
+* A long-standing issue with the directory cache has been resolved: changes
+  made as a side-effect of some other target's recipe are now noticed as
+  expected.
+
 * GNU Make can now be built for MS-Windows using the Tiny C tcc compiler.
 
 

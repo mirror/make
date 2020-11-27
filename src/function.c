@@ -2235,6 +2235,11 @@ func_file (char *o, char **argv, const char *funcname UNUSED)
       if (fp == NULL)
         OSS (fatal, reading_file, _("open: %s: %s"), fn, strerror (errno));
 
+      /* We've changed the contents of a directory, possibly.
+         Another option would be to look up the directory we changed and reset
+         its counter to 0.  */
+      ++command_count;
+
       if (argv[1])
         {
           size_t l = strlen (argv[1]);
