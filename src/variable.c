@@ -282,6 +282,8 @@ define_variable_in_set (const char *name, size_t length,
 
   v->export = v_default;
   v->exportable = 1;
+  /* Check the nul-terminated variable name.  */
+  name = v->name;
   if (*name != '_' && (*name < 'A' || *name > 'Z')
       && (*name < 'a' || *name > 'z'))
     v->exportable = 0;

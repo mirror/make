@@ -281,6 +281,16 @@ all: ; $sname
 unlink("sd/$sname");
 rmdir ('sd');
 
+# SV 59230: Conditional (non-)assignment of target-specific variables should
+# preserve export settings.
+
+$ENV{hello} = 'moon';
+run_make_test(q!
+all:; @echo hello=$$hello
+dummy: hello?=world
+!,
+              '', 'hello=moon');
+
 # TEST #19: Test define/endef variables as target-specific vars
 
 # run_make_test('
