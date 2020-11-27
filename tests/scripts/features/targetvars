@@ -86,7 +86,6 @@ run_make_test(undef, "foo.q bar.q", "qvar = rvar\nqvar =\n");
 
 run_make_test(undef, "foo.t bar.s", "qvar = qvar\nqvar =\n");
 
-
 # TEST #8
 # For PR/1378: Target-specific vars don't inherit correctly
 
@@ -290,6 +289,17 @@ all:; @echo hello=$$hello
 dummy: hello?=world
 !,
               '', 'hello=moon');
+
+# SV 59230: Assignment of a global variable should not affect export of a
+# target specific variable.
+
+$ENV{hello} = "moon";
+run_make_test(q!
+all:; @echo hello=$$hello
+hello=sun
+dummy: hello?=world
+!,
+              '', 'hello=sun');
 
 # TEST #19: Test define/endef variables as target-specific vars
 
