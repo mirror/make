@@ -34,6 +34,9 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   https://www.gnu.org/software/gnulib/manual/html_node/C99-features-assumed.html
   The configure script should verify the compiler has these features.
 
+* Special targets like .POSIX are detected upon definition, ensuring that any
+  change in behavior takes effect immediately, before the next line is parsed.
+
 * GNU Make can now be built for MS-Windows using the Tiny C tcc compiler.
 
 

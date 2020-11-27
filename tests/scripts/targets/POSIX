@@ -20,6 +20,8 @@ all: ; \@$script
               '', "#MAKE#: *** [#MAKEFILE#:3: all] Error $err\n", 512);
 
 # User settings must override .POSIX
+# In the standard .POSIX must be the first thing in the makefile
+# but we relax that rule in GNU make.
 $flags = '-xc';
 $out = `$sh_name $flags '$script' 2>&1`;
 run_make_test(qq!
