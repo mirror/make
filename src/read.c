@@ -63,9 +63,9 @@ struct vmodifiers
     unsigned int assign_v:1;
     unsigned int define_v:1;
     unsigned int undefine_v:1;
-    unsigned int export_v:1;
     unsigned int override_v:1;
     unsigned int private_v:1;
+    enum variable_export export_v ENUM_BITFIELD (2);
   };
 
 /* Types of "words" that can be read in a makefile.  */
@@ -517,7 +517,9 @@ parse_var_assignment (const char *line, struct vmodifiers *vmod)
       wlen = p2 - p;
 
       if (word1eq ("export"))
-        vmod->export_v = 1;
+        vmod->export_v = v_export;
+      else if (word1eq ("unexport"))
+        vmod->export_v = v_noexport;
       else if (word1eq ("override"))
         vmod->override_v = 1;
       else if (word1eq ("private"))
@@ -743,8 +745,8 @@ eval (struct ebuffer *ebuf, int set_default)
 
           assert (v != NULL);
 
-          if (vmod.export_v)
-            v->export = v_export;
+          if (vmod.export_v != v_default)
+            v->export = vmod.export_v;
           if (vmod.private_v)
             v->private_var = 1;
 
@@ -1832,8 +1834,8 @@ record_target_var (struct nameseq *filenames, char *defn,
       /* Set up the variable to be *-specific.  */
       v->per_target = 1;
       v->private_var = vmod->private_v;
-      if (vmod->export_v)
-        v->export = v_export;
+      if (vmod->export_v != v_default)
+        v->export = vmod->export_v;
 
       /* If it's not an override, check to see if there was a command-line
          setting.  If so, reset the value.  */

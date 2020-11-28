@@ -34,6 +34,11 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   https://www.gnu.org/software/gnulib/manual/html_node/C99-features-assumed.html
   The configure script should verify the compiler has these features.
 
+* Target-specific variables can now be marked "unexport".
+
+* Exporting / unexporting target-specific variables is handled correctly, so
+  that the attribute of the most specific variable setting is used.
+
 * Special targets like .POSIX are detected upon definition, ensuring that any
   change in behavior takes effect immediately, before the next line is parsed.
 

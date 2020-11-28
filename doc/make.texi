@@ -6283,8 +6283,9 @@ Set a target-specific variable value like this:
 @end example
 
 Target-specific variable assignments can be prefixed with any or all of the
-special keywords @code{export}, @code{override}, or @code{private};
-these apply their normal behavior to this instance of the variable only.
+special keywords @code{export}, @code{unexport}, @code{override}, or
+@code{private}; these apply their normal behavior to this instance of the
+variable only.
 
 Multiple @var{target} values create a target-specific variable value for
 each member of the target list individually.

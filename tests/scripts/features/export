@@ -178,13 +178,33 @@ a: ; @echo "\$$(export)=$(export) / \$$export=$$export"
 ',
                '', "\$(export)=456 / \$export=456\n");
 
-# TEST 9: Check "export" as a target
+# TEST 10: Check "export" as a target
 
 &run_make_test('
 a: export
 export: ; @echo "$@"
 ',
                '', "export\n");
+
+# Check export and assignment of a variable on the same line
+
+$ENV{hello} = 'moon';
+
+run_make_test(q!
+all: ; @echo hello=$(hello) hello=$$hello
+export hello=sun
+!,
+              '', "hello=sun hello=sun\n");
+
+# Check unexport and assignment of a variable on the same line
+
+$ENV{hello} = 'moon';
+
+run_make_test(q!
+all: ; @echo hello=$(hello) hello=$$hello
+unexport hello=sun
+!,
+              '', "hello=sun hello=\n");
 
 # This tells the test driver that the perl test script executed properly.
 1;

@@ -18,16 +18,15 @@ $mshell = $sh_name;
 $ENV{SHELL} = '/dev/null';
 run_make_test('all:;@echo "$(SHELL)"', '', $mshell);
 
-# According to POSIX, any value of SHELL set in the makefile should _NOT_ be
-# exported to the subshell!  I wanted to set SHELL to be $^X (perl) in the
-# makefile, but make runs $(SHELL) -c 'commandline' and that doesn't work at
-# all when $(SHELL) is perl :-/.  So, we just add an extra initial /./ which
-# works well on UNIX and seems to work OK on at least some non-UNIX systems.
+# According to POSIX, any value of SHELL set in the makefile should not be
+# exported to the subshell.  A more portable option might be to set SHELL to
+# be $^X (perl) in the makefile, and set .SHELLFLAGS to -e.
 
 $ENV{SHELL} = $mshell;
 
 my $altshell = "/./$mshell";
 my $altshell2 = "/././$mshell";
+
 if ($mshell =~ m,^([a-zA-Z]:)([\\/])(.*),) {
     $altshell = "$1$2.$2$3";
     $altshell2 = "$1$2.$2.$2$3";

@@ -980,6 +980,41 @@ define_automatic_variables (void)
 
 int export_all_variables;
 
+static int
+should_export (const struct variable *v)
+{
+  switch (v->export)
+    {
+    case v_export:
+      break;
+
+    case v_noexport:
+      return 0;
+
+    case v_ifset:
+      if (v->origin == o_default)
+        return 0;
+      break;
+
+    case v_default:
+      if (v->origin == o_default || v->origin == o_automatic)
+        /* Only export default variables by explicit request.  */
+        return 0;
+
+      /* The variable doesn't have a name that can be exported.  */
+      if (! v->exportable)
+        return 0;
+
+      if (! export_all_variables
+          && v->origin != o_command
+          && v->origin != o_env && v->origin != o_env_override)
+        return 0;
+      break;
+    }
+
+  return 1;
+}
+
 /* Create a new environment for FILE's commands.
    If FILE is nil, this is for the 'shell' function.
    The child's MAKELEVEL variable is incremented.  */
@@ -995,6 +1030,8 @@ target_environment (struct file *file)
   struct variable makelevel_key;
   char **result_0;
   char **result;
+  /* If we got no value from the environment then never add the default.  */
+  int added_SHELL = shell_var.value == 0;
 
   if (file == 0)
     set_list = current_variable_set_list;
@@ -1004,74 +1041,35 @@ target_environment (struct file *file)
   hash_init (&table, VARIABLE_BUCKETS,
              variable_hash_1, variable_hash_2, variable_hash_cmp);
 
-  /* Run through all the variable sets in the list,
-     accumulating variables in TABLE.  */
+  /* Run through all the variable sets in the list, accumulating variables
+     in TABLE.  We go from most specific to least, so the first variable we
+     encounter is the keeper.  */
   for (s = set_list; s != 0; s = s->next)
     {
       struct variable_set *set = s->set;
+      int isglobal = set == &global_variable_set;
+
       v_slot = (struct variable **) set->table.ht_vec;
       v_end = v_slot + set->table.ht_size;
       for ( ; v_slot < v_end; v_slot++)
         if (! HASH_VACANT (*v_slot))
           {
-            struct variable **new_slot;
+            struct variable **evslot;
             struct variable *v = *v_slot;
 
-            /* If this is a per-target variable and it hasn't been touched
-               already then look up the global version and take its export
-               value.  */
-            if (v->per_target && v->export == v_default)
+            evslot = (struct variable **) hash_find_slot (&table, v);
+
+            if (HASH_VACANT (*evslot))
               {
-                struct variable *gv;
-
-                gv = lookup_variable_in_set (v->name, strlen (v->name),
-                                             &global_variable_set);
-                if (gv)
-                  v->export = gv->export;
+                /* If we're not global, or we are and should export, add it.  */
+                if (!isglobal || should_export (v))
+                  hash_insert_at (&table, v, evslot);
               }
-
-            switch (v->export)
+            else if ((*evslot)->export == v_default)
               {
-              case v_default:
-                if (v->origin == o_default || v->origin == o_automatic)
-                  /* Only export default variables by explicit request.  */
-                  continue;
-
-                /* The variable doesn't have a name that can be exported.  */
-                if (! v->exportable)
-                  continue;
-
-                if (! export_all_variables
-                    && v->origin != o_command
-                    && v->origin != o_env && v->origin != o_env_override)
-                  continue;
-                break;
-
-              case v_export:
-                break;
-
-              case v_noexport:
-                {
-                  /* If this is the SHELL variable and it's not exported,
-                     then add the value from our original environment, if
-                     the original environment defined a value for SHELL.  */
-                  if (streq (v->name, "SHELL") && shell_var.value)
-                    {
-                      v = &shell_var;
-                      break;
-                    }
-                  continue;
-                }
-
-              case v_ifset:
-                if (v->origin == o_default)
-                  continue;
-                break;
+                /* We already have a variable but we don't know its status.  */
+                (*evslot)->export = v->export;
               }
-
-            new_slot = (struct variable **) hash_find_slot (&table, v);
-            if (HASH_VACANT (*new_slot))
-              hash_insert_at (&table, v, new_slot);
           }
     }
 
@@ -1079,7 +1077,7 @@ target_environment (struct file *file)
   makelevel_key.length = MAKELEVEL_LENGTH;
   hash_delete (&table, &makelevel_key);
 
-  result = result_0 = xmalloc ((table.ht_fill + 2) * sizeof (char *));
+  result = result_0 = xmalloc ((table.ht_fill + 3) * sizeof (char *));
 
   v_slot = (struct variable **) table.ht_vec;
   v_end = v_slot + table.ht_size;
@@ -1087,6 +1085,15 @@ target_environment (struct file *file)
     if (! HASH_VACANT (*v_slot))
       {
         struct variable *v = *v_slot;
+
+        /* This might be here because it was a target-specific variable that
+           we didn't know the status of when we added it.  */
+        if (! should_export (v))
+          continue;
+
+        /* If this is the SHELL variable remember we already added it.  */
+        if (!added_SHELL && streq (v->name, "SHELL"))
+          added_SHELL = 1;
 
         /* If V is recursively expanded and didn't come from the environment,
            expand its value.  If it came from the environment, it should
@@ -1113,6 +1120,9 @@ target_environment (struct file *file)
             *result++ = xstrdup (concat (3, v->name, "=", v->value));
           }
       }
+
+  if (!added_SHELL)
+    *result++ = xstrdup (concat (3, shell_var.name, "=", shell_var.value));
 
   *result = xmalloc (100);
   sprintf (*result, "%s=%u", MAKELEVEL_NAME, makelevel + 1);

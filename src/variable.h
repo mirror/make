@@ -41,6 +41,14 @@ enum variable_flavor
     f_append_value      /* Append unexpanded value */
   };
 
+enum variable_export
+{
+    v_default = 0,      /* Decide in target_environment.  */
+    v_export,           /* Export this variable.  */
+    v_noexport,         /* Don't export this variable.  */
+    v_ifset             /* Export it if it has a non-default value.  */
+};
+
 /* Structure that represents one variable definition.
    Each bucket of the hash table is a chain of these,
    chained through 'next'.  */
@@ -73,12 +81,7 @@ struct variable
     enum variable_origin
       origin ENUM_BITFIELD (3); /* Variable origin.  */
     enum variable_export
-      {
-        v_export,               /* Export this variable.  */
-        v_noexport,             /* Don't export this variable.  */
-        v_ifset,                /* Export it if it has a non-default value.  */
-        v_default               /* Decide in target_environment.  */
-      } export ENUM_BITFIELD (2);
+      export ENUM_BITFIELD (2); /* Export control. */
   };
 
 /* Structure that represents a variable set.  */
