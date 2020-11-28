@@ -13,6 +13,7 @@ clang
 -Wall
 -Wextra
 -Werror
+-Wno-address
 -Wwrite-strings
 -Wshadow
 -Wdeclaration-after-statement
