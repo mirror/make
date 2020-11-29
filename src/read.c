@@ -432,7 +432,7 @@ eval_makefile (const char *filename, unsigned short flags)
   fclose (ebuf.fp);
 
   free (ebuf.bufstart);
-  alloca (0);
+  free_alloca ();
 
   errno = 0;
   return deps;
@@ -474,7 +474,7 @@ eval_buffer (char *buffer, const floc *flocp)
 
   reading_file = curfile;
 
-  alloca (0);
+  free_alloca ();
 }
 
 /* Check LINE to see if it's a variable assignment or undefine.

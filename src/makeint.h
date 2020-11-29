@@ -41,6 +41,13 @@ char *alloca ();
 # endif
 #endif
 
+/* Some versions of GCC (e.g., 10.x) set the warn_unused_result attribute on
+   __builtin_alloca.  This causes alloca(0) to fail and is not easily worked
+   around so make a helper.
+   See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98055  */
+
+#define free_alloca() do{ void *__p = alloca (0); (void)__p; }while(0)
+
 /* Disable assert() unless we're a maintainer.
    Some asserts are compute-intensive.  */
 #ifndef MAKE_MAINTAINER_MODE

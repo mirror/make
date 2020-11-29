@@ -337,7 +337,7 @@ update_file (struct file *file, unsigned int depth)
       check_renamed (f);
 
       /* Clean up any alloca() used during the update.  */
-      alloca (0);
+      free_alloca ();
 
       /* If we got an error, don't bother with double_colon etc.  */
       if (new && !keep_going_flag)
