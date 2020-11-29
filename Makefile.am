@@ -59,7 +59,15 @@ loadavg_SRCS =	lib/getloadavg.c
 make_SOURCES =	$(make_SRCS)
 EXTRA_make_SOURCES = $(amiga_SRCS) $(vms_SRCS)
 
-make_LDADD =	$(LIBOBJS) $(GUILE_LIBS) lib/libgnu.a $(GETLOADAVG_LIBS) \
+if HAVE_GUILE
+  _GUILE_CFLAGS = $(GUILE_CFLAGS)
+  _GUILE_LIBS = $(GUILE_LIBS)
+else
+  _GUILE_CFLAGS =
+  _GUILE_LIBS =
+endif
+
+make_LDADD =	$(LIBOBJS) $(_GUILE_LIBS) lib/libgnu.a $(GETLOADAVG_LIBS) \
 		@LIBINTL@
 
 localedir =	$(datadir)/locale
@@ -68,7 +76,7 @@ AM_CPPFLAGS =	-Isrc -I$(top_srcdir)/src -Ilib -I$(top_srcdir)/lib \
 		-DLIBDIR=\"$(libdir)\" -DINCLUDEDIR=\"$(includedir)\" \
 		-DLOCALEDIR=\"$(localedir)\"
 
-AM_CFLAGS =	$(GUILE_CFLAGS)
+AM_CFLAGS =	$(_GUILE_CFLAGS)
 
 if WINDOWSENV
   make_SOURCES += $(w32_SRCS)
