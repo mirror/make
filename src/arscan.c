@@ -378,6 +378,31 @@ struct ar_hdr
 
 #include "output.h"
 
+
+static unsigned long int
+parse_int (const char *ptr, const size_t len, const int base,
+           const char *type, const char *archive, const char *name)
+{
+  const char *const ep = ptr + len;
+  const char max = '0' + base - 1;
+  long int val = 0;
+
+  /* In all the versions I know of the spaces come last, but be safe.  */
+  while (ptr < ep && *ptr == ' ')
+    ++ptr;
+
+  while (ptr < ep && *ptr != ' ')
+    {
+      if (*ptr < '0' || *ptr > max)
+        OSSS (fatal, NILF, _("Invalid %s for archive %s member %s"),
+                           type, archive, name);
+      val = (val * base) + (*ptr - '0');
+      ++ptr;
+    }
+
+  return val;
+}
+
 /* Takes three arguments ARCHIVE, FUNCTION and ARG.
 
    Open the archive named ARCHIVE, find its members one by one,
@@ -539,6 +564,8 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
         unsigned int eltmode;
         long int fnval;
         off_t o;
+
+        memset(&member_header, '\0', sizeof (member_header));
 
         EINTRLOOP (o, lseek (desc, member_offset, 0));
         if (o < 0)
@@ -703,8 +730,8 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
         }
 
 #ifndef M_XENIX
-        sscanf (TOCHAR (member_header.ar_mode), "%8o", &eltmode);
-        eltsize = atol (TOCHAR (member_header.ar_size));
+        eltmode = parse_int (TOCHAR (member_header.ar_mode), sizeof (member_header.ar_mode), 8, "mode", archive, name);
+        eltsize = parse_int (TOCHAR (member_header.ar_size), sizeof (member_header.ar_size), 10, "size", archive, name);
 #else   /* Xenix.  */
         eltmode = (unsigned short int) member_header.ar_mode;
         eltsize = member_header.ar_size;
@@ -714,9 +741,9 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
           (*function) (desc, name, ! long_name, member_offset,
                        member_offset + AR_HDR_SIZE, eltsize,
 #ifndef M_XENIX
-                       atol (TOCHAR (member_header.ar_date)),
-                       atoi (TOCHAR (member_header.ar_uid)),
-                       atoi (TOCHAR (member_header.ar_gid)),
+                       parse_int (TOCHAR (member_header.ar_date), sizeof (member_header.ar_date), 10, "date", archive, name),
+                       parse_int (TOCHAR (member_header.ar_uid), sizeof (member_header.ar_uid), 10, "uid", archive, name),
+                       parse_int (TOCHAR (member_header.ar_gid), sizeof (member_header.ar_gid), 10, "gid", archive, name),
 #else   /* Xenix.  */
                        member_header.ar_date,
                        member_header.ar_uid,
