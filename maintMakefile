@@ -234,7 +234,7 @@ get-doc/make-stds.texi get-doc/fdl.texi:
 # When I released 4.3 somehow the INSTALL file was missing.
 # When I tried to build it again, it was there.  I have no idea what happened
 # but add a new check to be sure it doesn't happen again.
-mk_dist_files = INSTALL
+mk_dist_files = AUTHORS ChangeLog COPYING INSTALL README
 
 dist: mk-distcheck
 
@@ -243,7 +243,7 @@ mk-distcheck: distdir
 	@echo "Checking for extra installed files..."
 	for fn in $(mk_dist_files); do \
 	    test -f '$(distdir)'/"$$fn" \
-	        || { echo "Missing dist file: $$fn"; exit 1; }; \
+		|| { echo "Missing dist file: $$fn"; exit 1; }; \
 	done; true
 
 
@@ -264,10 +264,10 @@ checkcfg.no-guile:    CFGCHECK_CONFIGFLAGS = --without-guile
 checkcfg.no-spawn:    CFGCHECK_CONFIGFLAGS = --disable-posix-spawn
 checkcfg.no-sysglob:  CFGCHECK_CONFIGFLAGS = make_cv_sys_gnu_glob=no
 checkcfg.no-loadavg:  CFGCHECK_CONFIGFLAGS = ac_cv_func_getloadavg=no \
-	                                     ac_cv_have_decl_getloadavg=no \
-                                             gl_cv_have_raw_decl_getloadavg=no \
-                                             ac_cv_lib_util_getloadavg=no \
-                                             ac_cv_lib_getloadavg_getloadavg=no
+					     ac_cv_have_decl_getloadavg=no \
+					     gl_cv_have_raw_decl_getloadavg=no \
+					     ac_cv_lib_util_getloadavg=no \
+					     ac_cv_lib_getloadavg_getloadavg=no
 checkcfg.no-sync:     CFGCHECK_CONFIGFLAGS = CPPFLAGS=-DNO_OUTPUT_SYNC
 checkcfg.no-archives: CFGCHECK_CONFIGFLAGS = CPPFLAGS=-DNO_ARCHIVES
 
@@ -297,7 +297,7 @@ $(CONFIG_CHECKS): checkcfg.%: distdir
 	&& mkdir $(distdir)/_build \
 	&& cd $(distdir)/_build \
 	&& ../configure --srcdir=.. $(CFGCHECK_CONFIGFLAGS) \
-		$(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS)
+	       $(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS)
 	exec >>'checkcfg.$*.log' 2>&1; set -x; \
 	   cd $(distdir)/_build \
 	&& OUTDIR=_bld ../build.sh $(CFGCHECK_BUILD_FLAGS) \
@@ -320,7 +320,7 @@ checkcfg.basicmk: checkcfg.% : distdir
 	&& mkdir $(distdir)/_build \
 	&& cd $(distdir)/_build \
 	&& ../configure --srcdir=.. \
-		$(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS)
+	       $(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS)
 	exec >>'checkcfg.$*.log' 2>&1; set -x; \
 	   cd $(distdir)/_build \
 	&& $(NR_MAKE) $(AM_MAKEFLAGS) -f ../Basic.mk SRCDIR=.. CFLAGS='$(AM_CFLAGS)' \
@@ -331,7 +331,7 @@ checkcfg.basicmk: checkcfg.% : distdir
 	&& rm -rf $(distdir)/_build \
 	&& cd $(distdir) \
 	&& ./configure \
-		$(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS) \
+	       $(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS) \
 	&& $(NR_MAKE) $(AM_MAKEFLAGS) -f Basic.mk CFLAGS='$(AM_CFLAGS)' \
 	&& ./make $(AM_MAKEFLAGS) -f Basic.mk check \
 	&& ./make $(AM_MAKEFLAGS) -f Basic.mk clean
