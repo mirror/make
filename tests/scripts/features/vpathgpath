@@ -40,7 +40,7 @@ close(MAKEFILE);
 
 $off = -500;
 
-sub touchfiles {
+sub gtouchfiles {
   foreach (@_) {
     ($f = $_) =~ s,VP/,$VP,g;
     &utouch($off, $f);
@@ -51,7 +51,7 @@ sub touchfiles {
 
 # Run the general-case test
 
-&touchfiles("VP/foo.d", "VP/bar.d", "VP/foo.c", "VP/bar.c", "foo.b", "bar.d");
+&gtouchfiles("VP/foo.d", "VP/bar.d", "VP/foo.c", "VP/bar.c", "foo.b", "bar.d");
 
 &run_make_with_options($makefile,"general",&get_logfile());
 
