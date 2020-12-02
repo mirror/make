@@ -1364,7 +1364,7 @@ main (int argc, char **argv, char **envp)
         enum variable_export export = v_export;
         size_t len;
 
-        while (! STOP_SET (*ep, MAP_EQUALS))
+        while (! STOP_SET (*ep, MAP_EQUALS|MAP_NUL))
           ++ep;
 
         /* If there's no equals sign it's a malformed environment.  Ignore.  */
