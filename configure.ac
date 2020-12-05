@@ -529,6 +529,9 @@ AC_CONFIG_FILES([Makefile build.cfg lib/Makefile po/Makefile.in doc/Makefile \
 # We don't need this: the standard automake output suffices for POSIX systems.
 #mk/Posix.mk
 
+# Put build.sh in the build directory so it's easy to find
+AC_CONFIG_LINKS([build.sh:build.sh])
+
 # OK, do it!
 
 AC_OUTPUT
