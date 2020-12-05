@@ -237,8 +237,8 @@ inc1: foo; echo > $@
     rmfiles('inc1');
 }
 
-# Including files that can't be read should show an error
 if (defined $ERR_unreadable_file) {
+    # Including files that can't be read should show an error
     create_file('inc1', 'FOO := foo');
     chmod 0000, 'inc1';
 
@@ -271,7 +271,19 @@ run_make_test(q!
 all:;
 !,
               '', "i1\ni2\ni3\ni4\n#MAKE#: 'all' is up to date.\n");
-rmfiles('foo');
+
+# Check that included files work if created after the first include failed
+# https://savannah.gnu.org/bugs/?57676
+
+run_make_test(q!
+-include hello.mk
+$(shell echo hello=world >hello.mk)
+include hello.mk
+default:; @echo $(hello)
+!,
+              '', "world\n");
+
+unlink('hello.mk');
 
 # Check the default makefiles... this requires us to invoke make with no
 # arguments.  Also check MAKEFILES

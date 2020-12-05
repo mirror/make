@@ -410,6 +410,11 @@ eval_makefile (const char *filename, unsigned short flags)
   /* Success; clear errno.  */
   deps->error = 0;
 
+  /* If we tried and failed to read the included file before but this
+     time we succeeded, reset the last mtime.  */
+  if (deps->file->last_mtime == NONEXISTENT_MTIME)
+    deps->file->last_mtime = 0;
+
   /* Avoid leaking the makefile to children.  */
   fd_noinherit (fileno (ebuf.fp));
 
