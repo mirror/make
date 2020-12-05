@@ -34,6 +34,14 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   https://www.gnu.org/software/gnulib/manual/html_node/C99-features-assumed.html
   The configure script should verify the compiler has these features.
 
+* New debug option "print" will show the recipe to be run, even when silent
+  mode is set.
+
+* New debug option "why" will show why a target is rebuilt (which
+  prerequisites caused the target to be considered out of date).
+
+* The existing --trace option is made equivalent to --debug=print,why
+
 * Target-specific variables can now be marked "unexport".
 
 * Exporting / unexporting target-specific variables is handled correctly, so

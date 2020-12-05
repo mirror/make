@@ -8892,6 +8892,15 @@ the makefiles.  This option enables messages while rebuilding makefiles,
 too.  Note that the @samp{all} option does enable this option.  This
 option also enables @samp{basic} messages.
 
+@item p (@i{print})
+Prints the recipe to be executed, even when the recipe is normally
+silent (due to @code{.SILENT} or @samp{@@}).  Also prints the makefile
+name and line number where the recipe was defined.
+
+@item w (@i{why})
+Explains why each target must be remade by showing which prerequisites
+are more up to date than the target.
+
 @item n (@i{none})
 Disable all debugging currently enabled.  If additional debugging
 flags are encountered after this they will still take effect.
@@ -9123,11 +9132,8 @@ recipes were done, in order to fool future invocations of
 
 @item --trace
 @cindex @code{--trace}
-Show tracing information for @code{make} execution.  Prints the entire
-recipe to be executed, even for recipes that are normally silent (due
-to @code{.SILENT} or @samp{@@}).  Also prints the makefile name and
-line number where the recipe was defined, and information on why the
-target is being rebuilt.
+Show tracing information for @code{make} execution.  This is shorthand
+for @code{--debug=print,why}.
 
 @item -v
 @cindex @code{-v}

@@ -413,6 +413,10 @@ static const char *const usage[] =
     NULL
   };
 
+/* Nonzero if the "--trace" option was given.  */
+
+static int trace_flag = 0;
+
 /* The table of command switches.
    Order matters here: this is the order MAKEFLAGS will be constructed.
    So be sure all simple flags (single char, no argument) come first.  */
@@ -552,10 +556,6 @@ int one_shell;
    of each job stay together.  */
 
 int output_sync = OUTPUT_SYNC_NONE;
-
-/* Nonzero if the "--trace" option was given.  */
-
-int trace_flag = 0;
 
 /* Nonzero if we have seen the '.NOTPARALLEL' target.
    This turns off parallel builds for this invocation of make.  */
@@ -724,6 +724,9 @@ decode_debug_flags (void)
   if (debug_flag)
     db_level = DB_ALL;
 
+  if (trace_flag)
+    db_level = DB_PRINT | DB_WHY;
+
   if (db_flags)
     for (pp=db_flags->list; *pp; ++pp)
       {
@@ -751,8 +754,14 @@ decode_debug_flags (void)
               case 'n':
                 db_level = 0;
                 break;
+              case 'p':
+                db_level |= DB_PRINT;
+                break;
               case 'v':
                 db_level |= DB_BASIC | DB_VERBOSE;
+                break;
+              case 'w':
+                db_level |= DB_WHY;
                 break;
               default:
                 OS (fatal, NILF,

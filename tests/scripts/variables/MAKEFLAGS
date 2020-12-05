@@ -14,7 +14,7 @@ all: ; @echo $(MAKEFLAGS)
 run_make_test(q!
 all: ; @echo $(MAKEFLAGS)
 !,
-              '--no-print-directory -e -r -R --trace', "#MAKEFILE#:2: target 'all' does not exist
+              '--no-print-directory -e -r -R --trace', "#MAKEFILE#:2: update target 'all' due to: target does not exist
 echo erR --trace --no-print-directory
 erR --trace --no-print-directory");
 
@@ -23,14 +23,15 @@ erR --trace --no-print-directory");
 # Savannah bug #2216
 run_make_test(q!
 MSG = Fails
+.RECIPEPREFIX = >
 all:
-	@echo '$@: MAKEFLAGS=$(MAKEFLAGS)'
-	@MSG=Works $(MAKE) -e -f #MAKEFILE# jump
+> @echo '$@: MAKEFLAGS=$(MAKEFLAGS)'
+> @MSG=Works $(MAKE) -e -f #MAKEFILE# jump
 jump:
-	@echo '$@ $(MSG): MAKEFLAGS=$(MAKEFLAGS)'
-	@$(MAKE) -f #MAKEFILE# print
+> @echo '$@ $(MSG): MAKEFLAGS=$(MAKEFLAGS)'
+> @$(MAKE) -f #MAKEFILE# print
 print:
-	@echo '$@ $(MSG): MAKEFLAGS=$(MAKEFLAGS)'
+> @echo '$@ $(MSG): MAKEFLAGS=$(MAKEFLAGS)'
 .PHONY: all jump print
 !,
                   '--no-print-directory',
@@ -39,7 +40,3 @@ jump Works: MAKEFLAGS=e --no-print-directory
 print Works: MAKEFLAGS=e --no-print-directory');
 
 1;
-
-### Local Variables:
-### eval: (setq whitespace-action (delq 'auto-cleanup whitespace-action))
-### End:

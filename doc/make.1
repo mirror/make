@@ -130,21 +130,28 @@ are omitted, then the behavior is the same as if
 .B \-d
 was specified.
 .I FLAGS
-may be
-.I a
+may be any or all of the following names, comma- or space-separated.  Only the
+first character is significant: the rest may be omitted:
+.I all
 for all debugging output (same as using
 .BR \-d ),
-.I b
+.I basic
 for basic debugging,
-.I v
+.I verbose
 for more verbose basic debugging,
-.I i
-for showing implicit rules,
-.I j
-for details on invocation of commands, and
-.I m
-for debugging while remaking makefiles.  Use
-.I n
+.I implicit
+for showing implicit rule search operations,
+.I jobs
+for details on invocation of commands,
+.I makefile
+for debugging while remaking makefiles,
+.I print
+shows all recipes that are run even if they are silent, and
+.I why
+shows the reason
+.BR make
+decided to rebuild each target.  Use
+.I none
 to disable all previous debugging flags.
 .TP 0.5i
 \fB\-e\fR, \fB\-\-environment\-overrides\fR

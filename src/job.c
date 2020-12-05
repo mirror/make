@@ -29,7 +29,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Default shell to use.  */
 #ifdef WINDOWS32
 # ifdef HAVE_STRINGS_H
-#  include <strings.h>	/* for strcasecmp, strncasecmp */
+#  include <strings.h>  /* for strcasecmp, strncasecmp */
 # endif
 # include <windows.h>
 
@@ -1341,7 +1341,7 @@ start_job_command (struct child *child)
 #endif
 
   /* Print the command if appropriate.  */
-  if (just_print_flag || trace_flag
+  if (just_print_flag || ISDB (DB_PRINT)
       || (!(flags & COMMANDS_SILENT) && !run_silent))
     OS (message, 0, "%s", p);
 
@@ -1884,7 +1884,7 @@ new_job (struct file *file)
 
   /* Trace the build.
      Use message here so that changes to working directories are logged.  */
-  if (trace_flag)
+  if (ISDB (DB_WHY))
     {
       char *newer = allocated_variable_expand_for_file ("$?", c->file);
       const char *nm;
@@ -1898,12 +1898,9 @@ new_job (struct file *file)
           nm = n;
         }
 
-      if (newer[0] == '\0')
-        OSS (message, 0,
-             _("%s: target '%s' does not exist"), nm, c->file->name);
-      else
-        OSSS (message, 0,
-              _("%s: update target '%s' due to: %s"), nm, c->file->name, newer);
+      OSSS (message, 0,
+            _("%s: update target '%s' due to: %s"), nm, c->file->name,
+              newer[0] == '\0' ? _("target does not exist") : newer);
 
       free (newer);
     }

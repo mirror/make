@@ -19,7 +19,7 @@ $ENV{'GNUMAKEFLAGS'} = '--no-print-directory -e -r -R --trace';
 run_make_test(q!
 all: ; @echo $(MAKEFLAGS)
 !,
-              '', "#MAKEFILE#:2: target 'all' does not exist
+              '', "#MAKEFILE#:2: update target 'all' due to: target does not exist
 echo erR --trace --no-print-directory
 erR --trace --no-print-directory");
 
