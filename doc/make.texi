@@ -2720,6 +2720,12 @@ clean:
 Once this is done, @samp{make clean} will run the recipe regardless of
 whether there is a file named @file{clean}.
 
+Prerequisites of @code{.PHONY} are always interpreted as literal
+target names, never as patterns (even if they contain @samp{%}
+characters).  To always rebuild a pattern rule consider using a
+``force target'' (@pxref{Force Targets, ,Rules without Recipes or
+Prerequisites}).
+
 Phony targets are also useful in conjunction with recursive
 invocations of @code{make} (@pxref{Recursion, ,Recursive Use of @code{make}}).
 In this situation the makefile will often contain a variable which
