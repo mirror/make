@@ -11801,7 +11801,7 @@ control characters are not emitted so that they don't corrupt log
 files, etc.
 
 The @code{--output-sync} (@pxref{Parallel Output, ,Output During
-Parallel Output}) option will defeat the terminal detection.  When
+Parallel Execution}) option will defeat the terminal detection.  When
 output synchronization is enabled GNU @code{make} arranges for all
 command output to be written to a file, so that its output can be
 written as a block without interference from other commands.  This
