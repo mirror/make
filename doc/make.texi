@@ -10431,9 +10431,11 @@ A pattern rule can be used to build a given file only if there is a
 target pattern that matches the file name, @emph{and} all
 prerequisites in that rule either exist or can be built.  The rules
 you write take precedence over those that are built in. Note however,
-that a rule whose prerequisites actually exist or are mentioned always
-takes priority over a rule with prerequisites that must be made by
-chaining other implicit rules.
+that a rule which can be satisfied without chaining other implicit
+rules (for example, one which has no prerequisites or its
+prerequisites already exist or are mentioned) always takes priority
+over a rule with prerequisites that must be made by chaining other
+implicit rules.
 
 @cindex stem, shortest
 It is possible that more than one pattern rule will meet these
