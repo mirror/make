@@ -276,7 +276,7 @@ Functions for Transforming Text
 * Text Functions::              General-purpose text manipulation functions.
 * File Name Functions::         Functions for manipulating file names.
 * Conditional Functions::       Functions that implement conditions.
-* Let Function::                Lexically scoped variables.
+* Let Function::                Local variables.
 * Foreach Function::            Repeat some text with controlled variation.
 * File Function::               Write text to a file.
 * Call Function::               Expand a user-defined function.
@@ -5204,7 +5204,9 @@ variables are called @dfn{macros}.)
 Variables and functions in all parts of a makefile are expanded when
 read, except for in recipes, the right-hand sides of variable
 definitions using @samp{=}, and the bodies of variable definitions
-using the @code{define} directive.@refill
+using the @code{define} directive.  The value a variable expands to is
+that of its most recent definition at the time of expansion.  In other
+words, variables are dynamically scoped.
 
 Variables can represent lists of file names, options to pass to compilers,
 programs to run, directories to look in for source files, directories to
@@ -5793,6 +5795,11 @@ with an assignment (@pxref{Setting, ,Setting Variables}) or with a
 verbatim definition (@pxref{Multi-Line, ,Defining Multi-Line Variables}).@refill
 
 @item
+You can specify a short-lived value with the @code{let} function
+(@pxref{Let Function}) or with the @code{foreach} function
+(@pxref{Foreach Function}).
+
+@item
 Variables in the environment become @code{make} variables.
 @xref{Environment, ,Variables from the Environment}.
 
@@ -6274,10 +6281,12 @@ the Shell}.@refill
 
 Variable values in @code{make} are usually global; that is, they are the
 same regardless of where they are evaluated (unless they're reset, of
-course).  One exception to that is automatic variables
+course).  Exceptions to that are variables defined with the @code{let}
+function (@pxref{Let Function}) or the @code{foreach} function
+(@pxref{Foreach Function}, and automatic variables
 (@pxref{Automatic Variables}).
 
-The other exception is @dfn{target-specific variable values}.  This
+Another exception are @dfn{target-specific variable values}.  This
 feature allows you to define different values for the same variable,
 based on the target that @code{make} is currently building.  As with
 automatic variables, these values are only available within the context
@@ -7039,7 +7048,7 @@ be substituted.
 * Text Functions::              General-purpose text manipulation functions.
 * File Name Functions::         Functions for manipulating file names.
 * Conditional Functions::       Functions that implement conditions.
-* Let Function::                Lexically scoped variables.
+* Let Function::                Local variables.
 * Foreach Function::            Repeat some text with controlled variation.
 * File Function::               Write text to a file.
 * Call Function::               Expand a user-defined function.
@@ -7697,7 +7706,7 @@ the result of the expansion is the expansion of the last argument.
 @node Let Function, Foreach Function, Conditional Functions, Functions
 @section The @code{let} Function
 @findex let
-@cindex variables, lexically scoped
+@cindex variables, local
 
 The @code{let} function provides a means to limit the scope of a
 variable.  The assignment of the named variables in a @code{let}

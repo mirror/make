@@ -35,8 +35,8 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   The configure script should verify the compiler has these features.
 
 * New feature: The $(let ...) function
-  This function allows user-defined functions to provide a lexically-scoped
-  set of variables: values can be assigned to these variables from within the
+  This function allows user-defined functions to define a set of local
+  variables: values can be assigned to these variables from within the
   user-defined function and they will not impact global variable assignments.
   Implementation provided by Jouke Witteveen <j.witteveen@gmail.com>
 
