@@ -7144,9 +7144,10 @@ Finds whitespace-separated words in @var{text} that match
 @var{pattern} may contain a @samp{%} which acts as a wildcard,
 matching any number of any characters within a word.  If
 @var{replacement} also contains a @samp{%}, the @samp{%} is replaced
-by the text that matched the @samp{%} in @var{pattern}.  Only the first
-@samp{%} in the @var{pattern} and @var{replacement} is treated this
-way; any subsequent @samp{%} is unchanged.@refill
+by the text that matched the @samp{%} in @var{pattern}.  Words that do
+not match the pattern are kept without change in the output.  Only the
+first @samp{%} in the @var{pattern} and @var{replacement} is treated
+this way; any subsequent @samp{%} is unchanged.@refill
 
 @cindex @code{%}, quoting in @code{patsubst}
 @cindex @code{%}, quoting with @code{\} (backslash)
