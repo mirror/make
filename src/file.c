@@ -424,7 +424,11 @@ remove_intermediates (int sig)
                       }
                   }
                 if (status < 0)
-                  perror_with_name ("unlink: ", f->name);
+                  {
+                    perror_with_name ("\nunlink: ", f->name);
+                    /* Start printing over.  */
+                    doneany = 0;
+                  }
               }
           }
       }
