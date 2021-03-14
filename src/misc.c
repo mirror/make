@@ -308,7 +308,8 @@ lindex (const char *s, const char *limit, int c)
 char *
 end_of_token (const char *s)
 {
-  END_OF_TOKEN (s);
+  while (! END_OF_TOKEN (*s))
+    ++s;
   return (char *)s;
 }
 

@@ -463,8 +463,8 @@ extern int unixy_shell;
 
 #define ISBLANK(c)      STOP_SET((c),MAP_BLANK)
 #define ISSPACE(c)      STOP_SET((c),MAP_SPACE)
+#define END_OF_TOKEN(c) STOP_SET((c),MAP_SPACE|MAP_NUL)
 #define NEXT_TOKEN(s)   while (ISSPACE (*(s))) ++(s)
-#define END_OF_TOKEN(s) while (! STOP_SET (*(s), MAP_SPACE|MAP_NUL)) ++(s)
 
 /* We can't run setrlimit when using posix_spawn.  */
 #if defined(HAVE_SYS_RESOURCE_H) && defined(HAVE_GETRLIMIT) && defined(HAVE_SETRLIMIT) && !defined(USE_POSIX_SPAWN)

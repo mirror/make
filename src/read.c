@@ -2735,7 +2735,7 @@ get_next_mword (char *buffer, char **startp, size_t *length)
   char c;
 
   /* Skip any leading whitespace.  */
-  while (ISBLANK (*p))
+  while (ISSPACE (*p))
     ++p;
 
   beg = p;
@@ -2821,11 +2821,11 @@ get_next_mword (char *buffer, char **startp, size_t *length)
       char closeparen;
       int count;
 
+      if (END_OF_TOKEN (c))
+        goto done_word;
+
       switch (c)
         {
-        case '\0':
-        case ' ':
-        case '\t':
         case '=':
           goto done_word;
 
