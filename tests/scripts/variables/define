@@ -279,4 +279,22 @@ hello
 world
 ');
 
+# Ensure that define can be a target when not appearing in a variable
+# definition context.  See SV 59870
+
+run_make_test(q!
+define = define
+
+$(define) : ;@echo $@
+
+%:define
+
+all: define foo
+
+%.x : define
+
+foo:;
+!,
+    '', "define\n");
+
 1;

@@ -494,7 +494,7 @@ eval_buffer (char *buffer, const floc *flocp)
    based on the modifiers found if any, plus V_ASSIGN is 1.
  */
 static char *
-parse_var_assignment (const char *line, struct vmodifiers *vmod)
+parse_var_assignment (const char *line, int targvar, struct vmodifiers *vmod)
 {
   const char *p;
   memset (vmod, '\0', sizeof (*vmod));
@@ -529,14 +529,14 @@ parse_var_assignment (const char *line, struct vmodifiers *vmod)
         vmod->override_v = 1;
       else if (word1eq ("private"))
         vmod->private_v = 1;
-      else if (word1eq ("define"))
+      else if (!targvar && word1eq ("define"))
         {
           /* We can't have modifiers after 'define' */
           vmod->define_v = 1;
           p = next_token (p2);
           break;
         }
-      else if (word1eq ("undefine"))
+      else if (!targvar && word1eq ("undefine"))
         {
           /* We can't have modifiers after 'undefine' */
           vmod->undefine_v = 1;
@@ -721,7 +721,7 @@ eval (struct ebuffer *ebuf, int set_default)
 
       /* See if this is a variable assignment.  We need to do this early, to
          allow variables with names like 'ifdef', 'export', 'private', etc.  */
-      p = parse_var_assignment (p, &vmod);
+      p = parse_var_assignment (p, 0, &vmod);
       if (vmod.assign_v)
         {
           struct variable *v;
@@ -1181,7 +1181,7 @@ eval (struct ebuffer *ebuf, int set_default)
             p2 = variable_buffer + l;
           }
 
-        p2 = parse_var_assignment (p2, &vmod);
+        p2 = parse_var_assignment (p2, 1, &vmod);
         if (vmod.assign_v)
           {
             /* If there was a semicolon found, add it back, plus anything

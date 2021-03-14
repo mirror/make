@@ -70,4 +70,22 @@ all: ;@echo ouch
 ',
 '', "#MAKEFILE#:3: *** empty variable name.  Stop.\n", 512);
 
+# Ensure that define can be a target when not appearing in a variable
+# definition context.  See SV 59870
+
+run_make_test(q!
+undefine = undefine
+
+$(undefine) : ;@echo $@
+
+%:undefine
+
+all: undefine foo
+
+%.x : undefine
+
+foo:;
+!,
+    '', "undefine\n");
+
 1;
