@@ -137,12 +137,13 @@ ChangeLog: .check-git-HEAD
 	    echo "WARNING: $(gl2cl) is not available.  No $@ generated."; \
 	fi
 
-.PHONY: .check-git-HEAD
-.check-git-HEAD:
+.check-git-HEAD: FORCE
 	sha="`git rev-parse HEAD`"; \
 	test -f '$@' && [ "`cat '$@' 2>/dev/null`" = "$$sha" ] \
 	    || echo "$$sha" > '$@'
 
+.PHONY: FORCE
+FORCE:;@:
 
 ## ---------------- ##
 ## Updating files.  ##
