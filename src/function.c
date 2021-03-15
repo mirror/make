@@ -2303,7 +2303,7 @@ func_file (char *o, char **argv, const char *funcname UNUSED)
     }
   else if (fn[0] == '<')
     {
-      char *preo = o;
+      size_t n = 0;
       FILE *fp;
 
       ++fn;
@@ -2327,8 +2327,10 @@ func_file (char *o, char **argv, const char *funcname UNUSED)
           char buf[1024];
           size_t l = fread (buf, 1, sizeof (buf), fp);
           if (l > 0)
-            o = variable_buffer_output (o, buf, l);
-
+            {
+              o = variable_buffer_output (o, buf, l);
+              n += l;
+            }
           if (ferror (fp))
             if (errno != EINTR)
               OSS (fatal, reading_file, _("read: %s: %s"), fn, strerror (errno));
@@ -2339,9 +2341,8 @@ func_file (char *o, char **argv, const char *funcname UNUSED)
         OSS (fatal, reading_file, _("close: %s: %s"), fn, strerror (errno));
 
       /* Remove trailing newline.  */
-      if (o > preo && o[-1] == '\n')
-        if (--o > preo && o[-1] == '\r')
-          --o;
+      if (n && o[-1] == '\n')
+        o -= 1 + (n > 1 && o[-2] == '\r');
     }
   else
     OS (fatal, *expanding_var, _("file: invalid file operation: %s"), fn);

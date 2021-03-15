@@ -8,7 +8,8 @@
 # Each step consists of an operator and argument.
 #
 # It supports the following operators:
-#  out <word>   : echo <word> to stdout
+#  out <word>   : echo <word> to stdout with a newline
+#  raw <word>   : echo <word> to stdout without adding anything
 #  file <word>  : echo <word> to stdout AND create the file <word>
 #  dir <word>   : echo <word> to stdout AND create the directory <word>
 #  rm <word>    : echo <word> to stdout AND delete the file/directory <word>
@@ -32,6 +33,10 @@ sub op {
 
     if ($op eq 'out') {
         print "$nm\n";
+        return 1;
+    }
+    if ($op eq 'raw') {
+        print "$nm";
         return 1;
     }
 
