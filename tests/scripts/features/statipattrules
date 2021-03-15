@@ -108,4 +108,25 @@ all.foo.bar:
 'all.foo
 all.one all-one all.foo.two all.foo-two');
 
+# Test #8:
+# sv 60188.
+# Static pattern rules are considered explicit rules: no prerequisite of
+# a static pattern rule can ever be considered intermediate.
+
+touch('hello.z');
+
+# subtest 1
+run_make_test(q!
+hello.z: %.z: %.x ; @echo $@
+%.x: ;
+!, '', "hello.z\n");
+
+# subtest 2
+run_make_test(q!
+hello.z: %.z: test.x ; @echo $@
+%.x: ;
+!, '', "hello.z\n");
+
+unlink('hello.z');
+
 1;

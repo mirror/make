@@ -262,5 +262,68 @@ run_make_test(q!
 !,
               'q/ux', "q/u\nq/u\n");
 
+
+
+# sv 60188.
+# Test that a file explicitly mentioned by the user and made by an implicit
+# rule is not considered intermediate.
+
+touch('hello.z');
+
+# subtest 1.
+# hello.x is derived from the stem and thus is an intermediate file.
+run_make_test(q!
+.SECONDEXPANSION:
+dep:=.x
+all: hello.z
+%.z: %$$(dep) ; @echo $@
+%.x: ;
+!, '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# subtest 2.
+# test.x is explicitly mentioned and thus is not an intermediate file.
+run_make_test(q!
+.SECONDEXPANSION:
+dep:=test.x
+all: hello.z
+%.z: %.x $$(dep) ; @echo $@
+%.x: ;
+!, '', "hello.z\n");
+
+unlink('hello.z');
+
+
+# sv 60188.
+# Test that a file explicitly mentioned by the user and made by an implicit
+# rule is not considered intermediate, even when the builtin rules are used.
+
+touch('hello.x');
+touch('hello.tsk');
+
+# subtest 1.
+# hello.z is explicitly mentioned and thus is not an intermediate file.
+run_make_test(q!
+.SECONDEXPANSION:
+dep:=hello.z
+all: hello.tsk
+%.tsk: $$(dep) ; @echo $@
+%.z : %.x ; @echo $@
+!, '', "hello.z\nhello.tsk");
+
+# subtest 2.
+# hello.z is derived from the stem and thus is an intermediate file.
+run_make_test(q!
+.SECONDEXPANSION:
+dep:=.z
+all: hello.tsk
+%.tsk: %$$(dep) ; @echo $@
+%.z : %.x ; @echo $@
+!, '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+unlink('hello.x');
+unlink('hello.tsk');
+
+
 # This tells the test driver that the perl test script executed properly.
 1;

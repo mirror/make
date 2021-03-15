@@ -38,7 +38,10 @@ struct nameseq
 
 /* Structure representing one dependency of a file.
    Each struct file's 'deps' points to a chain of these, through 'next'.
-   'stem' is the stem for this dep line of static pattern rule or NULL.  */
+   'stem' is the stem for this dep line of static pattern rule or NULL.
+   explicit is set when implicit rule search is performed and the prerequisite
+   does not contain %. When explicit is set the file is not intermediate.  */
+
 
 #define DEP(_t)                                 \
     NAMESEQ (_t);                               \
@@ -49,7 +52,8 @@ struct nameseq
     unsigned int ignore_mtime : 1;              \
     unsigned int staticpattern : 1;             \
     unsigned int need_2nd_expansion : 1;        \
-    unsigned int ignore_automatic_vars : 1
+    unsigned int ignore_automatic_vars : 1;     \
+    unsigned int is_explicit : 1;
 
 struct dep
   {

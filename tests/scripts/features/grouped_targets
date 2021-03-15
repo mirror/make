@@ -129,5 +129,31 @@ f g h&:: ; @echo Z
 '',
 "Z");
 
+# sv 60188.
+# Test that a file explicitly mentioned by the user and made by an implicit
+# rule is not considered intermediate.
+
+touch('hello.z');
+touch('hello.q');
+
+# subtest 1
+# hello.x is not explicitly mentioned and thus is an intermediate file.
+run_make_test(q!
+all: hello.z
+%.z %.q: %.x ; touch $*.z $*.q
+%.x: ;
+!, '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+# subtest 2
+# test.x is explicitly mentioned and thus is not an intermediate file.
+run_make_test(q!
+all: hello.z
+%.z %.q: %.x test.x ; @echo $*.z $*.q
+%.x: ;
+!, '', "hello.z hello.q\n");
+
+unlink('hello.z');
+unlink('hello.q');
+
 # This tells the test driver that the perl test script executed properly.
 1;

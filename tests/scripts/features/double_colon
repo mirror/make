@@ -212,6 +212,21 @@ FORCE:
 
 unlink('joe-is-forced');
 
+# sv 60188.
+# Even though test.x is explicitly mentioned, terminal pattern rules still
+# apply only if the prerequisite exists.
+touch('hello.z');
+
+run_make_test(q!
+all: hello.z
+%.z:: test.x ; touch $@
+%.x: ;
+!, '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+unlink('hello.z');
+
+
+
 # This tells the test driver that the perl test script executed properly.
 1;
 
