@@ -1086,6 +1086,8 @@ main (int argc, char **argv, char **envp)
   no_default_sh_exe = 1;
 #endif
 
+  initialize_variable_output ();
+
   /* Useful for attaching debuggers, etc.  */
   SPIN ("main-entry");
 

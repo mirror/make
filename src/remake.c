@@ -1646,7 +1646,7 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
       static size_t buflen = 0;
       static size_t libdir_maxlen = 0;
       static unsigned int std_dirs = 0;
-      char *libbuf = variable_expand ("");
+      char *libbuf;
 
       /* Expand the pattern using LIB as a replacement.  */
       {
@@ -1663,10 +1663,12 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
             p[len] = c;
             continue;
           }
-        p4 = variable_buffer_output (libbuf, p, p3-p);
+        p4 = variable_buffer_output (variable_buffer, p, p3-p);
         p4 = variable_buffer_output (p4, lib, liblen);
         p4 = variable_buffer_output (p4, p3+1, len - (p3-p));
         p[len] = c;
+
+        libbuf = variable_buffer;
       }
 
       /* Look first for 'libNAME.a' in the current directory.  */

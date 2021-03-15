@@ -129,6 +129,7 @@ char *allocated_variable_expand_for_file (const char *line, struct file *file);
   allocated_variable_expand_for_file (line, (struct file *) 0)
 char *expand_argument (const char *str, const char *end);
 char *variable_expand_string (char *line, const char *string, size_t length);
+char *initialize_variable_output ();
 void install_variable_buffer (char **bufp, size_t *lenp);
 void restore_variable_buffer (char *buf, size_t len);
 

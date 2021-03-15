@@ -2202,10 +2202,9 @@ record_files (struct nameseq *filenames, int are_also_makes,
       if (pattern)
         {
           static const char *percent = "%";
-          char *buffer = variable_expand ("");
-          char *o = patsubst_expand_pat (buffer, name, pattern, percent,
-                                         pattern_percent+1, percent+1);
-          f->stem = strcache_add_len (buffer, o - buffer);
+          char *o = patsubst_expand_pat (variable_buffer, name, pattern,
+                                         percent, pattern_percent+1, percent+1);
+          f->stem = strcache_add_len (variable_buffer, o - variable_buffer);
           if (this)
             {
               if (! this->need_2nd_expansion)

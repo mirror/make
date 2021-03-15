@@ -71,10 +71,11 @@ variable_buffer_output (char *ptr, const char *string, size_t length)
   return ptr + length;
 }
 
-/* Return a pointer to the beginning of the variable buffer.  */
+/* Return a pointer to the beginning of the variable buffer.
+   This is called from main() and it should never be null afterward.  */
 
-static char *
-initialize_variable_output (void)
+char *
+initialize_variable_output ()
 {
   /* If we don't have a variable output buffer yet, get one.  */
 
@@ -207,7 +208,7 @@ variable_expand_string (char *line, const char *string, size_t length)
   if (length == 0)
     {
       variable_buffer_output (o, "", 1);
-      return (variable_buffer);
+      return variable_buffer;
     }
 
   /* We need a copy of STRING: due to eval, it's possible that it will get
