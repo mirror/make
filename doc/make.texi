@@ -10243,6 +10243,18 @@ The names of all the prerequisites that are newer than the target, with
 spaces between them.  If the target does not exist, all prerequisites
 will be included.  For prerequisites which are archive members, only the
 named member is used (@pxref{Archives}).
+
+@samp{$?} is useful even in explicit rules when you wish to operate on only
+the prerequisites that have changed.  For example, suppose that an archive
+named @file{lib} is supposed to contain copies of several object files.
+This rule copies just the changed object files into the archive:
+
+@example
+@group
+lib: foo.o bar.o lose.o win.o
+        ar r lib $?
+@end group
+@end example
 @cindex prerequisites, list of changed
 @cindex list of changed prerequisites
 
@@ -10298,18 +10310,6 @@ using @samp{$*} except in implicit rules or static pattern rules.@refill
 If the target name in an explicit rule does not end with a recognized
 suffix, @samp{$*} is set to the empty string for that rule.
 @end table
-
-@samp{$?} is useful even in explicit rules when you wish to operate on only
-the prerequisites that have changed.  For example, suppose that an archive
-named @file{lib} is supposed to contain copies of several object files.
-This rule copies just the changed object files into the archive:
-
-@example
-@group
-lib: foo.o bar.o lose.o win.o
-        ar r lib $?
-@end group
-@end example
 
 Of the variables listed above, four have values that are single file
 names, and three have values that are lists of file names.  These
