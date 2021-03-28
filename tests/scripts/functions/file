@@ -176,15 +176,16 @@ unlink('file.out');
 # 200 is the initial size of variable_buffer.
 # File bigger than 200 bytes causes a realloc.
 # The size of the file in this test not only exceeds 200 bytes, it exceeds 65k.
+# Use $(info ...) here to avoid command line limitations
 
 my $s = "hello world, hello world, hello world, hello world, hello world";
 my $answer = $s x 2000;
 create_file('file.out', $answer);
 run_make_test(q!# <hugestring>
 X1 := x$(file <file.out)y
-x:;@echo '$(X1)'
+x:;@$(info $(X1))
 !,
-              '', "x${answer}y\n");
+              '', "x${answer}y\n#MAKE#: 'x' is up to date.\n");
 
 unlink('file.out');
 

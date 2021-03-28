@@ -288,9 +288,15 @@ unlink('hello.mk');
 # Check the default makefiles... this requires us to invoke make with no
 # arguments.  Also check MAKEFILES
 
+if ($port_type eq 'W32') {
+    $defaults = "GNUmakefile\nmakefile\nMakefile\nmakefile.mak";
+} else {
+    $defaults = "GNUmakefile\nmakefile\nMakefile";
+}
+
 $ENV{MAKEFILES} = 'foobar barfoo';
-run_make_with_options(undef, q!-E '%:;@echo $@' -E 'all:;' -E '-include bizbaz' -E '-include bazbiz'!, get_logfile(0));
-$answer = "bizbaz\nbazbiz\nfoobar\nbarfoo\nGNUmakefile\nmakefile\nMakefile\n#MAKE#: 'all' is up to date.\n";
+run_make_with_options(undef, ['-E', '%:;@echo $@', '-E', 'all:;', '-E', '-include bizbaz', '-E', '-include bazbiz'], get_logfile(0));
+$answer = "bizbaz\nbazbiz\nfoobar\nbarfoo\n$defaults\n#MAKE#: 'all' is up to date.\n";
 &compare_output(subst_make_string($answer), &get_logfile(1));
 
 1;

@@ -53,7 +53,7 @@ struct nameseq
     unsigned int staticpattern : 1;             \
     unsigned int need_2nd_expansion : 1;        \
     unsigned int ignore_automatic_vars : 1;     \
-    unsigned int is_explicit : 1;
+    unsigned int is_explicit : 1
 
 struct dep
   {

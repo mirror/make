@@ -522,14 +522,15 @@ find_directory (const char *name)
 #if defined(WINDOWS32)
   {
     char tem[MAXPATHLEN], *tstart, *tend;
+    size_t len = strlen (name);
 
     /* Remove any trailing slashes.  Windows32 stat fails even on
        valid directories if they end in a slash. */
-    memcpy (tem, name, p - name + 1);
+    memcpy (tem, name, len + 1);
     tstart = tem;
     if (tstart[1] == ':')
       tstart += 2;
-    for (tend = tem + (p - name - 1);
+    for (tend = tem + (len - 1);
          tend > tstart && (*tend == '/' || *tend == '\\');
          tend--)
       *tend = '\0';
