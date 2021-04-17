@@ -523,6 +523,11 @@ AS_IF([test "x$make_cv_posix_spawn" = xno && test "x$user_posix_spawn" = xyes],
   echo
 ])
 
+# autoconf initializes $prefix to NONE.
+AM_CONDITIONAL([KNOWN_PREFIX],
+               [test "x$prefix" = xNONE -o "x$prefix" = x/usr/local \
+                     -o "x$prefix" = x/usr/gnu -o "x$prefix" = x/usr])
+
 # Specify what files are to be created.
 AC_CONFIG_FILES([Makefile build.cfg lib/Makefile po/Makefile.in doc/Makefile \
                  tests/config-flags.pm])

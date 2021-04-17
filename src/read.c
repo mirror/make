@@ -107,7 +107,9 @@ static const char *default_include_directories[] =
    This is defined as a placeholder.  */
 # define INCLUDEDIR "."
 #endif
+#if defined(INCLUDEDIR)
     INCLUDEDIR,
+#endif
 #ifndef _AMIGA
     "/usr/gnu/include",
     "/usr/local/include",

@@ -73,8 +73,12 @@ make_LDADD =	$(LIBOBJS) $(_GUILE_LIBS) lib/libgnu.a $(GETLOADAVG_LIBS) \
 localedir =	$(datadir)/locale
 
 AM_CPPFLAGS =	-Isrc -I$(top_srcdir)/src -Ilib -I$(top_srcdir)/lib \
-		-DLIBDIR=\"$(libdir)\" -DINCLUDEDIR=\"$(includedir)\" \
-		-DLOCALEDIR=\"$(localedir)\"
+		-DLIBDIR=\"$(libdir)\" -DLOCALEDIR=\"$(localedir)\"
+
+# If prefix is not a standard location, look in prefix as well
+if !KNOWN_PREFIX
+  AM_CPPFLAGS += -DINCLUDEDIR=\"$(includedir)\"
+endif
 
 AM_CFLAGS =	$(_GUILE_CFLAGS)
 
