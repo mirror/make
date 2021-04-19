@@ -104,6 +104,7 @@ double atof ();
 static void clean_jobserver (int status);
 static void print_data_base (void);
 static void print_version (void);
+static void reset_switches ();
 static void decode_switches (int argc, const char **argv, int env);
 static void decode_env_switches (const char *envar, size_t len);
 static struct variable *define_makeflags (int all, int makefile);
@@ -1690,10 +1691,8 @@ main (int argc, char **argv, char **envp)
         {
           /* There's no -j option on the command line: check authorization.  */
           if (jobserver_parse_auth (jobserver_auth))
-            {
-              /* Success!  Use the jobserver.  */
-              goto job_setup_complete;
-            }
+            /* Success!  Use the jobserver.  */
+            goto job_setup_complete;
 
           /* Oops: we have jobserver-auth but it's invalid :(.  */
           O (error, NILF, _("warning: jobserver unavailable: using -j1.  Add '+' to parent make rule."));
@@ -1992,6 +1991,9 @@ main (int argc, char **argv, char **envp)
     int old_builtin_rules_flag = no_builtin_rules_flag;
     int old_builtin_variables_flag = no_builtin_variables_flag;
     int old_arg_job_slots = arg_job_slots;
+
+    /* Reset switches that are taken from MAKEFLAGS so we don't get dups.  */
+    reset_switches ();
 
     arg_job_slots = INVALID_JOB_SLOTS;
 
@@ -2840,6 +2842,52 @@ print_usage (int bad)
   fprintf (usageto, _("Report bugs to <bug-make@gnu.org>\n"));
 }
 
+/* Reset switches that come from MAKEFLAGS and go to MAKEFLAGS.
+   Before re-parsing MAKEFLAGS after reading makefiles, start from scratch.  */
+
+static void
+reset_switches ()
+{
+  const struct command_switch *cs;
+
+  for (cs = switches; cs->c != '\0'; ++cs)
+    if (cs->value_ptr && cs->env && cs->toenv)
+      switch (cs->type)
+        {
+        case ignore:
+          break;
+
+        case flag:
+        case flag_off:
+          if (cs->default_value)
+            *(int *) cs->value_ptr = *(int *) cs->default_value;
+          break;
+
+        case positive_int:
+        case string:
+          /* These types are handled specially... leave them alone :(  */
+          break;
+
+        case floating:
+          if (cs->default_value)
+            *(double *) cs->value_ptr = *(double *) cs->default_value;
+          break;
+
+        case filename:
+        case strlist:
+          {
+            /* The strings are in the cache so don't free them.  */
+            struct stringlist *sl = *(struct stringlist **) cs->value_ptr;
+            if (sl)
+              sl->idx = 0;
+          }
+          break;
+
+        default:
+          abort ();
+        }
+}
+
 /* Decode switches from ARGC and ARGV.
    They came from the environment if ENV is nonzero.  */
 
@@ -3005,9 +3053,8 @@ decode_switches (int argc, const char **argv, int env)
                     coptarg = argv[optind++];
 
                   if (doit)
-                    *(double *) cs->value_ptr
-                      = (coptarg != 0 ? atof (coptarg)
-                         : *(double *) cs->noarg_value);
+                    *(double *) cs->value_ptr = (coptarg != 0 ? atof (coptarg)
+                                                 : *(double *) cs->noarg_value);
 
                   break;
                 }
@@ -3201,9 +3248,9 @@ define_makeflags (int all, int makefile)
                    && (*(unsigned int *) cs->value_ptr
                        == *(unsigned int *) cs->default_value)))
                 break;
-              else if (cs->noarg_value != 0
-                       && (*(unsigned int *) cs->value_ptr ==
-                           *(unsigned int *) cs->noarg_value))
+              if (cs->noarg_value != 0
+                  && (*(unsigned int *) cs->value_ptr ==
+                      *(unsigned int *) cs->noarg_value))
                 ADD_FLAG ("", 0); /* Optional value omitted; see below.  */
               else
                 {
@@ -3215,22 +3262,17 @@ define_makeflags (int all, int makefile)
           break;
 
         case floating:
-          if (all)
+          if (cs->default_value != 0
+              && (*(double *) cs->value_ptr == *(double *) cs->default_value))
+            break;
+          if (cs->noarg_value != 0
+              && (*(double *) cs->value_ptr == *(double *) cs->noarg_value))
+            ADD_FLAG ("", 0); /* Optional value omitted; see below.  */
+          else
             {
-              if (cs->default_value != 0
-                  && (*(double *) cs->value_ptr
-                      == *(double *) cs->default_value))
-                break;
-              else if (cs->noarg_value != 0
-                       && (*(double *) cs->value_ptr
-                           == *(double *) cs->noarg_value))
-                ADD_FLAG ("", 0); /* Optional value omitted; see below.  */
-              else
-                {
-                  char *buf = alloca (100);
-                  sprintf (buf, "%g", *(double *) cs->value_ptr);
-                  ADD_FLAG (buf, strlen (buf));
-                }
+              char *buf = alloca (100);
+              sprintf (buf, "%g", *(double *) cs->value_ptr);
+              ADD_FLAG (buf, strlen (buf));
             }
           break;
 
@@ -3245,16 +3287,15 @@ define_makeflags (int all, int makefile)
 
         case filename:
         case strlist:
-          if (all)
-            {
-              struct stringlist *sl = *(struct stringlist **) cs->value_ptr;
-              if (sl != 0)
-                {
-                  unsigned int i;
-                  for (i = 0; i < sl->idx; ++i)
-                    ADD_FLAG (sl->list[i], strlen (sl->list[i]));
-                }
-            }
+          {
+            struct stringlist *sl = *(struct stringlist **) cs->value_ptr;
+            if (sl != 0)
+              {
+                unsigned int i;
+                for (i = 0; i < sl->idx; ++i)
+                  ADD_FLAG (sl->list[i], strlen (sl->list[i]));
+              }
+          }
           break;
 
         default:

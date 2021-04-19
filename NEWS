@@ -28,6 +28,11 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   rebuilt is the same order in which make processed them, and this is defined
   to be true in the GNU make manual.
 
+* WARNING: Backward-incompatibility!
+  Previously only simple (one-letter) options were added to the MAKEFLAGS
+  variable that was visible while parsing makefiles.  Now, all options
+  are available in MAKEFLAGS.
+
 * WARNING: New build requirement
   GNU make utilizes facilities from GNU Gnulib: Gnulib requires certain C99
   features in the C compiler and so these features are required by GNU make:
