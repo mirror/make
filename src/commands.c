@@ -133,10 +133,9 @@ set_file_variables (struct file *file)
   /* $< is the first not order-only dependency.  */
   less = "";
   for (d = file->deps; d != 0; d = d->next)
-    if (!d->ignore_mtime && !d->ignore_automatic_vars)
+    if (!d->ignore_mtime && !d->ignore_automatic_vars && !d->need_2nd_expansion)
       {
-        if (!d->need_2nd_expansion)
-          less = dep_name (d);
+        less = dep_name (d);
         break;
       }
 
