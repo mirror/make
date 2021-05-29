@@ -35,6 +35,13 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #ifdef WINDOWS32
 #include <io.h>
+#include <sys/stat.h>
+#if defined(_MSC_VER) && _MSC_VER > 1200
+/* VC7 or later supprots _stat64 to access 64-bit file size. */
+#define STAT _stat64
+#else
+#define STAT stat
+#endif
 #endif
 
 
@@ -1466,7 +1473,11 @@ static FILE_TIMESTAMP
 name_mtime (const char *name)
 {
   FILE_TIMESTAMP mtime;
+#if defined(WINDOWS32)
+  struct STAT st;
+#else
   struct stat st;
+#endif
   int e;
 
 #if defined(WINDOWS32)
@@ -1498,7 +1509,11 @@ name_mtime (const char *name)
         tend = &tem[0];
       }
 
+#if defined(WINDOWS32)
+    e = STAT (tem, &st);
+#else
     e = stat (tem, &st);
+#endif
     if (e == 0 && !_S_ISDIR (st.st_mode) && tend < tem + (p - name - 1))
       {
         errno = ENOTDIR;
