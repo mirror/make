@@ -39,6 +39,11 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   https://www.gnu.org/software/gnulib/manual/html_node/C99-features-assumed.html
   The configure script should verify the compiler has these features.
 
+* New feature: The .NOTINTERMEDIATE special target
+  .NOTINTERMEDIATE Disables intermediate behavior for specific files, for all
+  files built using a pattern, or for the entire makefile.
+  Implementation provided by Dmitry Goncharov <dgoncharov@users.sf.net>
+
 * New feature: The $(let ...) function
   This function allows user-defined functions to define a set of local
   variables: values can be assigned to these variables from within the

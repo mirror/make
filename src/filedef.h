@@ -98,6 +98,8 @@ struct file
     unsigned int intermediate:1;/* Nonzero if this is an intermediate file.  */
     unsigned int secondary:1;   /* Nonzero means remove_intermediates should
                                    not delete it.  */
+    unsigned int notintermediate:1; /* Nonzero means a file is a prereq to
+                                       .NOTINTERMEDIATE.  */
     unsigned int dontcare:1;    /* Nonzero if no complaint is to be made if
                                    this target cannot be remade.  */
     unsigned int ignore_vpath:1;/* Nonzero if we threw out VPATH name.  */

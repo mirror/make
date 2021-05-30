@@ -62,6 +62,9 @@ static struct hash_table files;
 /* Whether or not .SECONDARY with no prerequisites was given.  */
 static int all_secondary = 0;
 
+/* Whether or not .NOTINTERMEDIATE with no prerequisites was given.  */
+static int no_intermediates = 0;
+
 /* Access the hash table of all file records.
    lookup_file  given a name, return the struct file * for that name,
                 or nil if there is none.
@@ -327,13 +330,16 @@ rehash_file (struct file *from_file, const char *to_hname)
 
 #define MERGE(field) to_file->field |= from_file->field
   MERGE (precious);
+  MERGE (loaded);
   MERGE (tried_implicit);
   MERGE (updating);
   MERGE (updated);
   MERGE (is_target);
   MERGE (cmd_target);
   MERGE (phony);
-  MERGE (loaded);
+  /* Don't merge intermediate because this file might be pre-existing */
+  MERGE (secondary);
+  MERGE (notintermediate);
   MERGE (ignore_vpath);
 #undef MERGE
 
@@ -386,7 +392,7 @@ remove_intermediates (int sig)
            given on the command line, and it's either a -include makefile or
            it's not precious.  */
         if (f->intermediate && (f->dontcare || !f->precious)
-            && !f->secondary && !f->cmd_target)
+            && !f->secondary && !f->notintermediate && !f->cmd_target)
           {
             int status;
             if (f->update_status == us_none)
@@ -671,9 +677,17 @@ snap_file (const void *item, void *arg)
   if (!second_expansion)
     f->updating = 0;
 
-  /* If .SECONDARY is set with no deps, mark all targets as intermediate.  */
-  if (all_secondary)
+  /* More specific setting has priority.  */
+
+  /* If .SECONDARY is set with no deps, mark all targets as intermediate,
+     unless the target is a prereq of .NOTINTERMEDIATE.  */
+  if (all_secondary && !f->notintermediate)
     f->intermediate = 1;
+
+  /* If .NOTINTERMEDIATE is set with no deps, mark all targets as
+     notintermediate, unless the target is a prereq of .INTERMEDIATE.  */
+  if (no_intermediates && !f->intermediate && !f->secondary)
+      f->notintermediate = 1;
 
   /* If .EXTRA_PREREQS is set, add them as ignored by automatic variables.  */
   if (f->variables)
@@ -776,11 +790,32 @@ snap_deps (void)
           f2->mtime_before_update = NONEXISTENT_MTIME;
         }
 
+  for (f = lookup_file (".NOTINTERMEDIATE"); f != 0; f = f->prev)
+    /* Mark .NOTINTERMEDIATE deps as notintermediate files.  */
+    if (f->deps)
+        for (d = f->deps; d != 0; d = d->next)
+          for (f2 = d->file; f2 != 0; f2 = f2->prev)
+            f2->notintermediate = 1;
+    /* .NOTINTERMEDIATE with no deps marks all files as notintermediate.  */
+    else
+      no_intermediates = 1;
+
+  /* The same file connot be both .INTERMEDIATE and .NOTINTERMEDIATE.
+     However, it is possible for a file to be .INTERMEDIATE and also match a
+     .NOTINTERMEDIATE pattern.  In that case, the intermediate file has
+     priority over the notintermediate pattern.  This priority is enforced by
+     pattern_search.  */
+
   for (f = lookup_file (".INTERMEDIATE"); f != 0; f = f->prev)
     /* Mark .INTERMEDIATE deps as intermediate files.  */
     for (d = f->deps; d != 0; d = d->next)
       for (f2 = d->file; f2 != 0; f2 = f2->prev)
-        f2->intermediate = 1;
+        if (f2->notintermediate)
+          OS (fatal, NILF,
+              _("%s cannot be both .NOTINTERMEDIATE and .INTERMEDIATE."),
+              f2->name);
+        else
+          f2->intermediate = 1;
     /* .INTERMEDIATE with no deps does nothing.
        Marking all files as intermediates is useless since the goal targets
        would be deleted after they are built.  */
@@ -790,10 +825,19 @@ snap_deps (void)
     if (f->deps)
       for (d = f->deps; d != 0; d = d->next)
         for (f2 = d->file; f2 != 0; f2 = f2->prev)
+        if (f2->notintermediate)
+          OS (fatal, NILF,
+              _("%s cannot be both .NOTINTERMEDIATE and .SECONDARY."),
+              f2->name);
+        else
           f2->intermediate = f2->secondary = 1;
     /* .SECONDARY with no deps listed marks *all* files that way.  */
     else
       all_secondary = 1;
+
+  if (no_intermediates && all_secondary)
+    O (fatal, NILF,
+       _(".NOTINTERMEDIATE and .SECONDARY are mutually exclusive"));
 
   f = lookup_file (".EXPORT_ALL_VARIABLES");
   if (f != 0 && f->is_target)
@@ -1038,6 +1082,10 @@ print_file (const void *item)
     printf (_("#  Implicit/static pattern stem: '%s'\n"), f->stem);
   if (f->intermediate)
     puts (_("#  File is an intermediate prerequisite."));
+  if (f->notintermediate)
+    puts (_("#  File is a prerequisite of .NOTINTERMEDIATE."));
+  if (f->secondary)
+    puts (_("#  File is secondary (prerequisite of .SECONDARY)."));
   if (f->also_make != 0)
     {
       const struct dep *d;

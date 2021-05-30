@@ -909,7 +909,8 @@ pattern_search (struct file *file, int archive,
           f->pat_searched = imf->pat_searched;
           f->also_make = imf->also_make;
           f->is_target = 1;
-          f->intermediate = !pat->is_explicit;
+          f->notintermediate = imf->notintermediate;
+          f->intermediate = !(pat->is_explicit || f->notintermediate);
           f->tried_implicit = 1;
 
           imf = lookup_file (pat->pattern);
@@ -976,11 +977,16 @@ pattern_search (struct file *file, int archive,
   file->cmds = rule->cmds;
   file->is_target = 1;
 
-  /* Set precious flag. */
+  /* Set precious and notintermediate flags. */
   {
     struct file *f = lookup_file (rule->targets[tryrules[foundrule].matches]);
-    if (f && f->precious)
-      file->precious = 1;
+    if (f)
+      {
+        if (f->precious)
+          file->precious = 1;
+        if (f->notintermediate)
+          file->notintermediate = 1;
+      }
   }
 
   /* If this rule builds other targets, too, put the others into FILE's
@@ -1009,8 +1015,13 @@ pattern_search (struct file *file, int archive,
 
           /* Set precious flag. */
           f = lookup_file (rule->targets[ri]);
-          if (f && f->precious)
-            new->file->precious = 1;
+          if (f)
+            {
+              if (f->precious)
+                new->file->precious = 1;
+              if (f->notintermediate)
+                new->file->notintermediate = 1;
+            }
 
           /* Set the is_target flag so that this file is not treated as
              intermediate by the pattern rule search algorithm and

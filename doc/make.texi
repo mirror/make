@@ -2969,6 +2969,18 @@ The targets which @code{.INTERMEDIATE} depends on are treated as
 intermediate files.  @xref{Chained Rules, ,Chains of Implicit Rules}.
 @code{.INTERMEDIATE} with no prerequisites has no effect.
 
+@findex .NOTINTERMEDIATE
+@item .NOTINTERMEDIATE
+@cindex notintermediate targets, explicit
+
+Prerequisites of the special target @code{.NOTINTERMEDIATE} are never
+considered intermediate files.  @xref{Chained Rules, ,Chains of Implicit Rules}.
+@code{.NOTINTERMEDIATE} with no prerequisites causes all targets to be treated
+as notintermediate.
+
+If the prerequisite is a target pattern then targets that are built using that
+pattern rule are not considered intermediate.
+
 @findex .SECONDARY
 @item .SECONDARY
 @cindex secondary targets
@@ -9994,22 +10006,26 @@ file as intermediate by listing it as a prerequisite of the special target
 @code{.INTERMEDIATE}.  This takes effect even if the file is mentioned
 explicitly in some other way.
 
+Listing a file as a prerequisite of the special target
+@code{.NOTINTERMEDIATE} forces it to not be considered intermediate
+(just as any other mention of the file will do).  Also, listing the
+target pattern of a pattern rule as a prerequisite of
+@code{.NOTINTERMEDIATE} ensures that no targets generated using that
+pattern rule are considered intermediate.
+
+You can disable intermediate files completely in your makefile by
+providing @code{.NOTINTERMEDIATE} as a target with no prerequisites:
+in that case it applies to every file in the makefile.
+
 @cindex intermediate files, preserving
 @cindex preserving intermediate files
 @cindex secondary files
-You can prevent automatic deletion of an intermediate file by marking it
-as a @dfn{secondary} file.  To do this, list it as a prerequisite of the
-special target @code{.SECONDARY}.  When a file is secondary, @code{make}
-will not create the file merely because it does not already exist, but
-@code{make} does not automatically delete the file.  Marking a file as
-secondary also marks it as intermediate.
-
-You can list the target pattern of an implicit rule (such as @samp{%.o})
-as a prerequisite of the special target @code{.PRECIOUS} to preserve
-intermediate files made by implicit rules whose target patterns match
-that file's name; see @ref{Interrupts}.@refill
-@cindex preserving with @code{.PRECIOUS}
-@cindex @code{.PRECIOUS} intermediate files
+If you do not want @code{make} to create a file merely because it does
+not already exist, but you also do not want @code{make} to
+automatically delete the file, you can mark it as a @dfn{secondary}
+file.  To do this, list it as a prerequisite of the special target
+@code{.SECONDARY}.  Marking a file as secondary also marks it as
+intermediate.
 
 A chain can involve more than two implicit rules.  For example, it is
 possible to make a file @file{foo} from @file{RCS/foo.y,v} by running RCS,
