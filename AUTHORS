@@ -10,7 +10,6 @@ Development starting with GNU make 3.76 by:
     Additional development starting with GNU make 3.81 by:
         Boris Kolpackov <boris@kolpackov.net>
 
-
 GNU Make User's Manual
   Written by:
     Richard M. Stallman <rms@gnu.org>
@@ -34,6 +33,9 @@ GNU make porting efforts:
   Port to Amiga by:
       Aaron Digulla <digulla@fh-konstanz.de>
 
+  Port to MS-Windows (native/MinGW) maintained by:
+      Eli Zaretskii <eliz@gnu.org>
+
   Port to MS-DOS (DJGPP), OS/2, and MS-Windows (native/MinGW) by:
       DJ Delorie <dj@delorie.com>
       Rob Tulloh <rob_tulloh@tivoli.com>
@@ -46,29 +48,55 @@ GNU make porting efforts:
 -----------------------------------
 Other contributors:
 
+  Luke Allardyce <lukeallardyce@gmail.com>
+  Aron Barath <baratharon@caesar.elte.hu>
+  David Boyce <dsb@boyski.com>
+  Kevin Buettner <kevinb@redhat.com>
   Janet Carson <janet_carson@tivoli.com>
   Howard Chu <hyc@highlandsun.com>
   Ludovic Courtès <ludo@gnu.org>
+  Joe Crayne <oh.hello.joe@gmail.com>
+  Jeremy Devenport <jeremy.devenport@gmail.com>
+  Pete Dietl <petedietl@gmail.com>
+  Martin Dorey <martin.dorey@hds.com>
+  Christian Eggers <ceggers@arri.de>
   Paul Eggert <eggert@twinsun.com>
+  Mike Frysinger <vapier@gentoo.org>
   Ramon Garcia Fernandez <ramon.garcia.f@gmail.com>
+  Dmitry Goncharov <dgoncharov@users.sf.net>
+  Mike Haboustak <haboustak@gmail.com>
+  Frank Heckenbach <f.heckenbach@fh-soft.de>
   Klaus Heinz <kamar@ease.rhein-main.de>
+  Ben Hutchings <ben@decadent.org.uk>
+  Cao jin <caoj.fnst@cn.fujitsu.com>
   Michael Joosten
+  Christian Jullien <eligis@orange.fr>
   Jim Kelton <jim_kelton@tivoli.com>
+  Kaz Kylheku <kaz@kylheku.com>
   David Lubbren <uhay@rz.uni-karlsruhe.de>
   Tim Magill <tim.magill@telops.gte.com>
   Markus Mauhart <qwe123@chello.at>
   Greg McGary <greg@mcgary.org>
   Thien-Thi Nguyen <ttn@gnuvola.org>
-  Thomas Riedl <thomas.riedl@siemens.com>
   Han-Wen Nienhuys <hanwen@cs.uu.nl>
+  Enrique Olaizola <enrique_olaizola16@hotmail.com>
+  Ola Olsson <ola1olsson@gmail.com>
+  Jens Rehsack <sno@netbsd.org>
+  Thomas Riedl <thomas.riedl@siemens.com>
+  Jaak Ristioja <jaak@ristioja.ee>
+  Christoph Schulz <develop@kristov.de>
   Andreas Schwab <schwab@issan.informatik.uni-dortmund.de>
+  spagoveanu <spagoveanu@gmail.com>
   Carl Staelin (Princeton University)
   Ian Stewartson (Data Logic Limited)
-  David A. Wheeler <dwheeler@dwheeler.com>
-  David Boyce <dsb@boyski.com>
-  Frank Heckenbach <f.heckenbach@fh-soft.de>
-  Kaz Kylheku <kaz@kylheku.com>
+  Tobias Stoeckmann <tobias@stoeckmann.org>
+  Marc Ullman <marc@mathworks.com>
   Christof Warlich <cwarlich@gmx.de>
+  Florian Weimer <fweimer@redhat.com>
+  David A. Wheeler <dwheeler@dwheeler.com>
+  Bernhard M. Wiedemann <bwiedemann@suse.de>
+  Ben Wijen <ben@wijen.net>
+  Jouke Witteveen <j.witteveen@gmail.com>
 
 With suggestions/comments/bug reports from a cast of ... well ...
 hundreds, anyway :)
