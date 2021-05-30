@@ -98,10 +98,10 @@ create_pattern_var (const char *target, const char *suffix)
 /* Look up a target in the pattern-specific variable list.  */
 
 static struct pattern_var *
-lookup_pattern_var (struct pattern_var *start, const char *target)
+lookup_pattern_var (struct pattern_var *start, const char *target,
+                    size_t targlen)
 {
   struct pattern_var *p;
-  size_t targlen = strlen (target);
 
   for (p = start ? start->next : pattern_vars; p != 0; p = p->next)
     {
@@ -604,8 +604,9 @@ initialize_file_variables (struct file *file, int reading)
   if (!reading && !file->pat_searched)
     {
       struct pattern_var *p;
+      const size_t targlen = strlen (file->name);
 
-      p = lookup_pattern_var (0, file->name);
+      p = lookup_pattern_var (0, file->name, targlen);
       if (p != 0)
         {
           struct variable_set_list *global = current_variable_set_list;
@@ -644,7 +645,7 @@ initialize_file_variables (struct file *file, int reading)
               v->export = p->variable.export;
               v->private_var = p->variable.private_var;
             }
-          while ((p = lookup_pattern_var (p, file->name)) != 0);
+          while ((p = lookup_pattern_var (p, file->name, targlen)) != 0);
 
           current_variable_set_list = global;
         }
