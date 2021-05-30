@@ -1552,8 +1552,9 @@ immediate if the variable was previously set as a simple variable
 
 For the shell assignment operator @samp{!=}, the right-hand side is
 evaluated immediately and handed to the shell.  The result is stored
-in the variable named on the left, and that variable becomes a simple
-variable (and will thus be re-evaluated on each reference).
+in the variable named on the left, and that variable is considered a
+recursively expanded variable (and will thus be re-evaluated on each
+reference).
 
 @subheading Conditional Directives
 @cindex ifdef, expansion
