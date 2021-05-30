@@ -50,6 +50,10 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   user-defined function and they will not impact global variable assignments.
   Implementation provided by Jouke Witteveen <j.witteveen@gmail.com>
 
+* The -I option accepts an argument "-" (e.g., "-I-") which means "reset the
+  list of search directories to empty".  Among other things this can be used
+  to prevent GNU make from searching in its default list of directories.
+
 * New debug option "print" will show the recipe to be run, even when silent
   mode is set, and new debug option "why" will show why a target is rebuilt
   (which prerequisites caused the target to be considered out of date).

@@ -2926,6 +2926,7 @@ construct_include_path (const char **arg_dirs)
   const char **dirs;
   const char **cpp;
   size_t idx;
+  int disable = 0;
 
   /* Compute the number of pointers we need in the table.  */
   idx = sizeof (default_include_directories) / sizeof (const char *);
@@ -2944,7 +2945,8 @@ construct_include_path (const char **arg_dirs)
   max_incl_len = 0;
 
   /* First consider any dirs specified with -I switches.
-     Ignore any that don't exist.  Remember the maximum string length.  */
+     Ignore any that don't exist.  Restart if we find "-".
+     Remember the maximum string length.  */
 
   if (arg_dirs)
     while (*arg_dirs != 0)
@@ -2952,6 +2954,14 @@ construct_include_path (const char **arg_dirs)
         const char *dir = *(arg_dirs++);
         char *expanded = 0;
         int e;
+
+        if (dir[0] == '-' && dir[1] == '\0')
+          {
+            disable = 1;
+            idx = 0;
+            max_incl_len = 0;
+            continue;
+          }
 
         if (dir[0] == '~')
           {
@@ -2976,41 +2986,40 @@ construct_include_path (const char **arg_dirs)
       }
 
   /* Now add the standard default dirs at the end.  */
-
-#ifdef  __MSDOS__
-  {
-    /* The environment variable $DJDIR holds the root of the DJGPP directory
-       tree; add ${DJDIR}/include.  */
-    struct variable *djdir = lookup_variable ("DJDIR", 5);
-
-    if (djdir)
-      {
-        size_t len = strlen (djdir->value) + 8;
-        char *defdir = alloca (len + 1);
-
-        strcat (strcpy (defdir, djdir->value), "/include");
-        dirs[idx++] = strcache_add (defdir);
-
-        if (len > max_incl_len)
-          max_incl_len = len;
-      }
-  }
-#endif
-
-  for (cpp = default_include_directories; *cpp != 0; ++cpp)
+  if (!disable)
     {
-      int e;
+#ifdef  __MSDOS__
+      /* The environment variable $DJDIR holds the root of the DJGPP directory
+         tree; add ${DJDIR}/include.  */
+      struct variable *djdir = lookup_variable ("DJDIR", 5);
 
-      EINTRLOOP (e, stat (*cpp, &stbuf));
-      if (e == 0 && S_ISDIR (stbuf.st_mode))
+      if (djdir)
         {
-          size_t len = strlen (*cpp);
-          /* If dir name is written with trailing slashes, discard them.  */
-          while (len > 1 && (*cpp)[len - 1] == '/')
-            --len;
+          size_t len = strlen (djdir->value) + 8;
+          char *defdir = alloca (len + 1);
+
+          strcat (strcpy (defdir, djdir->value), "/include");
+          dirs[idx++] = strcache_add (defdir);
+
           if (len > max_incl_len)
             max_incl_len = len;
-          dirs[idx++] = strcache_add_len (*cpp, len);
+        }
+#endif
+      for (cpp = default_include_directories; *cpp != 0; ++cpp)
+        {
+          int e;
+
+          EINTRLOOP (e, stat (*cpp, &stbuf));
+          if (e == 0 && S_ISDIR (stbuf.st_mode))
+            {
+              size_t len = strlen (*cpp);
+              /* If dir name is written with trailing slashes, discard them.  */
+              while (len > 1 && (*cpp)[len - 1] == '/')
+                --len;
+              if (len > max_incl_len)
+                max_incl_len = len;
+              dirs[idx++] = strcache_add_len (*cpp, len);
+            }
         }
     }
 

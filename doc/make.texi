@@ -1281,6 +1281,16 @@ hierarchy.})
 @file{/usr/gnu/include},
 @file{/usr/local/include}, @file{/usr/include}.
 
+The @code{.INCLUDE_DIRS} variable will contain the current list of
+directories that make will search for included files.  @xref{Special
+Variables, ,Other Special Variables}.
+
+You can avoid searching in these default directories by adding the
+command line option @code{-I} with the special value @code{-} (e.g.,
+@code{-I-}) to the command line.  This will cause @code{make} to
+forget any already-set include directories, including the default
+directories.
+
 If an included makefile cannot be found in any of these directories it
 is not an immediately fatal error; processing of the makefile
 containing the @code{include} continues.  Once it has finished reading
@@ -6676,6 +6686,8 @@ Supports dynamically loadable objects for creating custom extensions.
 @item .INCLUDE_DIRS
 Expands to a list of directories that @code{make} searches for
 included makefiles (@pxref{Include, , Including Other Makefiles}).
+Note that modifying this variable's value does not change the list of
+directories which are searched.
 
 @vindex .EXTRA_PREREQS @r{(prerequisites not added to automatic variables)}
 @item .EXTRA_PREREQS
@@ -9058,7 +9070,11 @@ Ignore all errors in recipes executed to remake files.
 Specifies a directory @var{dir} to search for included makefiles.
 @xref{Include, ,Including Other Makefiles}.  If several @samp{-I}
 options are used to specify several directories, the directories are
-searched in the order specified.
+searched in the order specified.  If the directory @var{dir} is a
+single dash (@code{-}) then any already-specified directories up to
+that point (including the default directory paths) will be discarded.
+You can examine the current list of directories to be searched via the
+@code{.INCLUDE_DIRS} variable.
 
 @item -j [@var{jobs}]
 @cindex @code{-j}

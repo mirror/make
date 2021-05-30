@@ -1,6 +1,6 @@
 #                                                                    -*-perl-*-
 
-$description ="The following test creates a makefile to test the -I option.";
+$description = "The following test creates a makefile to test the -I option.";
 
 $details = "\
 This test tests the -I option by including a filename in
@@ -9,53 +9,108 @@ under -I in the command line.  Without this option, the make
 would fail to find the included file.  It also checks to make
 sure that the -I option gets passed to recursive makes.";
 
-$makefile2 = &get_tmpfile;
+use File::Spec;
 
-open(MAKEFILE,"> $makefile");
+# Create a directory and put a makefile in it.
+# We can't put it in the current directory since that's automatically searched
+# anyway.
+my $subdir = 'idir';
+mkdir($subdir, 0777);
 
-# The Contents of the MAKEFILE ...
-
-$mf2 = substr ($makefile2, index ($makefile2, $pathsep) + 1);
-print MAKEFILE <<EOF;
-include $mf2
-all:
-\t\@echo There should be no errors for this makefile.
-EOF
-
-# END of Contents of MAKEFILE
-
-close(MAKEFILE);
-
-
-open(MAKEFILE,"> $makefile2");
-
-print MAKEFILE <<EOF;
+my $included = 'ifile.mk';
+my $ipath = File::Spec->catfile($subdir, $included);
+create_file($ipath, "
 ANOTHER:
 \t\@echo This is another included makefile
 recurse:
-\t\$(MAKE) ANOTHER -f $makefile
-EOF
+\t\@\$(MAKE) ANOTHER -f \$(main_makefile)\n");
 
-close(MAKEFILE);
-
-&run_make_with_options($makefile,"-I $workdir all",&get_logfile);
-
-# Create the answer to what should be produced by this Makefile
-$answer = "There should be no errors for this makefile.\n";
-&compare_output($answer,&get_logfile(1));
+my $nosuch = "#MAKEFILE#:5: $included: $ERR_no_such_file
+#MAKE#: *** No rule to make target '$included'.  Stop.\n";
 
 
-$answer = "This is another included makefile\n";
-&run_make_with_options($makefile,"-I $workdir ANOTHER",&get_logfile);
-&compare_output($answer,&get_logfile(1));
+# Verify that we get an error if we don't have -I
+run_make_test(qq!
+main_makefile := \$(firstword \$(MAKEFILE_LIST))
+all:
+\t\@echo There should be no errors for this makefile
+include $included
+!,
+              '', $nosuch, 512);
 
+# Check basic -I works
+run_make_test(undef, "-I $subdir all",
+              "There should be no errors for this makefile\n");
 
-$answer = subst_make_string("$mkpath ANOTHER -f $makefile
-#MAKE#[1]: Entering directory '#PWD#'
+# Check that the included target works
+run_make_test(undef, "-I $subdir ANOTHER",
+              "This is another included makefile\n");
+
+# Check that -I is passed down through MAKEFLAGS
+run_make_test(undef, "-I $subdir recurse",
+              "#MAKE#[1]: Entering directory '#PWD#'
 This is another included makefile
 #MAKE#[1]: Leaving directory '#PWD#'\n");
 
-&run_make_with_options($makefile,"-I $workdir recurse",&get_logfile);
-&compare_output($answer,&get_logfile(1));
+# Verify that we get an error if we add -I- to delete previous includes
+run_make_test(undef, "-I $subdir -I- all", $nosuch, 512);
+
+# Make another directory with the same name and make sure the right one is
+# chosen if -I- stops the path.
+
+mkdir('idir2', 0777);
+my $ipath2 = File::Spec->catfile('idir2', $included);
+create_file($ipath2, "This is a bad makefile!!\n");
+
+run_make_test(undef, "-I idir2 -I $subdir ANOTHER",
+              "$included:1: *** missing separator.  Stop.\n", 512);
+
+run_make_test(undef, "-I idir2 -I - -I $subdir ANOTHER",
+              "This is another included makefile\n");
+
+# Check that -I- is passed down through MAKEFLAGS
+run_make_test(undef, "-I idir2 -I - -I $subdir recurse",
+              "#MAKE#[1]: Entering directory '#PWD#'
+This is another included makefile
+#MAKE#[1]: Leaving directory '#PWD#'\n");
+
+unlink($ipath2);
+rmdir('idir2');
+
+# The only way to check if -I- voids included directories is to see if a file
+# exists in one and try to include it.  We very likely can't add our own files
+# to the default directories since they're probably write-protected.  This
+# won't work if none of the default directories contain any files :-/
+
+create_file('defaultdirs.mk', "\$(info \$(.INCLUDE_DIRS))\nall:;\@:\n");
+my $cmd = subst_make_string("#MAKEPATH# -f defaultdirs.mk");
+my @dirs = `$cmd`;
+my $dirs = $dirs[0];
+chomp $dirs;
+unlink('defaultdirs.mk');
+
+my $fn = undef;
+foreach my $dn (split ' ', $dirs) {
+    # On Windows the default is "." which is bogus!
+    if ($dn != '.') {
+        my @files = glob(File::Spec->catfile($dn, "*"));
+        if (@files) {
+            (undef, undef, $fn) = File::Spec->splitpath($files[0]);
+            last;
+        }
+    }
+}
+
+if ($fn) {
+    run_make_test("
+all:;
+include $fn
+",
+                  '-I-', "#MAKEFILE#:3: $fn: $ERR_no_such_file
+#MAKE#: *** No rule to make target '$fn'.  Stop.\n", 512);
+}
+
+unlink($ipath);
+rmdir($subdir);
 
 1;
