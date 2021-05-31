@@ -2295,10 +2295,28 @@ main (int argc, char **argv, char **envp)
              for one of the makefiles to be remade as a target on the command
              line.  Since we're not actually updating anything with -q we can
              treat this as "did nothing".  */
+          break;
 
         case us_none:
-          /* Did nothing.  */
-          break;
+          /* No makefiles needed to be updated.  If we couldn't read some
+             included file that we care about, fail.  */
+          {
+            int any_failed = 0;
+            struct goaldep *d;
+
+            for (d = read_files; d != 0; d = d->next)
+              if (d->error && ! (d->flags & RM_DONTCARE))
+                {
+                  /* This makefile couldn't be loaded, and we care.  */
+                  OSS (error, &d->floc,
+                       _("%s: %s"), dep_name (d), strerror (d->error));
+                  any_failed = 1;
+                }
+
+            if (any_failed)
+              die (MAKE_FAILURE);
+            break;
+          }
 
         case us_failed:
           /* Failed to update.  Figure out if we care.  */
@@ -2327,7 +2345,8 @@ main (int argc, char **argv, char **envp)
                         FILE_TIMESTAMP mtime;
                         /* The update failed and this makefile was not
                            from the MAKEFILES variable, so we care.  */
-                        OS (error, NILF, _("Failed to remake makefile '%s'."),
+                        OS (error, &d->floc,
+                            _("Failed to remake makefile '%s'."),
                             d->file->name);
                         mtime = file_mtime_no_search (d->file);
                         any_remade |= (mtime != NONEXISTENT_MTIME
@@ -2346,7 +2365,7 @@ main (int argc, char **argv, char **envp)
                       if (d->flags & RM_INCLUDED)
                         /* An included makefile.  We don't need to die, but we
                            do want to complain.  */
-                        error (NILF, l,
+                        error (&d->floc, l,
                                _("Included makefile '%s' was not found."), dnm);
                       else
                         {

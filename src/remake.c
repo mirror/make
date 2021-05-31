@@ -78,8 +78,8 @@ static FILE_TIMESTAMP name_mtime (const char *name);
 static const char *library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr);
 
 
-/* Remake all the goals in the 'struct dep' chain GOALS.  Return -1 if nothing
-   was done, 0 if all goals were updated successfully, or 1 if a goal failed.
+/* Remake all the goals in the 'struct dep' chain GOALS.  Return update_status
+   representing the totality of the status of the goals.
 
    If rebuilding_makefiles is nonzero, these goals are makefiles, so -t, -q,
    and -n should be disabled for them unless they were also command-line
@@ -185,8 +185,7 @@ update_goal_chain (struct goaldep *goaldeps)
                       FILE_TIMESTAMP mtime = MTIME (file);
                       check_renamed (file);
 
-                      if (file->updated && g->changed &&
-                           mtime != file->mtime_before_update)
+                      if (file->updated && mtime != file->mtime_before_update)
                         {
                           /* Updating was done.  If this is a makefile and
                              just_print_flag or question_flag is set (meaning
@@ -288,7 +287,7 @@ show_goal_error (void)
         if (goal->error)
           {
             OSS (error, &goal->floc, "%s: %s",
-                 goal->file->name, strerror ((int)goal->error));
+                 goal->file->name, strerror (goal->error));
             goal->error = 0;
           }
         return;
@@ -1421,7 +1420,7 @@ f_mtime (struct file *file, int search)
                     / 1e9));
               char from_now_string[100];
 
-              if (from_now >= 99 && from_now <= ULONG_MAX)
+              if (from_now >= 100.0 && from_now < (double) ULONG_MAX)
                 sprintf (from_now_string, "%lu", (unsigned long) from_now);
               else
                 sprintf (from_now_string, "%.2g", from_now);

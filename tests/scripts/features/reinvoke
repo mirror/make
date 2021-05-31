@@ -17,9 +17,7 @@ $omkfile = $makefile;
 run_make_test('
 all: ; @echo running rules.
 
-#MAKEFILE# incl.mk: incl-1.mk
-	@echo rebuilding $@
-	@echo >> $@
+#MAKEFILE# incl.mk: incl-1.mk ; @echo rebuilding $@; echo >> $@
 
 include incl.mk',
               '', "rebuilding incl.mk\nrunning rules.\n");
@@ -74,9 +72,36 @@ foo30723: ; @touch $@
 
 unlink('foo30723');
 
+# If ANY makefile is rebuilt then we should re-exec
+
+run_make_test('
+all: ; @echo RESTARTS=$(MAKE_RESTARTS)
+
+m1.d: ; @echo $@; touch $@
+
+m2.d: m1.d ; @test -f $< || { echo $@; touch $@; }
+
+include m1.d
+-include m2.d
+',
+              '', "m1.d\nRESTARTS=1\n");
+
+unlink('m1.d', 'm2.d');
+
+# Same as before but be sure we get error messages for un-created makefiles
+
+run_make_test('
+all: ; @echo RESTARTS=$(MAKE_RESTARTS)
+
+m1.d: ; @echo $@; touch $@
+
+m2.d: m1.d ; @test -f $< || { echo $@; touch $@; }
+
+include m1.d m2.d
+',
+              '', "m1.d\n#MAKEFILE#:8: m2.d: $ERR_no_such_file\n", 512);
+
+unlink('m1.d', 'm2.d');
+
 # This tells the test driver that the perl test script executed properly.
 1;
-
-### Local Variables:
-### eval: (setq whitespace-action (delq 'auto-cleanup whitespace-action))
-### End:

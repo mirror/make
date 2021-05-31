@@ -108,7 +108,7 @@ ifile: no-such-file; @false
                   '-k',
                   "#MAKEFILE#:2: ifile: $ERR_no_such_file
 #MAKE#: *** No rule to make target 'no-such-file', needed by 'ifile'.
-#MAKE#: Failed to remake makefile 'ifile'.
+#MAKEFILE#:2: Failed to remake makefile 'ifile'.
 hi\n",
                   512);
 }
