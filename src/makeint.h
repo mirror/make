@@ -633,7 +633,6 @@ void spin (const char* suffix);
 
 #if !defined (__GNU_LIBRARY__) && !defined (POSIX) && !defined (_POSIX_VERSION) && !defined(WINDOWS32)
 
-long int atol ();
 # ifndef VMS
 long int lseek ();
 # endif
