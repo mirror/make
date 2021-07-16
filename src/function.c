@@ -765,35 +765,36 @@ strip_whitespace (const char **begpp, const char **endpp)
   return (char *)*begpp;
 }
 
-static void
-check_numeric (const char *s, const char *msg)
+static long
+parse_numeric (const char *s, const char *msg)
 {
-  const char *end = s + strlen (s) - 1;
   const char *beg = s;
-  strip_whitespace (&s, &end);
+  const char *end = s + strlen (s) - 1;
+  char *endp;
+  long num;
+  strip_whitespace (&beg, &end);
 
-  for (; s <= end; ++s)
-    if (!ISDIGIT (*s))  /* ISDIGIT only evals its arg once: see makeint.h.  */
-      break;
+  errno = 0;
+  num = strtol (beg, &endp, 10);
+  if (errno == ERANGE)
+    OSS (fatal, *expanding_var, "%s: '%s'", strerror (errno), s);
+  else if (endp == beg || endp <= end)
+    /* Empty or non-numeric input */
+    OSS (fatal, *expanding_var, "%s: '%s'", msg, s);
 
-  if (s <= end || end - beg < 0)
-    OSS (fatal, *expanding_var, "%s: '%s'", msg, beg);
+  return num;
 }
-
-
 
 static char *
 func_word (char *o, char **argv, const char *funcname UNUSED)
 {
   const char *end_p;
   const char *p;
-  int i;
+  long i;
 
-  /* Check the first argument.  */
-  check_numeric (argv[0], _("non-numeric first argument to 'word' function"));
-  i = atoi (argv[0]);
-
-  if (i == 0)
+  i = parse_numeric (argv[0],
+                     _("non-numeric first argument to 'word' function"));
+  if (i <= 0)
     O (fatal, *expanding_var,
        _("first argument to 'word' function must be greater than 0"));
 
@@ -811,20 +812,18 @@ func_word (char *o, char **argv, const char *funcname UNUSED)
 static char *
 func_wordlist (char *o, char **argv, const char *funcname UNUSED)
 {
-  int start, count;
+  long start, stop, count;
 
-  /* Check the arguments.  */
-  check_numeric (argv[0],
-                 _("non-numeric first argument to 'wordlist' function"));
-  check_numeric (argv[1],
-                 _("non-numeric second argument to 'wordlist' function"));
+  start = parse_numeric (argv[0],
+                         _("non-numeric first argument to 'wordlist' function"));
+  stop = parse_numeric (argv[1],
+                        _("non-numeric second argument to 'wordlist' function"));
 
-  start = atoi (argv[0]);
   if (start < 1)
     ON (fatal, *expanding_var,
-        "invalid first argument to 'wordlist' function: '%d'", start);
+        "invalid first argument to 'wordlist' function: '%ld'", start);
 
-  count = atoi (argv[1]) - start + 1;
+  count = stop - start + 1;
 
   if (count > 0)
     {

@@ -51,6 +51,7 @@ run_make_test('FOO = foo bar biz baz
 word-e1: ; @echo $(word ,$(FOO))
 word-e2: ; @echo $(word abc ,$(FOO))
 word-e3: ; @echo $(word 1a,$(FOO))
+word-e4: ; @echo $(word 9999999999999999999,$(FOO))
 
 wordlist-e1: ; @echo $(wordlist ,,$(FOO))
 wordlist-e2: ; @echo $(wordlist abc ,,$(FOO))
@@ -70,18 +71,23 @@ run_make_test(undef,
               512);
 
 run_make_test(undef,
+              'word-e4',
+              "#MAKEFILE#:6: *** Numerical result out of range: '9999999999999999999'.  Stop.",
+              512);
+
+run_make_test(undef,
               'wordlist-e1',
-              "#MAKEFILE#:7: *** non-numeric first argument to 'wordlist' function: ''.  Stop.",
+              "#MAKEFILE#:8: *** non-numeric first argument to 'wordlist' function: ''.  Stop.",
               512);
 
 run_make_test(undef,
               'wordlist-e2',
-              "#MAKEFILE#:8: *** non-numeric first argument to 'wordlist' function: 'abc '.  Stop.",
+              "#MAKEFILE#:9: *** non-numeric first argument to 'wordlist' function: 'abc '.  Stop.",
               512);
 
 run_make_test(undef,
               'wordlist-e3',
-              "#MAKEFILE#:9: *** non-numeric second argument to 'wordlist' function: ' 12a '.  Stop.",
+              "#MAKEFILE#:10: *** non-numeric second argument to 'wordlist' function: ' 12a '.  Stop.",
               512);
 
 # Test error conditions again, but this time in a variable reference
