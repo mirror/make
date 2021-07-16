@@ -50,6 +50,10 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   user-defined function and they will not impact global variable assignments.
   Implementation provided by Jouke Witteveen <j.witteveen@gmail.com>
 
+* New feature: The $(intcmp ...) function
+  This function allows conditional evaluation controlled by a numerical
+  comparison.
+
 * If the MAKEFLAGS variable is modified in a makefile, it will be re-parsed
   immediately rather than after all makefiles have been read.  Note that
   although all options are parsed immediately, some special effects won't

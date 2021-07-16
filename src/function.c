@@ -1270,6 +1270,66 @@ func_sort (char *o, char **argv, const char *funcname UNUSED)
 }
 
 /*
+  $(intcmp lhs,rhs[,lt-part[,eq-part[,gt-part]]])
+
+  LHS and RHS must be integer values (leading/trailing whitespace is ignored).
+  If none of LT-PART, EQ-PART, or GT-PART are given then the function expands
+  to empty if LHS and RHS are not equal, or the numeric value if they are equal.
+  LT-PART is evaluated when LHS is strictly less than RHS, EQ-PART is evaluated
+  when LHS is equal to RHS, and GT-part is evaluated when LHS is strictly
+  greater than RHS.
+  If GT-PART is not provided, it defaults to EQ-PART.  When neither EQ-PART
+  nor GT-PART are provided, the function expands to empty if LHS is not
+  strictly less than RHS.
+*/
+
+static char *
+func_intcmp (char *o, char **argv, const char *funcname UNUSED)
+{
+  char *lhs_str = expand_argument (argv[0], NULL);
+  char *rhs_str = expand_argument (argv[1], NULL);
+  long lhs, rhs;
+
+  lhs = parse_numeric (lhs_str,
+                       _("non-numeric first argument to 'intcmp' function"));
+  rhs = parse_numeric (rhs_str,
+                       _("non-numeric second argument to 'intcmp' function"));
+  free (lhs_str);
+  free (rhs_str);
+
+  argv += 2;
+
+  if (*argv == NULL)
+    {
+      if (lhs == rhs)
+        {
+          char buf[INTSTR_LENGTH+1];
+          sprintf (buf, "%ld", lhs);
+          o = variable_buffer_output(o, buf, strlen (buf));
+        }
+      return o;
+    }
+
+  if (lhs >= rhs)
+    {
+      ++argv;
+      if (lhs > rhs && *argv && *(argv + 1))
+        ++argv;
+    }
+
+  if (*argv)
+    {
+      char *expansion = expand_argument (*argv, NULL);
+
+      o = variable_buffer_output (o, expansion, strlen (expansion));
+
+      free (expansion);
+    }
+
+  return o;
+}
+
+/*
   $(if condition,true-part[,false-part])
 
   CONDITION is false iff it evaluates to an empty string.  White
@@ -2435,6 +2495,7 @@ static struct function_table_entry function_table_init[] =
   FT_ENTRY ("info",          0,  1,  1,  func_error),
   FT_ENTRY ("error",         0,  1,  1,  func_error),
   FT_ENTRY ("warning",       0,  1,  1,  func_error),
+  FT_ENTRY ("intcmp",        2,  5,  0,  func_intcmp),
   FT_ENTRY ("if",            2,  3,  0,  func_if),
   FT_ENTRY ("or",            1,  0,  0,  func_or),
   FT_ENTRY ("and",           1,  0,  0,  func_and),

@@ -7820,7 +7820,7 @@ the file names to refer to an existing file or directory.  Use the
 @section Functions for Conditionals
 @findex if
 @cindex conditional expansion
-There are three functions that provide conditional expansion.  A key
+There are four functions that provide conditional expansion.  A key
 aspect of these functions is that not all of the arguments are
 expanded initially.  Only those arguments which need to be expanded,
 will be expanded.
@@ -7866,6 +7866,35 @@ Each argument is expanded, in order.  If an argument expands to an
 empty string the processing stops and the result of the expansion is
 the empty string.  If all arguments expand to a non-empty string then
 the result of the expansion is the expansion of the last argument.
+
+@item $(intcmp @var{lhs},@var{rhs}[,@var{lt-part}[,@var{eq-part}[,@var{gt-part}]]])
+@findex intcmp
+The @code{intcmp} function provides support for numerical comparison of
+integers.  This function has no counterpart among the GNU @code{make} makefile
+conditionals.
+
+The left-hand side, @var{lhs}, and right-hand side, @var{rhs}, are expanded
+and parsed as integral numbers in base 10.  Expansion of the remaining
+arguments is controlled by how the numerical left-hand side compares to the
+numerical right-hand side.
+
+If there are no further arguments, then the function expands to empty if the
+left-hand side and right-hand side do not compare equal, or to their numerical
+value if they do compare equal.
+
+Else if the left-hand side is strictly less than the right-hand side, the
+@code{intcmp} function evaluates to the expansion of the third argument,
+@var{lt-part}.  If both sides compare equal, then the @code{intcmp} function
+evaluates to the expansion of the fourth argument, @var{eq-part}.  If the
+left-hand side is strictly greater than the right-hand side, then the
+@code{intcmp} function evaluates to the expansion of the fifth argument,
+@var{gt-part}.
+
+If @var{gt-part} is missing, it defaults to @var{eq-part}.  If @var{eq-part}
+is missing, it defaults to the empty string.  Thus both @samp{$(intcmp
+9,7,hello)} and @samp{$(intcmp 9,7,hello,world,)} evaluate to the empty
+string, while @samp{$(intcmp 9,7,hello,world)} (notice the absence of a comma
+after @code{world}) evaluates to @samp{world}.
 
 @end table
 
@@ -12705,6 +12734,13 @@ Evaluate each condition @var{conditionN} one at a time; if any
 expansion results in the empty string substitute the empty string.  If
 all expansions result in a non-empty string, substitute the expansion
 of the last @var{condition}.@*
+@xref{Conditional Functions, ,Functions for Conditionals}.
+
+@item $(intcmp @var{lhs},@var{rhs}[,@var{lt-part}[,@var{eq-part}[,@var{gt-part}]]])
+Compare @var{lhs} and @var{rhs} numerically; substitute the expansion of
+@var{lt-part}, @var{eq-part}, or @var{gt-part} depending on whether the
+left-hand side is less-than, equal-to, or greater-than the right-hand
+side, respectively.@*
 @xref{Conditional Functions, ,Functions for Conditionals}.
 
 @item $(call @var{var},@var{param},@dots{})
