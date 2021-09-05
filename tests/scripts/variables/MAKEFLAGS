@@ -39,4 +39,27 @@ print:
 jump Works: MAKEFLAGS=e --no-print-directory
 print Works: MAKEFLAGS=e --no-print-directory');
 
+# Ensure MAKEFLAGS updates are handled immediately rather than later
+
+mkdir('foo', 0777);
+mkdir('bar', 0777);
+
+run_make_test(q!
+$(info MAKEFLAGS=$(MAKEFLAGS))
+$(info INCLUDE_DIRS=$(.INCLUDE_DIRS))
+MAKEFLAGS += -Ibar
+$(info MAKEFLAGS=$(MAKEFLAGS))
+$(info INCLUDE_DIRS=$(.INCLUDE_DIRS))
+.PHONY: all
+all: ; @echo 'MAKEFLAGS=$(MAKEFLAGS)' "\$$MAKEFLAGS=$$MAKEFLAGS"
+!,
+              '-I- -Ifoo', 'MAKEFLAGS= -I- -Ifoo
+INCLUDE_DIRS=foo
+MAKEFLAGS= -I- -Ifoo -Ibar
+INCLUDE_DIRS=foo bar
+MAKEFLAGS= -I- -Ifoo -Ibar $MAKEFLAGS= -I- -Ifoo -Ibar');
+
+rmdir('foo');
+rmdir('bar');
+
 1;

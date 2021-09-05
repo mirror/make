@@ -104,44 +104,12 @@ double atof ();
 static void clean_jobserver (int status);
 static void print_data_base (void);
 static void print_version (void);
-static void reset_switches ();
 static void decode_switches (int argc, const char **argv, int env);
-static void decode_env_switches (const char *envar, size_t len);
 static struct variable *define_makeflags (int all, int makefile);
 static char *quote_for_env (char *out, const char *in);
 static void initialize_global_hash_tables (void);
 
 
-/* The structure that describes an accepted command switch.  */
-
-struct command_switch
-  {
-    int c;                      /* The switch character.  */
-
-    enum                        /* Type of the value.  */
-      {
-        flag,                   /* Turn int flag on.  */
-        flag_off,               /* Turn int flag off.  */
-        string,                 /* One string per invocation.  */
-        strlist,                /* One string per switch.  */
-        filename,               /* A string containing a file name.  */
-        positive_int,           /* A positive integer.  */
-        floating,               /* A floating-point number (double).  */
-        ignore                  /* Ignored.  */
-      } type;
-
-    void *value_ptr;    /* Pointer to the value-holding variable.  */
-
-    unsigned int env:1;         /* Can come from MAKEFLAGS.  */
-    unsigned int toenv:1;       /* Should be put in MAKEFLAGS.  */
-    unsigned int no_makefile:1; /* Don't propagate when remaking makefiles.  */
-
-    const void *noarg_value;    /* Pointer to value used if no arg given.  */
-    const void *default_value;  /* Pointer to default value.  */
-
-    const char *long_name;      /* Long option name.  */
-  };
-
 /* True if C is a switch value that corresponds to a short option.  */
 
 #define short_option(c) ((c) <= CHAR_MAX)
@@ -283,7 +251,7 @@ static struct stringlist *directories = 0;
 
 /* List of include directories given with -I switches.  */
 
-static struct stringlist *include_directories = 0;
+static struct stringlist *include_dirs = 0;
 
 /* List of files given with -o switches.  */
 
@@ -418,6 +386,36 @@ static const char *const usage[] =
 
 static int trace_flag = 0;
 
+/* The structure that describes an accepted command switch.  */
+
+struct command_switch
+  {
+    int c;                      /* The switch character.  */
+
+    enum                        /* Type of the value.  */
+      {
+        flag,                   /* Turn int flag on.  */
+        flag_off,               /* Turn int flag off.  */
+        string,                 /* One string per invocation.  */
+        strlist,                /* One string per switch.  */
+        filename,               /* A string containing a file name.  */
+        positive_int,           /* A positive integer.  */
+        floating,               /* A floating-point number (double).  */
+        ignore                  /* Ignored.  */
+      } type;
+
+    void *value_ptr;    /* Pointer to the value-holding variable.  */
+
+    unsigned int env:1;         /* Can come from MAKEFLAGS.  */
+    unsigned int toenv:1;       /* Should be put in MAKEFLAGS.  */
+    unsigned int no_makefile:1; /* Don't propagate when remaking makefiles.  */
+
+    const void *noarg_value;    /* Pointer to value used if no arg given.  */
+    const void *default_value;  /* Pointer to default value.  */
+
+    const char *long_name;      /* Long option name.  */
+  };
+
 /* The table of command switches.
    Order matters here: this is the order MAKEFLAGS will be constructed.
    So be sure all simple flags (single char, no argument) come first.  */
@@ -452,7 +450,7 @@ static const struct command_switch switches[] =
     /* These options take arguments.  */
     { 'C', filename, &directories, 0, 0, 0, 0, 0, "directory" },
     { 'f', filename, &makefiles, 0, 0, 0, 0, 0, "file" },
-    { 'I', filename, &include_directories, 1, 1, 0, 0, 0,
+    { 'I', filename, &include_dirs, 1, 1, 0, 0, 0,
       "include-dir" },
     { 'j', positive_int, &arg_job_slots, 1, 1, 0, &inf_jobs, &default_job_slots,
       "jobs" },
@@ -1429,50 +1427,50 @@ main (int argc, char **argv, char **envp)
       }
   }
 #ifdef WINDOWS32
-    /* If we didn't find a correctly spelled PATH we define PATH as
-     * either the first misspelled value or an empty string
-     */
-    if (!unix_path)
-      define_variable_cname ("PATH", windows32_path ? windows32_path : "",
-                             o_env, 1)->export = v_export;
+  /* If we didn't find a correctly spelled PATH we define PATH as
+   * either the first misspelled value or an empty string
+   */
+  if (!unix_path)
+    define_variable_cname ("PATH", windows32_path ? windows32_path : "",
+                           o_env, 1)->export = v_export;
 #endif
 #else /* For Amiga, read the ENV: device, ignoring all dirs */
-    {
-        BPTR env, file, old;
-        char buffer[1024];
-        int len;
-        __aligned struct FileInfoBlock fib;
+  {
+    BPTR env, file, old;
+    char buffer[1024];
+    int len;
+    __aligned struct FileInfoBlock fib;
 
-        env = Lock ("ENV:", ACCESS_READ);
-        if (env)
+    env = Lock ("ENV:", ACCESS_READ);
+    if (env)
+      {
+        old = CurrentDir (DupLock (env));
+        Examine (env, &fib);
+
+        while (ExNext (env, &fib))
           {
-            old = CurrentDir (DupLock (env));
-            Examine (env, &fib);
-
-            while (ExNext (env, &fib))
+            if (fib.fib_DirEntryType < 0) /* File */
               {
-                if (fib.fib_DirEntryType < 0) /* File */
-                  {
-                    /* Define an empty variable. It will be filled in
-                       variable_lookup(). Makes startup quite a bit faster. */
-                    define_variable (fib.fib_FileName,
-                                     strlen (fib.fib_FileName),
-                                     "", o_env, 1)->export = v_export;
-                  }
+                /* Define an empty variable. It will be filled in
+                   variable_lookup(). Makes startup quite a bit faster. */
+                define_variable (fib.fib_FileName,
+                                 strlen (fib.fib_FileName),
+                                 "", o_env, 1)->export = v_export;
               }
-            UnLock (env);
-            UnLock (CurrentDir (old));
           }
-    }
+        UnLock (env);
+        UnLock (CurrentDir (old));
+      }
+  }
 #endif
 
   /* Decode the switches.  */
-  decode_env_switches (STRING_SIZE_TUPLE ("GNUMAKEFLAGS"));
+  decode_env_switches (STRING_SIZE_TUPLE (GNUMAKEFLAGS_NAME));
 
   /* Clear GNUMAKEFLAGS to avoid duplication.  */
-  define_variable_cname ("GNUMAKEFLAGS", "", o_env, 0);
+  define_variable_cname (GNUMAKEFLAGS_NAME, "", o_env, 0);
 
-  decode_env_switches (STRING_SIZE_TUPLE ("MAKEFLAGS"));
+  decode_env_switches (STRING_SIZE_TUPLE (MAKEFLAGS_NAME));
 
 #if 0
   /* People write things like:
@@ -1649,13 +1647,8 @@ main (int argc, char **argv, char **envp)
    * lookups to fail because the current directory (.) was pointing
    * at the wrong place when it was first evaluated.
    */
-   no_default_sh_exe = !find_and_set_default_shell (NULL);
+  no_default_sh_exe = !find_and_set_default_shell (NULL);
 #endif /* WINDOWS32 */
-
-  /* Construct the list of include directories to search.  */
-
-  construct_include_path (include_directories == 0
-                          ? 0 : include_directories->list);
 
   /* If we chdir'ed, figure out where we are now.  */
   if (directories)
@@ -1955,42 +1948,13 @@ main (int argc, char **argv, char **envp)
       define_variable_cname ("-*-eval-flags-*-", value, o_automatic, 0);
     }
 
-  /* Read all the makefiles.  */
-
-  read_files = read_all_makefiles (makefiles == 0 ? 0 : makefiles->list);
-
-#ifdef WINDOWS32
-  /* look one last time after reading all Makefiles */
-  if (no_default_sh_exe)
-    no_default_sh_exe = !find_and_set_default_shell (NULL);
-#endif /* WINDOWS32 */
-
-#if defined (__MSDOS__) || defined (__EMX__) || defined (VMS)
-  /* We need to know what kind of shell we will be using.  */
-  {
-    extern int _is_unixy_shell (const char *_path);
-    struct variable *shv = lookup_variable (STRING_SIZE_TUPLE ("SHELL"));
-    extern int unixy_shell;
-    extern const char *default_shell;
-
-    if (shv && *shv->value)
-      {
-        char *shell_path = recursively_expand (shv);
-
-        if (shell_path && _is_unixy_shell (shell_path))
-          unixy_shell = 1;
-        else
-          unixy_shell = 0;
-        if (shell_path)
-          default_shell = shell_path;
-      }
-  }
-#endif /* __MSDOS__ || __EMX__ */
-
   {
     int old_builtin_rules_flag = no_builtin_rules_flag;
     int old_builtin_variables_flag = no_builtin_variables_flag;
     int old_arg_job_slots = arg_job_slots;
+
+    /* Read all the makefiles.  */
+    read_files = read_all_makefiles (makefiles == 0 ? 0 : makefiles->list);
 
     /* Reset switches that are taken from MAKEFLAGS so we don't get dups.  */
     reset_switches ();
@@ -1998,12 +1962,12 @@ main (int argc, char **argv, char **envp)
     arg_job_slots = INVALID_JOB_SLOTS;
 
     /* Decode switches again, for variables set by the makefile.  */
-    decode_env_switches (STRING_SIZE_TUPLE ("GNUMAKEFLAGS"));
+    decode_env_switches (STRING_SIZE_TUPLE (GNUMAKEFLAGS_NAME));
 
     /* Clear GNUMAKEFLAGS to avoid duplication.  */
-    define_variable_cname ("GNUMAKEFLAGS", "", o_override, 0);
+    define_variable_cname (GNUMAKEFLAGS_NAME, "", o_override, 0);
 
-    decode_env_switches (STRING_SIZE_TUPLE ("MAKEFLAGS"));
+    decode_env_switches (STRING_SIZE_TUPLE (MAKEFLAGS_NAME));
 #if 0
     decode_env_switches (STRING_SIZE_TUPLE ("MFLAGS"));
 #endif
@@ -2051,6 +2015,34 @@ main (int argc, char **argv, char **envp)
     if (no_builtin_variables_flag && ! old_builtin_variables_flag)
       undefine_default_variables ();
   }
+
+#ifdef WINDOWS32
+  /* look one last time after reading all Makefiles */
+  if (no_default_sh_exe)
+    no_default_sh_exe = !find_and_set_default_shell (NULL);
+#endif /* WINDOWS32 */
+
+#if defined (__MSDOS__) || defined (__EMX__) || defined (VMS)
+  /* We need to know what kind of shell we will be using.  */
+  {
+    extern int _is_unixy_shell (const char *_path);
+    struct variable *shv = lookup_variable (STRING_SIZE_TUPLE ("SHELL"));
+    extern int unixy_shell;
+    extern const char *default_shell;
+
+    if (shv && *shv->value)
+      {
+        char *shell_path = recursively_expand (shv);
+
+        if (shell_path && _is_unixy_shell (shell_path))
+          unixy_shell = 1;
+        else
+          unixy_shell = 0;
+        if (shell_path)
+          default_shell = shell_path;
+      }
+  }
+#endif /* __MSDOS__ || __EMX__ */
 
   /* Final jobserver configuration.
 
@@ -2862,9 +2854,9 @@ print_usage (int bad)
 }
 
 /* Reset switches that come from MAKEFLAGS and go to MAKEFLAGS.
-   Before re-parsing MAKEFLAGS after reading makefiles, start from scratch.  */
+   Before re-parsing MAKEFLAGS, start from scratch.  */
 
-static void
+void
 reset_switches ()
 {
   const struct command_switch *cs;
@@ -2898,7 +2890,10 @@ reset_switches ()
             /* The strings are in the cache so don't free them.  */
             struct stringlist *sl = *(struct stringlist **) cs->value_ptr;
             if (sl)
-              sl->idx = 0;
+              {
+                sl->idx = 0;
+                sl->list[0] = 0;
+              }
           }
           break;
 
@@ -2934,7 +2929,7 @@ decode_switches (int argc, const char **argv, int env)
       const char *coptarg;
 
       /* Parse the next argument.  */
-      c = getopt_long (argc, (char*const*)argv, options, long_options, NULL);
+      c = getopt_long (argc, (char *const *)argv, options, long_options, NULL);
       coptarg = optarg;
       if (c == EOF)
         /* End of arguments, or "--" marker seen.  */
@@ -3102,6 +3097,9 @@ decode_switches (int argc, const char **argv, int env)
 
   /* Perform any special switch handling.  */
   run_silent = silent_flag;
+
+  /* Construct the list of include directories to search.  */
+  construct_include_path (include_dirs ? include_dirs->list : NULL);
 }
 
 /* Decode switches from environment variable ENVAR (which is LEN chars long).
@@ -3109,7 +3107,7 @@ decode_switches (int argc, const char **argv, int env)
    dash to the first word if it lacks one, and passing the vector to
    decode_switches.  */
 
-static void
+void
 decode_env_switches (const char *envar, size_t len)
 {
   char *varref = alloca (2 + len + 2);
@@ -3136,7 +3134,7 @@ decode_env_switches (const char *envar, size_t len)
 
   /* getopt will look at the arguments starting at ARGV[1].
      Prepend a spacer word.  */
-  argv[0] = 0;
+  argv[0] = "";
   argc = 1;
 
   /* We need a buffer to copy the value into while we split it into words
@@ -3206,6 +3204,7 @@ define_makeflags (int all, int makefile)
   const char posixref[] = "-*-command-variables-*-";
   const char evalref[] = "$(-*-eval-flags-*-)";
   const struct command_switch *cs;
+  struct variable *v;
   char *flagstring;
   char *p;
 
@@ -3400,7 +3399,7 @@ define_makeflags (int all, int makefile)
 
       const char *r = posix_pedantic ? posixref : ref;
       size_t l = strlen (r);
-      struct variable *v = lookup_variable (r, l);
+      v = lookup_variable (r, l);
 
       if (v && v->value && v->value[0] != '\0')
         {
@@ -3425,8 +3424,11 @@ define_makeflags (int all, int makefile)
      lost when users added -e, causing a previous MAKEFLAGS env. var. to take
      precedence over the new one.  Of course, an override or command
      definition will still take precedence.  */
-  return define_variable_cname ("MAKEFLAGS", flagstring,
-                                env_overrides ? o_env_override : o_file, 1);
+  v =  define_variable_cname (MAKEFLAGS_NAME, flagstring,
+                              env_overrides ? o_env_override : o_file, 1);
+  v->special = 1;
+
+  return v;
 }
 
 /* Print version information.  */

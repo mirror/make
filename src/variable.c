@@ -381,10 +381,10 @@ lookup_special_var (struct variable *var)
 
   /* This one actually turns out to be very hard, due to the way the parser
      records targets.  The way it works is that target information is collected
-     internally until make knows the target is completely specified.  It unitl
-     it sees that some new construct (a new target or variable) is defined that
-     it knows the previous one is done.  In short, this means that if you do
-     this:
+     internally until make knows the target is completely specified.  Only when
+     it sees that some new construct (a new target or variable) is defined does
+     make know that the previous one is done.  In short, this means that if
+     you do this:
 
        all:
 
@@ -1143,6 +1143,11 @@ set_special_var (struct variable *var)
          happen immediately, so that subsequent rules are interpreted
          properly.  */
       cmd_prefix = var->value[0]=='\0' ? RECIPEPREFIX_DEFAULT : var->value[0];
+    }
+  else if (streq (var->name, MAKEFLAGS_NAME))
+    {
+      reset_switches ();
+      decode_env_switches (STRING_SIZE_TUPLE(MAKEFLAGS_NAME));
     }
 
   return var;

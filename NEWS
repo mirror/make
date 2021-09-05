@@ -50,6 +50,11 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   user-defined function and they will not impact global variable assignments.
   Implementation provided by Jouke Witteveen <j.witteveen@gmail.com>
 
+* If the MAKEFLAGS variable is modified in a makefile, it will be re-parsed
+  immediately rather than after all makefiles have been read.  Note that
+  although all options are parsed immediately, some special effects won't
+  appear until after all makefiles are read.
+
 * The -I option accepts an argument "-" (e.g., "-I-") which means "reset the
   list of search directories to empty".  Among other things this can be used
   to prevent GNU make from searching in its default list of directories.

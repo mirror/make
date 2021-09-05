@@ -373,21 +373,18 @@ eval_makefile (const char *filename, unsigned short flags)
   /* If the makefile wasn't found and it's either a makefile from
      the 'MAKEFILES' variable or an included makefile,
      search the included makefile search path for this makefile.  */
-  if (ebuf.fp == 0 && (flags & RM_INCLUDED) && *filename != '/')
-    {
-      unsigned int i;
-      for (i = 0; include_directories[i] != 0; ++i)
-        {
-          const char *included = concat (3, include_directories[i],
-                                         "/", filename);
-          ebuf.fp = fopen (included, "r");
-          if (ebuf.fp)
-            {
-              filename = included;
-              break;
-            }
-        }
-    }
+  if (ebuf.fp == NULL && (flags & RM_INCLUDED) && *filename != '/'
+      && include_directories)
+    for (const char **dir = include_directories; *dir != NULL; ++dir)
+      {
+        const char *included = concat (3, *dir, "/", filename);
+        ebuf.fp = fopen (included, "r");
+        if (ebuf.fp)
+          {
+            filename = included;
+            break;
+          }
+      }
 
   /* Enter the final name for this makefile as a goaldep.  */
   filename = strcache_add (filename);
@@ -3027,10 +3024,12 @@ construct_include_path (const char **arg_dirs)
 
   /* Now add each dir to the .INCLUDE_DIRS variable.  */
 
+  do_variable_definition (NILF, ".INCLUDE_DIRS", "", o_default, f_simple, 0);
   for (cpp = dirs; *cpp != 0; ++cpp)
     do_variable_definition (NILF, ".INCLUDE_DIRS", *cpp,
                             o_default, f_append, 0);
 
+  free (include_directories);
   include_directories = dirs;
 }
 

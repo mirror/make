@@ -31,7 +31,7 @@ $(warning dir is empty)
 endif
 
 ifeq ($(filter $(dir),$(.INCLUDE_DIRS)),)
-$(warning .INCLUDE_DIRS does not contain $(dir))
+$(warning .INCLUDE_DIRS does not contain $(dir): $(.INCLUDE_DIRS))
 endif
 
 .PHONY: all

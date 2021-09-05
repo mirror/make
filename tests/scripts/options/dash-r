@@ -1,0 +1,36 @@
+#                                                                    -*-perl-*-
+
+$description = "Test removing default rules and variables";
+
+$details = "DETAILS";
+
+touch('xxx.c');
+
+# Simple check
+run_make_test('', '-r COMPILE.c=echo xxx.o',
+              "#MAKE#: *** No rule to make target 'xxx.o'.  Stop.", 512);
+
+# Make sure we can set it from within the makefile too
+run_make_test(q!
+COMPILE.c = echo
+MAKEFLAGS += -r
+!,
+              'xxx.o',
+              "#MAKE#: *** No rule to make target 'xxx.o'.  Stop.", 512);
+
+unlink('xxx.c');
+
+# Simple check for -R
+run_make_test(q!
+all:;$(info CC='$(CC)')
+!,
+              '-sR', "CC=''");
+
+# Make sure we can set -R from within the makefile too
+run_make_test(q!
+MAKEFLAGS += -R
+all:;$(info CC='$(CC)')
+!,
+              '-s', "CC=''");
+
+1;

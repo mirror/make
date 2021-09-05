@@ -45,6 +45,10 @@ $cwdpath = cwd();
 $has_POSIX = eval { require "POSIX.pm" };
 
 %FEATURES = ();
+%DEFVARS = (
+    AR => undef,
+    CC => undef
+);
 
 $valgrind = 0;              # invoke make with valgrind
 $valgrind_args = '';
@@ -648,6 +652,18 @@ sub set_more_defaults
   create_file('features.mk', 'all:;$(info $(.FEATURES))');
   %FEATURES = map { $_ => 1 } split /\s+/, `$make_path -sf features.mk`;
   unlink('features.mk');
+
+  # Find the default values for different built-in variables
+  my $s = "all:;\n";
+  foreach (keys %DEFVARS) {
+      $s .= "\$(info $_=\$($_))\n";
+  }
+  create_file('defvars.mk', $s);
+  foreach (split "\n", `$make_path -sf defvars.mk`) {
+      my @e = split /=/, $_, 2;
+      $DEFVARS{$e[0]} = $e[1];
+  }
+  unlink('defvars.mk');
 
   # Set up for valgrind, if requested.
 

@@ -527,6 +527,8 @@ void out_of_memory () NORETURN;
 #define ONS(_t,_a,_f,_n,_s)   _t((_a), INTSTR_LENGTH + strlen (_s), \
                                  (_f), (_n), (_s))
 
+void reset_switches ();
+void decode_env_switches (const char*, size_t line);
 void die (int) NORETURN;
 void pfatal_with_name (const char *) NORETURN;
 void perror_with_name (const char *, const char *);
@@ -696,9 +698,12 @@ extern const char *default_shell;
 /* can we run commands via 'sh -c xxx' or must we use batch files? */
 extern int batch_mode_shell;
 
+#define GNUMAKEFLAGS_NAME       "GNUMAKEFLAGS"
+#define MAKEFLAGS_NAME          "MAKEFLAGS"
+
 /* Resetting the command script introduction prefix character.  */
-#define RECIPEPREFIX_NAME          ".RECIPEPREFIX"
-#define RECIPEPREFIX_DEFAULT       '\t'
+#define RECIPEPREFIX_NAME       ".RECIPEPREFIX"
+#define RECIPEPREFIX_DEFAULT    '\t'
 extern char cmd_prefix;
 
 extern unsigned int job_slots;
