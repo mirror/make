@@ -159,6 +159,36 @@ Next, rename the file README.W32.template to README.W32 and follow those
 instructions.
 
 
+Debugging and Testing
+---------------------
+
+These instructions have been tested on GNU systems.  I have no idea if they
+work on non-GNU systems (Windows, MacOS, etc.)
+
+* Alternate Configurations:
+  The maintMakefile has a rule for running configure with various different
+  options, with and without packages.  Run:
+
+    make check-alt-config
+
+* Valgrind:
+  You can run all tests under valgrind by passing the -memcheck option:
+
+    (cd tests && ./run_make_tests -make ../make -memcheck)
+
+  Note, this is slow!  Also some tests will fail because of invoking valgrind.
+
+* ASAN:
+  You can build with ASAN and run tests, like this:
+
+    make clean
+    make -j8 CFLAGS='-ggdb3 -fsanitizer=address' LDFLAGS='-ggdb3 -fsanitizer=address'
+    (cd tests && ./run_make_tests -make ../make)
+
+  Note that ASAN is reporting many more errors than valgrind.  I don't know
+  which one is wrong: I haven't looked at them closely.
+
+
 Creating a Package
 ------------------
 
