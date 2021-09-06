@@ -2073,6 +2073,10 @@ declare the same file to be both a normal and an order-only
 prerequisite, the normal prerequisite takes precedence (since they
 have a strict superset of the behavior of an order-only prerequisite).
 
+Order-only prerequisites are never checked when determining if the
+target is out of date; even order-only prerequisites marked as phony
+(@pxref{Phony Targets}) will not cause the target to be rebuilt.
+
 Consider an example where your targets are to be placed in a separate
 directory, and that directory might not exist before @code{make} is
 run.  In this situation, you want the directory to be created before
