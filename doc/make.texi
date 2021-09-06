@@ -10007,11 +10007,13 @@ files.  But intermediate files are treated differently in two ways.
 The first difference is what happens if the intermediate file does not
 exist.  If an ordinary file @var{b} does not exist, and @code{make}
 considers a target that depends on @var{b}, it invariably creates
-@var{b} and then updates the target from @var{b}.  But if @var{b} is an
-intermediate file, then @code{make} can leave well enough alone.  It
-won't bother updating @var{b}, or the ultimate target, unless some
-prerequisite of @var{b} is newer than that target or there is some other
-reason to update that target.
+@var{b} and then updates the target from @var{b}.  But if @var{b} is
+an intermediate file, then @code{make} can leave well enough alone:
+it won't create @var{b} unless one of its prerequisites is out of
+date.  This means the target depending on @var{b} won't be rebuilt
+either, unless there is some other reason to update that target: for
+example the target doesn't exist or a different prerequisite is newer
+than the target.
 
 The second difference is that if @code{make} @emph{does} create @var{b}
 in order to update something else, it deletes @var{b} later on after it
