@@ -235,6 +235,29 @@ inc1: foo; echo > $@
                   '', "#MAKEFILE#:3: inc1: $ERR_no_such_file\n#MAKE#: *** No rule to make target 'foo', needed by 'inc1'.  Stop.\n", 512);
 
     rmfiles('inc1');
+
+    # Check that included double-colon targets with no prerequisites aren't
+    # built.  This should fail as hello.mk doesn't exist
+
+    run_make_test(q!
+.PHONY: default
+default:;@echo 'FOO=$(FOO)'
+include hello.mk
+hello.mk:: ; echo 'FOO=bar' > $@
+!,
+                  '', "#MAKEFILE#:4: hello.mk: $ERR_no_such_file", 512);
+
+    # Check that included phony targets aren't built.
+    # This should fail as hello.mk doesn't exist
+
+    run_make_test(q!
+.PHONY: default
+default:;@echo 'FOO=$(FOO)'
+include hello.mk
+hello.mk: ; echo 'FOO=bar' > $@
+.PHONY: hello.mk
+!,
+                  '', "#MAKEFILE#:4: hello.mk: $ERR_no_such_file", 512);
 }
 
 if (defined $ERR_unreadable_file) {
@@ -276,14 +299,68 @@ all:;
 # https://savannah.gnu.org/bugs/?57676
 
 run_make_test(q!
+default:; @echo $(hello)
 -include hello.mk
 $(shell echo hello=world >hello.mk)
 include hello.mk
-default:; @echo $(hello)
 !,
               '', "world\n");
 
 unlink('hello.mk');
+
+# Check that included double-colon targets with no prerequisites aren't built.
+# This should succeed since hello.mk already exists
+
+touch('hello.mk');
+
+run_make_test(q!
+.PHONY: default
+default:;@echo 'FOO=$(FOO)'
+include hello.mk
+hello.mk:: ; echo 'FOO=bar' > $@
+!,
+              '', 'FOO=');
+
+unlink('hello.mk');
+
+# Check that included double-colon targets with no prerequisites aren't built.
+# This should succeed due to -include
+
+run_make_test(q!
+.PHONY: default
+default:;@echo 'FOO=$(FOO)'
+-include hello.mk
+hello.mk:: ; echo 'FOO=bar' > $@
+!,
+              '', 'FOO=');
+
+# Check that phony targets aren't built.
+# This should succeed since hello.mk already exists
+
+touch('hello.mk');
+
+run_make_test(q!
+.PHONY: default
+default:;@echo 'FOO=$(FOO)'
+include hello.mk
+hello.mk: ; echo 'FOO=bar' > $@
+.PHONY: hello.mk
+!,
+              '', 'FOO=');
+
+unlink('hello.mk');
+
+# Check that included double-colon targets with no prerequisites aren't built.
+# This should succeed due to -include
+
+run_make_test(q!
+.PHONY: default
+default:;@echo 'FOO=$(FOO)'
+-include hello.mk
+hello.mk: ; echo 'FOO=bar' > $@
+.PHONY: hello.mk
+!,
+              '', 'FOO=');
 
 # Check the default makefiles... this requires us to invoke make with no
 # arguments.  Also check MAKEFILES

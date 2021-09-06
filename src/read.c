@@ -904,9 +904,7 @@ eval (struct ebuffer *ebuf, int set_default)
                                       | (set_default ? 0 : RM_NO_DEFAULT_GOAL));
 
               struct goaldep *d = eval_makefile (files->name, flags);
-
-              if (errno)
-                d->floc = *fstart;
+              d->floc = *fstart;
 
               free_ns (files);
               files = next;

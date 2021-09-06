@@ -2192,8 +2192,10 @@ main (int argc, char **argv, char **envp)
       /* Update any makefiles if necessary.  */
 
       FILE_TIMESTAMP *makefile_mtimes;
+      struct goaldep *skipped_makefiles = NULL;
       char **aargv = NULL;
       const char **nargv;
+      int any_failed = 0;
       int nargc;
       enum update_status status;
 
@@ -2226,21 +2228,34 @@ main (int argc, char **argv, char **envp)
 
         while (d != 0)
           {
-            struct file *f;
+            int skip = 0;
+            struct file *f = d->file;
 
-            for (f = d->file->double_colon; f != NULL; f = f->prev)
-              if (f->deps == 0 && f->cmds != 0)
-                break;
+            /* Check for makefiles that are either phony or a :: target with
+               commands, but no dependencies.  These will always be remade,
+               which will cause an infinite restart loop, so don't try to
+               remake it (this will only happen if your makefiles are written
+               exceptionally stupidly; but if you work for Athena, that's how
+               you write your makefiles.)  */
 
-            if (f)
+            if (f->phony)
+              skip = 1;
+            else
+              for (f = f->double_colon; f != NULL; f = f->prev)
+                if (f->deps == NULL && f->cmds != NULL)
+                  {
+                    skip = 1;
+                    break;
+                  }
+
+            if (!skip)
               {
-                /* This makefile is a :: target with commands, but no
-                   dependencies.  So, it will always be remade.  This might
-                   well cause an infinite loop, so don't try to remake it.
-                   (This will only happen if your makefiles are written
-                   exceptionally stupidly; but if you work for Athena, that's
-                   how you write your makefiles.)  */
-
+                makefile_mtimes[mm_idx++] = file_mtime_no_search (d->file);
+                last = d;
+                d = d->next;
+              }
+            else
+              {
                 DB (DB_VERBOSE,
                     (_("Makefile '%s' might loop; not remaking it.\n"),
                      f->name));
@@ -2250,16 +2265,18 @@ main (int argc, char **argv, char **envp)
                 else
                   read_files = d->next;
 
-                /* Free the storage.  */
-                free_goaldep (d);
+                if (d->error && ! (d->flags & RM_DONTCARE))
+                  {
+                    /* This file won't be rebuilt, was not found, and we care,
+                       so remember it to report later.  */
+                    d->next = skipped_makefiles;
+                    skipped_makefiles = d;
+                    any_failed = 1;
+                  }
+                else
+                  free_goaldep (d);
 
                 d = last ? last->next : read_files;
-              }
-            else
-              {
-                makefile_mtimes[mm_idx++] = file_mtime_no_search (d->file);
-                last = d;
-                d = d->next;
               }
           }
       }
@@ -2280,6 +2297,23 @@ main (int argc, char **argv, char **envp)
         db_level = orig_db_level;
       }
 
+      /* Report errors for makefiles that needed to be remade but were not.  */
+      while (skipped_makefiles != NULL)
+        {
+          struct goaldep *d = skipped_makefiles;
+          const char *err = strerror (d->error);
+
+          OSS (error, &d->floc, _("%s: %s"), dep_name (d), err);
+
+          skipped_makefiles = skipped_makefiles->next;
+          free_goaldep (d);
+        }
+
+      /* If we couldn't build something we need but otherwise we succeeded,
+         reset the status.  */
+      if (any_failed && status == us_success)
+        status = us_none;
+
       switch (status)
         {
         case us_question:
@@ -2293,20 +2327,16 @@ main (int argc, char **argv, char **envp)
           /* No makefiles needed to be updated.  If we couldn't read some
              included file that we care about, fail.  */
           {
-            int any_failed = 0;
             struct goaldep *d;
 
             for (d = read_files; d != 0; d = d->next)
               if (d->error && ! (d->flags & RM_DONTCARE))
                 {
                   /* This makefile couldn't be loaded, and we care.  */
-                  OSS (error, &d->floc,
-                       _("%s: %s"), dep_name (d), strerror (d->error));
+                  const char *err = strerror (d->error);
+                  OSS (error, &d->floc, _("%s: %s"), dep_name (d), err);
                   any_failed = 1;
                 }
-
-            if (any_failed)
-              die (MAKE_FAILURE);
             break;
           }
 
@@ -2315,9 +2345,6 @@ main (int argc, char **argv, char **envp)
           {
             /* Nonzero if any makefile was successfully remade.  */
             int any_remade = 0;
-            /* Nonzero if any makefile we care about failed
-               in updating or could not be found at all.  */
-            int any_failed = 0;
             unsigned int i;
             struct goaldep *d;
 
@@ -2327,11 +2354,9 @@ main (int argc, char **argv, char **envp)
                   {
                     /* This makefile was updated.  */
                     if (d->file->update_status == us_success)
-                      {
-                        /* It was successfully updated.  */
-                        any_remade |= (file_mtime_no_search (d->file)
-                                       != makefile_mtimes[i]);
-                      }
+                      /* It was successfully updated.  */
+                      any_remade |= (file_mtime_no_search (d->file)
+                                     != makefile_mtimes[i]);
                     else if (! (d->flags & RM_DONTCARE))
                       {
                         FILE_TIMESTAMP mtime;
@@ -2346,33 +2371,30 @@ main (int argc, char **argv, char **envp)
                         makefile_status = MAKE_FAILURE;
                       }
                   }
-                else
-                  /* This makefile was not found at all.  */
-                  if (! (d->flags & RM_DONTCARE))
-                    {
-                      const char *dnm = dep_name (d);
-                      size_t l = strlen (dnm);
 
-                      /* This is a makefile we care about.  See how much.  */
-                      if (d->flags & RM_INCLUDED)
-                        /* An included makefile.  We don't need to die, but we
-                           do want to complain.  */
-                        error (&d->floc, l,
-                               _("Included makefile '%s' was not found."), dnm);
-                      else
-                        {
-                          /* A normal makefile.  We must die later.  */
-                          error (NILF, l,
-                                 _("Makefile '%s' was not found"), dnm);
-                          any_failed = 1;
-                        }
-                    }
+                /* This makefile was not found at all.  */
+                else if (! (d->flags & RM_DONTCARE))
+                  {
+                    const char *dnm = dep_name (d);
+
+                    /* This is a makefile we care about.  See how much.  */
+                    if (d->flags & RM_INCLUDED)
+                      /* An included makefile.  We don't need to die, but we
+                         do want to complain.  */
+                      OS (error, &d->floc,
+                          _("Included makefile '%s' was not found."), dnm);
+                    else
+                      {
+                        /* A normal makefile.  We must die later.  */
+                        OS (error, NILF, _("Makefile '%s' was not found"), dnm);
+                        any_failed = 1;
+                      }
+                  }
               }
 
             if (any_remade)
               goto re_exec;
-            if (any_failed)
-              die (MAKE_FAILURE);
+
             break;
           }
 
@@ -2535,6 +2557,9 @@ main (int argc, char **argv, char **envp)
           free (aargv);
           break;
         }
+
+      if (any_failed)
+        die (MAKE_FAILURE);
     }
 
   /* Set up 'MAKEFLAGS' again for the normal targets.  */

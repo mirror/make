@@ -1379,16 +1379,20 @@ of preventing implicit rule look-up to do so.  For example, you can
 write an explicit rule with the makefile as the target, and an empty
 recipe (@pxref{Empty Recipes, ,Using Empty Recipes}).
 
-If the makefiles specify a double-colon rule to remake a file with
-a recipe but no prerequisites, that file will always be remade
-(@pxref{Double-Colon}).  In the case of makefiles, a makefile that has a
-double-colon rule with a recipe but no prerequisites will be remade every
-time @code{make} is run, and then again after @code{make} starts over
-and reads the makefiles in again.  This would cause an infinite loop:
-@code{make} would constantly remake the makefile, and never do anything
-else.  So, to avoid this, @code{make} will @strong{not} attempt to
-remake makefiles which are specified as targets of a double-colon rule
-with a recipe but no prerequisites.@refill
+If the makefiles specify a double-colon rule to remake a file with a recipe
+but no prerequisites, that file will always be remade (@pxref{Double-Colon}).
+In the case of makefiles, a makefile that has a double-colon rule with a
+recipe but no prerequisites will be remade every time @code{make} is run, and
+then again after @code{make} starts over and reads the makefiles in again.
+This would cause an infinite loop: @code{make} would constantly remake the
+makefile and restart, and never do anything else.  So, to avoid this,
+@code{make} will @strong{not} attempt to remake makefiles which are specified
+as targets of a double-colon rule with a recipe but no prerequisites.
+
+Phony targets (@pxref{Phony Targets}) have the same issue: they are never
+considered up-to-date and so an included file marked as phony would cause
+@code{make} to restart continuously.  To avoid this @code{make} will not
+attempt to remake makefiles which are marked phony.
 
 If you do not specify any makefiles to be read with @samp{-f} or
 @samp{--file} options, @code{make} will try the default makefile names;
@@ -2760,15 +2764,15 @@ subdirs:
 @end group
 @end example
 
-There are problems with this method, however.  First, any error
-detected in a sub-make is ignored by this rule, so it will continue
-to build the rest of the directories even when one fails.  This can be
-overcome by adding shell commands to note the error and exit, but then
-it will do so even if @code{make} is invoked with the @code{-k}
-option, which is unfortunate.  Second, and perhaps more importantly,
-you cannot take advantage of @code{make}'s ability to build targets in
-parallel (@pxref{Parallel, ,Parallel Execution}), since there is only
-one rule.
+There are problems with this method, however.  First, any error detected in a
+sub-make is ignored by this rule, so it will continue to build the rest of the
+directories even when one fails.  This can be overcome by adding shell
+commands to note the error and exit, but then it will do so even if
+@code{make} is invoked with the @code{-k} option, which is unfortunate.
+Second, and perhaps more importantly, you cannot take full advantage of
+@code{make}'s ability to build targets in parallel (@pxref{Parallel, ,Parallel
+Execution}), since there is only one rule.  Each individual makefile's targets
+will be built in parallel, but only one sub-directory will be built at a time.
 
 By declaring the sub-directories as @code{.PHONY} targets (you must do
 this as the sub-directory obviously always exists; otherwise it won't
@@ -2799,12 +2803,18 @@ The implicit rule search (@pxref{Implicit Rules}) is skipped for
 @code{.PHONY} is good for performance, even if you are not worried
 about the actual file existing.
 
-A phony target should not be a prerequisite of a real target file; if it
-is, its recipe will be run every time @code{make} goes to update that
-file.  As long as a phony target is never a prerequisite of a real
-target, the phony target recipe will be executed only when the phony
-target is a specified goal (@pxref{Goals, ,Arguments to Specify the
-Goals}).
+A phony target should not be a prerequisite of a real target file; if it is,
+its recipe will be run every time @code{make} considers that file.  As long as
+a phony target is never a prerequisite of a real target, the phony target
+recipe will be executed only when the phony target is a specified goal
+(@pxref{Goals, ,Arguments to Specify the Goals}).
+
+You should not declare an included makefile as phony.  Phony targets are not
+intended to represent real files, and because the target is always considered
+out of date make will always rebuild it then re-execute itself
+(@pxref{Remaking Makefiles, ,How Makefiles Are Remade}).  To avoid this,
+@code{make} will not re-execute itself if an included file marked as phony is
+re-built.
 
 Phony targets can have prerequisites.  When one directory contains multiple
 programs, it is most convenient to describe all of the programs in one
@@ -13203,3 +13213,7 @@ tar.zoo: $(SRCS) $(AUX)
 @printindex fn
 
 @bye
+
+@c Local Variables:
+@c eval: (setq fill-column 78)
+@c End:
