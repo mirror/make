@@ -2354,8 +2354,12 @@ find_map_unquote (char *string, int stopmap)
             string_len = strlen (string);
           /* The number of backslashes is now -I.
              Copy P over itself to swallow half of them.  */
-          memmove (&p[i], &p[i/2], (string_len - (p - string)) - (i/2) + 1);
-          p += i/2;
+          {
+            /* Avoid arithmetic conversion of negative values to unsigned.  */
+            int hi = -(i/2);
+            memmove (&p[i], &p[i/2], (string_len - (p - string)) + hi + 1);
+            p += i/2;
+          }
           if (i % 2 == 0)
             /* All the backslashes quoted each other; the STOPCHAR was
                unquoted.  */
@@ -2397,8 +2401,12 @@ find_char_unquote (char *string, int stop)
             string_len = strlen (string);
           /* The number of backslashes is now -I.
              Copy P over itself to swallow half of them.  */
-          memmove (&p[i], &p[i/2], (string_len - (p - string)) - (i/2) + 1);
-          p += i/2;
+          {
+            /* Avoid arithmetic conversion of negative values to unsigned.  */
+            int hi = -(i/2);
+            memmove (&p[i], &p[i/2], (string_len - (p - string)) + hi + 1);
+            p += i/2;
+          }
           if (i % 2 == 0)
             /* All the backslashes quoted each other; the STOPCHAR was
                unquoted.  */
@@ -2523,8 +2531,12 @@ find_percent_cached (const char **string)
 
         /* The number of backslashes is now -I.
            Copy P over itself to swallow half of them.  */
-        memmove (&pv[i], &pv[i/2], (slen - (pv - new)) - (i/2) + 1);
-        p += i/2;
+        {
+          /* Avoid arithmetic conversion of negative values to unsigned.  */
+          int hi = -(i/2);
+          memmove (&pv[i], &pv[i/2], (slen - (pv - new)) + hi + 1);
+          p += i/2;
+        }
 
         /* If the backslashes quoted each other; the % was unquoted.  */
         if (i % 2 == 0)
