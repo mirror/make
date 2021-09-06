@@ -2973,7 +2973,7 @@ decode_switches (int argc, const char **argv, int env)
                     break;
 
                   if (! coptarg)
-                    coptarg = xstrdup (cs->noarg_value);
+                    coptarg = cs->noarg_value;
                   else if (*coptarg == '\0')
                     {
                       char opt[2] = "c";
