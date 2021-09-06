@@ -6278,14 +6278,13 @@ because you know that no makefile will use them for other things.  (Note
 this is not totally reliable; some makefiles set @code{CFLAGS} explicitly
 and therefore are not affected by the value in the environment.)
 
-When @code{make} runs a recipe, variables defined in the
-makefile are placed into the environment of each shell.  This allows
-you to pass values to sub-@code{make} invocations (@pxref{Recursion,
-,Recursive Use of @code{make}}).  By default, only variables that came
-from the environment or the command line are passed to recursive
-invocations.  You can use the @code{export} directive to pass other
-variables.  @xref{Variables/Recursion, , Communicating Variables to a
-Sub-@code{make}}, for full details.
+When @code{make} runs a recipe, some variables defined in the makefile
+are placed into the environment of each command @code{make} invokes.
+By default, only variables that came from the @code{make}'s
+environment or set on its command line are placed into the environment
+of the commands.  You can use the @code{export} directive to pass
+other variables.  @xref{Variables/Recursion, , Communicating Variables
+to a Sub-@code{make}}, for full details.
 
 Other use of variables from the environment is not recommended.  It is not
 wise for makefiles to depend for their functioning on environment variables
