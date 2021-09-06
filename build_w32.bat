@@ -100,7 +100,7 @@ if not ERRORLEVEL 1 goto FoundMSVC
 call :FindVswhere
 if ERRORLEVEL 1 goto LegacyVS
 
-for /f "tokens=* usebackq" %%i in (`%VSWHERE% -latest -property installationPath`) do (
+for /f "tokens=* usebackq" %%i in (`"%VSWHERE%" -latest -property installationPath`) do (
     set InstallPath=%%i
 )
 set "VSVARS=%InstallPath%\VC\Auxiliary\Build\vcvarsall.bat"
@@ -404,10 +404,10 @@ goto :EOF
 
 :FindVswhere
 set VSWHERE=vswhere
-%VSWHERE% -help >nul 2>&1
+"%VSWHERE%" -help >nul 2>&1
 if not ERRORLEVEL 1 exit /b 0
 set "VSWHERE=C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere"
-%VSWHERE% -help >nul 2>&1
+"%VSWHERE%" -help >nul 2>&1
 if ERRORLEVEL 1 exit /b 1
 goto :EOF
 

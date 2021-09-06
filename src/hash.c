@@ -44,11 +44,11 @@ hash_init (struct hash_table *ht, unsigned long size,
 {
   ht->ht_size = round_up_2 (size);
   ht->ht_empty_slots = ht->ht_size;
-  ht->ht_vec = (void**) CALLOC (struct token *, ht->ht_size);
+  ht->ht_vec = CALLOC (void *, ht->ht_size);
   if (ht->ht_vec == 0)
     {
       fprintf (stderr, _("can't allocate %lu bytes for hash table: memory exhausted"),
-               ht->ht_size * (unsigned long) sizeof (struct token *));
+               ht->ht_size * (unsigned long) sizeof (void *));
       exit (MAKE_TROUBLE);
     }
 
@@ -260,7 +260,7 @@ hash_rehash (struct hash_table *ht)
       ht->ht_capacity = ht->ht_size - (ht->ht_size >> 4);
     }
   ht->ht_rehashes++;
-  ht->ht_vec = (void **) CALLOC (struct token *, ht->ht_size);
+  ht->ht_vec = CALLOC (void *, ht->ht_size);
 
   for (ovp = old_vec; ovp < &old_vec[old_ht_size]; ovp++)
     {
