@@ -96,6 +96,7 @@ struct file
     unsigned int phony:1;       /* Nonzero if this is a phony file
                                    i.e., a prerequisite of .PHONY.  */
     unsigned int intermediate:1;/* Nonzero if this is an intermediate file.  */
+    unsigned int is_explicit:1; /* Nonzero if explicitly mentioned. */
     unsigned int secondary:1;   /* Nonzero means remove_intermediates should
                                    not delete it.  */
     unsigned int notintermediate:1; /* Nonzero means a file is a prereq to

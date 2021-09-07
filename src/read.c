@@ -2164,6 +2164,11 @@ record_files (struct nameseq *filenames, int are_also_makes,
               free_dep_chain (f->deps);
               f->deps = 0;
             }
+          /* This file is explicitly mentioned as a target.  There is no need
+             to set is_explicit in the case of double colon below, because an
+             implicit double colon rule only applies when the prerequisite
+             exists. A prerequisite which exists is not intermediate anyway. */
+          f->is_explicit = 1;
         }
       else
         {

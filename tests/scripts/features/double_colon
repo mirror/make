@@ -217,14 +217,27 @@ unlink('joe-is-forced');
 # apply only if the prerequisite exists.
 touch('hello.z');
 
+# subtest 1. test.x is explicitly mentioned.
 run_make_test(q!
 all: hello.z
 %.z:: test.x ; touch $@
 %.x: ;
-!, '', "#MAKE#: Nothing to be done for 'all'.\n");
+!,
+              '', "#MAKE#: Nothing to be done for 'all'.\n");
 
 unlink('hello.z');
 
+# subtest 2. hello.x is derived from the stem.
+touch('hello.z');
+
+run_make_test(q!
+all: hello.z
+%.z:: %.x; touch $@
+%.x: ; touch $@
+!,
+              '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+unlink('hello.z');
 
 
 # This tells the test driver that the perl test script executed properly.

@@ -24,33 +24,26 @@ all: case.1 case.2 case.3 case.4
 #xxx: void
 
 # 1 - existing file
-%.1: void
-	@exit 1
-%.1: #MAKEFILE#
-	@exit 0
+%.1: void ; @exit 1
+%.1: #MAKEFILE# ; @exit 0
 
 # 2 - phony
-%.2: void
-	@exit 1
-%.2: 2.phony
-	@exit 0
+%.2: void ; @exit 1
+%.2: 2.phony ; @exit 0
 .PHONY: 2.phony
 
 # 3 - implicit-phony
-%.3: void
-	@exit 1
-%.3: 3.implicit-phony
-	@exit 0
+%.3: void ; @exit 1
+%.3: 3.implicit-phony ; @exit 0
 
 3.implicit-phony:
 
 # 4 - explicitly mentioned file made by an implicit rule
-%.4: void
-	@exit 1
-%.4: test.x
-	@exit 0
+%.4: void ; @exit 1
+%.4: test.x ; @exit 0
 %.x: ;
-!, '', '');
+!,
+              '', '');
 
 # TEST #1: make sure files that are built via implicit rules are marked
 #          as targets (Savannah bug #12202).
@@ -62,18 +55,14 @@ TARGETS := foo foo.out
 
 all: $(TARGETS)
 
-%: %.in
-	@echo $@
+%: %.in ; @echo $@
 
-%.out: %
-	@echo $@
+%.out: % ; @echo $@
 
 foo.in: ; @:
 
 ',
-'',
-'foo
-foo.out');
+              '', "foo\nfoo.out");
 
 
 # TEST #2: make sure intermediate files that also happened to be
@@ -82,23 +71,17 @@ foo.out');
 run_make_test('
 $(dir)/foo.o:
 
-$(dir)/foo.y:
-	@echo $@
+$(dir)/foo.y: ; @echo $@
 
-%.c: %.y
-	touch $@
+%.c: %.y ; touch $@
 
-%.o: %.c
-	@echo $@
+%.o: %.c ; @echo $@
 
 .PHONY: install
 install: $(dir)/foo.c
 
 ',
-"dir=$dir",
-"$dir/foo.y
-touch $dir/foo.c
-$dir/foo.o");
+              "dir=$dir", "$dir/foo.y\ntouch $dir/foo.c\n$dir/foo.o");
 
 unlink("$dir/foo.c");
 
@@ -116,9 +99,8 @@ run_make_test('
 $(dir)/foo.bar:
 
 ',
-"dir=$dir",
-"#MAKE#: *** [#MAKEFILE#:6: $dir/foo.bar] Error 1",
-512);
+              "dir=$dir",
+              "#MAKE#: *** [#MAKEFILE#:6: $dir/foo.bar] Error 1", 512);
 
 unlink("$dir/foo.bar");
 
@@ -130,25 +112,16 @@ run_make_test('
 .PHONY: all
 all: foo.c foo.o
 
-%.h %.c: %.in
-	touch $*.h
-	touch $*.c
+%.h %.c: %.in ; touch $*.h ; touch $*.c
 
-%.o: %.c %.h
-	echo $+ >$@
+%.o: %.c %.h ; echo $+ >$@
 
-%.o: %.c
-	@echo wrong rule
+%.o: %.c ; @echo wrong rule
 
-foo.in:
-	touch $@
+foo.in: ; touch $@
 
 ',
-'',
-'touch foo.in
-touch foo.h
-touch foo.c
-echo foo.c foo.h >foo.o');
+              '', "touch foo.in\ntouch foo.h ; touch foo.c\necho foo.c foo.h >foo.o\nrm foo.h");
 
 unlink('foo.in', 'foo.h', 'foo.c', 'foo.o');
 
@@ -158,10 +131,8 @@ unlink('foo.in', 'foo.h', 'foo.c', 'foo.o');
 run_make_test('
 all: foo.s1 foo.s2 p1.foo p2.foo
 
-p1.% p2.%: %.orig
-	@echo $@
-%.s1 %.s2: %.orig
-	@echo $@
+p1.% p2.%: %.orig ; @echo $@
+%.s1 %.s2: %.orig ; @echo $@
 
 .PHONY: foo.orig
 ',
@@ -222,16 +193,14 @@ run_make_test('
 
 all: foo.x foo-mt.x
 ',
-'',
-"one\ntwo");
-
-1;
+              '', "one\ntwo");
 
 # Test pattern rules building the same targets
 # See SV 54233.  Rely on our standard test timeout to break the loop
 
 touch('a.c');
 
+# a.lnk isn't listed as removed, because it's not actually created
 run_make_test(q!
 all: a.elf a.dbg
 
@@ -241,13 +210,39 @@ all: a.elf a.dbg
 !,
     '-j2', ": a.elf a.lnk\n: a.elf a.dbg\n");
 
-unlink('a.c');
+# SV 60435 : a.lnk is removed, because it is intermediate.
+run_make_test(q!
+all: a.elf a.dbg
+
+%.elf %.lnk: %.c ; touch $*.elf $*.lnk
+
+%.elf %.dbg: %.lnk ; touch $*.elf $*.dbg
+!,
+              '-j2', "touch a.elf a.lnk\ntouch a.elf a.dbg\nrm a.lnk\n");
+
+unlink('a.elf', 'a.dbg');
+
+# SV 60435 : a.lnk is not intermediate, because it is explicitly mentioned.
+run_make_test(q!
+all: a.elf a.dbg
+
+%.elf %.lnk: %.c ; touch $*.elf $*.lnk
+
+%.elf %.dbg: %.lnk ; touch $*.elf $*.dbg
+
+install: a.lnk
+.PHONY: install
+!,
+              '-j2', "touch a.elf a.lnk\ntouch a.elf a.dbg\n");
+
+unlink('a.c', 'a.elf', 'a.dbg', 'a.lnk');
 
 # SV 56655: Test patterns matching files containing whitespace
 touch('some file.yy');
 run_make_test(q!
 %.xx : %.yy ; @echo matched
-!, '"some file.xx"', "matched\n");
+!,
+              '"some file.xx"', "matched\n");
 
 unlink('some file.xx', 'some file.yy');
 
@@ -257,26 +252,25 @@ unlink('some file.xx', 'some file.yy');
 # rule is not considered intermediate.
 
 touch('hello.z');
-unlink('hello.x');
-unlink('test.x');
+unlink('hello.x', 'test.x');
 
 # subtest 1
 # hello.x is not explicitly mentioned and thus is an intermediate file.
 run_make_test(q!
 all: hello.z
-%.z: %.x
-	touch $@
+%.z: %.x ; touch $@
 %.x: ;
-!, '', "#MAKE#: Nothing to be done for 'all'.\n");
+!,
+              '', "#MAKE#: Nothing to be done for 'all'.\n");
 
 # subtest 2
 # test.x is explicitly mentioned and thus is not an intermediate file.
 run_make_test(q!
 all: hello.z
-%.z: %.x test.x
-	touch $@
+%.z: %.x test.x ; touch $@
 %.x: ;
-!, '', "touch hello.z");
+!,
+              '', "touch hello.z");
 
 unlink('hello.z');
 
@@ -294,7 +288,8 @@ run_make_test(q!
 all: hello.tsk
 %.tsk: %.z ; @echo $@
 %.z : %.x ; @echo $@
-!, '', "#MAKE#: Nothing to be done for 'all'.\n");
+!,
+              '', "#MAKE#: Nothing to be done for 'all'.\n");
 
 # subtest 2
 # test.z is explicitly mentioned and thus is not an intermediate file.
@@ -304,7 +299,8 @@ run_make_test(q!
 all: hello.tsk
 %.tsk: %.z test.z ; @echo $@
 %.z : %.x ; @echo $@
-!, '', "test.z\nhello.z\nhello.tsk\n");
+!,
+              '', "test.z\nhello.z\nhello.tsk\n");
 
 # subtest 3
 # hello.o is not explicitly mentioned and thus is an intermediate file.
@@ -312,7 +308,8 @@ run_make_test(q!
 all: hello.tsk
 dep:=%.o
 %.tsk: $(dep) ; @echo $@
-!, '', "#MAKE#: Nothing to be done for 'all'.\n");
+!,
+              '', "#MAKE#: Nothing to be done for 'all'.\n");
 
 # subtest 4
 # Even when test.z is constructed from 2 variables it is still explicitly
@@ -325,15 +322,127 @@ name:=test
 suf:=.z
 %.tsk: %.z $(name)$(suf) ; @echo $@
 %.z: %.x ; @echo $@
-!, '', "test.z\nhello.z\nhello.tsk\n");
+!,
+              '', "test.z\nhello.z\nhello.tsk\n");
 
-unlink('hello.x');
-unlink('test.x');
+unlink('hello.x', 'test.x', 'hello.tsk');
 
+# Test that chained pattern rules with multiple targets remove all intermediate
+# files.
+# sv 60435.
+
+# subtest 1.
+# a.1 and a.2 are intermediate and should be removed.
+run_make_test(q!
+a.4:
+%.4: %.1 %.2 ; cat $^ >$@
+%.1 %.2: ; touch $*.1 $*.2
+!,
+              '', "touch a.1 a.2\ncat a.1 a.2 >a.4\nrm a.1 a.2");
+
+unlink('a.4');
+
+# subtest 2.
+# a.1 and a.2 are intermediate and should be removed.
+# a.3 is explicit and should not be removed.
+run_make_test(q!
+a.4:
+%.4: %.1 %.2 a.3 ; cat $^ >$@
+%.1 %.2: ; touch $*.1 $*.2
+%.3: ; touch $@
+!,
+              '', "touch a.3\ntouch a.1 a.2\ncat a.1 a.2 a.3 >a.4\nrm a.1 a.2");
+
+unlink('a.3', 'a.4');
+
+# subtest 3.
+# a.1 and a.2 are intermediate and should be removed.
+# a.3 is explicit and should not be removed.
+run_make_test(q!
+a.4:
+%.4: %.1 %.2 a.3 ; cat $^ >$@
+%.1 %.2 %.3: ; touch $*.1 $*.2 $*.3
+!,
+              '', "touch a.1 a.2 a.3\ncat a.1 a.2 a.3 >a.4\nrm a.1 a.2");
+
+unlink('a.3', 'a.4');
+
+# subtest 4.
+# a.1 and a.2 are intermediate and should be removed.
+# a.3 is explicit and should not be removed.
+run_make_test(q!
+a.4:
+%.4: %.1 %.2 a.3 ; cat $^ >$@
+%.3 %.1 %.2: ; touch $*.1 $*.2 $*.3
+!,
+              '', "touch a.1 a.2 a.3\ncat a.1 a.2 a.3 >a.4\nrm a.1 a.2");
+
+unlink('a.3', 'a.4');
+
+# subtest 5.
+# a.1 and a.2 are intermediate and should be removed.
+# a.3 is explicit and should not be removed.
+run_make_test(q!
+a.4:
+%.4: a.3 %.1 %.2 ; cat $^ >$@
+%.1 %.2 %.3: ; touch $*.1 $*.2 $*.3
+!,
+              '', "touch a.1 a.2 a.3\ncat a.3 a.1 a.2 >a.4\nrm a.1 a.2");
+
+unlink('a.3', 'a.4');
+
+# subtest 6.
+# a.2 is intermediate and should be removed.
+# a.1 is mentioned explicitly on an unrelated rule and should not be removed.
+run_make_test(q!
+a.3:
+%.3: %.1 %.2 ; cat $^ >$@
+%.1 %.2: ; touch $*.1 $*.2
+install: a.1
+.PHONY: install
+!,
+              '', "touch a.1 a.2\ncat a.1 a.2 >a.3\nrm a.2");
+
+unlink('a.1', 'a.3');
+
+# Test removal of intermediate files.
+
+# subtest 1.
+# hello.x is removed, because it is intermediate.
+run_make_test(q!
+hello.tsk:
+%.tsk: %.x; touch $@
+%.x: ; touch $@
+!,
+              '', "touch hello.x\ntouch hello.tsk\nrm hello.x");
+
+unlink('hello.tsk');
+
+# subtest 2.
+# Even though hello.x is intermediate, it is not removed, because it is not
+# created.
+touch('hello.x');
+
+run_make_test(q!
+hello.tsk:
+%.tsk: %.x; touch $@
+%.x: ; touch $@
+!,
+              '', "touch hello.tsk");
+
+unlink('hello.x', 'hello.tsk');
+
+# subtest 2.
+# Even though hello.x is intermediate, it is not removed, because it is not
+# created.
+run_make_test(q!
+hello.tsk:
+%.tsk: %.x; touch $@
+%.x: ; : $@
+!,
+              '', ": hello.x\ntouch hello.tsk");
+
+unlink('hello.tsk');
 
 # This tells the test driver that the perl test script executed properly.
 1;
-
-### Local Variables:
-### eval: (setq whitespace-action (delq 'auto-cleanup whitespace-action))
-### End:

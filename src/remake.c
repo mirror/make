@@ -812,6 +812,10 @@ update_file_1 (struct file *file, unsigned int depth)
           fflush (stdout);
         }
 
+      /* Since make has not created this file, make should not remove it,
+         even if the file is intermediate. */
+      file->secondary = 1;
+
       notice_finished_file (file);
 
       /* Since we don't need to remake the file, convert it to use the

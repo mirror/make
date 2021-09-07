@@ -338,6 +338,7 @@ rehash_file (struct file *from_file, const char *to_hname)
   MERGE (cmd_target);
   MERGE (phony);
   /* Don't merge intermediate because this file might be pre-existing */
+  MERGE (is_explicit);
   MERGE (secondary);
   MERGE (notintermediate);
   MERGE (ignore_vpath);
@@ -556,6 +557,9 @@ enter_prereqs (struct dep *deps, const char *stem)
         d1->file = enter_file (d1->name);
       d1->staticpattern = 0;
       d1->name = 0;
+      if (!stem)
+        /* This file is explicitly mentioned as a prereq.  */
+        d1->file->is_explicit = 1;
     }
 
   return deps;
