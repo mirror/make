@@ -724,7 +724,7 @@ decode_debug_flags (void)
     db_level = DB_ALL;
 
   if (trace_flag)
-    db_level = DB_PRINT | DB_WHY;
+    db_level |= DB_PRINT | DB_WHY;
 
   if (db_flags)
     for (pp=db_flags->list; *pp; ++pp)
