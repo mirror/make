@@ -19,12 +19,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
    Maybe after the code cleanup for ISO C we can remove some/all of these.  */
 #if _MSC_VER > 1000
 # pragma warning(disable:4100) /* unreferenced formal parameter */
-# pragma warning(disable:4102) /* unreferenced label */
-# pragma warning(disable:4127) /* conditional expression is constant */
+# pragma warning(disable:4130) /* logical operation on address of string constant */
 # pragma warning(disable:4131) /* uses old-style declarator */
 # pragma warning(disable:4702) /* unreachable code */
-# define _CRT_SECURE_NO_WARNINGS  /* function or variable may be unsafe */
-# define _CRT_NONSTDC_NO_WARNINGS /* functions w/o a leading underscore */
+# define _CRT_SECURE_NO_WARNINGS  1 /* function or variable may be unsafe */
+# define _CRT_NONSTDC_NO_WARNINGS 1 /* functions w/o a leading underscore */
 #endif
 
 /* Define to 1 if the 'closedir' function returns void instead of 'int'. */

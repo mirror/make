@@ -14,8 +14,9 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#include "makeint.h"
+
 #include <assert.h>
-#include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <io.h>         /* for _get_osfhandle */
@@ -29,7 +30,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <windows.h>
 
-#include "makeint.h"
 #include "filedef.h"
 #include "variable.h"
 #include "sub_proc.h"
