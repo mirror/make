@@ -370,18 +370,25 @@ eval_makefile (const char *filename, unsigned short flags)
       }
     }
 
-  /* If the makefile wasn't found and it's either a makefile from
-     the 'MAKEFILES' variable or an included makefile,
-     search the included makefile search path for this makefile.  */
-  if (ebuf.fp == NULL && (flags & RM_INCLUDED) && *filename != '/'
-      && include_directories)
+  /* If the makefile wasn't found and it's either a makefile from the
+     'MAKEFILES' variable or an included makefile, search the included
+     makefile search path for this makefile.  */
+  if (ebuf.fp == NULL && deps->error == ENOENT && (flags & RM_INCLUDED)
+      && *filename != '/' && include_directories)
     for (const char **dir = include_directories; *dir != NULL; ++dir)
       {
         const char *included = concat (3, *dir, "/", filename);
-        ebuf.fp = fopen (included, "r");
+
+        ENULLLOOP(ebuf.fp, fopen (included, "r"));
         if (ebuf.fp)
           {
             filename = included;
+            break;
+          }
+        if (errno != ENOENT)
+          {
+            filename = included;
+            deps->error = errno;
             break;
           }
       }

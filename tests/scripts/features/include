@@ -64,6 +64,22 @@ error: foo.mk ; @echo $@
    512
   );
 
+# The same as above with an additional include directory.
+
+mkdir('hellod', 0777);
+
+run_make_test
+  ('
+-include foo.mk
+error: foo.mk ; @echo $@
+',
+   '-Ihellod',
+   "#MAKE#: *** No rule to make target 'foo.mk', needed by 'error'.  Stop.\n",
+   512
+  );
+
+rmdir('hellod');
+
 # Make sure that target-specific variables don't impact things.  This could
 # happen because a file record is created when a target-specific variable is
 # set.
@@ -160,6 +176,44 @@ inc2:; echo > $@
               '', "echo > inc1\necho > inc2\nDONE\n");
 
 rmfiles('inc1', 'inc2');
+
+# Test include of make-able file doesn't show an error.
+# Specify an additional include directory.
+
+mkdir('hellod', 0777);
+
+run_make_test(q!
+.PHONY: default
+default:; @echo DONE
+
+inc1:; echo > $@
+include inc1
+include inc2
+inc2:; echo > $@
+!,
+              '-Ihellod', "echo > inc1\necho > inc2\nDONE\n");
+
+rmfiles('inc1', 'inc2');
+
+# Test include of make-able file doesn't show an error.
+# inc1 and inc2 are present in the specified include directory.
+touch('hellod/inc1');
+touch('hellod/inc2');
+
+run_make_test(q!
+.PHONY: default
+default:; @echo DONE
+
+inc1:; echo > $@
+include inc1
+include inc2
+inc2:; echo > $@
+!,
+              '-Ihellod', "DONE\n");
+
+rmfiles('inc1', 'inc2', 'hellod/inc1', 'hellod/inc2');
+
+rmdir('hellod');
 
 # No target gets correct error
 run_make_test('', '', '#MAKE#: *** No targets.  Stop.', 512);
@@ -262,6 +316,7 @@ hello.mk: ; echo 'FOO=bar' > $@
 
 if (defined $ERR_unreadable_file) {
     # Including files that can't be read should show an error
+    unlink('inc1');
     create_file('inc1', 'FOO := foo');
     chmod 0000, 'inc1';
 
@@ -271,7 +326,18 @@ all:;@echo $(FOO)
 !,
                   '', "#MAKEFILE#:2: inc1: $ERR_unreadable_file\n#MAKE#: *** No rule to make target 'inc1'.  Stop.", 512);
 
-# Unreadable files that we know how to successfully recreate should work
+    # Including files that can't be read should show an error, even when there
+    # is a readable file in a subsequent include directory.
+    mkdir('hellod', 0777);
+    touch("hellod/inc1");
+
+    run_make_test(q!
+include inc1
+all:;@echo $(FOO)
+!,
+                  '-Ihellod', "#MAKEFILE#:2: inc1: $ERR_unreadable_file\n#MAKE#: *** No rule to make target 'inc1'.  Stop.", 512);
+
+    # Unreadable files that we know how to successfully recreate should work
 
     run_make_test(sprintf(q!
 all:;@echo $(FOO)
@@ -280,7 +346,22 @@ inc1:; @%s $@ && echo FOO := bar > $@
 !, $CMD_rmfile),
                   '', "bar");
 
-    rmfiles('inc1');
+    # Unreadable files that we know how to successfully recreate should work.
+    # Even when there is a readable file in an additional include directory.
+
+    unlink('inc1');
+    create_file('inc1', 'FOO := foo');
+    chmod 0000, 'inc1';
+
+    run_make_test(sprintf(q!
+all:;@echo $(FOO)
+include inc1
+inc1:; @%s $@ && echo FOO := bar > $@
+!, $CMD_rmfile),
+                  '-Ihellod', "bar");
+
+    rmfiles('inc1', 'hellod/inc1');
+    rmdir('hellod');
 }
 
 # Check that the order of remaking include files is correct: should remake
