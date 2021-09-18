@@ -35,6 +35,7 @@ enum variable_flavor
     f_bogus,            /* Bogus (error) */
     f_simple,           /* Simple definition (:= or ::=) */
     f_recursive,        /* Recursive definition (=) */
+    f_expand,           /* POSIX :::= assignment */
     f_append,           /* Appending definition (+=) */
     f_conditional,      /* Conditional definition (?=) */
     f_shell,            /* Shell assignment (!=) */

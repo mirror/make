@@ -61,7 +61,7 @@ all: ; $(multi)
 
 # TEST 1a: Various new-style define/endef, with no spaces
 
-run_make_test('
+run_make_test(q!
 FOO = foo
 
 define multi=
@@ -75,6 +75,10 @@ endef
 
 define posix::=
 @echo $(FOO)
+endef
+
+define posixbsd:::=
+@echo '$(FOO)$$bar'
 endef
 
 append = @echo a
@@ -97,10 +101,11 @@ FOO = there
 all: ; $(multi)
 	$(simple)
 	$(posix)
+	$(posixbsd)
 	$(append)
 	$(cond)
-',
-              '', "echo hi\nhi\nthere\nfoo\nfoo\na\nb\nfirst\n");
+!,
+              '', "echo hi\nhi\nthere\nfoo\nfoo\nfoo\$bar\na\nb\nfirst\n");
 
 # TEST 2: define in true section of conditional (containing conditional)
 

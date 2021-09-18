@@ -1194,7 +1194,6 @@ do_variable_definition (const floc *flocp, const char *varname,
 
   switch (flavor)
     {
-    default:
     case f_bogus:
       /* Should not be possible.  */
       abort ();
@@ -1205,6 +1204,25 @@ do_variable_definition (const floc *flocp, const char *varname,
          target-specific variable.  */
       p = alloc_value = allocated_variable_expand (value);
       break;
+    case f_expand:
+      {
+        /* A POSIX "var :::= value" assignment.  Expand the value, then it
+           becomes a recursive variable.  After expansion convert all '$'
+           tokens to '$$' to resolve to '$' when recursively expanded.  */
+        char *t = allocated_variable_expand (value);
+        char *np = alloc_value = xmalloc (strlen (t) * 2 + 1);
+        p = t;
+        while (p[0] != '\0')
+          {
+            if (p[0] == '$')
+              *(np++) = '$';
+            *(np++) = *(p++);
+          }
+        *np = '\0';
+        p = alloc_value;
+        free (t);
+        break;
+      }
     case f_shell:
       {
         /* A shell definition "var != value".  Expand value, pass it to
@@ -1440,8 +1458,8 @@ do_variable_definition (const floc *flocp, const char *varname,
      invoked in places where we want to define globally visible variables,
      make sure we define this variable in the global set.  */
 
-  v = define_variable_in_set (varname, strlen (varname), p,
-                              origin, flavor == f_recursive,
+  v = define_variable_in_set (varname, strlen (varname), p, origin,
+                              flavor == f_recursive || flavor == f_expand,
                               (target_var
                                ? current_variable_set_list->set : NULL),
                               flocp);
@@ -1456,7 +1474,7 @@ do_variable_definition (const floc *flocp, const char *varname,
 /* Parse P (a null-terminated string) as a variable definition.
 
    If it is not a variable definition, return NULL and the contents of *VAR
-   are undefined, except NAME is set to the first non-space character or NIL.
+   are undefined, except NAME points to the first non-space character or EOS.
 
    If it is a variable definition, return a pointer to the char after the
    assignment token and set the following fields (only) of *VAR:
@@ -1468,15 +1486,17 @@ do_variable_definition (const floc *flocp, const char *varname,
   */
 
 char *
-parse_variable_definition (const char *p, struct variable *var)
+parse_variable_definition (const char *str, struct variable *var)
 {
-  int wspace = 0;
-  const char *e = NULL;
+  const char *p = str;
+  const char *end = NULL;
 
   NEXT_TOKEN (p);
   var->name = (char *)p;
   var->length = 0;
 
+  /* Walk through STR until we find a valid assignment operator.  Each time
+     through this loop P points to the next character to consider.  */
   while (1)
     {
       int c = *p++;
@@ -1485,26 +1505,112 @@ parse_variable_definition (const char *p, struct variable *var)
       if (STOP_SET (c, MAP_COMMENT|MAP_NUL))
         return NULL;
 
+      if (ISBLANK (c))
+        {
+          /* Variable names can't contain spaces so if this is the second set
+             of spaces we know it's not a variable assignment.  */
+          if (end)
+            return NULL;
+          end = p - 1;
+          NEXT_TOKEN (p);
+          continue;
+        }
+
+      /* If we found = we're done!  */
+      if (c == '=')
+        {
+          if (!end)
+            end = p - 1;
+          var->flavor = f_recursive;
+          break;
+        }
+
+      if (c == ':')
+        {
+          if (!end)
+            end = p - 1;
+
+          /* We need to distinguish :=, ::=, and :::=, and : outside of an
+             assignment (which means this is not a variable definition).  */
+          c = *p++;
+          if (c == '=')
+            {
+              var->flavor = f_simple;
+              break;
+            }
+          if (c == ':')
+            {
+              c = *p++;
+              if (c == '=')
+                {
+                  var->flavor = f_simple;
+                  break;
+                }
+              if (c == ':' && *p++ == '=')
+                {
+                  var->flavor = f_expand;
+                  break;
+                }
+            }
+          return NULL;
+        }
+
+      /* See if it's one of the other two-byte operators.  */
+      if (*p == '=')
+        {
+          switch (c)
+            {
+            case '+':
+              var->flavor = f_append;
+              break;
+            case '?':
+              var->flavor = f_conditional;
+              break;
+            case '!':
+              var->flavor = f_shell;
+              break;
+            default:
+              goto other;
+            }
+
+          if (!end)
+            end = p - 1;
+          ++p;
+          break;
+        }
+
+    other:
+      /* We found a char which is not part of an assignment operator.
+         If we've seen whitespace, then we know this is not a variable
+         assignment since variable names cannot contain whitespace.  */
+      if (end)
+        return NULL;
+
       if (c == '$')
         {
-          /* This begins a variable expansion reference.  Make sure we don't
-             treat chars inside the reference as assignment tokens.  */
+          /* Skip any variable reference, to ensure we don't treat chars
+             inside the reference as assignment operators.  */
           char closeparen;
           unsigned int count;
 
           c = *p++;
-          if (c == '(')
-            closeparen = ')';
-          else if (c == '{')
-            closeparen = '}';
-          else if (c == '\0')
-            return NULL;
-          else
-            /* '$$' or '$X'.  Either way, nothing special to do here.  */
-            continue;
+          switch (c)
+            {
+            case '(':
+              closeparen = ')';
+              break;
+            case '{':
+              closeparen = '}';
+              break;
+            case '\0':
+              return NULL;
+            default:
+              /* '$$' or '$X': skip it.  */
+              continue;
+            }
 
-          /* P now points past the opening paren or brace.
-             Count parens or braces until it is matched.  */
+          /* P now points past the opening paren or brace.  Count parens or
+             braces until we find the closing paren/brace.  */
           for (count = 1; *p != '\0'; ++p)
             {
               if (*p == closeparen && --count == 0)
@@ -1515,82 +1621,12 @@ parse_variable_definition (const char *p, struct variable *var)
               if (*p == c)
                 ++count;
             }
-          continue;
         }
-
-      /* If we find whitespace skip it, and remember we found it.  */
-      if (ISBLANK (c))
-        {
-          wspace = 1;
-          e = p - 1;
-          NEXT_TOKEN (p);
-          c = *p;
-          if (c == '\0')
-            return NULL;
-          ++p;
-        }
-
-
-      if (c == '=')
-        {
-          var->flavor = f_recursive;
-          if (! e)
-            e = p - 1;
-          break;
-        }
-
-      /* Match assignment variants (:=, +=, ?=, !=)  */
-      if (*p == '=')
-        {
-          switch (c)
-            {
-              case ':':
-                var->flavor = f_simple;
-                break;
-              case '+':
-                var->flavor = f_append;
-                break;
-              case '?':
-                var->flavor = f_conditional;
-                break;
-              case '!':
-                var->flavor = f_shell;
-                break;
-              default:
-                /* If we skipped whitespace, non-assignments means no var.  */
-                if (wspace)
-                  return NULL;
-
-                /* Might be assignment, or might be $= or #=.  Check.  */
-                continue;
-            }
-          if (! e)
-            e = p - 1;
-          ++p;
-          break;
-        }
-
-      /* Check for POSIX ::= syntax  */
-      if (c == ':')
-        {
-          /* A colon other than :=/::= is not a variable defn.  */
-          if (*p != ':' || p[1] != '=')
-            return NULL;
-
-          /* POSIX allows ::= to be the same as GNU make's := */
-          var->flavor = f_simple;
-          if (! e)
-            e = p - 1;
-          p += 2;
-          break;
-        }
-
-      /* If we skipped whitespace, non-assignments means no var.  */
-      if (wspace)
-        return NULL;
     }
 
-  var->length = (unsigned int) (e - var->name);
+  /* We found a valid variable assignment: END points to the char after the
+     end of the variable name and P points to the char after the =.  */
+  var->length = (unsigned int) (end - var->name);
   var->value = next_token (p);
   return (char *)p;
 }
@@ -1690,7 +1726,6 @@ print_variable (const void *item, void *arg)
       origin = _("'override' directive");
       break;
     case o_invalid:
-    default:
       abort ();
     }
   fputs ("# ", stdout);

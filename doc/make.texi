@@ -258,6 +258,13 @@ How to Use Variables
 * Suppressing Inheritance::     Suppress inheritance of variables.
 * Special Variables::           Variables with special meaning or behavior.
 
+The Two Flavors of Variables
+
+* Recursive Assignment::        Setting recursively expanded variables.
+* Simple Assignment::           Setting simply expanded variables.
+* Immediate Assignment::        Setting immediately expanded variables.
+* Conditional Assignment::      Assigning variable values conditionally.
+
 Advanced Features for Reference to Variables
 
 * Substitution Refs::           Referencing a variable with
@@ -1528,6 +1535,7 @@ Variable definitions are parsed as follows:
 @var{immediate} ?= @var{deferred}
 @var{immediate} := @var{immediate}
 @var{immediate} ::= @var{immediate}
+@var{immediate} :::= @var{immediate-with-escape}
 @var{immediate} += @var{deferred} or @var{immediate}
 @var{immediate} != @var{immediate}
 
@@ -1551,6 +1559,10 @@ define @var{immediate} ::=
   @var{immediate}
 endef
 
+define @var{immediate} :::=
+  @var{immediate-with-escape}
+endef
+
 define @var{immediate} +=
   @var{deferred} or @var{immediate}
 endef
@@ -1563,6 +1575,11 @@ endef
 For the append operator @samp{+=}, the right-hand side is considered
 immediate if the variable was previously set as a simple variable
 (@samp{:=} or @samp{::=}), and deferred otherwise.
+
+For the @var{immediate-with-escape} operator @samp{:::=}, the value on
+the right-hand side is immediately expanded but then escaped (that is,
+all instances of @code{$} in the result of the expansion are replaced
+with @code{$$}).
 
 For the shell assignment operator @samp{!=}, the right-hand side is
 evaluated immediately and handed to the shell.  The result is stored
@@ -5357,10 +5374,20 @@ often improved is automatic variables (@pxref{Automatic Variables}).
 @cindex recursively expanded variables
 @cindex variables, recursively expanded
 
-There are two ways that a variable in GNU @code{make} can have a value;
-we call them the two @dfn{flavors} of variables.  The two flavors are
-distinguished in how they are defined and in what they do when expanded.
+There are different ways that a variable in GNU @code{make} can get a value;
+we call them the @dfn{flavors} of variables.  The flavors are distinguished in
+how they handle the values they are assigned in the makefile, and in how those
+values are managed when the variable is later used and expanded.
 
+@menu
+* Recursive Assignment::        Setting recursively expanded variables.
+* Simple Assignment::           Setting simply expanded variables.
+* Immediate Assignment::        Setting immediately expanded variables.
+* Conditional Assignment::      Assigning variable values conditionally.
+@end menu
+
+@node Recursive Assignment, Simple Assignment, Flavors, Flavors
+@subsection Recursively Expanded Variable Assignment
 @cindex =
 The first flavor of variable is a @dfn{recursively expanded} variable.
 Variables of this sort are defined by lines using @samp{=}
@@ -5417,7 +5444,9 @@ expanded.  This makes @code{make} run slower; worse, it causes the
 because you cannot easily control when they are called, or even how many
 times.
 
-To avoid all the problems and inconveniences of recursively expanded
+@node Simple Assignment, Immediate Assignment, Recursive Assignment, Flavors
+@subsection Simply Expanded Variable Assignment
+To avoid the problems and inconveniences of recursively expanded
 variables, there is another flavor: simply expanded variables.
 
 @cindex simply expanded variables
@@ -5427,33 +5456,34 @@ variables, there is another flavor: simply expanded variables.
 @dfn{Simply expanded variables} are defined by lines using @samp{:=}
 or @samp{::=} (@pxref{Setting, ,Setting Variables}).  Both forms are
 equivalent in GNU @code{make}; however only the @samp{::=} form is
-described by the POSIX standard (support for @samp{::=} was added to
-the POSIX standard in 2012, so older versions of @code{make} won't
-accept this form either).
+described by the POSIX standard (support for @samp{::=} is added to
+the POSIX standard for POSIX Issue 8).
 
-The value of a simply expanded variable is scanned
-once and for all, expanding any references to other variables and
-functions, when the variable is defined.  The actual value of the simply
-expanded variable is the result of expanding the text that you write.
-It does not contain any references to other variables; it contains their
-values @emph{as of the time this variable was defined}.  Therefore,
+The value of a simply expanded variable is scanned once, expanding any
+references to other variables and functions, when the variable is
+defined.  Once that expansion is complete the value of the variable is
+never expanded again: when the variable is used the value is copied
+verbatim as the expansion.  If the value contained variable references
+the result of the expansion will contain their values @emph{as of the
+time this variable was defined}.  Therefore,
 
 @example
+@group
 x := foo
 y := $(x) bar
 x := later
+@end group
 @end example
 
 @noindent
 is equivalent to
 
 @example
+@group
 y := foo bar
 x := later
+@end group
 @end example
-
-When a simply expanded variable is referenced, its value is substituted
-verbatim.
 
 Here is a somewhat more complicated example, illustrating the use of
 @samp{:=} in conjunction with the @code{shell} function.
@@ -5503,8 +5533,10 @@ this means you can include leading spaces in a variable value by
 protecting them with variable references, like this:
 
 @example
+@group
 nullstring :=
 space := $(nullstring) # end of the line
+@end group
 @end example
 
 @noindent
@@ -5528,6 +5560,84 @@ Here the value of the variable @code{dir} is @w{@samp{/foo/bar    }}
 (with four trailing spaces), which was probably not the intention.
 (Imagine something like @w{@samp{$(dir)/file}} with this definition!)
 
+@node Immediate Assignment, Conditional Assignment, Simple Assignment, Flavors
+@subsection Immediately Expanded Variable Assignment
+@cindex immediate variable assignment
+@cindex variables, immediate assignment
+@cindex :::=
+
+Another form of assignment allows for immediate expansion, but unlike simple
+assignment the resulting variable is recursive: it will be re-expanded again
+on every use.  In order to avoid unexpected results, after the value is
+immediately expanded it will automatically be quoted: all instances of
+@code{$} in the value after expansion will be converted into @code{$$}.  This
+type of assignment uses the @samp{:::=} operator.  For example,
+
+@example
+@group
+var = first
+OUT :::= $(var)
+var = second
+@end group
+@end example
+
+@noindent
+results in the @code{OUT} variable containing the text @samp{first}, while here:
+
+@example
+@group
+var = one$$two
+OUT :::= $(var)
+var = three$$four
+@end group
+@end example
+
+@noindent
+results in the @code{OUT} variable containing the text @samp{one$$two}.  The
+value is expanded when the variable is assigned, so the result is the
+expansion of the first value of @code{var}, @samp{one$two}; then the value is
+re-escaped before the assignment is complete giving the final result of
+@samp{one$$two}.
+
+The variable @code{OUT} is thereafter considered a recursive variable, so it
+will be re-expanded when it is used.
+
+This seems functionally equivalent to the @samp{:=} / @samp{::=} operators,
+but there are a few differences:
+
+First, after assignment the variable is a normal recursive variable; when you
+append to it with @samp{+=} the value on the right-hand side is not expanded
+immediately.  If you prefer the @samp{+=} operator to expand the right-hand
+side immediately you should use the @samp{:=} / @samp{::=} assignment instead.
+
+Second, these variables are slightly less efficient than simply expanded
+variables since they do need to be re-expanded when they are used, rather than
+merely copied.  However since all variable references are escaped this
+expansion simply un-escapes the value, it won't expand any variables or run
+any functions.
+
+Here is another example:
+
+@example
+@group
+var = one$$two
+OUT :::= $(var)
+OUT += $(var)
+var = three$$four
+@end group
+@end example
+
+After this, the value of @code{OUT} is the text @samp{one$$two $(var)}.  When
+this variable is used it will be expanded and the result will be
+@samp{one$two three$four}.
+
+This style of assignment is equivalent to the traditional BSD @code{make}
+@samp{:=} operator; as you can see it works slightly differently than the GNU
+@code{make} @samp{:=} operator.  The @code{:::=} operator is added to the
+POSIX specification in Issue 8 to provide portability.
+
+@node Conditional Assignment, , Immediate Assignment, Flavors
+@subsection Conditional Variable Assignment
 @cindex conditional variable assignment
 @cindex variables, conditional assignment
 @cindex ?=
@@ -5632,12 +5742,9 @@ sets @samp{bar} to @samp{a.c b.c l.a c.c}.
 @cindex @code{$}, in variable name
 @cindex dollar sign (@code{$}), in variable name
 
-Computed variable names are a complicated concept needed only for
-sophisticated makefile programming.  For most purposes you need not
-consider them, except to know that making a variable with a dollar sign
-in its name might have strange results.  However, if you are the type
-that wants to understand everything, or you are actually interested in
-what they do, read on.
+Computed variable names are an advanced concept, very useful in more
+sophisticated makefile programming.  In simple situations you need not
+consider them, but they can be extremely useful.
 
 Variables may be referenced inside the name of a variable.  This is
 called a @dfn{computed variable name} or a @dfn{nested variable
@@ -5685,10 +5792,9 @@ a := $($(x))
 defines @code{a} as @samp{Hello}: @samp{$($(x))} becomes @samp{$($(y))}
 which becomes @samp{$(z)} which becomes @samp{Hello}.
 
-Nested variable references can also contain modified references and
-function invocations (@pxref{Functions, ,Functions for Transforming Text}),
-just like any other reference.
-For example, using the @code{subst} function
+Nested variable references can also contain modified references and function
+invocations (@pxref{Functions, ,Functions for Transforming Text}), just like
+any other reference.  For example, using the @code{subst} function
 (@pxref{Text Functions, ,Functions for String Substitution and Analysis}):
 
 @example
@@ -5857,27 +5963,30 @@ Several variables have constant initial values.
 @cindex =
 @cindex :=
 @cindex ::=
+@cindex :::=
 @cindex ?=
 @cindex !=
 
-To set a variable from the makefile, write a line starting with the
-variable name followed by @samp{=}, @samp{:=}, or @samp{::=}.  Whatever
-follows the @samp{=}, @samp{:=}, or @samp{::=} on the line becomes the
-value.  For example,
+To set a variable from the makefile, write a line starting with the variable
+name followed by one of the assignment operators @samp{=}, @samp{:=},
+@samp{::=}, or @samp{:::=}.  Whatever follows the operator and any initial
+whitespace on the line becomes the value.  For example,
 
 @example
 objects = main.o foo.o bar.o utils.o
 @end example
 
 @noindent
-defines a variable named @code{objects}.  Whitespace around the variable
-name and immediately after the @samp{=} is ignored.
+defines a variable named @code{objects} to contain the value @samp{main.o
+foo.o bar.o utils.o}.  Whitespace around the variable name and immediately
+after the @samp{=} is ignored.
 
-Variables defined with @samp{=} are @dfn{recursively expanded}
-variables.  Variables defined with @samp{:=} or @samp{::=} are
-@dfn{simply expanded} variables; these definitions can contain
-variable references which will be expanded before the definition is
-made.  @xref{Flavors, ,The Two Flavors of Variables}.
+Variables defined with @samp{=} are @dfn{recursively expanded} variables.
+Variables defined with @samp{:=} or @samp{::=} are @dfn{simply expanded}
+variables; these definitions can contain variable references which will be
+expanded before the definition is made.  Variables defined with @samp{:::=}
+are @dfn{immediately expanded} variables.  The different assignment operators
+are described in @xref{Flavors, ,The Two Flavors of Variables}.
 
 The variable name may contain function and variable references, which
 are expanded when the line is read to find the actual variable name to use.
@@ -5987,13 +6096,12 @@ originally.  @xref{Flavors, ,The Two Flavors of Variables}, for an
 explanation of the two flavors of variables.
 
 When you add to a variable's value with @samp{+=}, @code{make} acts
-essentially as if you had included the extra text in the initial
-definition of the variable.  If you defined it first with @samp{:=} or
-@samp{::=}, making it a simply-expanded variable, @samp{+=} adds to
-that simply-expanded definition, and expands the new text before
-appending it to the old value just as @samp{:=} does (see
-@ref{Setting, ,Setting Variables}, for a full explanation of
-@samp{:=} or @samp{::=}).  In fact,
+essentially as if you had included the extra text in the initial definition of
+the variable.  If you defined it first with @samp{:=} or @samp{::=}, making it
+a simply-expanded variable, @samp{+=} adds to that simply-expanded definition,
+and expands the new text before appending it to the old value just as
+@samp{:=} does (see @ref{Setting, ,Setting Variables}, for a full explanation
+of @samp{:=} or @samp{::=}).  In fact,
 
 @example
 variable := value
@@ -6010,15 +6118,9 @@ variable := $(variable) more
 @end example
 
 On the other hand, when you use @samp{+=} with a variable that you defined
-first to be recursively-expanded using plain @samp{=}, @code{make} does
-something a bit different.  Recall that when you define a
-recursively-expanded variable, @code{make} does not expand the value you set
-for variable and function references immediately.  Instead it stores the text
-verbatim, and saves these variable and function references to be expanded
-later, when you refer to the new variable (@pxref{Flavors, ,The Two Flavors
-of Variables}).  When you use @samp{+=} on a recursively-expanded variable,
-it is this unexpanded text to which @code{make} appends the new text you
-specify.
+first to be recursively-expanded using plain @samp{=} or @samp{:::=},
+@code{make} appends the un-expanded text to the existing value, whatever it
+is.  This means that
 
 @example
 @group
@@ -6247,6 +6349,7 @@ In such situations you may want to use the @code{undefine} directive to
 make a variable appear as if it was never set. For example:
 
 @example
+@group
 foo := foo
 bar = bar
 
@@ -6255,6 +6358,7 @@ undefine bar
 
 $(info $(origin foo))
 $(info $(flavor bar))
+@end group
 @end example
 
 This example will print ``undefined'' for both variables.
@@ -6342,14 +6446,14 @@ variable only.
 Multiple @var{target} values create a target-specific variable value for
 each member of the target list individually.
 
-The @var{variable-assignment} can be any valid form of assignment;
-recursive (@samp{=}), simple (@samp{:=} or @samp{::=}), appending
-(@samp{+=}), or conditional (@samp{?=}).  All variables that appear
-within the @var{variable-assignment} are evaluated within the context
-of the target: thus, any previously-defined target-specific variable
-values will be in effect.  Note that this variable is actually
-distinct from any ``global'' value: the two variables do not have to
-have the same flavor (recursive vs.@: simple).
+The @var{variable-assignment} can be any valid form of assignment; recursive
+(@samp{=}), simple (@samp{:=} or @samp{::=}), immediate (@samp{::=}),
+appending (@samp{+=}), or conditional (@samp{?=}).  All variables that appear
+within the @var{variable-assignment} are evaluated within the context of the
+target: thus, any previously-defined target-specific variable values will be
+in effect.  Note that this variable is actually distinct from any ``global''
+value: the two variables do not have to have the same flavor (recursive vs.@:
+simple).
 
 Target-specific variables have the same priority as any other makefile
 variable.  Variables provided on the command line (and in the
@@ -12362,6 +12466,7 @@ Here is a summary of the directives GNU @code{make} recognizes:
 @itemx define @var{variable} =
 @itemx define @var{variable} :=
 @itemx define @var{variable} ::=
+@itemx define @var{variable} :::=
 @itemx define @var{variable} +=
 @itemx define @var{variable} ?=
 @itemx endef

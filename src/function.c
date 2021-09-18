@@ -465,7 +465,6 @@ func_origin (char *o, char **argv, const char *funcname UNUSED)
   else
     switch (v->origin)
       {
-      default:
       case o_invalid:
         abort ();
         break;

@@ -407,7 +407,7 @@ extern int unixy_shell;
 #define NONE_SET(_v,_m) (! ANY_SET ((_v),(_m)))
 
 #define MAP_NUL         0x0001
-#define MAP_BLANK       0x0002
+#define MAP_BLANK       0x0002  /* space, TAB */
 #define MAP_NEWLINE     0x0004
 #define MAP_COMMENT     0x0008
 #define MAP_SEMI        0x0010
