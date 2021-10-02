@@ -3031,6 +3031,30 @@ The targets which @code{.SECONDARY} depends on are treated as
 intermediate files, except that they are never automatically deleted.
 @xref{Chained Rules, ,Chains of Implicit Rules}.
 
+@code{.SECONDARY} can be used to avoid redundant rebuilds in some unusual
+situations.  For example:
+
+@example
+@group
+hello.bin: hello.o bye.o
+        $(CC) -o $@@ $^
+
+%.o: %.c
+        $(CC) -c -o $@@ $<
+
+.SECONDARY: hello.o bye.o
+@end group
+@end example
+
+Suppose @file{hello.bin} is up to date in regards to the source files,
+@emph{but} the object file @file{hello.o} is missing.  Without
+@code{.SECONDARY} make would rebuild @file{hello.o} then rebuild
+@file{hello.bin} even though the source files had not changed.  By declaring
+@file{hello.o} as @code{.SECONDARY} @code{make} will not need to rebuild it
+and won't need to rebuild @file{hello.bin} either.  Of course, of one of the
+source files @emph{were} updated then all object files would be rebuilt so
+that the creation of @file{hello.bin} could succeed.
+
 @code{.SECONDARY} with no prerequisites causes all targets to be treated
 as secondary (i.e., no target is removed because it is considered
 intermediate).
