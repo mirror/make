@@ -47,7 +47,7 @@ Rule #1: Don't rewrite pushed history (don't use "git push --force").
 
 Typical simple workflow might be:
 
-  * Edit files
+  * Edit files / make / make check
   * Use "git status" and "git diff" to verify your changes
   * Use "git add" to stage the changes you want to make
   * Use "git commit" to commit the staged changes to your local repository
@@ -68,9 +68,10 @@ GNU make code adheres to the GNU Coding Standards.  Please use only spaces and
 no TAB characters in source code.
 
 Additionally, GNU make is a foundational bootstrap package for the GNU
-project; as such it is very conservative about language features it expects.
-It should build with any C compiler conforming to the ANSI C89 / ISO C90
-standard.
+project; as such it is conservative about language features it expects.
+However, GNU make does rely on the Gnulib portability library, and Gnulib
+currently requires a ISO C99 compiler.  So features in ISO C99 can be
+assumed.
 
 
 Building From Git for POSIX
@@ -85,7 +86,7 @@ need to install the following extra software:
 * autopoint
 * pkg-config
 * texinfo (for makeinfo)
-* GCC (Clang's GCC emulation is not sufficient)
+* GCC
 * GNU make (POSIX make is not sufficient)
 
 And any tools that those utilities require (GNU m4, etc.)
@@ -94,7 +95,7 @@ To run the tests you must install Perl.
 
 To build a release you'll need to install lzip.
 
-GNU make requires gnulib to provide some facilities.  If you want to maintain
+GNU make requires Gnulib to provide some facilities.  If you want to maintain
 a local installation of gnulib you can set GNULIB_SRCDIR to point to it.
 Otherwise, ./bootstrap will obtain a clone for you.
 
