@@ -922,7 +922,7 @@ reap_children (int block, int err)
              to fork/exec but I don't want to bother with that.  Just do the
              best we can.  */
 
-          EINTRLOOP(r, stat(c->cmd_name, &st));
+          EINTRLOOP(r, stat (c->cmd_name, &st));
           if (r < 0)
             e = strerror (errno);
           else if (S_ISDIR(st.st_mode) || !(st.st_mode & S_IXUSR))

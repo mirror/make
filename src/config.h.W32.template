@@ -177,6 +177,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
 
+/* Define to 1 if you have the `mempcpy' function.  */
+/* #undef HAVE_MEMPCPY */
+
 /* Define to 1 if you have the 'mkstemp' function. */
 /* #undef HAVE_MKSTEMP */
 

@@ -59,6 +59,55 @@ struct file *suffix_file;
 /* Maximum length of a suffix.  */
 
 static size_t maxsuffix;
+
+/* Return the rule definition: space separated rule targets, followed by
+   either a colon or two colons in the case of a terminal rule, followed by
+   space separated rule prerequisites, followed by a pipe, followed by
+   order-only prerequisites, if present.  */
+
+const char *get_rule_defn (struct rule *r)
+{
+  if (r->_defn == NULL)
+    {
+      unsigned int k;
+      ptrdiff_t len = 8; // Reserve for ":: ", " | " and the null terminator.
+      char *p;
+      const char *sep = "";
+      const struct dep *dep, *ood = 0;
+
+      for (k = 0; k < r->num; ++k)
+        len += r->lens[k] + 1; // Add one for a space.
+
+      for (dep = r->deps; dep; dep = dep->next)
+        len += strlen (dep_name (dep)) + 1; // Add one for a space.
+
+      p = r->_defn = xmalloc (len);
+      for (k = 0; k < r->num; ++k, sep = " ")
+        p = mempcpy (mempcpy (p, sep, strlen (sep)), r->targets[k], r->lens[k]);
+      *p++ = ':';
+      if (r->terminal)
+        *p++ = ':';
+
+      /* Copy all normal dependencies; note any order-only deps.  */
+      for (dep = r->deps; dep; dep = dep->next)
+        if (dep->ignore_mtime == 0)
+          p = mempcpy (mempcpy (p, " ", 1), dep_name (dep),
+                       strlen (dep_name (dep)));
+        else if (ood == 0)
+          ood = dep;
+
+      /* Copy order-only deps, if we have any.  */
+      for (sep = " | "; ood; ood = ood->next, sep = " ")
+        if (ood->ignore_mtime)
+          p = mempcpy (mempcpy (p, sep, strlen (sep)), dep_name (ood),
+                       strlen (dep_name (ood)));
+      *p = '\0';
+      assert (p - r->_defn < len);
+    }
+
+  return r->_defn;
+}
+
 
 /* Compute the maximum dependency length and maximum number of dependencies of
    all implicit rules.  Also sets the subdir flag for a rule when appropriate,
@@ -398,6 +447,7 @@ install_pattern_rule (struct pspec *p, int terminal)
   r->targets = xmalloc (sizeof (const char *));
   r->suffixes = xmalloc (sizeof (const char *));
   r->lens = xmalloc (sizeof (unsigned int));
+  r->_defn = NULL;
 
   r->lens[0] = (unsigned int) strlen (p->target);
   r->targets[0] = p->target;
@@ -439,6 +489,7 @@ freerule (struct rule *rule, struct rule *lastrule)
   free ((void *)rule->targets);
   free ((void *)rule->suffixes);
   free (rule->lens);
+  free ((void *) rule->_defn);
 
   /* We can't free the storage for the commands because there
      are ways that they could be in more than one place:
@@ -488,6 +539,7 @@ create_pattern_rule (const char **targets, const char **target_percents,
   r->targets = targets;
   r->suffixes = target_percents;
   r->lens = xmalloc (n * sizeof (unsigned int));
+  r->_defn = NULL;
 
   for (i = 0; i < n; ++i)
     {
@@ -505,17 +557,8 @@ create_pattern_rule (const char **targets, const char **target_percents,
 static void                     /* Useful to call from gdb.  */
 print_rule (struct rule *r)
 {
-  unsigned int i;
-
-  for (i = 0; i < r->num; ++i)
-    {
-      fputs (r->targets[i], stdout);
-      putchar ((i + 1 == r->num) ? ':' : ' ');
-    }
-  if (r->terminal)
-    putchar (':');
-
-  print_prereqs (r->deps);
+  fputs (get_rule_defn (r), stdout);
+  putchar ('\n');
 
   if (r->cmds != 0)
     print_commands (r->cmds);

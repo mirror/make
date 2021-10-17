@@ -25,6 +25,7 @@ struct rule
     const char **suffixes;      /* Suffixes (after '%') of each target.  */
     struct dep *deps;           /* Dependencies of the rule.  */
     struct commands *cmds;      /* Commands to execute.  */
+    char *_defn;                /* Definition of the rule. */
     unsigned short num;         /* Number of targets.  */
     char terminal;              /* If terminal (double-colon).  */
     char in_use;                /* If in use by a parent pattern_search.  */
@@ -54,4 +55,5 @@ void install_pattern_rule (struct pspec *p, int terminal);
 void create_pattern_rule (const char **targets, const char **target_percents,
                           unsigned short num, int terminal, struct dep *deps,
                           struct commands *commands, int override);
+const char *get_rule_defn (struct rule *rule);
 void print_rule_data_base (void);

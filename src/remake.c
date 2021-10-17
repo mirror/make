@@ -509,10 +509,7 @@ update_file_1 (struct file *file, unsigned int depth)
 
   if (!file->phony && file->cmds == 0 && !file->tried_implicit)
     {
-      if (try_implicit_rule (file, depth))
-        DBF (DB_IMPLICIT, _("Found an implicit rule for '%s'.\n"));
-      else
-        DBF (DB_IMPLICIT, _("No implicit rule found for '%s'.\n"));
+      try_implicit_rule (file, depth);
       file->tried_implicit = 1;
     }
   if (file->cmds == 0 && !file->is_target
@@ -1045,10 +1042,7 @@ check_dep (struct file *file, unsigned int depth,
 
       if (!file->phony && file->cmds == 0 && !file->tried_implicit)
         {
-          if (try_implicit_rule (file, depth))
-            DBF (DB_IMPLICIT, _("Found an implicit rule for '%s'.\n"));
-          else
-            DBF (DB_IMPLICIT, _("No implicit rule found for '%s'.\n"));
+          try_implicit_rule (file, depth);
           file->tried_implicit = 1;
         }
       if (file->cmds == 0 && !file->is_target
