@@ -848,8 +848,9 @@ pattern_search (struct file *file, int archive,
                   if (intermed_ok)
                     {
                       DBS (DB_IMPLICIT,
-                           (_("Looking for a rule with %s file '%s'.\n"),
-                            d->is_explicit ? "explicit" : "intermediate",
+                           (d->is_explicit
+                            ? _("Looking for a rule with explicit file '%s'.\n")
+                            : _("Looking for a rule with intermediate file '%s'.\n"),
                             d->name));
 
                       if (int_file == 0)
