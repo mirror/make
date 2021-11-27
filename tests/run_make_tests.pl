@@ -310,7 +310,7 @@ sub create_command {
 # Using a ref should be preferred as it's more portable but all the older
 # invocations use strings.
 sub run_make_with_options {
-  my ($filename,$options,$logname,$expected_code,$timeout,@call) = @_;
+  my ($filename, $options, $logname, $expected_code, $timeout, @call) = @_;
   @call = caller unless @call;
   my $code;
   my $command = create_command($options);
@@ -364,13 +364,8 @@ sub run_make_with_options {
     $command = add_options($command, $options);
   }
 
-  my $cmdstr = ref($command) ? "'".join("' '", @$command)."'" : $command;
-
-  if (@call) {
-    $command_string = "#$call[1]:$call[2]\n$cmdstr\n";
-  } else {
-    $command_string = $cmdstr;
-  }
+  my $cmdstr = cmd2str($command);
+  $command_string = "# $call[1]:$call[2]:\n$cmdstr\n";
 
   if ($valgrind) {
     print VALGRIND "\n\nExecuting: $cmdstr\n";
@@ -409,9 +404,9 @@ sub run_make_with_options {
   }
 
   if ($code != $expected_code) {
-    print "Error running @make_command (expected $expected_code; got $code): $cmdstr\n";
+    print "Error running @make_command (expected $expected_code; got $code)\n$call[1]:$call[2]: $cmdstr\n";
     $test_passed = 0;
-    &create_file (&get_runfile, $command_string);
+    &create_file(get_runfile(), $command_string);
     # If it's a SIGINT, stop here
     if ($code & 127) {
       print STDERR "\nCaught signal ".($code & 127)."!\n";

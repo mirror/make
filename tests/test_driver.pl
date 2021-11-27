@@ -148,6 +148,27 @@ sub resetENV
   }
 }
 
+# Returns a string-ified version of cmd which is a value provided to exec()
+# so it can either be a ref of a list or a string.
+sub cmd2str
+{
+    my $cmd = $_[0];
+    if (!ref($cmd)) {
+        return $cmd;
+    }
+
+    my @c;
+    foreach (@$cmd) {
+        if (/[][#;"*?&|<>(){}\$`^~!]/) {
+            s/\'/\'\\'\'/g;
+            push @c, "'$_'";
+        } else {
+            push @c, $_;
+        }
+    }
+    return join(' ', @c);
+}
+
 sub toplevel
 {
   # Pull in benign variables from the user's environment
@@ -733,7 +754,7 @@ sub error
 
 sub compare_output
 {
-  my ($answer,$logfile) = @_;
+  my ($answer, $logfile) = @_;
   my ($slurp, $answer_matched) = ('', 0);
 
   ++$tests_run;
@@ -899,15 +920,15 @@ sub compare_output
   if (! $answer_matched) {
     print "DIFFERENT OUTPUT\n" if $debug;
 
-    &create_file (&get_basefile, $answer);
-    &create_file (&get_runfile, $command_string);
+    &create_file(&get_basefile, $answer);
+    &create_file(&get_runfile, $command_string);
 
     print "\nCreating Difference File ...\n" if $debug;
 
     # Create the difference file
 
     my $command = "diff -c " . &get_basefile . " " . $logfile;
-    &run_command_with_output(&get_difffile,$command);
+    &run_command_with_output(get_difffile(), $command);
   }
 
   return 0;
@@ -938,7 +959,7 @@ sub attach_default_output
   if ($vos)
   {
     my $code = system "++attach_default_output_hack $filename";
-    $code == -2 or &error ("adoh death\n", 1);
+    $code == -2 or &error ("ado death\n", 1);
     return 1;
   }
 

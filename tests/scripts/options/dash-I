@@ -92,7 +92,7 @@ unlink('defaultdirs.mk');
 my $fn = undef;
 foreach my $dn (split ' ', $dirs) {
     # On Windows the default is "." which is bogus!
-    if ($dn != '.') {
+    if ($dn ne '.') {
         my @files = glob(File::Spec->catfile($dn, "*"));
         if (@files) {
             (undef, undef, $fn) = File::Spec->splitpath($files[0]);
