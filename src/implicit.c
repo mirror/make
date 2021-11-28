@@ -22,9 +22,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "variable.h"
 #include "job.h"      /* struct child, used inside commands.h */
 #include "commands.h" /* set_file_variables */
+#include <assert.h>
 
 static int pattern_search (struct file *file, int archive,
-                           unsigned int depth, unsigned int recursions);
+                           unsigned int depth, unsigned int recursions,
+                           int allow_compat_rules);
 
 /* For a FILE which has no commands specified, try to figure out some
    from the implicit pattern rules.
@@ -42,7 +44,7 @@ try_implicit_rule (struct file *file, unsigned int depth)
      (the archive search omits the archive name), it is more specific and
      should come first.  */
 
-  if (pattern_search (file, 0, depth, 0))
+  if (pattern_search (file, 0, depth, 0, 0))
     return 1;
 
 #ifndef NO_ARCHIVES
@@ -52,7 +54,7 @@ try_implicit_rule (struct file *file, unsigned int depth)
     {
       DBF (DB_IMPLICIT,
            _("Looking for archive-member implicit rule for '%s'.\n"));
-      if (pattern_search (file, 1, depth, 0))
+      if (pattern_search (file, 1, depth, 0, 0))
         return 1;
       DBS (DB_IMPLICIT,
            (_("No archive-member implicit rule found for '%s'.\n"),
@@ -204,7 +206,8 @@ stemlen_compare (const void *v1, const void *v2)
 
 static int
 pattern_search (struct file *file, int archive,
-                unsigned int depth, unsigned int recursions)
+                unsigned int depth, unsigned int recursions,
+                int allow_compat_rules)
 {
   /* Filename we are searching for a rule for.  */
   const char *filename = archive ? strchr (file->name, '(') : file->name;
@@ -255,6 +258,7 @@ pattern_search (struct file *file, int archive,
   int specific_rule_matched = 0;
 
   unsigned int ri;  /* uninit checks OK */
+  int found_compat_rule = 0;
   struct rule *rule;
 
   char *pathdir = NULL;
@@ -722,8 +726,8 @@ pattern_search (struct file *file, int archive,
                 {
                   struct file *df;
                   int is_rule = d->name == dep_name (dep);
-                  int explicit;
-                  int exists = -1;
+                  int explicit = 0;
+                  struct dep *dp = 0;
 
                   if (file_impossible_p (d->name))
                     {
@@ -772,23 +776,54 @@ pattern_search (struct file *file, int archive,
                   /* If the pattern prereq is also explicitly mentioned for
                      FILE, skip all tests below since it must be built no
                      matter which implicit rule we choose. */
-                  explicit = df || (exists = file_exists_p (d->name)) != 0;
-                  if (!explicit)
-                    for (struct dep *dp = file->deps; dp != 0; dp = dp->next)
+                  if (df && df->is_target)
+                    /* This prerequisite is mentioned explicitly as a target of
+                       some rule.  */
+                    explicit = 1;
+                  else
+                    for (dp = file->deps; dp != 0; dp = dp->next)
                       if (streq (d->name, dep_name (dp)))
-                        {
-                          explicit = 1;
-                          break;
-                        }
+                        break;
 
-                  if (explicit)
+                  /* If dp is set, this prerequisite is mentioned explicitly as
+                     a prerequisite of the current target.  */
+
+                  if (explicit || dp)
                     {
                       (pat++)->name = d->name;
-                      if (exists > 0)
-                        DBS (DB_IMPLICIT, (_("Found '%s'.\n"), d->name));
-                      else
-                        DBS (DB_IMPLICIT, (_("'%s' ought to exist.\n"), d->name));
+                      DBS (DB_IMPLICIT, (_("'%s' ought to exist.\n"), d->name));
                       continue;
+                    }
+
+                  if (file_exists_p (d->name))
+                    {
+                      (pat++)->name = d->name;
+                      DBS (DB_IMPLICIT, (_("Found '%s'.\n"), d->name));
+                      continue;
+                    }
+
+                  if (df && allow_compat_rules)
+                    {
+                      (pat++)->name = d->name;
+                      DBS (DB_IMPLICIT,
+                           (_("Using compatibility rule '%s' due to '%s'.\n"),
+                            get_rule_defn (rule), d->name));
+                      continue;
+                    }
+
+                  if (df)
+                    {
+                      /* This prerequisite is mentioned explicitly as a
+                         prerequisite on some rule, but it is not a
+                         prerequisite of the current target. Therefore, this
+                         prerequisite does not qualify as ought-to-exist. Keep
+                         note of this rule and continue the search.  If a more
+                         suitable rule is not found, then use this rule.  */
+                      DBS (DB_IMPLICIT,
+                           (_("Prerequisite '%s' of rule '%s' does not qualify"
+                              " as ought to exist.\n"),
+                            d->name, get_rule_defn (rule)));
+                      found_compat_rule = 1;
                     }
 
                   /* This code, given FILENAME = "lib/foo.o", dependency name
@@ -825,7 +860,8 @@ pattern_search (struct file *file, int archive,
                       if (pattern_search (int_file,
                                           0,
                                           depth + 1,
-                                          recursions + 1))
+                                          recursions + 1,
+                                          allow_compat_rules))
                         {
                           pat->pattern = int_file->name;
                           int_file->name = d->name;
@@ -842,7 +878,12 @@ pattern_search (struct file *file, int archive,
                         free_variable_set (int_file->variables);
                       if (int_file->pat_variables)
                         free_variable_set (int_file->pat_variables);
-                      file_impossible (d->name);
+
+                      /* Keep prerequisites explicitly mentioned on unrelated
+                         rules as "possible" to let compatibility search find
+                         such prerequisites.  */
+                      if (df == 0)
+                        file_impossible (d->name);
                     }
 
                   /* A dependency of this rule does not exist. Therefore, this
@@ -938,8 +979,8 @@ pattern_search (struct file *file, int archive,
           f->pat_searched = imf->pat_searched;
           f->also_make = imf->also_make;
           f->is_target = 1;
-          f->notintermediate = imf->notintermediate;
-          f->intermediate = !(pat->is_explicit || f->notintermediate);
+          f->notintermediate |= imf->notintermediate;
+          f->intermediate |= !(pat->is_explicit || f->notintermediate);
           f->tried_implicit = 1;
 
           imf = lookup_file (pat->pattern);
@@ -1065,10 +1106,20 @@ pattern_search (struct file *file, int archive,
   free (deplist);
 
   if (rule)
-    DBS (DB_IMPLICIT, (_("Found implicit rule '%s' for '%s'.\n"),
-                       get_rule_defn (rule), filename));
-  else
-    DBS (DB_IMPLICIT, (_("No implicit rule found for '%s'.\n"), filename));
+    {
+      DBS (DB_IMPLICIT, (_("Found implicit rule '%s' for '%s'.\n"),
+                         get_rule_defn (rule), filename));
+      return 1;
+    }
 
-  return rule != 0;
+  if (found_compat_rule)
+    {
+      DBS (DB_IMPLICIT, (_("Searching for a compatibility rule for '%s'.\n"),
+                         filename));
+      assert (allow_compat_rules == 0);
+      return pattern_search (file, archive, depth, recursions, 1);
+    }
+
+  DBS (DB_IMPLICIT, (_("No implicit rule found for '%s'.\n"), filename));
+  return 0;
 }
