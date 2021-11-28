@@ -261,6 +261,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if you have the strsignal function.  */
 /* #undef HAVE_STRSIGNAL */
 
+/* Define if you have the strtoll function.  */
+/* #undef HAVE_STRTOLL */
+
 /* Define if you have the wait3 function.  */
 /* #undef HAVE_WAIT3 */
 

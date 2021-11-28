@@ -108,6 +108,7 @@ $ERR_read_only_file = undef;
 $ERR_unreadable_file = undef;
 $ERR_nonexe_file = undef;
 $ERR_exe_dir = undef;
+$ERR_out_of_range = undef;
 
 {
   use locale;
@@ -118,6 +119,12 @@ $ERR_exe_dir = undef;
       # Windows has POSIX locale, but only LC_ALL not LC_MESSAGES
       $loc = POSIX::setlocale(&POSIX::LC_ALL);
       POSIX::setlocale(&POSIX::LC_ALL, 'C');
+
+      # See set_defaults() as this doesn't work right on Windows :(
+      $! = &POSIX::ERANGE;
+      $ERR_out_of_range = "$!";
+  } else {
+      $ERR_out_of_range = 'Numerical result out of range';
   }
 
   if (open(my $F, '<', 'file.none')) {
@@ -457,6 +464,10 @@ sub set_defaults
     $scriptsuffix = '.com';
   } else {
     $scriptsuffix = '.bat';
+
+    # Frustratingly, Perl reports the wrong strerror string for ERANGE.
+    # It's weird because Python gets it right.  Not sure what's going on.
+    $ERR_out_of_range = 'Result too large';
   }
 }
 

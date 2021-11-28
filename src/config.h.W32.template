@@ -293,6 +293,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the 'strsignal' function. */
 /* #undef HAVE_STRSIGNAL */
 
+/* Define to 1 if you have the `strtoll' function. */
+#define HAVE_STRTOLL 1
+
 /* Define to 1 if `d_type' is a member of `struct dirent'. */
 /* SV 57152: MinGW64 version of dirent doesn't support d_type. */
 #ifndef __MINGW64__

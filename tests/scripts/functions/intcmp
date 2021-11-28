@@ -10,6 +10,8 @@ n = -10
 z = 0
 # Positive
 p = 1000000000
+min = -9223372036854775808
+max = 9223372036854775807
 .RECIPEPREFIX = >
 all:
 > @echo 0_1 $(intcmp $n,$n)
@@ -25,7 +27,11 @@ all:
 > @echo 3_1 $(intcmp $z,$p,lt,eq,gt)
 > @echo 3_2 $(intcmp $p,$z,lt,eq,gt)
 > @echo 3_3 $(intcmp $p,$p,lt,eq,gt)
-', '', "0_1 -10\n0_2\n0_3\n1_1\n1_2 lt\n1_3\n2_1 lt\n2_2 ge\n2_3 ge\n3_0\n3_1 lt\n3_2 gt\n3_3 eq\n");
+> @echo 4_0 $(intcmp $(min),$(max),lt,eq,gt)
+> @echo 4_1 $(intcmp $(max),$(min),lt,eq,gt)
+> @echo 4_2 $(intcmp $(min),$(min),lt,eq,gt)
+> @echo 4_3 $(intcmp $(max),$(max),lt,eq,gt)
+', '', "0_1 -10\n0_2\n0_3\n1_1\n1_2 lt\n1_3\n2_1 lt\n2_2 ge\n2_3 ge\n3_0\n3_1 lt\n3_2 gt\n3_3 eq\n4_0 lt\n4_1 gt\n4_2 eq\n4_3 eq\n");
 
 # Test error conditions
 
@@ -46,7 +52,7 @@ run_make_test(undef,
 
 run_make_test(undef,
               'intcmp-e3',
-              "#MAKEFILE#:4: *** Numerical result out of range: '9999999999999999999'.  Stop.",
+              "#MAKEFILE#:4: *** $ERR_out_of_range: '9999999999999999999'.  Stop.",
               512);
 
 

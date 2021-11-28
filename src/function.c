@@ -765,17 +765,17 @@ strip_whitespace (const char **begpp, const char **endpp)
   return (char *)*begpp;
 }
 
-static long
+static long long
 parse_numeric (const char *s, const char *msg)
 {
   const char *beg = s;
   const char *end = s + strlen (s) - 1;
   char *endp;
-  long num;
+  long long num;
   strip_whitespace (&beg, &end);
 
   errno = 0;
-  num = strtol (beg, &endp, 10);
+  num = strtoll (beg, &endp, 10);
   if (errno == ERANGE)
     OSS (fatal, *expanding_var, "%s: '%s'", strerror (errno), s);
   else if (endp == beg || endp <= end)
@@ -790,11 +790,11 @@ func_word (char *o, char **argv, const char *funcname UNUSED)
 {
   const char *end_p;
   const char *p;
-  long i;
+  long long i;
 
   i = parse_numeric (argv[0],
                      _("non-numeric first argument to 'word' function"));
-  if (i <= 0)
+  if (i < 1)
     O (fatal, *expanding_var,
        _("first argument to 'word' function must be greater than 0"));
 
@@ -812,7 +812,7 @@ func_word (char *o, char **argv, const char *funcname UNUSED)
 static char *
 func_wordlist (char *o, char **argv, const char *funcname UNUSED)
 {
-  long start, stop, count;
+  long long start, stop, count;
 
   start = parse_numeric (argv[0],
                          _("non-numeric first argument to 'wordlist' function"));
@@ -821,7 +821,11 @@ func_wordlist (char *o, char **argv, const char *funcname UNUSED)
 
   if (start < 1)
     ON (fatal, *expanding_var,
-        "invalid first argument to 'wordlist' function: '%ld'", start);
+        "invalid first argument to 'wordlist' function: '%lld'", start);
+
+  if (stop < 0)
+    ON (fatal, *expanding_var,
+        "invalid second argument to 'wordlist' function: '%lld'", stop);
 
   count = stop - start + 1;
 
@@ -1288,7 +1292,7 @@ func_intcmp (char *o, char **argv, const char *funcname UNUSED)
 {
   char *lhs_str = expand_argument (argv[0], NULL);
   char *rhs_str = expand_argument (argv[1], NULL);
-  long lhs, rhs;
+  long long lhs, rhs;
 
   lhs = parse_numeric (lhs_str,
                        _("non-numeric first argument to 'intcmp' function"));
@@ -1304,7 +1308,7 @@ func_intcmp (char *o, char **argv, const char *funcname UNUSED)
       if (lhs == rhs)
         {
           char buf[INTSTR_LENGTH+1];
-          sprintf (buf, "%ld", lhs);
+          sprintf (buf, "%lld", lhs);
           o = variable_buffer_output(o, buf, strlen (buf));
         }
       return o;
