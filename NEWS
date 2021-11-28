@@ -78,6 +78,14 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   made as a side-effect of some other target's recipe are now noticed as
   expected.
 
+* GNU make has sometimes chosen unexpected, and sub-optimal, chains of
+  implicit rules due to the definition of "ought to exist" in the implicit
+  rule search algorithm, which considered any prerequisite mentioned in the
+  makefile as "ought to exist".  This algorithm has been modified to prefer
+  prerequisites mentioned explicitly in the target being built and only if
+  that results in no matching rule, will GNU make consider prerequisites
+  mentioned in other targets as "ought to exist".
+
 * GNU Make can now be built for MS-Windows using the Tiny C tcc compiler.
   Port provided by Christian Jullien <eligis@orange.fr>
 
