@@ -53,6 +53,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
 * New feature: The $(intcmp ...) function
   This function allows conditional evaluation controlled by a numerical
   comparison.
+  Implementation provided by Jouke Witteveen <j.witteveen@gmail.com>
 
 * If the MAKEFLAGS variable is modified in a makefile, it will be re-parsed
   immediately rather than after all makefiles have been read.  Note that
@@ -89,6 +90,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   prerequisites mentioned explicitly in the target being built and only if
   that results in no matching rule, will GNU make consider prerequisites
   mentioned in other targets as "ought to exist".
+  Implementation provided by Dmitry Goncharov <dgoncharov@users.sf.net>
 
 * GNU Make can now be built for MS-Windows using the Tiny C tcc compiler.
   Port provided by Christian Jullien <eligis@orange.fr>
