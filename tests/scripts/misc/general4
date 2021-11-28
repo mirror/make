@@ -96,11 +96,21 @@ all: ; $sname >/dev/null
 
 $ENV{PATH} = "$ENV{PATH}:sd";
 
+my ($ernum, $erstr);
+
+if ($port_type eq 'W32') {
+    $ernum = 2;
+    $erstr = "process_begin: CreateProcess(NULL, $sname, ...) failed.\nmake (e=2): The system cannot find the file specified.";
+} else {
+    $ernum = 127;
+    $erstr = "#MAKE#: $sname: $ERR_no_such_file";
+}
+
 run_make_test(qq!
 PATH := ..
 all: ; $sname
 !,
-              '', "$sname\n#MAKE#: $sname: $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:3: all] Error 127", 512);
+              '', "$sname\n$erstr\n#MAKE#: *** [#MAKEFILE#:3: all] Error $ernum", 512);
 
 unlink("sd/$sname");
 rmdir('sd');
@@ -110,11 +120,19 @@ rmdir('sd');
 create_file($sname, '');
 chmod 0755, $sname;
 
+if ($port_type eq 'W32') {
+    $ernum = -1;
+    $erstr = "";
+} else {
+    $ernum = 127;
+    $erstr = "#MAKE#: $sname: $ERR_no_such_file\n";
+}
+
 run_make_test(qq!
 PATH := ..
 all: ; $sname
 !,
-              '', "$sname\n#MAKE#: $sname: $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:3: all] Error 127", 512);
+              '', "$sname\n$erstr#MAKE#: *** [#MAKEFILE#:3: all] Error $ernum", 512);
 
 unlink($sname);
 

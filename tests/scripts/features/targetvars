@@ -272,11 +272,20 @@ all: ; $sname >/dev/null
 
 $ENV{PATH} = "$ENV{PATH}:sd";
 
+my ($ernum, $erstr);
+if ($port_type eq 'W32') {
+    $ernum = 1;
+    $erstr = "'$sname' is not recognized as an internal or external command,\noperable program or batch file.";
+} else {
+    $ernum = 127;
+    $erstr = "#MAKE#: $sname: $ERR_no_such_file";
+}
+
 run_make_test(qq!
 all: PATH := ..
 all: ; $sname
 !,
-              '', "$sname\n#MAKE#: $sname: $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:3: all] Error 127", 512);
+              '', "$sname\n$erstr\n#MAKE#: *** [#MAKEFILE#:3: all] Error $ernum", 512);
 
 unlink("sd/$sname");
 rmdir ('sd');
