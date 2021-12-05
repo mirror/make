@@ -11,6 +11,10 @@ GTAGS
 *~
 #*
 .#*
+*.diff
+*.patch
+*.orig
+*.rej
 
 # Configure artifacts
 ABOUT-NLS
