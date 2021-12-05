@@ -2142,6 +2142,13 @@ The wildcard characters in @code{make} are @samp{*}, @samp{?} and
 specifies a list of all the files (in the working directory) whose names
 end in @samp{.c}.@refill
 
+If an expression matches multiple files than the results will be
+sorted.@footnote{Some older versions of GNU @code{make} did not sort the
+results of wildcard expansion.}  However multiple expressions will not be
+globally sorted.  For example, @file{*.c *.h} will list all the files whose
+names end in @samp{.c}, sorted, followed by all the files whose names end in
+@samp{.h}, sorted.
+
 @cindex @code{~} (tilde)
 @cindex tilde (@code{~})
 @cindex home directory
@@ -2308,6 +2315,11 @@ then that pattern is omitted from the output of the @code{wildcard}
 function.  Note that this is different from how unmatched wildcards
 behave in rules, where they are used verbatim rather than ignored
 (@pxref{Wildcard Pitfall}).
+
+As with wildcard expansion in rules, the results of the @code{wildcard}
+function are sorted.  But again, each individual expression is sorted
+separately, so @samp{$(wildcard *.c *.h)} will expand to all files matching
+@samp{.c}, sorted, followed by all files matching @samp{.h}, sorted.
 
 One use of the @code{wildcard} function is to get a list of all the C source
 files in a directory, like this:
