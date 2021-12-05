@@ -2359,8 +2359,8 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
     if ((r = posix_spawn_file_actions_adddup2 (&fa, fderr, FD_STDERR)) != 0)
       goto cleanup;
 
-  /* Be the user, permanently.  */
-  flags |= POSIX_SPAWN_RESETIDS;
+  /* We can't use the POSIX_SPAWN_RESETIDS flag: when make is invoked under
+     restrictive environments like unshare it will fail with EINVAL.  */
 
   /* Apply the spawn flags.  */
   if ((r = posix_spawnattr_setflags (&attr, flags)) != 0)
