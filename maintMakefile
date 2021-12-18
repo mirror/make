@@ -169,10 +169,9 @@ update: po-check
 
 # PO archive mirrors --- Be careful; some might not be fully populated!
 #   ftp://ftp.unex.es/pub/gnu-i18n/po/maint/
-#   http://translation.sf.net/maint/
 #   ftp://tiger.informatik.hu-berlin.de/pub/po/maint/
 
-po_wget_flags =	--recursive --level=1 --no-directories --no-check-certificate
+po_wget_flags = --recursive --level=1 --no-directories --no-check-certificate
 po_repo = https://translationproject.org/latest/$(PACKAGE)
 po_sync = translationproject.org::tp/latest/$(PACKAGE)/
 

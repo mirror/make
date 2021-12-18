@@ -14,7 +14,7 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-this program.  If not, see <http://www.gnu.org/licenses/>.
+this program.  If not, see <https://www.gnu.org/licenses/>.
 -------------------------------------------------------------------------------
 
 Obtaining Git Code
@@ -23,7 +23,7 @@ Obtaining Git Code
 This seems redundant, since if you're reading this you most likely have
 already performed this step; however, for completeness, you can obtain the GNU
 make source code via Git from the FSF's Savannah project
-<http://savannah.gnu.org/projects/make/>:
+<https://savannah.gnu.org/projects/make/>:
 
   $ git clone git://git.savannah.gnu.org/make.git
 
@@ -55,7 +55,7 @@ Typical simple workflow might be:
   * Use "git push" to push your commits back to the Savannah repository
 
 For Emacs users, there are many options for Git integration but I strongly
-recommend the Magit package: http://www.emacswiki.org/emacs/Magit
+recommend the Magit package: https://www.emacswiki.org/emacs/Magit
 It makes the workflow much clearer, and has advanced features such as
 constructing multiple commits from various files and even from different
 diff chunks in the same file.  There is a video available which helps a lot.

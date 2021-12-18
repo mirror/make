@@ -34,7 +34,7 @@ Downloading
 
 GNU Make can be obtained in many different ways.  See a description here:
 
-  http://www.gnu.org/software/software.html
+  https://www.gnu.org/software/software.html
 
 
 Documentation
@@ -45,9 +45,9 @@ in this distribution as the file make.texinfo.  You can also find
 on-line and preformatted (PostScript and DVI) versions at the FSF's web
 site.  There is information there about ordering hardcopy documentation.
 
-  http://www.gnu.org/
-  http://www.gnu.org/doc/doc.html
-  http://www.gnu.org/manual/manual.html
+  https://www.gnu.org/
+  https://www.gnu.org/doc/doc.html
+  https://www.gnu.org/manual/manual.html
 
 
 Development
@@ -56,11 +56,11 @@ Development
 GNU Make development is hosted by Savannah, the FSF's online development
 management tool.  Savannah is here:
 
-  http://savannah.gnu.org
+  https://savannah.gnu.org
 
 And the GNU Make development page is here:
 
-  http://savannah.gnu.org/projects/make/
+  https://savannah.gnu.org/projects/make/
 
 You can find most information concerning the development of GNU Make at
 this site.
@@ -76,7 +76,7 @@ information on submitting useful and complete bug reports.
 You can also use the online bug tracking system in the Savannah GNU Make
 project to submit new problem reports or search for existing ones:
 
-  http://savannah.gnu.org/bugs/?group=make
+  https://savannah.gnu.org/bugs/?group=make
 
 If you need help using GNU make, try these forums:
 
@@ -92,7 +92,7 @@ Git Access
 The GNU make source repository is available via Git from the GNU Savannah Git
 server; look here for details:
 
-  http://savannah.gnu.org/git/?group=make
+  https://savannah.gnu.org/git/?group=make
 
 Please note: you won't be able to build GNU make from Git without installing
 appropriate maintainer's tools, such as GNU m4, automake, autoconf, Perl, GNU
@@ -115,7 +115,7 @@ The standard /bin/sh on SunOS 4.1.3_U1 and 4.1.4 is broken and cannot be
 used to configure GNU make.  Please install a different shell such as
 bash or pdksh in order to run "configure".  See this message for more
 information:
-  http://mail.gnu.org/archive/html/bug-autoconf/2003-10/msg00190.html
+  https://mail.gnu.org/archive/html/bug-autoconf/2003-10/msg00190.html
 
 One area that is often a problem in configuration and porting is the code
 to check the system's current load average.  To make it easier to test and
@@ -157,7 +157,7 @@ Ports
     using DJGPP tools.
 
     A precompiled binary of the MSDOS port of GNU Make is available as part
-    of DJGPP; see the WWW page http://www.delorie.com/djgpp/ for more
+    of DJGPP; see the WWW page https://www.delorie.com/djgpp/ for more
     information.
 
     The Cygwin project maintains its own port of GNU make.  That port may have
@@ -185,4 +185,4 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-this program.  If not, see <http://www.gnu.org/licenses/>.
+this program.  If not, see <https://www.gnu.org/licenses/>.

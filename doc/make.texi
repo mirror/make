@@ -500,7 +500,7 @@ Either send electronic mail to:
 or use our Web-based project management tool, at:
 
 @example
-    http://savannah.gnu.org/projects/make/
+    https://savannah.gnu.org/projects/make/
 @end example
 
 @noindent
