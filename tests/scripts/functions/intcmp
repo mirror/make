@@ -42,17 +42,17 @@ intcmp-e3: ; @echo $(intcmp -1,9999999999999999999,foo)
 intcmp-e4: ; @echo $(intcmp -1)
 intcmp-e5: ; @echo $(intcmp ,55)',
               'intcmp-e1',
-              "#MAKEFILE#:2: *** non-numeric first argument to 'intcmp' function: '12a'.  Stop.",
+              "#MAKEFILE#:2: *** invalid first argument to 'intcmp' function: '12a'.  Stop.",
               512);
 
 run_make_test(undef,
               'intcmp-e2',
-              "#MAKEFILE#:3: *** non-numeric second argument to 'intcmp' function: ''.  Stop.",
+              "#MAKEFILE#:3: *** invalid second argument to 'intcmp' function: empty value.  Stop.",
               512);
 
 run_make_test(undef,
               'intcmp-e3',
-              "#MAKEFILE#:4: *** $ERR_out_of_range: '9999999999999999999'.  Stop.",
+              "#MAKEFILE#:4: *** invalid second argument to 'intcmp' function: '9999999999999999999' out of range.  Stop.",
               512);
 
 

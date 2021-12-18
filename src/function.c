@@ -774,10 +774,13 @@ parse_numeric (const char *s, const char *msg)
   long long num;
   strip_whitespace (&beg, &end);
 
+  if (beg > end)
+    OS (fatal, *expanding_var, _("%s: empty value"), msg);
+
   errno = 0;
   num = strtoll (beg, &endp, 10);
   if (errno == ERANGE)
-    OSS (fatal, *expanding_var, "%s: '%s'", strerror (errno), s);
+    OSS (fatal, *expanding_var, _("%s: '%s' out of range"), msg, s);
   else if (endp == beg || endp <= end)
     /* Empty or non-numeric input */
     OSS (fatal, *expanding_var, "%s: '%s'", msg, s);
@@ -793,7 +796,7 @@ func_word (char *o, char **argv, const char *funcname UNUSED)
   long long i;
 
   i = parse_numeric (argv[0],
-                     _("non-numeric first argument to 'word' function"));
+                     _("invalid first argument to 'word' function"));
   if (i < 1)
     O (fatal, *expanding_var,
        _("first argument to 'word' function must be greater than 0"));
@@ -815,9 +818,9 @@ func_wordlist (char *o, char **argv, const char *funcname UNUSED)
   long long start, stop, count;
 
   start = parse_numeric (argv[0],
-                         _("non-numeric first argument to 'wordlist' function"));
+                         _("invalid first argument to 'wordlist' function"));
   stop = parse_numeric (argv[1],
-                        _("non-numeric second argument to 'wordlist' function"));
+                        _("invalid second argument to 'wordlist' function"));
 
   if (start < 1)
     ON (fatal, *expanding_var,
@@ -1295,9 +1298,9 @@ func_intcmp (char *o, char **argv, const char *funcname UNUSED)
   long long lhs, rhs;
 
   lhs = parse_numeric (lhs_str,
-                       _("non-numeric first argument to 'intcmp' function"));
+                       _("invalid first argument to 'intcmp' function"));
   rhs = parse_numeric (rhs_str,
-                       _("non-numeric second argument to 'intcmp' function"));
+                       _("invalid second argument to 'intcmp' function"));
   free (lhs_str);
   free (rhs_str);
 
