@@ -511,6 +511,9 @@ include the type of machine and operating system you are using.  One
 way to obtain this information is by looking at the final lines of
 output from the command @samp{make --help}.
 
+If you have a code change you'd like to submit, see the @file{README} file
+section ``Submitting Patches'' for information.
+
 @node Introduction, Makefiles, Overview, Top
 @comment  node-name,  next,  previous,  up
 @chapter An Introduction to Makefiles

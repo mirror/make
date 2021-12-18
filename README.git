@@ -31,8 +31,11 @@ make source code via Git from the FSF's Savannah project
 Changes using Git
 -----------------
 
-For non-developers, you can continue to provide patches as before, or if you
-make a public repository I can pull from that if you prefer.
+If you do not have push privileges to the GNU make Git repository, see the
+README file section "Submitting Patches" for information.
+
+If you have push privileges to the GNU make Git repository keep this
+information in mind:
 
 Starting with GNU make 4.0 we no longer keep a separate ChangeLog file in
 source control.  We use the Gnulib git-to-changelog conversion script to

@@ -86,6 +86,27 @@ If you need help using GNU make, try these forums:
   news:gnu.utils.bug
 
 
+Submitting Patches
+------------------
+
+If you'd like to propose a patch for changes to GNU make, you should create a
+patch with your changes.  If you're making your changes in a Git workspace you
+can run "git format-patch" to create a patch file.  If not, you can use the
+patch(1) utility.
+
+Once you have a patch you can submit it in any of these ways:
+
+  * Create a bug on Savannah and add the patch as an attachment:
+      https://savannah.gnu.org/bugs/?group=make&func=additem
+
+  * Send the patch via email to <bug-make@gnu.org>: be sure to add it as an
+    attachment to avoid interference by email processors.
+
+Be aware that all non-trivial changes proposed for GNU make require FSF
+copyright paperwork to be completed before they can be accepted.  Contact
+<bug-make@gnu.org> for help.
+
+
 Git Access
 ----------
 
