@@ -1277,6 +1277,49 @@ func_sort (char *o, char **argv, const char *funcname UNUSED)
 }
 
 /*
+  Traverse NUMBER consisting of optional leading white space, optional
+  sign, digits, and optional trailing white space.
+  If number is not of the proper form, diagnose with MSG.  Otherwise,
+  return the address of of the first character after NUMBER, store
+  into *SIGN an integer consistent with the number's sign (-1, 0, or 1)
+  and store into *NUMSTART the address of NUMBER's first nonzero digit
+  (if NUMBER contains only zero digits, store the address of the first
+  character after NUMBER).
+*/
+static const char *
+parse_textint (const char *number, const char *msg,
+               int *sign, const char **numstart)
+{
+  const char *after_sign, *after_number;
+  const char *p = next_token (number);
+  int negative = *p == '-';
+  int nonzero = 0;
+
+  if (*p == '\0')
+    OS (fatal, *expanding_var, _("%s: empty value"), msg);
+
+  p += negative || *p == '+';
+  after_sign = p;
+
+  while (*p == '0')
+    p++;
+  *numstart = p;
+
+  while (ISDIGIT (*p))
+    if (*p++ == '0')
+      nonzero = 1;
+  after_number = p;
+  *sign = negative ? -nonzero : nonzero;
+
+  /* Check for extra non-whitespace stuff after the value.  */
+  if (after_number == after_sign || *next_token (p) != '\0')
+    OSS (fatal, *expanding_var, "%s: '%s'", msg, number);
+
+  return after_number;
+}
+
+
+/*
   $(intcmp lhs,rhs[,lt-part[,eq-part[,gt-part]]])
 
   LHS and RHS must be integer values (leading/trailing whitespace is ignored).
@@ -1293,34 +1336,40 @@ func_sort (char *o, char **argv, const char *funcname UNUSED)
 static char *
 func_intcmp (char *o, char **argv, const char *funcname UNUSED)
 {
+  int lsign, rsign;
+  const char *lnum, *rnum;
   char *lhs_str = expand_argument (argv[0], NULL);
   char *rhs_str = expand_argument (argv[1], NULL);
-  long long lhs, rhs;
+  const char *llim = parse_textint (lhs_str, _("non-numeric first argument to 'intcmp' function"), &lsign, &lnum);
+  const char *rlim = parse_textint (rhs_str, _("non-numeric second argument to 'intcmp' function"), &rsign, &rnum);
+  ptrdiff_t llen = llim - lnum;
+  ptrdiff_t rlen = rlim - rnum;
+  int cmp = lsign - rsign;
 
-  lhs = parse_numeric (lhs_str,
-                       _("invalid first argument to 'intcmp' function"));
-  rhs = parse_numeric (rhs_str,
-                       _("invalid second argument to 'intcmp' function"));
-  free (lhs_str);
-  free (rhs_str);
+  if (cmp == 0)
+    {
+      cmp = (llen > rlen) - (llen < rlen);
+      if (cmp == 0)
+        cmp = memcmp (lnum, rnum, llen);
+    }
 
   argv += 2;
 
-  if (*argv == NULL)
+  /* Handle the special case where there are only two arguments.  */
+  if (!*argv && cmp == 0)
     {
-      if (lhs == rhs)
-        {
-          char buf[INTSTR_LENGTH+1];
-          sprintf (buf, "%lld", lhs);
-          o = variable_buffer_output(o, buf, strlen (buf));
-        }
-      return o;
+      if (lsign < 0)
+        o = variable_buffer_output (o, "-", 1);
+      o = variable_buffer_output(o, lnum - !lsign, llen + !lsign);
     }
 
-  if (lhs >= rhs)
+  free (lhs_str);
+  free (rhs_str);
+
+  if (*argv && cmp >= 0)
     {
       ++argv;
-      if (lhs > rhs && *argv && *(argv + 1))
+      if (cmp > 0 && *argv && *(argv + 1))
         ++argv;
     }
 
