@@ -1194,9 +1194,6 @@ do_variable_definition (const floc *flocp, const char *varname,
 
   switch (flavor)
     {
-    case f_bogus:
-      /* Should not be possible.  */
-      abort ();
     case f_simple:
       /* A simple variable definition "var := value".  Expand the value.
          We have to allocate memory since otherwise it'll clobber the
@@ -1317,8 +1314,12 @@ do_variable_definition (const floc *flocp, const char *varname,
 
             free (tp);
           }
-        break;
       }
+      break;
+    case f_bogus:
+    default:
+      /* Should not be possible.  */
+      abort ();
     }
 
 #ifdef __MSDOS__

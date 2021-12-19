@@ -1923,7 +1923,7 @@ main (int argc, char **argv, char **envp)
 
   if (eval_strings)
     {
-      char *p, *value;
+      char *p, *endp, *value;
       unsigned int i;
       size_t len = (CSTRLEN ("--eval=") + 1) * eval_strings->idx;
 
@@ -1935,15 +1935,16 @@ main (int argc, char **argv, char **envp)
           free (p);
         }
 
-      p = value = alloca (len);
+      p = endp = value = alloca (len);
       for (i = 0; i < eval_strings->idx; ++i)
         {
           strcpy (p, "--eval=");
           p += CSTRLEN ("--eval=");
           p = quote_for_env (p, eval_strings->list[i]);
-          *(p++) = ' ';
+          endp = p++;
+          *endp = ' ';
         }
-      p[-1] = '\0';
+      *endp = '\0';
 
       define_variable_cname ("-*-eval-flags-*-", value, o_automatic, 0);
     }

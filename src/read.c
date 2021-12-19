@@ -1000,7 +1000,7 @@ eval (struct ebuffer *ebuf, int set_default)
 
       {
         enum make_word_type wtype;
-        char *cmdleft, *semip, *lb_next;
+        char *cmdleft, *semip = 0, *lb_next;
         size_t plen = 0;
         char *colonp;
         const char *end, *beg; /* Helpers for whitespace stripping. */
@@ -1020,9 +1020,11 @@ eval (struct ebuffer *ebuf, int set_default)
             cmdleft = 0;
           }
         else if (cmdleft != 0)
-          /* Found one.  Cut the line short there before expanding it.  */
-          *(cmdleft++) = '\0';
-        semip = cmdleft;
+          {
+            /* Found one.  Cut the line short there before expanding it.  */
+            semip = cmdleft++;
+            *semip = '\0';
+          }
 
         collapse_continuations (line);
 
@@ -1193,7 +1195,7 @@ eval (struct ebuffer *ebuf, int set_default)
             if (semip)
               {
                 size_t l = p2 - variable_buffer;
-                *(--semip) = ';';
+                *semip = ';';
                 collapse_continuations (semip);
                 variable_buffer_output (p2 + strlen (p2),
                                         semip, strlen (semip)+1);
