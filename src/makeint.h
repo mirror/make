@@ -461,9 +461,13 @@ extern int unixy_shell;
 
 #define STOP_SET(_v,_m) ANY_SET(stopchar_map[(unsigned char)(_v)],(_m))
 
+/* True if C is whitespace but not newline.  */
 #define ISBLANK(c)      STOP_SET((c),MAP_BLANK)
+/* True if C is whitespace including newlines.  */
 #define ISSPACE(c)      STOP_SET((c),MAP_SPACE)
+/* True if C is nul or whitespace (including newline).  */
 #define END_OF_TOKEN(c) STOP_SET((c),MAP_SPACE|MAP_NUL)
+/* Move S past all whitespace (including newlines).  */
 #define NEXT_TOKEN(s)   while (ISSPACE (*(s))) ++(s)
 
 /* We can't run setrlimit when using posix_spawn.  */
@@ -479,12 +483,15 @@ extern struct rlimit stack_limit;
 
 #define NILF ((floc *)0)
 
+/* Number of characters in a string constant.  Does NOT include the \0 byte.  */
 #define CSTRLEN(_s)           (sizeof (_s)-1)
 #define STRING_SIZE_TUPLE(_s) (_s), CSTRLEN(_s)
 
-/* The number of bytes needed to represent the largest integer as a string.
-   Large enough for both the largest signed and unsigned long long.  */
-#define INTSTR_LENGTH         CSTRLEN ("18446744073709551615")
+/* The number of bytes needed to represent the largest signed and unsigned
+   integers as a string.
+   Does NOT include space for \0 so be sure to add it if needed.
+   Math suggested by Edward Welbourne <edward.welbourne@qt.io>  */
+#define INTSTR_LENGTH   (53 * sizeof(uintmax_t) / 22 + 2)
 
 #define DEFAULT_TTYNAME "true"
 #ifdef HAVE_TTYNAME
