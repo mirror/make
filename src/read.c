@@ -2488,84 +2488,65 @@ find_percent (char *pattern)
   return find_char_unquote (pattern, '%');
 }
 
-/* Search STRING for an unquoted % and handle quoting.  Returns a pointer to
-   the % or NULL if no % was found.
+/* Return a pointer to the first unescaped %, or NULL if there isn't one.
+   Compress any escape chars up to the first unescaped %, but not afterward.
    This version is used with strings in the string cache: if there's a need to
-   modify the string a new version will be added to the string cache and
-   *STRING will be set to that.  */
+   modify the string to handle escape chars a new version will be added to the
+   string cache and *STRING will be set to that.  */
 
 const char *
 find_percent_cached (const char **string)
 {
-  const char *p = *string;
-  char *new = 0;
-  size_t slen = 0;
+  const char *p = strchr (*string, '%');
+  char *new, *np;
+  size_t slen;
 
-  /* If the first char is a % return now.  This lets us avoid extra tests
-     inside the loop.  */
-  if (*p == '%')
+  /* If there is no % or there is but it's not escaped, reuse this string.  */
+  if (!p || p == *string || p[-1] != '\\')
     return p;
 
-  while (1)
+  /* We must create a new cached string with backslashes compressed.  */
+  slen = strlen (*string);
+  new = alloca (slen + 1);
+  memcpy (new, *string, slen + 1);
+  np = new + (p - *string);
+
+  do
     {
-      p = strchr(p, '%');
+      /* Remember where the percent is.  */
+      char *pp = np;
+      int i = -2;
 
-      if (!p)
-        break;
+      /* This % is preceded by a backslash; search for more backslashes.  */
+      while (&np[i] >= new && np[i] == '\\')
+        --i;
+      ++i;
 
-      /* See if this % is escaped with a backslash; if not we're done.  */
-      if (p[-1] != '\\')
-        break;
-
+      /* The number of backslashes is -I.  Copy the string over itself to
+         swallow half of them.  */
       {
-        /* Search for more backslashes.  */
-        char *pv;
-        int i = -2;
-
-        while (&p[i] >= *string && p[i] == '\\')
-          --i;
-        ++i;
-
-        /* At this point we know we'll need to allocate a new string.
-           Make a copy if we haven't yet done so.  */
-        if (! new)
-          {
-            slen = strlen (*string);
-            new = alloca (slen + 1);
-            memcpy (new, *string, slen + 1);
-            p = new + (p - *string);
-            *string = new;
-          }
-
-        /* At this point *string, p, and new all point into the same string.
-           Get a non-const version of p so we can modify new.  */
-        pv = new + (p - *string);
-
-        /* The number of backslashes is now -I.
-           Copy P over itself to swallow half of them.  */
-        {
-          /* Avoid arithmetic conversion of negative values to unsigned.  */
-          int hi = -(i/2);
-          memmove (&pv[i], &pv[i/2], (slen - (pv - new)) + hi + 1);
-          p += i/2;
-        }
-
-        /* If the backslashes quoted each other; the % was unquoted.  */
-        if (i % 2 == 0)
-          break;
+        /* Avoid arithmetic conversion of negative values to unsigned.  */
+        int hi = -(i/2);
+        memmove (&pp[i], &pp[i/2], (slen - (pp - new)) + hi + 1);
       }
-    }
 
-  /* If we had to change STRING, add it to the strcache.  */
-  if (new)
-    {
-      *string = strcache_add (*string);
-      if (p)
-        p = *string + (p - new);
+      /* Update SLEN and set NP to point after the %.  */
+      slen += i/2 + i%2;
+      np += i/2;
+
+      /* If all backslashes quoted each other then % was unquoted.  */
+      if (i % 2 == 0)
+        break;
+
+      np = strchr (np, '%');
     }
+  while (np && np[-1] == '\\');
+
+  /* Add the new string to the strcache.  */
+  *string = strcache_add (new);
 
   /* If we didn't find a %, return NULL.  Otherwise return a ptr to it.  */
-  return p;
+  return np ? *string + (np - new) : NULL;
 }
 
 /* Find the next line of text in an eval buffer, combining continuation lines
