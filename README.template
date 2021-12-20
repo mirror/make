@@ -89,10 +89,10 @@ If you need help using GNU make, try these forums:
 Submitting Patches
 ------------------
 
-If you'd like to propose a patch for changes to GNU make, you should create a
-patch with your changes.  If you're making your changes in a Git workspace you
-can run "git format-patch" to create a patch file.  If not, you can use the
-patch(1) utility.
+If you'd like to propose a change to GNU make, you can provide a patch with
+your changes.  If you are making your changes in a Git workspace you can run
+"git format-patch" to create a patch file.  If not, you can use the diff(1)
+utility to create a patch file; please use "diff -u".
 
 Once you have a patch you can submit it in any of these ways:
 
