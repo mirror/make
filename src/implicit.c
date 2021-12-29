@@ -963,13 +963,7 @@ pattern_search (struct file *file, int archive,
           struct file *imf = pat->file;
           struct file *f = lookup_file (imf->name);
 
-          /* We don't want to delete an intermediate file that happened
-             to be a prerequisite of some (other) target. Mark it as
-             secondary.  We don't want it to be precious as that disables
-             DELETE_ON_ERROR etc.  */
-          if (f != 0)
-            f->secondary = 1;
-          else
+          if (!f)
             f = enter_file (imf->name);
 
           f->deps = imf->deps;
@@ -984,8 +978,9 @@ pattern_search (struct file *file, int archive,
           f->pat_searched = imf->pat_searched;
           f->also_make = imf->also_make;
           f->is_target = 1;
+          f->is_explicit |= imf->is_explicit || pat->is_explicit;
           f->notintermediate |= imf->notintermediate;
-          f->intermediate |= !(pat->is_explicit || f->notintermediate);
+          f->intermediate |= !f->is_explicit && !f->notintermediate;
           f->tried_implicit = 1;
 
           imf = lookup_file (pat->pattern);

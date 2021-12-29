@@ -120,5 +120,18 @@ all: hello.z
 
 unlink('hello.z');
 
+# A target explicitly listed as a prerequisite of a pattern rule, is still
+# considered mentioned and "ought to exist".
+
+run_make_test(q!
+1.all: 1.q ; touch $@
+%.q: 1.r ; touch $@
+%.r: ; touch $@
+.INTERMEDIATE: 1.r
+!,
+              '', "touch 1.r\ntouch 1.q\ntouch 1.all\nrm 1.r\n");
+
+unlink('1.all', '1.q', '1.r');
+
 # This tells the test driver that the perl test script executed properly.
 1;
