@@ -13,10 +13,11 @@ that the intermediate file is again deleted.
 
 Try this with implicit rules and explicit rules: both should work.\n";
 
-open(MAKEFILE,"> $makefile");
+# TEST #0
 
-print MAKEFILE <<'EOF';
+&utouch(-20, 'foo.f', 'bar.f');
 
+run_make_test(q!
 .INTERMEDIATE: foo.e bar.e
 
 # Implicit rule test
@@ -27,80 +28,50 @@ foo.d: foo.e
 
 # Explicit rule test
 foo.c: foo.e bar.e; cat $^ > $@
-EOF
-
-close(MAKEFILE);
-
-# TEST #0
-
-&utouch(-20, 'foo.f', 'bar.f');
-
-&run_make_with_options($makefile,'foo.d',&get_logfile);
-$answer = "cp foo.f foo.e\ncp foo.e foo.d\nrm foo.e\n";
-&compare_output($answer, &get_logfile(1));
+!,
+    'foo.d', "cp foo.f foo.e\ncp foo.e foo.d\nrm foo.e\n");
 
 # TEST #1
 
-&run_make_with_options($makefile,'foo.d',&get_logfile);
-$answer = "$make_name: 'foo.d' is up to date.\n";
-&compare_output($answer, &get_logfile(1));
+run_make_test(undef, 'foo.d', "#MAKE#: 'foo.d' is up to date.\n");
 
 # TEST #2
 
 &utouch(-10, 'foo.d');
 &touch('foo.f');
 
-&run_make_with_options($makefile,'foo.d',&get_logfile);
-$answer = "cp foo.f foo.e\ncp foo.e foo.d\nrm foo.e\n";
-&compare_output($answer, &get_logfile(1));
+run_make_test(undef, 'foo.d', "cp foo.f foo.e\ncp foo.e foo.d\nrm foo.e\n");
 
 # TEST #3
 
-&run_make_with_options($makefile,'foo.c',&get_logfile);
-$answer = "cp foo.f foo.e\ncp bar.f bar.e\ncat foo.e bar.e > foo.c\nrm foo.e bar.e\n";
-&compare_output($answer, &get_logfile(1));
+run_make_test(undef, 'foo.c', "cp foo.f foo.e\ncp bar.f bar.e\ncat foo.e bar.e > foo.c\nrm foo.e bar.e\n");
 
 # TEST #4
 
-&run_make_with_options($makefile,'foo.c',&get_logfile);
-$answer = "$make_name: 'foo.c' is up to date.\n";
-&compare_output($answer, &get_logfile(1));
+run_make_test(undef, 'foo.c', "#MAKE#: 'foo.c' is up to date.\n");
 
 # TEST #5
 
 &utouch(-10, 'foo.c');
 &touch('foo.f');
 
-&run_make_with_options($makefile,'foo.c',&get_logfile);
-$answer = "cp foo.f foo.e\ncp bar.f bar.e\ncat foo.e bar.e > foo.c\nrm foo.e bar.e\n";
-&compare_output($answer, &get_logfile(1));
+run_make_test(undef, 'foo.c', "cp foo.f foo.e\ncp bar.f bar.e\ncat foo.e bar.e > foo.c\nrm foo.e bar.e\n");
 
 # TEST #6 -- added for PR/1669: don't remove files mentioned on the cmd line.
 
-&run_make_with_options($makefile,'foo.e',&get_logfile);
-$answer = "cp foo.f foo.e\n";
-&compare_output($answer, &get_logfile(1));
+run_make_test(undef, 'foo.e', "cp foo.f foo.e\n");
 
 unlink('foo.f', 'foo.e', 'foo.d', 'foo.c', 'bar.f', 'bar.e', 'bar.d', 'bar.c');
 
 # TEST #7 -- added for PR/1423
 
-$makefile2 = &get_tmpfile;
-
-open(MAKEFILE, "> $makefile2");
-
-print MAKEFILE <<'EOF';
+run_make_test(q!
 all: foo
 foo.a: ; touch $@
 %: %.a ; touch $@
 .INTERMEDIATE: foo.a
-EOF
-
-close(MAKEFILE);
-
-&run_make_with_options($makefile2, '-R', &get_logfile);
-$answer = "touch foo.a\ntouch foo\nrm foo.a\n";
-&compare_output($answer, &get_logfile(1));
+!,
+              '-R',  "touch foo.a\ntouch foo\nrm foo.a\n");
 
 unlink('foo');
 
