@@ -975,7 +975,11 @@ pattern_search (struct file *file, int archive,
           f->deps = imf->deps;
           f->cmds = imf->cmds;
           f->stem = imf->stem;
-          f->variables = imf->variables;
+          /* Setting target specific variables for a file causes the file to be
+           * entered to the database as a prerequisite. Implicit search then
+           * treats this file as explicitly mentioned. Preserve target specific
+           * variables of this file.  */
+          merge_variable_set_lists(&f->variables, imf->variables);
           f->pat_variables = imf->pat_variables;
           f->pat_searched = imf->pat_searched;
           f->also_make = imf->also_make;

@@ -423,5 +423,68 @@ unrelated: bye.o
 unlink('hello.f', 'hello.z', 'hello.xx', 'bye.xx');
 
 
+# A target specific variable causes the file to be entered to the database as a
+# prerequisite. Implicit search then treats this file as explicitly mentioned.
+# Test that implicit search keeps target specific variables of this file intact.
+# In this series of tests prerequisite 'hello.x' has a target specific variable
+# and is built as an intermediate. Implicit search treats 'hello.x' as
+# explicitly mentioned, but 'hello.x' does not qualify as ought-to-exist.
+unlink('hello.x', 'hello.tsk');
+
+# 'hello.x' is mentioned explicitly on the same implicit rule.
+run_make_test(q!
+all: hello.tsk
+%.tsk: hello.x; $(info $@)
+%.x:; $(flags)
+hello.x: flags:=true
+!, '', "true\nhello.tsk\n");
+
+# Similar to the one above, but this time 'hello.x' is derived from the stem.
+run_make_test(q!
+all: hello.tsk
+%.tsk: %.x; $(info $@)
+%.x:; $(flags)
+hello.x: flags:=true
+!, '', "true\nhello.tsk\n");
+
+# Similar to the one above, this time 'hello.x' is also mentioned explicitly on
+# an unrelated rule.
+run_make_test(q!
+all: hello.tsk
+%.tsk: %.x; $(info $@)
+%.x:; $(flags)
+hello.x: flags:=true
+unrelated: hello.x
+!, '', "true\nhello.tsk\n");
+
+# 'hello.x' has a pattern specific variable.
+run_make_test(q!
+all: hello.tsk
+%.tsk: %.x; $(info $@)
+%.x:; $(flags)
+%.x: flags:=true
+!, '', "true\nhello.tsk\n");
+
+# 'hello.x' has a target specific variable and a pattern specific variable.
+run_make_test(q!
+all: hello.tsk
+%.tsk: %.x; $(info $@)
+%.x:; $(flags)
+hello.x: flags+=good
+%.x: flags:=true
+!, '', "true good\nhello.tsk\n");
+
+# Intermediate prerequisite 'hello.x' has a target specific variable, a pattern
+# specfic variable, matches on both rules '%.tsk: %.x' and 'big_%.tsk: %.x'.
+run_make_test(q!
+all: hello.tsk big_hello.tsk
+%.tsk: %.x; $(info $@)
+big_%.tsk: %.x; $(info $@)
+%.x:; $(flags)
+hello.x: flags+=good
+%.x: flags:=true
+!, '', "true good\nhello.tsk\nbig_hello.tsk\n");
+
+
 # This tells the test driver that the perl test script executed properly.
 1;
