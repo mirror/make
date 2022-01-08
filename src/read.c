@@ -3044,7 +3044,7 @@ construct_include_path (const char **arg_dirs)
 char *
 tilde_expand (const char *name)
 {
-#ifndef VMS
+#if !defined(VMS)
   if (name[1] == '/' || name[1] == '\0')
     {
       char *home_dir;
@@ -3099,8 +3099,9 @@ tilde_expand (const char *name)
         {
           if (userend == 0)
             return xstrdup (pwent->pw_dir);
-          else
-            return xstrdup (concat (3, pwent->pw_dir, "/", userend + 1));
+
+          *userend = '/';
+          return xstrdup (concat (3, pwent->pw_dir, "/", userend + 1));
         }
       else if (userend != 0)
         *userend = '/';
