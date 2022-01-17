@@ -40,6 +40,7 @@ struct function_table_entry
     unsigned char maximum_args;
     unsigned int expand_args:1;
     unsigned int alloc_fn:1;
+    unsigned int adds_command:1;
   };
 
 static unsigned long
@@ -2515,7 +2516,7 @@ func_abspath (char *o, char **argv, const char *funcname UNUSED)
 static char *func_call (char *o, char **argv, const char *funcname);
 
 #define FT_ENTRY(_name, _min, _max, _exp, _func) \
-  { { (_func) }, STRING_SIZE_TUPLE(_name), (_min), (_max), (_exp), 0 }
+  { { (_func) }, STRING_SIZE_TUPLE(_name), (_min), (_max), (_exp), 0, 0 }
 
 static struct function_table_entry function_table_init[] =
 {
@@ -2590,6 +2591,9 @@ expand_builtin_function (char *o, int argc, char **argv,
   if (!entry_p->fptr.func_ptr)
     OS (fatal, *expanding_var,
         _("unimplemented on this platform: function '%s'"), entry_p->name);
+
+  if (entry_p->adds_command)
+    ++command_count;
 
   if (!entry_p->alloc_fn)
     return entry_p->fptr.func_ptr (o, argv, entry_p->name);
@@ -2858,6 +2862,8 @@ define_new_function (const floc *flocp, const char *name,
   ent->maximum_args = (unsigned char) max;
   ent->expand_args = ANY_SET(flags, GMK_FUNC_NOEXPAND) ? 0 : 1;
   ent->alloc_fn = 1;
+  /* We don't know what this function will do.  */
+  ent->adds_command = 1;
   ent->fptr.alloc_func_ptr = func;
 
   hash_insert (&function_table, ent);
