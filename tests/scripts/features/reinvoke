@@ -89,7 +89,6 @@ include m1.d
 unlink('m1.d', 'm2.d');
 
 # Same as before but be sure we get error messages for un-created makefiles
-
 run_make_test('
 all: ; @echo RESTARTS=$(MAKE_RESTARTS)
 
@@ -98,10 +97,71 @@ m1.d: ; @echo $@; touch $@
 m2.d: m1.d ; @test -f $< || { echo $@; touch $@; }
 
 include m1.d m2.d
-',
-              '', "m1.d\n#MAKEFILE#:8: m2.d: $ERR_no_such_file\n", 512);
+', '',
+              # This runs afoul of https://savannah.gnu.org/bugs/?61226
+              0 ? "m1.d\n#MAKEFILE#:8: m2.d: $ERR_no_such_file"
+                  : "m1.d\nRESTARTS=1",
+              0 ? 512 : 0);
 
 unlink('m1.d', 'm2.d');
+
+# sv 61226.
+# This set of four cases tests two aspects of make.
+#
+# 1. If a rule has no prerequisites or recipe, and the target of the rule is a
+# nonexistent file, then make imagines this target to have been updated
+# whenever its rule is run.
+#
+# 2. Make does not re-execute itself in this case of imagined target.
+#
+# Test case 1.
+# Make imagines hello.d was updated by a rule without recipe and without
+# prereqs.
+# This should succeed.
+# Make should not re-execute itself.
+run_make_test('
+hello.o: hello.d; $(info RESTARTS=$(MAKE_RESTARTS))
+hello.d:
+include hello.d
+', '', "RESTARTS=\n#MAKE#: 'hello.o' is up to date.");
+
+# Test case 2.
+# Make imagines hello.d was updated by a rule with a recipe and without
+# prereqs.
+# This should succeed.
+# Make should not re-execute itself.
+run_make_test('
+hello.o: hello.d; $(info RESTARTS=$(MAKE_RESTARTS))
+hello.d:; $(info $@)
+include hello.d
+', '', "hello.d\nRESTARTS=\n#MAKE#: 'hello.o' is up to date.");
+
+&touch('hello.td');
+# Test case 3.
+# Make imagines hello.d was updated by a rule without a recipe and with
+# prereqs.
+# This should succeed.
+# Make should not re-execute itself.
+run_make_test('
+hello.o: hello.d; $(info RESTARTS=$(MAKE_RESTARTS))
+hello.d: hello.td
+include hello.d
+', '', "RESTARTS=\n#MAKE#: 'hello.o' is up to date.");
+
+# Test case 4.
+# Same test as three tests above, but the rule has both recipe and prereqs.
+# Make should report this error.
+run_make_test('
+hello.o: hello.d; $(info $@)
+hello.d: hello.td; $(info $@)
+include hello.d
+', '',
+              # This runs afoul of https://savannah.gnu.org/bugs/?61226
+              0 ? "hello.d\n#MAKEFILE#:4: hello.d: $ERR_no_such_file"
+                  : "hello.d\nhello.o\n#MAKE#: 'hello.o' is up to date.",
+              0 ? 512 : 0);
+
+unlink('hello.td');
 
 # This tells the test driver that the perl test script executed properly.
 1;

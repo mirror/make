@@ -1301,13 +1301,13 @@ command line option @code{-I} with the special value @code{-} (e.g.,
 forget any already-set include directories, including the default
 directories.
 
-If an included makefile cannot be found in any of these directories it
-is not an immediately fatal error; processing of the makefile
-containing the @code{include} continues.  Once it has finished reading
-makefiles, @code{make} will try to remake any that are out of date or
-don't exist.  @xref{Remaking Makefiles, ,How Makefiles Are Remade}.
-Only after it has tried to find a way to remake a makefile and failed,
-will @code{make} diagnose the missing makefile as a fatal error.
+If an included makefile cannot be found in any of these directories it is not
+an immediately fatal error; processing of the makefile containing the
+@code{include} continues.  Once it has finished reading makefiles, @code{make}
+will try to remake any that are out of date or don't exist.  @xref{Remaking
+Makefiles, ,How Makefiles Are Remade}.  Only after it has failed to find a
+rule to remake the makefile, or it found a rule but the recipe failed, will
+@code{make} diagnose the missing makefile as a fatal error.
 
 If you want @code{make} to simply ignore a makefile which does not exist
 or cannot be remade, with no error message, use the @w{@code{-include}}

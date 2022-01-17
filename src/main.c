@@ -34,7 +34,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # include <windows.h>
 # include <io.h>
 #ifdef HAVE_STRINGS_H
-# include <strings.h>	/* for strcasecmp */
+# include <strings.h> /* for strcasecmp */
 #endif
 # include "pathstuff.h"
 # include "sub_proc.h"
@@ -2327,19 +2327,26 @@ main (int argc, char **argv, char **envp)
         case us_none:
           /* No makefiles needed to be updated.  If we couldn't read some
              included file that we care about, fail.  */
-          {
-            struct goaldep *d;
+          if (0)
+            {
+              /* This runs afoul of https://savannah.gnu.org/bugs/?61226
+                 The problem is that many makefiles use a "dummy rule" to
+                 pretend that an included file is rebuilt, without actually
+                 rebuilding it, and this has always worked.  There are a
+                 number of solutions proposed in that bug but for now we'll
+                 put things back so they work the way they did before.  */
+              struct goaldep *d;
 
-            for (d = read_files; d != 0; d = d->next)
-              if (d->error && ! (d->flags & RM_DONTCARE))
-                {
-                  /* This makefile couldn't be loaded, and we care.  */
-                  const char *err = strerror (d->error);
-                  OSS (error, &d->floc, _("%s: %s"), dep_name (d), err);
-                  any_failed = 1;
-                }
-            break;
-          }
+              for (d = read_files; d != 0; d = d->next)
+                if (d->error && ! (d->flags & RM_DONTCARE))
+                  {
+                    /* This makefile couldn't be loaded, and we care.  */
+                    const char *err = strerror (d->error);
+                    OSS (error, &d->floc, _("%s: %s"), dep_name (d), err);
+                    any_failed = 1;
+                  }
+            }
+          break;
 
         case us_failed:
           /* Failed to update.  Figure out if we care.  */

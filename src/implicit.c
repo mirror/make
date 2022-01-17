@@ -608,7 +608,7 @@ pattern_search (struct file *file, int archive,
                   if (nptr == 0)
                     continue;
 
-                  /* See this is a transition to order-only prereqs.  */
+                  /* See if this is a transition to order-only prereqs.  */
                   if (! order_only && len == 1 && nptr[0] == '|')
                     {
                       order_only = 1;
