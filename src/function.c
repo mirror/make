@@ -1294,7 +1294,7 @@ parse_textint (const char *number, const char *msg,
   const char *after_sign, *after_number;
   const char *p = next_token (number);
   int negative = *p == '-';
-  int nonzero = 0;
+  int nonzero;
 
   if (*p == '\0')
     OS (fatal, *expanding_var, _("%s: empty value"), msg);
@@ -1307,9 +1307,9 @@ parse_textint (const char *number, const char *msg,
   *numstart = p;
 
   while (ISDIGIT (*p))
-    if (*p++ == '0')
-      nonzero = 1;
+    ++p;
   after_number = p;
+  nonzero = *numstart != after_number;
   *sign = negative ? -nonzero : nonzero;
 
   /* Check for extra non-whitespace stuff after the value.  */
