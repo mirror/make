@@ -4122,8 +4122,8 @@ example:
 @example
 .ONESHELL:
 foo : bar/lose
-        cd $(@@D)
-        gobble $(@@F) > ../$@@
+        cd $(<D)
+        gobble $(<F) > ../$@@
 @end example
 
 @noindent
