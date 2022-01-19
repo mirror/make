@@ -1171,41 +1171,25 @@ func_strip (char *o, char **argv, const char *funcname UNUSED)
 static char *
 func_error (char *o, char **argv, const char *funcname)
 {
-  char **argvp;
-  char *msg, *p;
-  size_t len;
-
-  /* The arguments will be broken on commas.  Rather than create yet
-     another special case where function arguments aren't broken up,
-     just create a format string that puts them back together.  */
-  for (len=0, argvp=argv; *argvp != 0; ++argvp)
-    len += strlen (*argvp) + 2;
-
-  p = msg = alloca (len + 1);
-  msg[0] = '\0';
-
-  for (argvp=argv; argvp[1] != 0; ++argvp)
-    {
-      strcpy (p, *argvp);
-      p += strlen (*argvp);
-      *(p++) = ',';
-      *(p++) = ' ';
-    }
-  strcpy (p, *argvp);
-
   switch (*funcname)
     {
     case 'e':
-      OS (fatal, reading_file, "%s", msg);
+      OS (fatal, reading_file, "%s", argv[0]);
 
     case 'w':
-      OS (error, reading_file, "%s", msg);
+      OS (error, reading_file, "%s", argv[0]);
       break;
 
     case 'i':
-      outputs (0, msg);
-      outputs (0, "\n");
-      break;
+      {
+        size_t len = strlen (argv[0]);
+        char *msg = alloca (len + 2);
+        strcpy (msg, argv[0]);
+        msg[len] = '\n';
+        msg[len + 1] = '\0';
+        outputs (0, msg);
+        break;
+      }
 
     default:
       OS (fatal, *expanding_var, "Internal error: func_error: '%s'", funcname);
