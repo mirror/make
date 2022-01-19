@@ -55,6 +55,12 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   comparison.
   Implementation provided by Jouke Witteveen <j.witteveen@gmail.com>
 
+* New feature: Improved support for -l / --load-average
+  On systems that provide /proc/loadavg (Linux), GNU make will use it to
+  determine the number of runnable jobs and use this as the current load,
+  avoiding the need for heuristics.
+  Implementation provided by Sven C. Dack <sdack@gmx.com>
+
 * If the MAKEFLAGS variable is modified in a makefile, it will be re-parsed
   immediately rather than after all makefiles have been read.  Note that
   although all options are parsed immediately, some special effects won't
