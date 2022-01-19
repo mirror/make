@@ -539,7 +539,6 @@ pattern_search (struct file *file, int archive,
           while (1)
             {
               struct dep *dl, *d;
-              char *p;
 
               /* If we're out of name to parse, start the next prereq.  */
               if (! nptr)
@@ -553,9 +552,10 @@ pattern_search (struct file *file, int archive,
               /* If we don't need a second expansion, just replace the %.  */
               if (! dep->need_2nd_expansion)
                 {
+                  char *p;
                   int is_explicit = 1;
-                  p = strchr (nptr, '%');
-                  if (p == 0)
+                  const char *cp = strchr (nptr, '%');
+                  if (cp == 0)
                     strcpy (depname, nptr);
                   else
                     {
@@ -565,11 +565,11 @@ pattern_search (struct file *file, int archive,
                           memcpy (o, filename, pathlen);
                           o += pathlen;
                         }
-                      memcpy (o, nptr, p - nptr);
-                      o += p - nptr;
+                      memcpy (o, nptr, cp - nptr);
+                      o += cp - nptr;
                       memcpy (o, stem, stemlen);
                       o += stemlen;
-                      strcpy (o, p + 1);
+                      strcpy (o, cp + 1);
                       is_explicit = 0;
                     }
 
@@ -603,6 +603,8 @@ pattern_search (struct file *file, int archive,
                   size_t len;
                   struct dep **dptr;
                   int is_explicit;
+                  const char *cp;
+                  char *p;
 
                   nptr = get_next_word (nptr, &len);
                   if (nptr == 0)
@@ -627,8 +629,8 @@ pattern_search (struct file *file, int archive,
                      (since $* and $(*F) are simple variables) there won't be
                      additional re-expansion of the stem.  */
 
-                  p = lindex (nptr, nptr + len, '%');
-                  if (p == 0)
+                  cp = lindex (nptr, nptr + len, '%');
+                  if (cp == 0)
                     {
                       memcpy (depname, nptr, len);
                       depname[len] = '\0';
@@ -636,7 +638,7 @@ pattern_search (struct file *file, int archive,
                     }
                   else
                     {
-                      size_t i = p - nptr;
+                      size_t i = cp - nptr;
                       char *o = depname;
                       memcpy (o, nptr, i);
                       o += i;
@@ -651,7 +653,7 @@ pattern_search (struct file *file, int archive,
                           memcpy (o, "$*", 2);
                           o += 2;
                         }
-                      memcpy (o, p + 1, len - i - 1);
+                      memcpy (o, cp + 1, len - i - 1);
                       o[len - i - 1] = '\0';
                       is_explicit = 0;
                     }
