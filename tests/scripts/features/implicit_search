@@ -4,26 +4,20 @@ $description = "Test implicit rule search.";
 
 $details = "";
 
-
 # sv 48643
 # Each test has a %.c rule ahead of %.f rule.
 # hello.f exists and hello.c is missing.
 
 unlink('hello.c', 'hello.tsk', 'hello.o', 'hello.x');
 
-
-
 # Run every test with and without a suffix.
 my @suffixes = ('', '.o');
 # Run every test with single and double colon rules.
 my @rules = ('', ':');
 
-touch('hello.f');
-
 for my $s (@suffixes) {
 for my $r (@rules) {
 touch('hello.f');
-
 
 # Test that make finds the intended implicit rule based on existence of a
 # prerequisite in the filesystem.
@@ -107,24 +101,24 @@ run_make_test("
 all: hello$s
 %$s:$r %.c; \$(info \$<)
 %$s:$r %.f; \$(info \$<)
-.DEFAULT:; true
+.DEFAULT:; \$(info \$\@) true
 unrelated: hello.c
 ", '', "hello.f\n#MAKE#: Nothing to be done for 'all'.");
 
 
-unlink('hello.f');
 # hello.f is missing.
 # This time both hello.c and hello.f are missing and both '%: %.c' and '%: %.f'
 # require an intermediate.
 # The default rule builds intemerdiate hello.c.
 # '%: %.c' rule is chosen to build hello.
+unlink('hello.f');
 run_make_test("
 all: hello$s
 %$s:$r %.c; \$(info \$<)
 %$s:$r %.f; \$(info \$<)
-.DEFAULT:; false
+.DEFAULT:; \$(info \$\@) false
 unrelated: hello.c
-", '', "false\n#MAKE#: *** [#MAKEFILE#:5: hello.c] Error 1\n", 512);
+", '', "hello.c\nfalse\n#MAKE#: *** [#MAKEFILE#:5: hello.c] Error 1\n", 512);
 
 # hello.f is missing.
 # No rule is found, because hello.c is not mentioned explicitly.
@@ -132,10 +126,10 @@ run_make_test("
 all: hello$s
 %$s:$r %.c; \$(info \$<)
 %$s:$r %.f; \$(info \$<)
-.DEFAULT:; \@echo default making \$\@ && false
+.DEFAULT:; \@\$(info \$\@) false
 ",
 '',
-"default making hello$s\n#MAKE#: *** [#MAKEFILE#:5: hello$s] Error 1\n",
+"hello$s\n#MAKE#: *** [#MAKEFILE#:5: hello$s] Error 1\n",
 512);
 
 }
