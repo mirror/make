@@ -761,6 +761,9 @@ pattern_search (struct file *file, int archive,
 
                   df = lookup_file (d->name);
 
+                  if (df && df->is_explicit)
+                    pat->is_explicit = 1;
+
                   /* If we found a file for the dep, set its intermediate flag.
                      df->is_explicit is set when the dep file is mentioned
                      explicitly on some other rule.  d->is_explicit is set when
