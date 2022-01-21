@@ -152,6 +152,16 @@ all: hello.z
 %.x: ;
 !, '', "hello.z hello.q\n");
 
+# subtest 3
+# hello.x is explicitly mentioned on an unrelated rule and thus is not an
+# intermediate file.
+run_make_test(q!
+all: hello.z
+%.z %.q: %.x; @echo $*.z $*.q
+%.x: ;
+unrelated: hello.x
+!, '', "hello.z hello.q\n");
+
 unlink('hello.z');
 unlink('hello.q');
 

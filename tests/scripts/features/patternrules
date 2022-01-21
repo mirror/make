@@ -272,6 +272,18 @@ all: hello.z
 !,
               '', "touch hello.z");
 
+# subtest 3
+# hello.x is explicitly mentioned on an unrelated rule and thus is not an
+# intermediate file.
+touch('hello.z');
+run_make_test(q!
+all: hello.z
+%.z: %.x; touch $@
+%.x: ;
+unrelated: hello.x
+!,
+              '', "touch hello.z");
+
 unlink('hello.z');
 
 # sv 60188.

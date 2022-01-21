@@ -278,6 +278,18 @@ unrelated: hello$s
 }
 }
 
+# Test that prerequisite 'hello.x' mentioned explicitly on an unrelated rule is
+# not considered intermediate.
+touch('hello.tsk');
+unlink('hello.x');
+run_make_test("
+all: hello.tsk
+%.tsk: %.x; touch hello.tsk
+%.x: ;
+unrelated: hello.x
+", '', "touch hello.tsk\n");
+unlink('hello.tsk');
+
 touch ('hello.f');
 # Test implicit search of builtin rules.
 

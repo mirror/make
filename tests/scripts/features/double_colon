@@ -237,6 +237,20 @@ all: hello.z
 !,
               '', "#MAKE#: Nothing to be done for 'all'.\n");
 
+# subtest 3
+# hello.x is explicitly mentioned on an unrelated rule and thus is not an
+# intermediate file.
+# Terminal pattern rules do not apply anyway and there is no rule to built
+# 'hello.x'.
+touch('hello.z');
+run_make_test(q!
+all: hello.z
+%.z:: %.x; touch $@
+%.x: ;
+unrelated: hello.x
+!,
+              '', "#MAKE#: *** No rule to make target 'hello.x', needed by 'hello.z'.  Stop.\n", 512);
+
 unlink('hello.z');
 
 

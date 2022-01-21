@@ -123,9 +123,18 @@ hello.z: %.z: %.x ; @echo $@
 
 # subtest 2
 run_make_test(q!
-hello.z: %.z: test.x ; @echo $@
+hello.z: %.z: %.x test.x ; @echo $@
 %.x: ;
 !, '', "hello.z\n");
+
+# subtest 3
+# 'hello.x' is mentioned explicitly on an unrelated rule.
+run_make_test(q!
+hello.z: %.z: %.x ; @echo $@
+%.x: ;
+unrelated: hello.x
+!, '', "hello.z\n");
+
 
 unlink('hello.z');
 
