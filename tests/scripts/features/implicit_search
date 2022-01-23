@@ -27,7 +27,7 @@ run_make_test("
 all: hello$s
 %$s:$r %.c; \$(info hello.c)
 %$s:$r %.f; \$(info hello.f)
-", '', "hello.f\n#MAKE#: Nothing to be done for 'all'.");
+", '-r', "hello.f\n#MAKE#: Nothing to be done for 'all'.");
 
 # Test that make finds the intended implicit rule based on the explicit
 # prerequisite of the top goal and despite the existence of a
@@ -40,8 +40,7 @@ run_make_test("
 hello$s: hello.c
 %$s:$r %.c; \$(info hello.c)
 %$s:$r %.f; \$(info hello.f)
-",
-'',
+", '-r',
 "#MAKE#: *** No rule to make target 'hello.c', needed by 'hello$s'.  Stop.\n",
 512);
 
@@ -57,7 +56,7 @@ all: hello$s
 %$s:$r %.c; \$(info hello.c)
 %$s:$r %.f; \$(info hello.f)
 hello.c:; false
-", '', "false\n#MAKE#: *** [#MAKEFILE#:5: hello.c] Error 1\n", 512);
+", '-r', "false\n#MAKE#: *** [#MAKEFILE#:5: hello.c] Error 1\n", 512);
 
 # Test that make finds the intended implicit rule based on existence of a
 # prerequisite in the filesystem, even when the prerequisite of another
@@ -71,7 +70,7 @@ all: hello$s
 %$s:$r %.c; \$(info hello.c)
 %$s:$r %.f; \$(info hello.f)
 unrelated: hello.c
-", '', "hello.f\n#MAKE#: Nothing to be done for 'all'.");
+", '-r', "hello.f\n#MAKE#: Nothing to be done for 'all'.");
 
 # Test that make finds the intended implicit rule based on existence of a
 # prerequisite in the filesystem.
@@ -83,7 +82,7 @@ run_make_test("
 all: hello$s
 %$s:$r %.c hello.c; \$(info hello.c)
 %$s:$r %.f; \$(info hello.f)
-", '', "hello.f\n#MAKE#: Nothing to be done for 'all'.");
+", '-r', "hello.f\n#MAKE#: Nothing to be done for 'all'.");
 
 # '%.o: %.c' rule is skipped and '%.o: %.f' rule is chosen.
 # '%.o: %.f hello.f' rule has explicit prerequisite hello.f.
@@ -92,7 +91,7 @@ run_make_test("
 all: hello$s
 %$s:$r %.c; \$(info hello.c)
 %$s:$r %.f hello.f; \$(info hello.f)
-", '', "hello.f\n#MAKE#: Nothing to be done for 'all'.");
+", '-r', "hello.f\n#MAKE#: Nothing to be done for 'all'.");
 
 # Rule '%: %.f' is chosen, because '%: %.f' requires no intermediates.
 # '%: %.c', on the other hand, requires intemediate hello.c to be built by the
@@ -103,7 +102,7 @@ all: hello$s
 %$s:$r %.f; \$(info \$<)
 .DEFAULT:; \$(info \$\@) true
 unrelated: hello.c
-", '', "hello.f\n#MAKE#: Nothing to be done for 'all'.");
+", '-r', "hello.f\n#MAKE#: Nothing to be done for 'all'.");
 
 
 # hello.f is missing.
@@ -118,7 +117,7 @@ all: hello$s
 %$s:$r %.f; \$(info \$<)
 .DEFAULT:; \$(info \$\@) false
 unrelated: hello.c
-", '', "hello.c\nfalse\n#MAKE#: *** [#MAKEFILE#:5: hello.c] Error 1\n", 512);
+", '-r', "hello.c\nfalse\n#MAKE#: *** [#MAKEFILE#:5: hello.c] Error 1\n", 512);
 
 # hello.f is missing.
 # No rule is found, because hello.c is not mentioned explicitly.
@@ -127,10 +126,7 @@ all: hello$s
 %$s:$r %.c; \$(info \$<)
 %$s:$r %.f; \$(info \$<)
 .DEFAULT:; \@\$(info \$\@) false
-",
-'',
-"hello$s\n#MAKE#: *** [#MAKEFILE#:5: hello$s] Error 1\n",
-512);
+", '-r', "hello$s\n#MAKE#: *** [#MAKEFILE#:5: hello$s] Error 1\n", 512);
 
 }
 }
@@ -153,21 +149,21 @@ all: hello.tsk
 %.tsk: %$s; \$(info hello.tsk)
 %$s:$r %.c; \$(info hello.c)
 %$s:$r %.f; \$(info hello.f)
-", '', "$result", $rcode);
+", '-r', "$result", $rcode);
 
 run_make_test("
 all: hello.tsk
 %.tsk: %$s hello$s; \$(info hello.tsk)
 %$s:$r %.c; \$(info hello.c)
 %$s:$r %.f; \$(info hello.f)
-", '', $result, $rcode);
+", '-r', $result, $rcode);
 
 run_make_test("
 all: hello.tsk
 %.tsk: %$s; \$(info hello.tsk)
 %$s:$r %.c hello$s; \$(info hello.c)
 %$s:$r %.f; \$(info hello.f)
-", '', $result, $rcode);
+", '-r', $result, $rcode);
 
 }
 }
@@ -180,8 +176,7 @@ all: hello.tsk
 %.tsk: %.o; \$(info hello.tsk)
 %.o:$r %.c; \$(info hello.c)
 %.o:$r %.f %.tsk; \$(info hello.f)
-",
-'-R',
+", '-r',
 "#MAKE#: Circular hello.o <- hello.tsk dependency dropped.\nhello.f\nhello.tsk\n#MAKE#: Nothing to be done for 'all'.");
 
 }
@@ -196,8 +191,7 @@ hello$s: hello.c
 %.tsk: %$s; \$(info hello.tsk)
 %$s:$r %.c; \$(info hello.c)
 %$s:$r %.f; \$(info hello.f)
-",
-'',
+", '-r',
 "#MAKE#: *** No rule to make target 'hello.c', needed by 'hello$s'.  Stop.\n",
 512);
 }
@@ -217,7 +211,7 @@ all: hello.tsk
 %$s:$r %.c; \$(info hello.c)
 %$s:$r %.f; \$(info hello.f)
 hello.c:; false
-", '', $result, 512);
+", '-r', $result, 512);
 }
 }
 
@@ -231,7 +225,7 @@ all: hello.tsk
 %$s:$r %.c; \$(info hello.c)
 %$s:$r %.f; \$(info hello.f)
 unrelated: hello$s
-", '', "hello.f\nhello.tsk\n#MAKE#: Nothing to be done for 'all'.");
+", '-r', "hello.f\nhello.tsk\n#MAKE#: Nothing to be done for 'all'.");
 }
 }
 
@@ -250,7 +244,7 @@ all: hello.tsk
 %.tsk: %$s; \$(info hello.tsk)
 %$s:$r %.c; \$(info hello.c)
 %$s:$r %.f hello.f; \$(info hello.f)
-", '', $result, $rcode);
+", '-r', $result, $rcode);
 }
 }
 
@@ -271,8 +265,7 @@ all: hello.tsk
 %$s:$r %.f; \$(info hello.f)
 unrelated: hello$s
 %.x:$r %.z; \$(info hello.z)
-",
-'',
+", '-r',
 "#MAKE#: *** No rule to make target 'hello$s', needed by 'hello.tsk'.  Stop.\n",
 512);
 }
@@ -287,7 +280,7 @@ all: hello.tsk
 %.tsk: %.x; touch hello.tsk
 %.x: ;
 unrelated: hello.x
-", '', "touch hello.tsk\n");
+", '-r', "touch hello.tsk\n");
 unlink('hello.tsk');
 
 touch ('hello.f');
@@ -312,8 +305,7 @@ all: hello.o
 # hello.c prerequisite causes '%: %.c' rule to be chosen.
 run_make_test(q!
 hello: hello.c
-!,
-'FC="@echo f77" OUTPUT_OPTION=',
+!, 'FC="@echo f77" OUTPUT_OPTION=',
 "#MAKE#: *** No rule to make target 'hello.c', needed by 'hello'.  Stop.\n",
 512);
 
@@ -323,8 +315,7 @@ hello: hello.c
 # hello.c prerequisite causes '%.o: %.c' rule to be chosen.
 run_make_test(q!
 hello.o: hello.c
-!,
-'FC="@echo f77" OUTPUT_OPTION=',
+!, 'FC="@echo f77" OUTPUT_OPTION=',
 "#MAKE#: *** No rule to make target 'hello.c', needed by 'hello.o'.  Stop.\n",
 512);
 
@@ -352,8 +343,7 @@ run_make_test(q!
 all: hello.o
 unrelated: hello.c
 %.o: %.f
-!,
-'',
+!, '',
 "#MAKE#: *** No rule to make target 'hello.c', needed by 'hello.o'.  Stop.\n",
 512);
 
@@ -366,8 +356,7 @@ run_make_test(q!
 all: hello.tsk
 %.tsk: %; $(info $@ from $<)
 unrelated: hello
-!,
-'FC="@echo f77" OUTPUT_OPTION=',
+!, 'FC="@echo f77" OUTPUT_OPTION=',
 "f77 hello.f -o hello\nhello.tsk from hello\n");
 
 # In this test the builtin match-anything rule %: %.f cannot be used to build
@@ -376,8 +365,7 @@ unrelated: hello
 run_make_test(q!
 all: hello.tsk
 %.tsk: %; $(info $@ from $<)
-!,
-'FC="@echo f77" OUTPUT_OPTION=',
+!, 'FC="@echo f77" OUTPUT_OPTION=',
 "#MAKE#: *** No rule to make target 'hello.tsk', needed by 'all'.  Stop.\n",
 512);
 
@@ -395,8 +383,7 @@ all: hello.tsk
 %.tsk: % %.x; $(info $@ from $^)
 unrelated: hello
 %.x: %.xx; $(info $@ from $<)
-!,
-'FC="@echo f77" OUTPUT_OPTION=',
+!, 'FC="@echo f77" OUTPUT_OPTION=',
 "f77 hello.f -o hello\nhello.x from hello.xx\nhello.tsk from hello hello.x\n");
 
 unlink('bye.o', 'bye.tsk', 'bye.x');
@@ -407,7 +394,7 @@ all: bye.tsk
 %.tsk: %.o; $(info $@ from $<)
 .DEFAULT:; $(info bye.o)
 unrelated: bye.o
-!, '', "bye.o\nbye.tsk from bye.o\n#MAKE#: Nothing to be done for 'all'.");
+!, '-r', "bye.o\nbye.tsk from bye.o\n#MAKE#: Nothing to be done for 'all'.");
 
 touch('bye.xx');
 # This is just like the one above, but compatibility rule '%.tsk: %.o %.x' has 2
@@ -423,7 +410,7 @@ all: bye.tsk
 .DEFAULT:; $(info bye.o)
 unrelated: bye.o
 %.x: %.xx; $(info $@ from $<)
-!, '',
+!, '-r',
 "bye.o\nbye.x from bye.xx\nbye.tsk from bye.o bye.x\n#MAKE#: Nothing to be done for 'all'.");
 
 unlink('hello.f', 'hello.z', 'hello.xx', 'bye.xx');
@@ -443,7 +430,7 @@ all: hello.tsk
 %.tsk: hello.x; $(info $@)
 %.x:; $(flags)
 hello.x: flags:=true
-!, '', "true\nhello.tsk\n");
+!, '-r', "true\nhello.tsk\n");
 
 # Similar to the one above, but this time 'hello.x' is derived from the stem.
 run_make_test(q!
@@ -451,7 +438,7 @@ all: hello.tsk
 %.tsk: %.x; $(info $@)
 %.x:; $(flags)
 hello.x: flags:=true
-!, '', "true\nhello.tsk\n");
+!, '-r', "true\nhello.tsk\n");
 
 # Similar to the one above, this time 'hello.x' is also mentioned explicitly on
 # an unrelated rule.
@@ -461,7 +448,7 @@ all: hello.tsk
 %.x:; $(flags)
 hello.x: flags:=true
 unrelated: hello.x
-!, '', "true\nhello.tsk\n");
+!, '-r', "true\nhello.tsk\n");
 
 # 'hello.x' has a pattern specific variable.
 run_make_test(q!
@@ -469,7 +456,7 @@ all: hello.tsk
 %.tsk: %.x; $(info $@)
 %.x:; $(flags)
 %.x: flags:=true
-!, '', "true\nhello.tsk\n");
+!, '-r', "true\nhello.tsk\n");
 
 # 'hello.x' has a target specific variable and a pattern specific variable.
 run_make_test(q!
@@ -478,7 +465,7 @@ all: hello.tsk
 %.x:; $(flags)
 hello.x: flags+=good
 %.x: flags:=true
-!, '', "true good\nhello.tsk\n");
+!, '-r', "true good\nhello.tsk\n");
 
 # Intermediate prerequisite 'hello.x' has a target specific variable, a pattern
 # specfic variable, matches on both rules '%.tsk: %.x' and 'big_%.tsk: %.x'.
@@ -489,7 +476,7 @@ big_%.tsk: %.x; $(info $@)
 %.x:; $(flags)
 hello.x: flags+=good
 %.x: flags:=true
-!, '', "true good\nhello.tsk\nbig_hello.tsk\n");
+!, '-r', "true good\nhello.tsk\nbig_hello.tsk\n");
 
 
 # This tells the test driver that the perl test script executed properly.
