@@ -89,6 +89,55 @@ all:
 >print "a = $$a, y = (@y)\n";
 !,
                   '', "a = 12, y = (a b c)\n");
+
+    # Simple .SHELLFLAGS, no quotes.
+    # sv 61805.
+    run_make_test(q!
+.ONESHELL:
+SHELL = #PERL#
+.SHELLFLAGS = -e
+all:; @print "it works\n"
+!, '', 'it works');
+
+    # Pass a quoted string with spaces to oneshell.
+    # sv 61805.
+    run_make_test(q!
+.ONESHELL:
+SHELL = #PERL#
+.SHELLFLAGS = -w -E 'use warnings FATAL => "all";' -E
+all:; @print "it works\n"
+!, '', 'it works');
+
+    # Empty .SHELLFLAGS.
+    # sv 61805.
+    run_make_test(q!
+.ONESHELL:
+SHELL = #PERL#
+.SHELLFLAGS =
+all:; @print "it works"
+!, '', "Can't open perl script \"print \"it works\"\": $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:5: all] Error 2", 512);
+
+    # No .SHELLFLAGS.
+    # sv 61805.
+    run_make_test(q!
+.ONESHELL:
+SHELL = #PERL#
+all:; @print "it works"
+!, '', "Can't open perl script \"print \"it works\"\": $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:4: all] Error 2", 512);
+
+    # Pass a quoted string with spaces to oneshell.
+    # sv 61805.
+    run_make_test(q!
+.ONESHELL:
+SHELL = #PERL#
+.SHELLFLAGS = -w -E 'use warnings FATAL => "all";' -E 'my $$foo = "bar";' -E
+all:; @print "it works: $$foo\n"
+!, '', 'it works: bar');
 }
 
+# This tells the test driver that the perl test script executed properly.
 1;
+
+### Local Variables:
+### eval: (setq whitespace-action (delq 'auto-cleanup whitespace-action))
+### End:

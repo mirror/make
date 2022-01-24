@@ -2657,8 +2657,8 @@ void clean_tmp (void)
    avoid using a shell.  This routine handles only ' quoting, and " quoting
    when no backslash, $ or ' characters are seen in the quotes.  Starting
    quotes may be escaped with a backslash.  If any of the characters in
-   sh_chars is seen, or any of the builtin commands listed in sh_cmds
-   is the first word of a line, the shell is used.
+   sh_chars is seen, or any of the builtin commands listed in sh_cmds is the
+   first word of a line, the shell is used.
 
    If RESTP is not NULL, *RESTP is set to point to the first newline in LINE.
    If *RESTP is NULL, newlines will be ignored.
@@ -2666,10 +2666,14 @@ void clean_tmp (void)
    SHELL is the shell to use, or nil to use the default shell.
    IFS is the value of $IFS, or nil (meaning the default).
 
-   FLAGS is the value of lines_flags for this command line.  It is
-   used in the WINDOWS32 port to check whether + or $(MAKE) were found
-   in this command line, in which case the effect of just_print_flag
-   is overridden.  */
+   FLAGS is the value of lines_flags for this command line.  It is used in the
+   WINDOWS32 port to check whether + or $(MAKE) were found in this command
+   line, in which case the effect of just_print_flag is overridden.
+
+   The returned value is either NULL if the line was empty, or else a pointer
+   to an array of strings.  The fist pointer points to the memory used by all
+   the strings, so to free you free the 0'th element then the returned pointer
+   (see the FREE_ARGV macro).  */
 
 static char **
 construct_command_argv_internal (char *line, char **restp, const char *shell,
@@ -3369,11 +3373,16 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
             new_argv[n++] = xstrdup ("");
           else
             {
-              const char *s = shellflags;
-              char *t;
-              size_t len;
-              while ((t = find_next_token (&s, &len)) != 0)
-                new_argv[n++] = xstrndup (t, len);
+              /* Parse shellflags using construct_command_argv_internal to
+                 handle quotes. */
+              char **argv;
+              char *f;
+              f = alloca (sflags_len + 1); // +1 for null terminator.
+              memcpy (f, shellflags, sflags_len + 1);
+              argv = construct_command_argv_internal (f, 0, 0, 0, 0, flags, 0);
+              for (char **a = argv; a && *a; ++a)
+                new_argv[n++] = *a;
+              free (argv);
             }
 
           /* Set the command to invoke.  */
