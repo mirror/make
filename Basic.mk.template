@@ -88,8 +88,9 @@ COMPILE.cmd = $(CC) $(extra_CFLAGS) $(CFLAGS) $(extra_CPPFLAGS) $(CPPFLAGS) $(TA
 # $(call LINK.cmd,<objectlist>)
 LINK.cmd = $(LD) $(extra_LDFLAGS) $(LDFLAGS) $(TARGET_ARCH) $1 $(LDLIBS) $(LINK_OUTPUT)
 
-# $(CHECK.cmd)
+# $(CHECK.cmd) $(CHECK.args)
 CHECK.cmd = cd $(SRCDIR)/tests && ./run_make_tests -make $(shell cd $(<D) && pwd)/$(<F)
+CHECK.args ?=
 
 # $(call MKDIR.cmd,<dirlist>)
 MKDIR.cmd = mkdir -p $1
@@ -123,7 +124,7 @@ $(OBJDIRS):
 	$(call MKDIR.cmd,$@)
 
 check:
-	$(CHECK.cmd)
+	$(CHECK.cmd) $(CHECK.args)
 
 clean:
 	$(CLEANSPACE)
