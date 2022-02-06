@@ -2012,24 +2012,10 @@ func_shell_base (char *o, char **argv, int trim_newlines)
       }
     shell_function_pid = 0;
 
-    /* shell_completed() will set shell_function_completed to 1 when the
-       child dies normally, or to -1 if it dies with status 127, which is
-       most likely an exec fail.  */
-
-    if (shell_function_completed == -1)
-      {
-        /* This likely means that the execvp failed, so we should just
-           write the error message in the pipe from the child.  */
-        fputs (buffer, stderr);
-        fflush (stderr);
-      }
-    else
-      {
-        /* The child finished normally.  Replace all newlines in its output
-           with spaces, and put that in the variable output buffer.  */
-        fold_newlines (buffer, &i, trim_newlines);
-        o = variable_buffer_output (o, buffer, i);
-      }
+    /* Replace all newlines in the command's output with spaces, and put that
+       in the variable output buffer.  */
+    fold_newlines (buffer, &i, trim_newlines);
+    o = variable_buffer_output (o, buffer, i);
 
     free (buffer);
   }

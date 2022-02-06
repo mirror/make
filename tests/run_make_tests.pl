@@ -108,6 +108,7 @@ $ERR_read_only_file = undef;
 $ERR_unreadable_file = undef;
 $ERR_nonexe_file = undef;
 $ERR_exe_dir = undef;
+$ERR_command_not_found = undef;
 
 {
   use locale;
@@ -163,6 +164,15 @@ $ERR_exe_dir = undef;
   }
 
   unlink('file.out') or die "Failed to delete file.out: $!\n";
+
+  $_ = `/bin/sh -c 'bad-command 2>&1'`;
+  if ($? == 0) {
+      print "Invoked invalid file!  Skipping related tests.\n";
+  } else {
+      chomp($_);
+      s/bad-command/#CMDNAME#/g;
+      $ERR_command_not_found = $_;
+  }
 
   $loc and POSIX::setlocale(&POSIX::LC_ALL, $loc);
 }

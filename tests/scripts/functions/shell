@@ -46,10 +46,11 @@ if ($port_type ne 'W32') {
     # This needs to be ported to Windows, or else Windows error messages
     # need to converted to look like more normal make errors.
     run_make_test('
+.RECIPEPREFIX = >
 all:
-	@echo hi
-	$(shell ./basdfdfsed there)
-	@echo $(.SHELLSTATUS)
+>@echo hi
+>$(shell ./basdfdfsed there)
+>@echo $(.SHELLSTATUS)
 ',
                   '', "#MAKE#: ./basdfdfsed: $ERR_no_such_file\nhi\n127\n");
 
@@ -81,10 +82,17 @@ $(shell kill -2 $$$$)
 STAT := $(.SHELLSTATUS)
 all: ; @echo STAT=$(STAT)
               ','',"STAT=$ret\n");
+
+    # Test that not-found errors can be redirected
+    if ($ERR_command_not_found) {
+        $_ = $ERR_command_not_found;
+        s/#CMDNAME#/bad-command/g;
+        run_make_test(q!
+out := $(shell bad-command 2>&1)
+all: ; @echo '$(.SHELLSTATUS): $(out)'
+!,
+                      '', "127: $_\n");
+    }
 }
 
 1;
-
-### Local Variables:
-### eval: (setq whitespace-action (delq 'auto-cleanup whitespace-action))
-### End:
