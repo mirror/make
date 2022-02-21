@@ -738,14 +738,14 @@ func_lastword (char *o, char **argv, const char *funcname UNUSED)
 static char *
 func_words (char *o, char **argv, const char *funcname UNUSED)
 {
-  int i = 0;
+  unsigned int i = 0;
   const char *word_iterator = argv[0];
-  char buf[20];
+  char buf[INTSTR_LENGTH];
 
   while (find_next_token (&word_iterator, NULL) != 0)
     ++i;
 
-  sprintf (buf, "%d", i);
+  sprintf (buf, "%u", i);
   o = variable_buffer_output (o, buf, strlen (buf));
 
   return o;
@@ -1615,7 +1615,7 @@ static int shell_function_completed;
 void
 shell_completed (int exit_code, int exit_sig)
 {
-  char buf[256];
+  char buf[INTSTR_LENGTH];
 
   shell_function_pid = 0;
   if (exit_sig == 0 && exit_code == 127)
@@ -2763,7 +2763,7 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
 
   for (i=0; *argv; ++i, ++argv)
     {
-      char num[11];
+      char num[INTSTR_LENGTH];
 
       sprintf (num, "%d", i);
       define_variable (num, strlen (num), *argv, o_automatic, 0);
@@ -2776,7 +2776,7 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
 
   for (; i < max_args; ++i)
     {
-      char num[11];
+      char num[INTSTR_LENGTH];
 
       sprintf (num, "%d", i);
       define_variable (num, strlen (num), "", o_automatic, 0);

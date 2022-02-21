@@ -232,7 +232,8 @@ start_remote_job (char **argv, char **envp, int stdin_fd,
   else if (pid == 0)
     {
       /* Child side.  Run 'export' to handle the connection.  */
-      static char sock_buf[20], retsock_buf[20], id_buf[20];
+      static char sock_buf[INTSTR_LENGTH], retsock_buf[INTSTR_LENGTH];
+      static char id_buf[INTSTR_LENGTH];
       static char *new_argv[6] =
         { EXPORT_COMMAND, "-id", sock_buf, retsock_buf, id_buf, 0 };
 

@@ -491,7 +491,7 @@ extern struct rlimit stack_limit;
    integers as a string.
    Does NOT include space for \0 so be sure to add it if needed.
    Math suggested by Edward Welbourne <edward.welbourne@qt.io>  */
-#define INTSTR_LENGTH   (53 * sizeof(uintmax_t) / 22 + 2)
+#define INTSTR_LENGTH   (53 * sizeof(uintmax_t) / 22 + 3)
 
 #define DEFAULT_TTYNAME "true"
 #ifdef HAVE_TTYNAME
