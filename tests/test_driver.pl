@@ -509,12 +509,12 @@ sub print_centered
 sub print_banner
 {
   # $testee is suite-defined
-  my $info = "Running tests for $testee on $osname\n";
-  my $len = &max (length($info), length($testee_version), 73) + 5;
+  my $info = "Running tests for $testee on $osname";
+  my $len = &max (length($info), length($testee_version), 77) + 2;
   my $line = ("-" x $len) . "\n";
 
   &print_centered ($len, $line);
-  &print_centered ($len, $info);
+  &print_centered ($len, $info."\n");
   &print_centered ($len, $testee_version);
   &print_centered ($len, $line);
   print "\n";
@@ -578,8 +578,14 @@ sub run_all_tests
     $tests_run = 0;
     $tests_passed = 0;
 
+    # make a copy of STDIN so we can reset it
+    open(INCOPY, "<&STDIN");
+
     # Run the test!
     $code = do $perl_testname;
+
+    # Restore STDIN
+    open(STDIN, "<&OLDIN");
 
     ++$categories_run;
     $total_tests_run += $tests_run;
@@ -911,6 +917,11 @@ sub compare_output
     }
   }
 
+  if ($keep || ! $answer_matched) {
+    &create_file(&get_basefile, $answer);
+    &create_file(&get_runfile, $command_string);
+  }
+
   if ($answer_matched && $test_passed) {
     print "ok\n" if $debug;
     ++$tests_passed;
@@ -919,9 +930,6 @@ sub compare_output
 
   if (! $answer_matched) {
     print "DIFFERENT OUTPUT\n" if $debug;
-
-    &create_file(&get_basefile, $answer);
-    &create_file(&get_runfile, $command_string);
 
     print "\nCreating Difference File ...\n" if $debug;
 
