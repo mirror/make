@@ -1849,6 +1849,8 @@ main (int argc, char **argv, char **envp)
                  make re-exec.  */
               f->intermediate = 0;
               f->dontcare = 0;
+              /* Avoid re-exec due to stdin.  */
+              f->last_mtime = f->mtime_before_update = f_mtime (f, 0);
             }
           }
     }
