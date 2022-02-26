@@ -816,7 +816,7 @@ snap_deps (void)
       for (f2 = d->file; f2 != 0; f2 = f2->prev)
         if (f2->notintermediate)
           OS (fatal, NILF,
-              _("%s cannot be both .NOTINTERMEDIATE and .INTERMEDIATE."),
+              _("%s cannot be both .NOTINTERMEDIATE and .INTERMEDIATE"),
               f2->name);
         else
           f2->intermediate = 1;
@@ -831,7 +831,7 @@ snap_deps (void)
         for (f2 = d->file; f2 != 0; f2 = f2->prev)
         if (f2->notintermediate)
           OS (fatal, NILF,
-              _("%s cannot be both .NOTINTERMEDIATE and .SECONDARY."),
+              _("%s cannot be both .NOTINTERMEDIATE and .SECONDARY"),
               f2->name);
         else
           f2->intermediate = f2->secondary = 1;

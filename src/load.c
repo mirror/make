@@ -253,7 +253,7 @@ load_file (const floc *flocp, const char **ldname UNUSED, int noerror)
 {
   if (! noerror)
     O (fatal, flocp,
-       _("The 'load' operation is not supported on this platform."));
+       _("The 'load' operation is not supported on this platform"));
 
   return 0;
 }
@@ -261,7 +261,7 @@ load_file (const floc *flocp, const char **ldname UNUSED, int noerror)
 void
 unload_file (const char *name UNUSED)
 {
-  O (fatal, NILF, "INTERNAL: Cannot unload when load is not supported!");
+  O (fatal, NILF, "INTERNAL: Cannot unload when load is not supported");
 }
 
 #endif  /* MAKE_LOAD */

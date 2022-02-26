@@ -42,7 +42,7 @@ MyExecute (char **argv)
     buffer = AllocMem (len, MEMF_ANY);
 
     if (!buffer)
-      O (fatal, NILF, "MyExecute: Cannot allocate space for calling a command\n");
+      O (fatal, NILF, "MyExecute: Cannot allocate space for calling a command");
 
     ptr = buffer;
 

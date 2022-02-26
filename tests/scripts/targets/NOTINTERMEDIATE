@@ -48,13 +48,13 @@ hello.z:
 run_make_test(q!
 .INTERMEDIATE: hello.x
 .NOTINTERMEDIATE: hello.x
-!, '', "#MAKE#: *** hello.x cannot be both .NOTINTERMEDIATE and .INTERMEDIATE..  Stop.\n", 512);
+!, '', "#MAKE#: *** hello.x cannot be both .NOTINTERMEDIATE and .INTERMEDIATE.  Stop.\n", 512);
 
 # Test 6. Same file cannot be secondary and notintermediate.
 run_make_test(q!
 .SECONDARY: hello.x
 .NOTINTERMEDIATE: hello.x
-!, '', "#MAKE#: *** hello.x cannot be both .NOTINTERMEDIATE and .SECONDARY..  Stop.\n", 512);
+!, '', "#MAKE#: *** hello.x cannot be both .NOTINTERMEDIATE and .SECONDARY.  Stop.\n", 512);
 
 # Test 7. All .SECONDARY and all .NOTINTERMEDIATE are mutually exclusive.
 run_make_test(q!

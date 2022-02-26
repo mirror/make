@@ -367,7 +367,7 @@ create_batch_file (char const *base, int unixy, int *fd)
 
   *fd = -1;
   if (error_string == NULL)
-    error_string = _("Cannot create a temporary file\n");
+    error_string = _("Cannot create a temporary file");
   O (fatal, NILF, error_string);
 
   /* not reached */
@@ -1109,7 +1109,7 @@ free_child (struct child *child)
   output_close (&child->output);
 
   if (!jobserver_tokens)
-    ONS (fatal, NILF, "INTERNAL: Freeing child %p (%s) but no tokens left!\n",
+    ONS (fatal, NILF, "INTERNAL: Freeing child %p (%s) but no tokens left",
          child, child->file->name);
 
   /* If we're using the jobserver and this child is not the only outstanding
@@ -1865,7 +1865,7 @@ new_job (struct file *file)
         /* There must be at least one child already, or we have no business
            waiting for a token. */
         if (!children)
-          O (fatal, NILF, "INTERNAL: no children as we go to sleep on read\n");
+          O (fatal, NILF, "INTERNAL: no children as we go to sleep on read");
 
         /* Get a token.  */
         got_token = jobserver_acquire (waiting_jobs != NULL);
@@ -2186,7 +2186,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
     {
       save_fdin = dup (FD_STDIN);
       if (save_fdin < 0)
-        O (fatal, NILF, _("no more file handles: could not duplicate stdin\n"));
+        O (fatal, NILF, _("no more file handles: could not duplicate stdin"));
       fd_noinherit (save_fdin);
 
       dup2 (fdin, FD_STDIN);
@@ -2198,7 +2198,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
       save_fdout = dup (FD_STDOUT);
       if (save_fdout < 0)
         O (fatal, NILF,
-           _("no more file handles: could not duplicate stdout\n"));
+           _("no more file handles: could not duplicate stdout"));
       fd_noinherit (save_fdout);
 
       dup2 (fdout, FD_STDOUT);
@@ -2212,7 +2212,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
           save_fderr = dup (FD_STDERR);
           if (save_fderr < 0)
             O (fatal, NILF,
-               _("no more file handles: could not duplicate stderr\n"));
+               _("no more file handles: could not duplicate stderr"));
           fd_noinherit (save_fderr);
         }
 
@@ -2227,7 +2227,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
   if (save_fdin >= 0)
     {
       if (dup2 (save_fdin, FD_STDIN) != FD_STDIN)
-        O (fatal, NILF, _("Could not restore stdin\n"));
+        O (fatal, NILF, _("Could not restore stdin"));
       else
         close (save_fdin);
     }
@@ -2235,7 +2235,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
   if (save_fdout >= 0)
     {
       if (dup2 (save_fdout, FD_STDOUT) != FD_STDOUT)
-        O (fatal, NILF, _("Could not restore stdout\n"));
+        O (fatal, NILF, _("Could not restore stdout"));
       else
         close (save_fdout);
     }
@@ -2243,7 +2243,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
   if (save_fderr >= 0)
     {
       if (dup2 (save_fderr, FD_STDERR) != FD_STDERR)
-        O (fatal, NILF, _("Could not restore stderr\n"));
+        O (fatal, NILF, _("Could not restore stderr"));
       else
         close (save_fderr);
     }

@@ -1789,7 +1789,7 @@ main (int argc, char **argv, char **envp)
 
             if (stdin_nm)
               O (fatal, NILF,
-                 _("Makefile from standard input specified twice."));
+                 _("Makefile from standard input specified twice"));
 
 #ifdef VMS
 # define DEFAULT_TMPDIR     "/sys$scratch/"
@@ -2465,7 +2465,7 @@ main (int argc, char **argv, char **envp)
                 }
               if (bad)
                 O (fatal, NILF,
-                   _("Couldn't change back to original directory."));
+                   _("Couldn't change back to original directory"));
             }
 
           ++restarts;
