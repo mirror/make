@@ -7,7 +7,7 @@ $details = "DETAILS";
 touch('xxx.c');
 
 # Simple check
-run_make_test('', '-r COMPILE.c=echo xxx.o',
+run_make_test("\n", '-r COMPILE.c=echo xxx.o',
               "#MAKE#: *** No rule to make target 'xxx.o'.  Stop.", 512);
 
 # Make sure we can set it from within the makefile too

@@ -269,7 +269,7 @@ sub run_make_test
     defined $old_makefile
       or die "run_make_test(undef) invoked before run_make_test('...')\n";
     $makefile = $old_makefile;
-  } else {
+  } elsif ($makestring) {
     if (! defined($makefile)) {
       $makefile = &get_tmpfile();
     }

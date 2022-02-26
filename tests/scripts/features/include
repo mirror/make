@@ -216,7 +216,7 @@ rmfiles('inc1', 'inc2', 'hellod/inc1', 'hellod/inc2');
 rmdir('hellod');
 
 # No target gets correct error
-run_make_test('', '', '#MAKE#: *** No targets.  Stop.', 512);
+run_make_test("\n", '', '#MAKE#: *** No targets.  Stop.', 512);
 
 # No target in included file either, still gets correct error.
 touch('inc1.mk');
