@@ -296,6 +296,10 @@ char cmd_prefix = '\t';
 
 unsigned long command_count = 1;
 
+/* Remember the name of the batch file from stdin.  */
+
+static char *stdin_nm = 0;
+
 
 
 /* The usage output.  We write it this way to make life easier for the
@@ -1067,7 +1071,6 @@ int
 main (int argc, char **argv, char **envp)
 #endif
 {
-  static char *stdin_nm = 0;
   int makefile_status = MAKE_SUCCESS;
   struct goaldep *read_files;
   PATH_VAR (current_directory);
@@ -2595,6 +2598,8 @@ main (int argc, char **argv, char **envp)
   if (stdin_nm && unlink (stdin_nm) < 0 && errno != ENOENT)
     perror_with_name (_("unlink (temporary file): "), stdin_nm);
 
+  stdin_nm = NULL;
+
   /* If there were no command-line goals, use the default.  */
   if (goals == 0)
     {
@@ -3582,6 +3587,12 @@ die (int status)
 
       if (print_version_flag)
         print_version ();
+
+      /* Get rid of a temp file from reading a makefile from stdin.  */
+      if (stdin_nm && unlink (stdin_nm) < 0 && errno != ENOENT)
+        perror_with_name (_("unlink (temporary file): "), stdin_nm);
+
+      stdin_nm = NULL;
 
       /* Wait for children to die.  */
       err = (status != 0);
