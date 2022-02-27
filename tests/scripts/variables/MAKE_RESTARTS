@@ -33,11 +33,11 @@ rmfiles('foo.x', 'bar.x');
 # Test multiple restarts and make sure the variable is cleaned up
 
 run_make_test('
+.RECIPEPREFIX = >
 recurse:
-	@echo recurse MAKE_RESTARTS=$$MAKE_RESTARTS
-	@$(MAKE) -f #MAKEFILE# all
-all:
-	@echo all MAKE_RESTARTS=$$MAKE_RESTARTS
+> @echo recurse MAKE_RESTARTS=$$MAKE_RESTARTS
+> @$(MAKE) -f #MAKEFILE# all
+all: ; @echo all MAKE_RESTARTS=$$MAKE_RESTARTS
 $(info MAKE_RESTARTS=$(MAKE_RESTARTS))
 include foo.x
 foo.x: ; @echo "include bar.x" > $@
@@ -55,7 +55,3 @@ all MAKE_RESTARTS=
 rmfiles('foo.x', 'bar.x');
 
 1;
-
-### Local Variables:
-### eval: (setq whitespace-action (delq 'auto-cleanup whitespace-action))
-### End:
