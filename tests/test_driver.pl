@@ -173,16 +173,16 @@ sub toplevel
 {
   # Pull in benign variables from the user's environment
 
-  foreach (# UNIX-specific things
+  foreach (# POSIX-specific things
            'TZ', 'TMPDIR', 'HOME', 'USER', 'LOGNAME', 'PATH',
            'LD_LIBRARY_PATH',
-           # SAN things
+           # *SAN things
            'ASAN_OPTIONS', 'UBSAN_OPTIONS',
            # Purify things
            'PURIFYOPTIONS',
-           # Windows NT-specific stuff
-           'Path', 'SystemRoot',
-           # DJGPP-specific stuff
+           # Windows-specific things
+           'Path', 'SystemRoot', 'TEMP', 'TMP', 'USERPROFILE',
+           # DJGPP-specific things
            'DJDIR', 'DJGPP', 'SHELL', 'COMSPEC', 'HOSTNAME', 'LFN',
            'FNCASE', '387', 'EMU387', 'GROUP'
           ) {

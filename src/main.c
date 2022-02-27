@@ -1799,13 +1799,12 @@ main (int argc, char **argv, char **envp)
 #endif
 #define DEFAULT_TMPFILE     "GmXXXXXX"
 
-            if (((tmpdir = getenv ("TMPDIR")) == NULL || *tmpdir == '\0')
+            if (
 #if defined (__MSDOS__) || defined (WINDOWS32) || defined (__EMX__)
-                /* These are also used commonly on these platforms.  */
-                && ((tmpdir = getenv ("TEMP")) == NULL || *tmpdir == '\0')
-                && ((tmpdir = getenv ("TMP")) == NULL || *tmpdir == '\0')
+                ((tmpdir = getenv ("TMP")) == NULL || *tmpdir == '\0') &&
+                ((tmpdir = getenv ("TEMP")) == NULL || *tmpdir == '\0') &&
 #endif
-               )
+                ((tmpdir = getenv ("TMPDIR")) == NULL || *tmpdir == '\0'))
               tmpdir = DEFAULT_TMPDIR;
 
             template = alloca (strlen (tmpdir) + CSTRLEN (DEFAULT_TMPFILE) + 2);
@@ -1824,13 +1823,15 @@ main (int argc, char **argv, char **envp)
             strcat (template, DEFAULT_TMPFILE);
             outfile = get_tmpfile (&stdin_nm, template);
             if (outfile == 0)
-              pfatal_with_name (_("fopen (temporary file)"));
+              OSS (fatal, NILF,
+                   _("fopen: temporary file %s: %s"), newnm, strerror (errno));
             while (!feof (stdin) && ! ferror (stdin))
               {
                 char buf[2048];
                 size_t n = fread (buf, 1, sizeof (buf), stdin);
                 if (n > 0 && fwrite (buf, 1, n, outfile) != n)
-                  pfatal_with_name (_("fwrite (temporary file)"));
+                  OSS (fatal, NILF,
+                       _("fwrite: temporary file %s: %s"), newnm, strerror (errno));
               }
             fclose (outfile);
 
