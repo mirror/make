@@ -186,7 +186,7 @@ work on non-GNU systems (Windows, MacOS, etc.)
   You can build with ASAN and run tests, like this:
 
     make clean
-    make -j8 CFLAGS='-ggdb3 -fsanitizer=address' LDFLAGS='-ggdb3 -fsanitizer=address'
+    make -j8 CFLAGS='-ggdb3 -fsanitize=address' LDFLAGS='-ggdb3 -fsanitize=address'
     (cd tests && ./run_make_tests -make ../make)
 
   Note that ASAN is reporting many more errors than valgrind.  I don't know
