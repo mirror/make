@@ -1,3 +1,4 @@
+#                                                                    -*-perl-*-
 $description = "The following test tests that if you specify greater \n"
               ."than one '-f makefilename' on the command line, \n"
               ."that make concatenates them.  This test creates three \n"
@@ -50,7 +51,7 @@ $answer = "This is the output from makefile 2\n";
 &run_make_with_options($makefile,"-f $makefile2 -f $makefile3 TWO",&get_logfile,0);
 
 &compare_output($answer,&get_logfile(1));
-     
+
 
 # Run Make again with the rule from the third makefile: THREE
 
@@ -70,16 +71,90 @@ $answer .= "This is the output from the original makefile\n";
 $answer .= "This is the output from makefile 3\n";
 &run_make_with_options($makefile,
                        "-f $makefile2 -f $makefile3 TWO all THREE",
-		       &get_logfile,
+                       &get_logfile,
                        0);
 &compare_output($answer,&get_logfile(1));
-       
 
 
+# sv 62118.
+# Validate all sorts of -f etc. options
 
+my $hello = 'hello.mk';
+my $bye = 'bye.mk';
+my $byesrc = 'bye.mk.src';
 
+unlink($hello, $bye, $byesrc);
 
+create_file($hello, 'all:; $(info hello, world)
+');
 
+create_file($bye, 'def:; $(info bye, world)
+bye.mk: bye.mk.src; touch $@
+bye.mk.src:; touch $@
+');
 
+# These invocations use the empty filename string so that the test framework
+# doesn't add any -f options on its own.
 
+# Incorrect order of options. -R follows -f.
+# Invocation of make is equivalent to
+#   echo 'all:; $(info hello, world)' | make -f bye.mk -fR - all
+# There is bye.mk, but there is no 'R'.
+# make runs the recipes from bye.mk and prints the error about missing 'R'.
 
+# Ensure the newly created bye.src.mk is newer than bye.mk.
+&utouch(-600, $bye);
+run_make_test('', "-f$bye -fR - all", "#MAKE#: R: No such file or directory
+touch bye.mk.src
+touch bye.mk
+#MAKE#: *** No rule to make target 'R'.  Stop.
+", 512);
+
+# Test double -f-.
+my @opts = ('-f- -f-', '-f - -f -', '-f- -f -', '-f - -f-',
+            '-f- --file=-', '-f- --file -', '-f - --file=-', '-f - --file -',
+            '-f- --makefile=-', '-f- --makefile -',
+            '-f - --makefile=-', '-f - --makefile -',
+            '--file=- --makefile=-', '--file=- --makefile -',
+            '--file - --makefile=-', '--file - --makefile -');
+
+for my $opt (@opts) {
+    # We shouldn't need this; if the options are wrong then make shouldn't try
+    # to read from stdin.
+    close(STDIN);
+    open(STDIN, "<", $hello) || die "$0: cannot open $hello for reading: $!";
+    run_make_test('', "-f$bye $opt", "#MAKE#: *** Makefile from standard input specified twice.  Stop.\n", 512);
+}
+
+# -f is not followed by filename.
+my @opts = ('-f', '--file', '--makefile');
+my $answer = "/requires an argument/";
+for my $opt (@opts) {
+    run_make_test('', $opt, $answer, 512);
+}
+
+# Test that make correctly parses all possible syntaxes to pipe make code to
+# the standard input.
+
+my $answer = "touch bye.mk.src
+touch bye.mk
+hello, world
+#MAKE#: 'all' is up to date.\n";
+
+my @opts = ('-f- all', '-f - all', '-Rf- all', '-Rf - all',
+            '--file=- all', '--file - all',
+            '--makefile=- all', '--makefile - all');
+for my $opt (@opts) {
+    unlink($byesrc);
+    close(STDIN);
+    open(STDIN, "<", $hello) || die "$0: cannot open $hello for reading: $!";
+    # Ensure the newly created bye.src.mk is newer than bye.mk.
+    &utouch(-600, $bye);
+
+    run_make_test('', "-f$bye $opt", $answer);
+}
+
+unlink($hello, $bye, $byesrc);
+
+# This tells the test driver that the perl test script executed properly.
+1;

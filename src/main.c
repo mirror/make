@@ -296,10 +296,9 @@ char cmd_prefix = '\t';
 
 unsigned long command_count = 1;
 
-/* Remember the name of the batch file from stdin.  */
+/* Remember the location of the name of the batch file from stdin.  */
 
-static char *stdin_nm = 0;
-
+static int stdin_offset = -1;
 
 
 /* The usage output.  We write it this way to make life easier for the
@@ -424,6 +423,8 @@ struct command_switch
    Order matters here: this is the order MAKEFLAGS will be constructed.
    So be sure all simple flags (single char, no argument) come first.  */
 
+#define TEMP_STDIN_OPT (CHAR_MAX+10)
+
 static const struct command_switch switches[] =
   {
     { 'b', ignore, 0, 0, 0, 0, 0, 0, 0 },
@@ -476,6 +477,8 @@ static const struct command_switch switches[] =
     { CHAR_MAX+8, flag_off, &silent_flag, 1, 1, 0, 0, &default_silent_flag,
       "no-silent" },
     { CHAR_MAX+9, string, &jobserver_auth, 1, 0, 0, 0, 0, "jobserver-fds" },
+    /* There is special-case handling for this in decode_switches() as well.  */
+    { TEMP_STDIN_OPT, filename, &makefiles, 0, 0, 0, 0, 0, "temp-stdin" },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
   };
 
@@ -1785,9 +1788,10 @@ main (int argc, char **argv, char **envp)
                into a temporary file and read from that.  */
             FILE *outfile;
             char *template;
+            char *newnm;
             const char *tmpdir;
 
-            if (stdin_nm)
+            if (stdin_offset >= 0)
               O (fatal, NILF,
                  _("Makefile from standard input specified twice"));
 
@@ -1824,7 +1828,7 @@ main (int argc, char **argv, char **envp)
 #endif /* !HAVE_DOS_PATHS */
 
             strcat (template, DEFAULT_TMPFILE);
-            outfile = get_tmpfile (&stdin_nm, template);
+            outfile = get_tmpfile (&newnm, template);
             if (outfile == 0)
               OSS (fatal, NILF,
                    _("fopen: temporary file %s: %s"), newnm, strerror (errno));
@@ -1840,22 +1844,25 @@ main (int argc, char **argv, char **envp)
 
             /* Replace the name that read_all_makefiles will
                see with the name of the temporary file.  */
-            makefiles->list[i] = strcache_add (stdin_nm);
+            makefiles->list[i] = strcache_add (newnm);
+            stdin_offset = i;
 
-            /* Make sure the temporary file will not be remade.  */
-            {
-              struct file *f = enter_file (strcache_add (stdin_nm));
-              f->updated = 1;
-              f->update_status = us_success;
-              f->command_state = cs_finished;
-              /* Can't be intermediate, or it'll be removed too early for
-                 make re-exec.  */
-              f->intermediate = 0;
-              f->dontcare = 0;
-              /* Avoid re-exec due to stdin.  */
-              f->last_mtime = f->mtime_before_update = f_mtime (f, 0);
-            }
+            free (newnm);
           }
+    }
+
+  /* Make sure the temporary file is never considered updated.  */
+  if (stdin_offset >= 0)
+    {
+      struct file *f = enter_file (makefiles->list[stdin_offset]);
+      f->updated = 1;
+      f->update_status = us_success;
+      f->command_state = cs_finished;
+      /* Can't be intermediate, or it'll be removed before make re-exec.  */
+      f->intermediate = 0;
+      f->dontcare = 0;
+      /* Avoid re-exec due to stdin temp file timestamps.  */
+      f->last_mtime = f->mtime_before_update = f_mtime (f, 0);
     }
 
 #ifndef __EMX__ /* Don't use a SIGCHLD handler for OS/2 */
@@ -2200,10 +2207,8 @@ main (int argc, char **argv, char **envp)
 
       FILE_TIMESTAMP *makefile_mtimes;
       struct goaldep *skipped_makefiles = NULL;
-      char **aargv = NULL;
-      const char **nargv;
+      const char **nargv = (const char **) argv;
       int any_failed = 0;
-      int nargc;
       enum update_status status;
 
       DB (DB_BASIC, (_("Updating makefiles....\n")));
@@ -2425,33 +2430,118 @@ main (int argc, char **argv, char **envp)
 
           if (makefiles != 0)
             {
-              /* These names might have changed.  */
-              int i, j = 0;
-              for (i = 1; i < argc; ++i)
-                if (strneq (argv[i], "-f", 2)) /* XXX */
-                  {
-                    if (argv[i][2] == '\0')
-                      /* This cast is OK since we never modify argv.  */
-                      argv[++i] = (char *) makefiles->list[j];
-                    else
-                      argv[i] = xstrdup (concat (2, "-f", makefiles->list[j]));
-                    ++j;
-                  }
-            }
+              /* Makefile names might have changed due to expansion.
+                 It's possible we'll need one extra argument:
+                   make -Rf-
+                 will expand to:
+                   make -R --temp-stdin=<tmpfile>
+                 so allocate more space.
+              */
+              int mfidx = 0;
+              char** av = argv;
+              const char** nv;
 
-          /* Add -o option for the stdin temporary file, if necessary.  */
-          nargc = argc;
-          if (stdin_nm)
-            {
-              void *m = xmalloc ((nargc + 2) * sizeof (char *));
-              aargv = m;
-              memcpy (aargv, argv, argc * sizeof (char *));
-              aargv[nargc++] = xstrdup (concat (2, "-o", stdin_nm));
-              aargv[nargc] = 0;
-              nargv = m;
+              nv = nargv = alloca (sizeof (char*) * (argc + 1 + 1));
+              *(nv++) = *(av++);
+
+              for (; *av; ++av, ++nv)
+                {
+                  size_t len;
+                  char *f;
+                  char *a = *av;
+                  const char *mf = makefiles->list[mfidx];
+
+                  len = strlen (a);
+                  assert (len > 0);
+
+                  *nv = a;
+
+                  /* Not an option: we handled option args earlier.  */
+                  if (a[0] != '-')
+                    continue;
+
+                  /* See if this option specifies a filename.  If so we need
+                     to replace it with the value from makefiles->list.
+
+                     To simplify, we'll replace all possible versions of this
+                     flag with a simple "-f<name>".  */
+
+                  /* Handle long options.  */
+                  if (a[1] == '-')
+                    {
+                      if (strcmp (a, "--file") == 0 || strcmp (a, "--makefile") == 0)
+                        /* Skip the next arg as we'll combine them.  */
+                        ++av;
+                      else if (!strneq (a, "--file=", 7)
+                               && !strneq (a, "--makefile=", 11))
+                        continue;
+
+                      if (mfidx == stdin_offset)
+                        {
+                          char *na = alloca (CSTRLEN ("--temp-stdin=")
+                                             + strlen (mf) +  1);
+                          sprintf (na, "--temp-stdin=%s", mf);
+                          *nv = na;
+                        }
+                      else
+                        {
+                          char *na = alloca (strlen (mf) + 3);
+                          sprintf (na, "-f%s", mf);
+                          *nv = na;
+                        }
+
+                      ++mfidx;
+                      continue;
+                    }
+
+                  /* Handle short options.  If 'f' is the last option, it may
+                     be followed by <name>.  */
+                  f = strchr (a, 'f');
+                  if (!f)
+                    continue;
+
+                  /* If there's an extra argument option skip it.  */
+                  if (f[1] == '\0')
+                    ++av;
+
+                  if (mfidx == stdin_offset)
+                    {
+                      const size_t al = f - a;
+                      char *na;
+
+                      if (al > 1)
+                        {
+                          /* Preserve the prior options.  */
+                          na = alloca (al + 1);
+                          memcpy (na, a, al);
+                          na[al] = '\0';
+                          *(nv++) = na;
+                        }
+
+                      /* Remove the "f" and any subsequent content.  */
+                      na = alloca (CSTRLEN ("--temp-stdin=") + strlen (mf) + 1);
+                      sprintf (na, "--temp-stdin=%s", mf);
+                      *nv = na;
+                    }
+                  else if (f[1] == '\0')
+                    /* -f <name> or -xyzf <name>.  Replace the name.  */
+                    *(++nv) = mf;
+                  else
+                    {
+                      /* -f<name> or -xyzf<name>. */
+                      const size_t al = f - a + 1;
+                      const size_t ml = strlen (mf) + 1;
+                      char *na = alloca (al + ml);
+                      memcpy (na, a, al);
+                      memcpy (na + al, mf, ml);
+                      *nv = na;
+                    }
+
+                  ++mfidx;
+                }
+
+              *nv = NULL;
             }
-          else
-            nargv = (const char**)argv;
 
           if (directories != 0 && directories->idx > 0)
             {
@@ -2568,7 +2658,6 @@ main (int argc, char **argv, char **envp)
 
           /* We shouldn't get here but just in case.  */
           jobserver_post_child(1);
-          free (aargv);
           break;
         }
 
@@ -2595,10 +2684,13 @@ main (int argc, char **argv, char **envp)
 
   /* If there is a temp file from reading a makefile from stdin, get rid of
      it now.  */
-  if (stdin_nm && unlink (stdin_nm) < 0 && errno != ENOENT)
-    perror_with_name (_("unlink (temporary file): "), stdin_nm);
-
-  stdin_nm = NULL;
+  if (stdin_offset >= 0)
+    {
+      const char *nm = makefiles->list[stdin_offset];
+      if (unlink (nm) < 0 && errno != ENOENT)
+        perror_with_name (_("unlink (temporary file): "), nm);
+      stdin_offset = -1;
+    }
 
   /* If there were no command-line goals, use the default.  */
   if (goals == 0)
@@ -3056,10 +3148,18 @@ decode_switches (int argc, const char **argv, int env)
                       sl->list = xrealloc ((void *)sl->list,
                                            sl->max * sizeof (char *));
                     }
-                  if (cs->type == filename)
-                    sl->list[sl->idx++] = expand_command_line_file (coptarg);
-                  else
+                  if (cs->type == strlist)
                     sl->list[sl->idx++] = xstrdup (coptarg);
+                  else if (cs->c == TEMP_STDIN_OPT)
+                    {
+                      if (stdin_offset > 0)
+                        fatal (NILF, 0, "INTERNAL: multiple --temp-stdin options provided!");
+                      /* We don't need to expand the temp file.  */
+                      stdin_offset = sl->idx;
+                      sl->list[sl->idx++] = strcache_add (coptarg);
+                    }
+                  else
+                    sl->list[sl->idx++] = expand_command_line_file (coptarg);
                   sl->list[sl->idx] = 0;
                   break;
 
@@ -3589,10 +3689,13 @@ die (int status)
         print_version ();
 
       /* Get rid of a temp file from reading a makefile from stdin.  */
-      if (stdin_nm && unlink (stdin_nm) < 0 && errno != ENOENT)
-        perror_with_name (_("unlink (temporary file): "), stdin_nm);
-
-      stdin_nm = NULL;
+      if (stdin_offset >= 0)
+        {
+          const char *nm = makefiles->list[stdin_offset];
+          if (unlink (nm) < 0 && errno != ENOENT)
+            perror_with_name (_("unlink (temporary file): "), nm);
+          stdin_offset = -1;
+        }
 
       /* Wait for children to die.  */
       err = (status != 0);
