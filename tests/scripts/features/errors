@@ -50,9 +50,7 @@ sub errors_getinfo
 my $unk = './foobarbazbozblat';
 unlink($unk);
 
-my $ernum, $erstr;
-
-($ernum, $erstr) = errors_getinfo($unk, "xx yy");
+my ($ernum, $erstr) = errors_getinfo($unk, "xx yy");
 run_make_test(qq!
 one: ; -$unk xx yy
 !, 'one',

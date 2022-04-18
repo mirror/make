@@ -110,13 +110,16 @@ touch bye.mk
 #MAKE#: *** No rule to make target 'R'.  Stop.
 ", 512);
 
+my @opts;
+my $answer;
+
 # Test double -f-.
-my @opts = ('-f- -f-', '-f - -f -', '-f- -f -', '-f - -f-',
-            '-f- --file=-', '-f- --file -', '-f - --file=-', '-f - --file -',
-            '-f- --makefile=-', '-f- --makefile -',
-            '-f - --makefile=-', '-f - --makefile -',
-            '--file=- --makefile=-', '--file=- --makefile -',
-            '--file - --makefile=-', '--file - --makefile -');
+@opts = ('-f- -f-', '-f - -f -', '-f- -f -', '-f - -f-',
+         '-f- --file=-', '-f- --file -', '-f - --file=-', '-f - --file -',
+         '-f- --makefile=-', '-f- --makefile -',
+         '-f - --makefile=-', '-f - --makefile -',
+         '--file=- --makefile=-', '--file=- --makefile -',
+         '--file - --makefile=-', '--file - --makefile -');
 
 for my $opt (@opts) {
     # We shouldn't need this; if the options are wrong then make shouldn't try
@@ -127,8 +130,8 @@ for my $opt (@opts) {
 }
 
 # -f is not followed by filename.
-my @opts = ('-f', '--file', '--makefile');
-my $answer = "/requires an argument/";
+@opts = ('-f', '--file', '--makefile');
+$answer = "/requires an argument/";
 for my $opt (@opts) {
     run_make_test('', $opt, $answer, 512);
 }
@@ -136,14 +139,14 @@ for my $opt (@opts) {
 # Test that make correctly parses all possible syntaxes to pipe make code to
 # the standard input.
 
-my $answer = "touch bye.mk.src
+$answer = "touch bye.mk.src
 touch bye.mk
 hello, world
 #MAKE#: 'all' is up to date.\n";
 
-my @opts = ('-f- all', '-f - all', '-Rf- all', '-Rf - all',
-            '--file=- all', '--file - all',
-            '--makefile=- all', '--makefile - all');
+@opts = ('-f- all', '-f - all', '-Rf- all', '-Rf - all',
+         '--file=- all', '--file - all',
+         '--makefile=- all', '--makefile - all');
 for my $opt (@opts) {
     unlink($byesrc);
     close(STDIN);
