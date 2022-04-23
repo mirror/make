@@ -196,6 +196,8 @@ sub toplevel
   # Make sure our compares are not foiled by locale differences
 
   $makeENV{LC_ALL} = 'C';
+  $makeENV{LANG} = 'C';
+  $makeENV{LANGUAGE} = 'C';
 
   # Replace the environment with the new one
   #
