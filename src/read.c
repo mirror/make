@@ -1900,6 +1900,7 @@ static void check_specials (const struct nameseq* files, int set_default)
           define_variable_cname ("FC", "fort77", o_default, 0);
           define_variable_cname ("FFLAGS", "-O1", o_default, 0);
           define_variable_cname ("SCCSGETFLAGS", "-s", o_default, 0);
+          define_variable_cname ("ARFLAGS", "-rv", o_default, 0);
           continue;
         }
 
