@@ -1,0 +1,106 @@
+#                                                              -*-mode: perl-*-
+
+$description = "Test handling of temporary file created from stdin.";
+
+use File::Temp qw /tempdir/;
+
+sub check_tempfile
+{
+    my ($tdir) = @_;
+    my @left = glob $tdir . '/Gm*';
+    scalar @left == 0 && return;
+    my $answer = "temporary file $left[0] is left behind\n";
+    compare_output($answer, &get_logfile(1));
+}
+
+create_file('input.mk', "world:=1\n");
+create_file('bye.mk', "moon:=2\n");
+
+# sv 62118,62145.
+# Test that makes leaves no temp file when make code is piped to stdin and -v,
+# -h or an invalid option is specified.
+my @opts = ('-v', '-h', '--nosuchopt');
+my @exit_codes = (0, 0, 512);
+for my $i (0 .. $#opts) {
+    my $tdir = tempdir(CLEANUP => 1);
+    $ENV{'TMPDIR'} = $tdir;
+    $ENV{'TMP'} = $tdir;
+    close(STDIN);
+    open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
+    run_make_test(q!
+all:; $(info hello world)
+!,
+                  "$opts[$i] -f-", "/uilt for /", $exit_codes[$i]);
+    check_tempfile($tdir);
+}
+
+# sv 62118,62145.
+# Test that a stdin temp file is removed.
+my $tdir = tempdir(CLEANUP => 1);
+$ENV{'TMPDIR'} = $tdir;
+$ENV{'TMP'} = $tdir;
+close(STDIN);
+open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
+run_make_test(q!
+all:; $(info world=$(world))
+!,
+              '-f-', "world=1\n#MAKE#: 'all' is up to date.\n");
+check_tempfile($tdir);
+
+# sv 62118,62145.
+# Test that a stdin temp file is removed, even when make re-execs.
+# Also test that make nohors TMPDIR to create the temp file.
+my $tdir = tempdir(CLEANUP => 1);
+$ENV{'TMPDIR'} = $tdir;
+$ENV{'TMP'} = $tdir;
+# Ensure touching bye.mk causes re-exec.
+&utouch(-600, 'bye.mk');
+close(STDIN);
+open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
+run_make_test(q!
+include bye.mk
+all:; $(info hello)
+$(MAKE_RESTARTS)bye.mk: force; touch $@
+force:
+!,
+              '-R --debug=b -f-', "/Re-executing.+?--temp-stdin=\Q$tdir\E/");
+check_tempfile($tdir);
+
+if ($port_type eq 'UNIX') {
+# sv 62118,62145.
+# Test that a stdin temp file is removed, when execvp fails to re-exec make.
+# In order to cause execvp to fail, copy the tested make binary to the temp
+# directory and take away the 'x' bit.
+use File::Copy;
+
+my $tdir = tempdir(CLEANUP => 1);
+$ENV{'TMPDIR'} = $tdir;
+$ENV{'TMP'} = $tdir;
+my $makecopy = "$tdir/make";
+copy("$mkpath", $makecopy);
+# Set file mode bits, because perl copy won't.
+chmod 0750, $makecopy;
+
+my @make_orig = @make_command;
+@make_command = ($makecopy);
+
+# Ensure touching bye.mk causes re-exec.
+&utouch(-600, 'bye.mk');
+close(STDIN);
+open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
+run_make_test("
+include bye.mk
+all:; \$(info hello)
+\$(MAKE_RESTARTS)bye.mk: force; touch \$@ && chmod -x $makecopy
+force:
+",
+              "-f-", "touch bye.mk && chmod -x $makecopy\nmake: $makecopy: $ERR_nonexe_file\n", 32512);
+check_tempfile($tdir);
+
+@make_command = @make_orig;
+}
+
+unlink('input.mk', 'bye.mk');
+
+# This tells the test driver that the perl test script executed properly.
+1;

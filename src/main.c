@@ -2655,10 +2655,13 @@ main (int argc, char **argv, char **envp)
 #endif
           exec_command ((char **)nargv, environ);
 #endif
-
-          /* We shouldn't get here but just in case.  */
           jobserver_post_child(1);
-          break;
+
+          /* Get rid of any stdin temp file.  */
+          if (stdin_offset >= 0)
+            unlink (makefiles->list[stdin_offset]);
+
+          _exit (127);
         }
 
       if (any_failed)

@@ -141,14 +141,14 @@ $ERR_command_not_found = undef;
       $ERR_read_only_file = "$!";
   }
 
-  $_ = `./file.out 2>/dev/null`;
+  $_ = `./file.out 2>&1`;
   if ($? == 0) {
       print "Executed non-executable file!  Skipping related tests.\n";
   } else {
       $ERR_nonexe_file = "$!";
   }
 
-  $_ = `./. 2>/dev/null`;
+  $_ = `./. 2>&1`;
   if ($? == 0) {
       print "Executed directory!  Skipping related tests.\n";
   } else {

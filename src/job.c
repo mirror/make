@@ -2309,6 +2309,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
 
   /* Run the command.  */
   exec_command (argv, child->environment);
+  _exit (127);
 
 #else /* USE_POSIX_SPAWN */
 
@@ -2452,12 +2453,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
 /* Replace the current process with one running the command in ARGV,
    with environment ENVP.  This function does not return.  */
 
-/* EMX: This function returns the pid of the child process.  */
-# ifdef __EMX__
 pid_t
-# else
-void
-# endif
 exec_command (char **argv, char **envp)
 {
 #ifdef VMS
@@ -2524,14 +2520,12 @@ exec_command (char **argv, char **envp)
         }
     }
 
-  /* return child's exit code as our exit code */
+  /* Use the child's exit code as our exit code */
   exit (exit_code);
 
 #else  /* !WINDOWS32 */
 
-# ifdef __EMX__
-  pid_t pid;
-# endif
+  pid_t pid = -1;
 
   /* Be the user, permanently.  */
   child_access ();
@@ -2630,11 +2624,7 @@ exec_command (char **argv, char **envp)
       break;
     }
 
-# ifdef __EMX__
   return pid;
-# else
-  _exit (127);
-# endif
 #endif /* !WINDOWS32 */
 #endif /* !VMS */
 }
