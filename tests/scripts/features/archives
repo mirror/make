@@ -35,16 +35,17 @@ my $ar = get_config('AR') || 'ar';
 my $redir = '2>&1';
 $redir = '' if $osname eq 'VMS';
 
-my $arflags = 'rv';
+# This is the value from src/default.c
+my $arflags = $ostype eq 'aix' ? '-Xany -rv' : '-rv';
 my $arvar = "AR=$ar";
 
 # Newer versions of binutils can be built with --enable-deterministic-archives
 # which forces all timestamps (among other things) to always be 0, defeating
 # GNU make's archive support.  See if ar supports the U option to disable it.
 unlink('libxx.a');
-$_ = `$ar U$arflags libxx.a a1.o $redir`;
+$_ = `$ar ${arflags}U libxx.a a1.o $redir`;
 if ($? == 0) {
-    $arflags = 'Urv';
+    $arflags = "${arflags}U";
     $arvar = "$arvar ARFLAGS=$arflags";
 }
 

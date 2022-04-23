@@ -47,6 +47,10 @@ $tests_run = 0;
 # The number of tests in this category that have passed
 $tests_passed = 0;
 
+$port_type = undef;
+$osname = undef;
+$vos = undef;
+$pathsep = undef;
 
 # Yeesh.  This whole test environment is such a hack!
 $test_passed = 1;
@@ -331,6 +335,8 @@ sub get_osname
 {
   # Set up an initial value.  In perl5 we can do it the easy way.
   $osname = defined($^O) ? $^O : '';
+  $vos = 0;
+  $pathsep = "/";
 
   # find the type of the port.  We do this up front to have a single
   # point of change if it needs to be tweaked.
@@ -366,10 +372,7 @@ sub get_osname
     $port_type = 'UNIX';
   }
 
-  if ($osname eq 'VMS')
-  {
-    $vos = 0;
-    $pathsep = "/";
+  if ($osname eq 'VMS') {
     return;
   }
 
@@ -399,7 +402,7 @@ sub get_osname
     $vos = 1;
     $pathsep = ">";
 
-  } else {
+  } elsif ($osname eq '') {
     # the following is regrettably gnarly, but it seems to be the only way
     # to not get ugly error messages if uname can't be found.
     # Hmmm, BSD/OS 2.0's uname -a is excessively verbose.  Let's try it
@@ -414,8 +417,6 @@ sub get_osname
         $osname = "(something posixy)";
       }
     }
-    $vos = 0;
-    $pathsep = "/";
   }
 
   if (! $short_filenames) {
