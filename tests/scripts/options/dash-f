@@ -83,8 +83,6 @@ my $hello = 'hello.mk';
 my $bye = 'bye.mk';
 my $byesrc = 'bye.mk.src';
 
-unlink($hello, $bye, $byesrc);
-
 create_file($hello, 'all:; $(info hello, world)
 ');
 
@@ -157,6 +155,7 @@ for my $opt (@opts) {
     run_make_test('', "-f$bye $opt", $answer);
 }
 
+close(STDIN);
 unlink($hello, $bye, $byesrc);
 
 # This tells the test driver that the perl test script executed properly.
