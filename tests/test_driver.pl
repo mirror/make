@@ -255,7 +255,7 @@ sub toplevel
   if (-d $workpath) {
     print "Clearing $workpath...\n";
     &remove_directory_tree("$workpath/")
-        or &error ("Couldn't wipe out $workpath: $!\n");
+      or &error ("Couldn't wipe out $workpath: $!\n");
   } else {
     mkdir ($workpath, 0777) or &error ("Couldn't mkdir $workpath: $!\n");
   }
@@ -271,8 +271,8 @@ sub toplevel
         $dir = $1;
         push (@rmdirs, $dir);
         -d "$workpath/$dir"
-           or mkdir ("$workpath/$dir", 0777)
-           or &error ("Couldn't mkdir $workpath/$dir: $!\n");
+            or mkdir ("$workpath/$dir", 0777)
+            or &error ("Couldn't mkdir $workpath/$dir: $!\n");
       }
     }
   } else {
@@ -530,11 +530,31 @@ sub run_all_tests
 
   $categories_run = 0;
 
+  # Make a copy of STDIN so we can reset it
+  open(INCOPY, "<&STDIN");
+
+  # Leave enough space in the extensions to append a number, even
+  # though it needs to fit into 8+3 limits.
+  if ($short_filenames) {
+    $logext = 'l';
+    $diffext = 'd';
+    $baseext = 'b';
+    $runext = 'r';
+    $extext = '';
+  } else {
+    $logext = 'log';
+    $diffext = 'diff';
+    $baseext = 'base';
+    $runext = 'run';
+    $extext = '.';
+  }
+
   $lasttest = '';
   # $testname is published
   foreach $testname (sort @TESTS) {
     # Skip duplicates on VMS caused by logical name search lists.
     next if $testname eq $lasttest;
+
     $lasttest = $testname;
     $suite_passed = 1;       # reset by test on failure
     $num_of_logfiles = 0;
@@ -546,21 +566,6 @@ sub run_all_tests
     $perl_testname = "$scriptpath$pathsep$testname";
     $testname =~ s/(\.pl|\.perl)$//;
     $testpath = "$workpath$pathsep$testname";
-    # Leave enough space in the extensions to append a number, even
-    # though it needs to fit into 8+3 limits.
-    if ($short_filenames) {
-      $logext = 'l';
-      $diffext = 'd';
-      $baseext = 'b';
-      $runext = 'r';
-      $extext = '';
-    } else {
-      $logext = 'log';
-      $diffext = 'diff';
-      $baseext = 'base';
-      $runext = 'run';
-      $extext = '.';
-    }
     $extext = '_' if $^O eq 'VMS';
     $log_filename = "$testpath.$logext";
     $diff_filename = "$testpath.$diffext";
@@ -574,21 +579,18 @@ sub run_all_tests
 
     $output = "........................................................ ";
 
-    substr($output,0,length($testname)) = "$testname ";
+    substr($output, 0, length($testname)) = "$testname ";
 
     print $output;
 
     $tests_run = 0;
     $tests_passed = 0;
 
-    # make a copy of STDIN so we can reset it
-    open(INCOPY, "<&STDIN");
-
     # Run the test!
     $code = do $perl_testname;
 
-    # Restore STDIN
-    open(STDIN, "<&OLDIN");
+    # Reset STDIN from the copy in case it was changed
+    open(STDIN, "<&INCOPY");
 
     ++$categories_run;
     $total_tests_run += $tests_run;
@@ -662,6 +664,8 @@ sub run_all_tests
 
     print "$status\n";
   }
+
+  close(INCOPY);
 }
 
 # If the keep flag is not set, this subroutine deletes all filenames that
