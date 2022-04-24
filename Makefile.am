@@ -110,7 +110,7 @@ test_FILES =	tests/run_make_tests tests/run_make_tests.bat \
 		tests/mkshadow tests/thelp.pl tests/guile.supp tests/README
 # test/scripts are added via dist-hook below.
 
-EXTRA_DIST =	ChangeLog README build.sh build.cfg.in $(man_MANS) \
+EXTRA_DIST =	ChangeLog INSTALL README build.sh build.cfg.in $(man_MANS) \
 		README.customs README.OS2 \
 		README.Amiga SCOPTIONS src/config.ami \
 		README.DOS builddos.bat src/configh.dos \
