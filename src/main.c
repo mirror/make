@@ -2014,6 +2014,10 @@ main (int argc, char **argv, char **envp)
     make_sync.syncout = syncing;
     OUTPUT_SET (&make_sync);
 
+    /* If -R was given, set -r too (doesn't make sense otherwise!)  */
+    if (no_builtin_variables_flag)
+      no_builtin_rules_flag = 1;
+
     /* If we've disabled builtin rules, get rid of them.  */
     if (no_builtin_rules_flag && ! old_builtin_rules_flag)
       {
