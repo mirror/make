@@ -164,9 +164,8 @@ static char *unescape_char (char *string, int c);
 
 
 /* Compare a word, both length and contents.
-   P must point to the word to be tested, and WLEN must be the length.
-*/
-#define word1eq(s)      (wlen == CSTRLEN (s) && strneq (s, p, CSTRLEN (s)))
+   P must point to the word to be tested, and WLEN must be the length.  */
+#define word1eq(s)  (wlen == CSTRLEN (s) && memcmp (s, p, CSTRLEN (s)) == 0)
 
 
 /* Read in all the makefiles and return a chain of targets to rebuild.  */

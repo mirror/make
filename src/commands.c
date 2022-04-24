@@ -121,8 +121,9 @@ set_file_variables (struct file *file, const char *stem)
 
       for (d = enter_file (strcache_add (".SUFFIXES"))->deps; d ; d = d->next)
         {
-          size_t slen = strlen (dep_name (d));
-          if (len > slen && strneq (dep_name (d), name + (len - slen), slen))
+          const char *dn = dep_name (d);
+          size_t slen = strlen (dn);
+          if (len > slen && memcmp (dn, name + (len - slen), slen) == 0)
             {
               file->stem = stem = strcache_add_len (name, len - slen);
               break;

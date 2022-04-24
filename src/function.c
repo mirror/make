@@ -990,8 +990,9 @@ a_word_hash_cmp (const void *x, const void *y)
   int result = (int) ((struct a_word const *) x)->length - ((struct a_word const *) y)->length;
   if (result)
     return result;
-  return_STRING_COMPARE (((struct a_word const *) x)->str,
-                         ((struct a_word const *) y)->str);
+  return_STRING_N_COMPARE (((struct a_word const *) x)->str,
+                           ((struct a_word const *) y)->str,
+                           ((struct a_word const *) y)->length);
 }
 
 struct a_pattern
@@ -1110,7 +1111,7 @@ func_filter_filterout (char *o, char **argv, const char *funcname)
       else
         for (wp = words; wp < word_end; ++wp)
           wp->matched |= (wp->length == pp->length
-                          && strneq (pp->str, wp->str, wp->length));
+                          && memcmp (pp->str, wp->str, wp->length) == 0);
     }
 
   /* Output the words that matched (or didn't, for filter-out).  */
@@ -1245,7 +1246,7 @@ func_sort (char *o, char **argv, const char *funcname UNUSED)
         {
           len = strlen (words[i]);
           if (i == wordi - 1 || strlen (words[i + 1]) != len
-              || strcmp (words[i], words[i + 1]))
+              || memcmp (words[i], words[i + 1], len))
             {
               o = variable_buffer_output (o, words[i], len);
               o = variable_buffer_output (o, " ", 1);
