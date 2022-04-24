@@ -169,7 +169,7 @@ check-regression: tests/config-flags.pm
 	      *) test -d tests || mkdir tests; \
 		 rm -f srctests; \
 		 if ln -s '$(top_srcdir)/tests' srctests; then \
-		   for f in run_make_tests run_make_tests.pl test_driver.pl scripts jhelp.pl; do \
+		   for f in run_make_tests run_make_tests.pl test_driver.pl scripts thelp.pl; do \
 		     rm -f tests/$$f; ln -s ../srctests/$$f tests; \
 		   done; fi ;; \
 	    esac; \
