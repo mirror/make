@@ -42,4 +42,4 @@ void execute_file_commands (struct file *file);
 void print_commands (const struct commands *cmds);
 void delete_child_targets (struct child *child);
 void chop_commands (struct commands *cmds);
-void set_file_variables (struct file *file);
+void set_file_variables (struct file *file, const char *stem);

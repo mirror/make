@@ -521,10 +521,6 @@ pattern_search (struct file *file, int archive,
           if (rule->deps == 0)
             break;
 
-          /* Temporary assign STEM to file->stem (needed to set file
-             variables below).   */
-          file->stem = stem_str;
-
           /* Mark this rule as in use so a recursive pattern_search won't try
              to use it.  */
           rule->in_use = 1;
@@ -666,14 +662,14 @@ pattern_search (struct file *file, int archive,
                   if (!file_vars_initialized)
                     {
                       initialize_file_variables (file, 0);
-                      set_file_variables (file);
+                      set_file_variables (file, stem_str);
                       file_vars_initialized = 1;
                     }
                   /* Update the stem value in $* for this rule.  */
                   else if (!file_variables_set)
                     {
                       define_variable_for_file (
-                        "*", 1, file->stem, o_automatic, 0, file);
+                        "*", 1, stem_str, o_automatic, 0, file);
                       file_variables_set = 1;
                     }
 
@@ -912,10 +908,6 @@ pattern_search (struct file *file, int archive,
               if (failed)
                 break;
             }
-
-          /* Reset the stem in FILE. */
-
-          file->stem = 0;
 
           /* This rule is no longer 'in use' for recursive searches.  */
           rule->in_use = 0;

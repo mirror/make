@@ -571,7 +571,6 @@ expand_deps (struct file *f)
 {
   struct dep *d;
   struct dep **dp;
-  const char *file_stem = f->stem;
   const char *fstem;
   int initialized = 0;
 
@@ -646,18 +645,12 @@ expand_deps (struct file *f)
           initialized = 1;
         }
 
-      if (d->stem != 0)
-        f->stem = d->stem;
-
-      set_file_variables (f);
+      set_file_variables (f, d->stem ? d->stem : f->stem);
 
       p = variable_expand_for_file (d->name, f);
 
       /* Free the un-expanded name.  */
       free ((char*)d->name);
-
-      if (d->stem != 0)
-        f->stem = file_stem;
 
       /* Parse the prerequisites and enter them into the file database.  */
       new = split_prereqs (p);

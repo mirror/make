@@ -58,10 +58,13 @@ dep_hash_cmp (const void *x, const void *y)
   return strcmp (dep_name (dx), dep_name (dy));
 }
 
-/* Set FILE's automatic variables up.  */
+/* Set FILE's automatic variables up.
+ * Use STEM to set $*.
+ * If STEM is 0, then set FILE->STEM and $* to the target name with any
+ * suffix in the .SUFFIXES list stripped off.  */
 
 void
-set_file_variables (struct file *file)
+set_file_variables (struct file *file, const char *stem)
 {
   struct dep *d;
   const char *at, *percent, *star, *less;
@@ -95,7 +98,7 @@ set_file_variables (struct file *file)
     }
 
   /* $* is the stem from an implicit or static pattern rule.  */
-  if (file->stem == 0)
+  if (stem == 0)
     {
       /* In Unix make, $* is set to the target name with
          any suffix in the .SUFFIXES list stripped off for
@@ -121,14 +124,14 @@ set_file_variables (struct file *file)
           size_t slen = strlen (dep_name (d));
           if (len > slen && strneq (dep_name (d), name + (len - slen), slen))
             {
-              file->stem = strcache_add_len (name, len - slen);
+              file->stem = stem = strcache_add_len (name, len - slen);
               break;
             }
         }
       if (d == 0)
-        file->stem = "";
+        file->stem = stem = "";
     }
-  star = file->stem;
+  star = stem;
 
   /* $< is the first not order-only dependency.  */
   less = "";
@@ -464,7 +467,7 @@ execute_file_commands (struct file *file)
 
   initialize_file_variables (file, 0);
 
-  set_file_variables (file);
+  set_file_variables (file, file->stem);
 
   /* If this is a loaded dynamic object, unload it before remaking.
      Some systems don't support overwriting a loaded object.  */

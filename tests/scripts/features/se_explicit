@@ -291,5 +291,12 @@ all: 2.x 1.x
 #MAKE#: Nothing to be done for 'all'.\n");
 
 
+# sv 62324.
+# Integrity self check.
+run_make_test(q!
+.SECONDEXPANSION:
+all: bye.x
+bye.x: $$(firstword bye.1;
+!, '', "#MAKEFILE#:4: *** unterminated call to function 'firstword': missing ')'.  Stop.", 512);
 
 1;

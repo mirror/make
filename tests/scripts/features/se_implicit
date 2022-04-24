@@ -434,6 +434,13 @@ all: 2.x
 "@=2.x,<=,^=,+=,|=,?=,*=2
 #MAKE#: Nothing to be done for 'all'.\n");
 
+# sv 62324.
+# Integrity self check.
+run_make_test(q!
+.SECONDEXPANSION:
+all: bye.x
+%.x: $$(firstword %.1;
+!, '', "#MAKE#: *** unterminated call to function 'firstword': missing ')'.  Stop.", 512);
 
 # This tells the test driver that the perl test script executed properly.
 1;

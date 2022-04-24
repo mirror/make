@@ -102,6 +102,13 @@ oo$ba.1
 oo$ba
 ');
 
+# sv 62324.
+# Integrity self check.
+run_make_test(q!
+.SECONDEXPANSION:
+all: bye.x
+bye.x: %.x: $$(firstword %.1;
+!, '', "#MAKEFILE#:4: *** unterminated call to function 'firstword': missing ')'.  Stop.", 512);
 
 # This tells the test driver that the perl test script executed properly.
 1;

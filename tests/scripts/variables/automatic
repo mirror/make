@@ -91,6 +91,30 @@ mbr.src: ; @:',
               '',
               'mbr');
 
+# Same as above with second expansion.
+#
+run_make_test('
+.SECONDEXPANSION:
+.SUFFIXES: .b .src
+
+p:=mbr.src
+mbr.b: $$p
+	@echo $*
+
+mbr.src: ; @:',
+              '',
+              'mbr');
+
+# Test that $* is set to empty string for unknown suffixes.
+
+run_make_test('
+mbr.b: mbr.src
+	@echo star=$*
+
+mbr.src: ; @:',
+              '',
+              "star=\n");
+
 # TEST #3 -- test for Savannah bug #8154
 # Make sure that nonexistent prerequisites are listed in $?, since they are
 # considered reasons for the target to be rebuilt.
