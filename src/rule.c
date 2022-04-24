@@ -129,7 +129,18 @@ snap_implicit_rules (void)
 
   for (dep = prereqs; dep; dep = dep->next)
     {
-      size_t l = strlen (dep_name (dep));
+      const char *d = dep_name (dep);
+      size_t l = strlen (d);
+
+      if (dep->need_2nd_expansion)
+        /* When pattern_search allocates a buffer, allow 5 bytes per each % to
+           substitute each % with $(*F) while avoiding realloc.  */
+        while ((d = strchr (d, '%')) != 0)
+          {
+            l += 4;
+            ++d;
+          }
+
       if (l > max_pattern_dep_length)
         max_pattern_dep_length = l;
       ++pre_deps;

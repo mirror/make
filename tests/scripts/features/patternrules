@@ -469,5 +469,112 @@ run_make_test(q!
 
 unlink('1.all', '1.q', '1.r');
 
+# sv 62206.
+
+my @dir = ('', 'lib/'); # With and without last slash.
+my @secondexpansion = ('', '.SECONDEXPANSION:');
+
+# The following combinations are generated with and without second expansion.
+# 1.
+# all: bye.x
+# %.x: ...
+#
+# 2.
+# all: lib/bye.x
+# %.x: ...
+#
+# 3.
+# all: lib/bye.x
+# lib/%.x: ...
+#
+# The following combination is not generated, because there is no rule to
+# build bye.x, no stem substitution takes place, not of interest of this test.
+# 4.
+# all: bye.x
+# lib/%.x: ...
+
+for my $se (@secondexpansion) {
+for my $d (@dir) { # The directory of the prerequisite of 'all'.
+for my $r (@dir) { # The directory of the target in the rule definition.
+(!$d && $r) && next; # Combination 4.
+my $dollar = $se ? '$' : '';
+
+# The prerequisite should only have directory if the prerequisite of 'all' has
+# it and if the prequisite pattern in the rule definition does not have it.
+# That is combination 2.
+my $pdir = $d && !$r ? $d : '';
+
+my $prereqs = "${pdir}bye.1";
+
+# One func, one %.
+run_make_test("
+$se
+all: ${d}bye.x
+$r%.x: $dollar\$(firstword %.1); \$(info \$@ from \$^)
+.PHONY: $prereqs
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+$prereqs = "${pdir}bye.1 ${pdir}bye.2";
+
+# Multiple funcs, each has one %.
+run_make_test("
+$se
+all: ${d}bye.x
+$r%.x: $dollar\$(firstword %.1) $dollar\$(firstword %.2); \$(info \$@ from \$^)
+.PHONY: $prereqs
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+$prereqs = "${pdir}bye.1 ${pdir}bye.2 ${pdir}bye.3 ${pdir}bye.4";
+
+# Multiple funcs, each has multiple %.
+run_make_test("
+$se
+all: ${d}bye.x
+$r%.x: $dollar\$(wordlist 1, 99, %.1 %.2) $dollar\$(wordlist 1, 99, %.3 %.4); \$(info \$@ from \$^)
+.PHONY: $prereqs
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+$prereqs = "${pdir}bye.1 ${pdir}bye.2 ${pdir}bye.3 ${pdir}bye.4";
+
+# Nested functions.
+run_make_test("
+$se
+all: ${d}bye.x
+$r%.x: $dollar\$(wordlist 1, 99, $dollar\$(wordlist 1, 99, %.1 %.2)) $dollar\$(wordlist 1, 99, $dollar\$(wordlist 1,99, %.3 %.4)); \$(info \$@ from \$^)
+.PHONY: $prereqs
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+$prereqs = "${pdir}bye1%2% ${pdir}bye ${pdir}3bye4%5 ${pdir}6bye ${pdir}bye7%8 ${pdir}bye9 ${pdir}bye10% ${pdir}11bye12 13";
+
+# Multiple funcs, each has multiple words, each word has multiple %, sole %,
+# various corner cases.
+# Make should substitude the first % and only the first % in each word with the
+# stem.
+run_make_test("
+$se
+all: ${d}bye.x
+$r%.x: $dollar\$(wordlist 1, 99, %1%2% % 3%4%5 6%) %7%8 %9 $dollar\$(wordlist 1, 99, %10% 11%12) 13; \$(info \$@ from \$^)
+.PHONY: $prereqs
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+if ($port_type eq 'UNIX') {
+# Test that make does not use some hardcoded array of a finite size on stack.
+# Long prerequisite name. This prerequisite name is over 66K long.
+my $prefix = 'abcdefgh' x 128 x 33; # 33K long.
+my $suffix = 'stuvwxyz' x 128 x 33; # 33K long.
+$prereqs = "${pdir}${prefix}bye${suffix}.1 ${pdir}${prefix}bye${suffix}.2";
+
+run_make_test("
+$se
+all: ${d}bye.x
+$r%.x: $dollar\$(wordlist 1, 99, ${prefix}%${suffix}.1 ${prefix}%${suffix}.2); \$(info \$@ from \$^)
+.PHONY: $prereqs
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+}
+
+}
+}
+}
+
 # This tells the test driver that the perl test script executed properly.
 1;
