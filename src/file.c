@@ -572,6 +572,7 @@ expand_deps (struct file *f)
   struct dep *d;
   struct dep **dp;
   const char *file_stem = f->stem;
+  const char *fstem;
   int initialized = 0;
 
   f->updating = 0;
@@ -584,7 +585,6 @@ expand_deps (struct file *f)
     {
       char *p;
       struct dep *new, *next;
-      char *name = (char *)d->name;
 
       if (! d->name || ! d->need_2nd_expansion)
         {
@@ -594,15 +594,47 @@ expand_deps (struct file *f)
           continue;
         }
 
-      /* If it's from a static pattern rule, convert the patterns into
-         "$*" so they'll expand properly.  */
+      /* If it's from a static pattern rule, convert the initial pattern in
+         each word to "$*" so they'll expand properly.  */
       if (d->staticpattern)
         {
-          char *o = subst_expand (variable_buffer, name, "%", "$*", 1, 2, 0);
-          *o = '\0';
-          free (name);
-          d->name = name = xstrdup (variable_buffer);
-          d->staticpattern = 0;
+          const char *cs = d->name;
+          size_t nperc = 0;
+
+          /* Count the number of % in the string.  */
+          while ((cs = strchr (cs, '%')) != NULL)
+            {
+              ++nperc;
+              ++cs;
+            }
+
+          if (nperc)
+            {
+              /* Allocate enough space to replace all % with $*.  */
+              size_t slen = strlen (d->name) + nperc + 1;
+              const char *pcs = d->name;
+              char *name = xmalloc (slen);
+              char *s = name;
+
+              /* Substitute the first % in each word.  */
+              cs = strchr (pcs, '%');
+
+              while (cs)
+                {
+                  memcpy (s, pcs, cs - pcs);
+                  s += cs - pcs;
+                  *(s++) = '$';
+                  *(s++) = '*';
+                  pcs = ++cs;
+
+                  /* Find the first % after the next whitespace.  */
+                  cs = strchr (end_of_token (cs), '%');
+                }
+              strcpy (s, pcs);
+
+              free ((char*)d->name);
+              d->name = name;
+            }
         }
 
       /* We're going to do second expansion so initialize file variables for
@@ -621,14 +653,14 @@ expand_deps (struct file *f)
 
       p = variable_expand_for_file (d->name, f);
 
+      /* Free the un-expanded name.  */
+      free ((char*)d->name);
+
       if (d->stem != 0)
         f->stem = file_stem;
 
-      /* At this point we don't need the name anymore: free it.  */
-      free (name);
-
       /* Parse the prerequisites and enter them into the file database.  */
-      new = enter_prereqs (split_prereqs (p), d->stem);
+      new = split_prereqs (p);
 
       /* If there were no prereqs here (blank!) then throw this one out.  */
       if (new == 0)
@@ -640,10 +672,21 @@ expand_deps (struct file *f)
         }
 
       /* Add newly parsed prerequisites.  */
+      fstem = d->stem;
       next = d->next;
+      free_dep (d);
       *dp = new;
-      for (dp = &new->next, d = new->next; d != 0; dp = &d->next, d = d->next)
-        ;
+      for (dp = &new, d = new; d != 0; dp = &d->next, d = d->next)
+        {
+          d->file = lookup_file (d->name);
+          if (d->file == 0)
+            d->file = enter_file (d->name);
+          d->name = 0;
+          d->stem = fstem;
+          if (!fstem)
+            /* This file is explicitly mentioned as a prereq.  */
+            d->file->is_explicit = 1;
+        }
       *dp = next;
       d = *dp;
     }
