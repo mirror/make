@@ -388,13 +388,13 @@ all: 2.x
 # subtest 4. Static pattern rules. 2nd rule.
 run_make_test(q!
 .SECONDEXPANSION:
-all: 2.x 1.x
-2.x: 5.z 6.z 5.z | 7.z 7.z 8.z
+all: 15.x 1.x
+15.x: 5.z 6.z 5.z | 7.z 7.z 8.z
 1.x: 1.z 2.z 2.z | 3.z 4.z
-2.x 1.x: %.x: 9.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*) ;
+15.x 1.x: %.x: 9.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*) ;
 %.z: ;
 !, '',
-"@=2.x,<=5.z,^=5.z 6.z,+=5.z 6.z 5.z,|=7.z 8.z,?=,*=2
+"@=15.x,<=5.z,^=5.z 6.z,+=5.z 6.z 5.z,|=7.z 8.z,?=,*=15
 @=1.x,<=1.z,^=1.z 2.z,+=1.z 2.z 2.z,|=3.z 4.z,?=,*=1
 #MAKE#: Nothing to be done for 'all'.\n");
 

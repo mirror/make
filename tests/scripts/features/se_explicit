@@ -224,13 +224,13 @@ all: 2.x
 # subtest 2. Explicit rules. 2nd rule.
 run_make_test(q!
 .SECONDEXPANSION:
-all: 2.x 1.x
-2.x: 5.z 6.z 5.z | 7.z 7.z 8.z
+all: 15.x 1.x
+15.x: 5.z 6.z 5.z | 7.z 7.z 8.z
 1.x: 1.z 2.z 2.z | 3.z 4.z
-2.x 1.x: 9.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*,%=$$%) ;
+15.x 1.x: 9.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*,%=$$%) ;
 %.z: ;
 !, '',
-"@=2.x,<=5.z,^=5.z 6.z,+=5.z 6.z 5.z,|=7.z 8.z,?=,*=,%=
+"@=15.x,<=5.z,^=5.z 6.z,+=5.z 6.z 5.z,|=7.z 8.z,?=,*=,%=
 @=1.x,<=1.z,^=1.z 2.z,+=1.z 2.z 2.z,|=3.z 4.z,?=,*=,%=
 #MAKE#: Nothing to be done for 'all'.\n");
 
@@ -238,11 +238,11 @@ all: 2.x 1.x
 # subtest 3. Grouped targets in explicit rules. 1st rule.
 run_make_test(q!
 .SECONDEXPANSION:
-all: 2.x
-2.x 1.x&: 5.z 6.z 5.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*,%=$$%) ;
+all: 15.x
+15.x 1.x&: 5.z 6.z 5.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*,%=$$%) ;
 %.z: ;
 !, '',
-"@=2.x,<=,^=,+=,|=,?=,*=,%=
+"@=15.x,<=,^=,+=,|=,?=,*=,%=
 @=1.x,<=,^=,+=,|=,?=,*=,%=
 #MAKE#: Nothing to be done for 'all'.\n");
 
@@ -250,13 +250,13 @@ all: 2.x
 # subtest 4. Grouped targets in explicit rules. 2nd rule.
 run_make_test(q!
 .SECONDEXPANSION:
-all: 2.x 1.x
-2.x: 5.z 6.z 5.z | 7.z 7.z 8.z
+all: 15.x 1.x
+15.x: 5.z 6.z 5.z | 7.z 7.z 8.z
 1.x: 1.z 2.z 2.z | 3.z 4.z
-2.x 1.x&: 9.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*,%=$$%) ;
+15.x 1.x&: 9.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*,%=$$%) ;
 %.z: ;
 !, '',
-"@=2.x,<=5.z,^=5.z 6.z,+=5.z 6.z 5.z,|=7.z 8.z,?=,*=,%=
+"@=15.x,<=5.z,^=5.z 6.z,+=5.z 6.z 5.z,|=7.z 8.z,?=,*=,%=
 @=1.x,<=1.z,^=1.z 2.z,+=1.z 2.z 2.z,|=3.z 4.z,?=,*=,%=
 #MAKE#: Nothing to be done for 'all'.\n");
 
@@ -280,13 +280,13 @@ all: 2.x
 # subtest 6. 2nd double colon rule.
 run_make_test(q!
 .SECONDEXPANSION:
-all: 2.x 1.x
-2.x:: 5.z 6.z 5.z | 7.z 7.z 8.z ;
+all: 15.x 1.x
+15.x:: 5.z 6.z 5.z | 7.z 7.z 8.z ;
 1.x:: 1.z 2.z 2.z | 3.z 4.z ;
-2.x 1.x:: 9.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*,%=$$%) ;
+15.x 1.x:: 9.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*,%=$$%) ;
 %.z: ;
 !, '',
-"@=2.x,<=,^=,+=,|=,?=,*=,%=
+"@=15.x,<=,^=,+=,|=,?=,*=,%=
 @=1.x,<=,^=,+=,|=,?=,*=,%=
 #MAKE#: Nothing to be done for 'all'.\n");
 

@@ -345,12 +345,13 @@ unlink('hello.x', 'test.x', 'hello.tsk');
 
 # subtest 1.
 # a.1 and a.2 are intermediate and should be removed.
+
 run_make_test(q!
 a.4:
-%.4: %.1 %.2 ; cat $^ >$@
-%.1 %.2: ; touch $*.1 $*.2
+%.4: %.1 %.15 ; cat $^ >$@
+%.1 %.15: ; touch $*.1 $*.15
 !,
-              '', "touch a.1 a.2\ncat a.1 a.2 >a.4\nrm a.1 a.2");
+              '', "touch a.1 a.15\ncat a.1 a.15 >a.4\nrm a.15 a.1");
 
 unlink('a.4');
 
@@ -359,11 +360,11 @@ unlink('a.4');
 # a.3 is explicit and should not be removed.
 run_make_test(q!
 a.4:
-%.4: %.1 %.2 a.3 ; cat $^ >$@
-%.1 %.2: ; touch $*.1 $*.2
+%.4: %.1 %.15 a.3 ; cat $^ >$@
+%.1 %.15: ; touch $*.1 $*.15
 %.3: ; touch $@
 !,
-              '', "touch a.3\ntouch a.1 a.2\ncat a.1 a.2 a.3 >a.4\nrm a.1 a.2");
+              '', "touch a.3\ntouch a.1 a.15\ncat a.1 a.15 a.3 >a.4\nrm a.15 a.1");
 
 unlink('a.3', 'a.4');
 
@@ -372,10 +373,10 @@ unlink('a.3', 'a.4');
 # a.3 is explicit and should not be removed.
 run_make_test(q!
 a.4:
-%.4: %.1 %.2 a.3 ; cat $^ >$@
-%.1 %.2 %.3: ; touch $*.1 $*.2 $*.3
+%.4: %.1 %.15 a.3 ; cat $^ >$@
+%.1 %.15 %.3: ; touch $*.1 $*.15 $*.3
 !,
-              '', "touch a.1 a.2 a.3\ncat a.1 a.2 a.3 >a.4\nrm a.1 a.2");
+              '', "touch a.1 a.15 a.3\ncat a.1 a.15 a.3 >a.4\nrm a.15 a.1");
 
 unlink('a.3', 'a.4');
 
@@ -384,10 +385,10 @@ unlink('a.3', 'a.4');
 # a.3 is explicit and should not be removed.
 run_make_test(q!
 a.4:
-%.4: %.1 %.2 a.3 ; cat $^ >$@
-%.3 %.1 %.2: ; touch $*.1 $*.2 $*.3
+%.4: %.1 %.15 a.3 ; cat $^ >$@
+%.3 %.1 %.15: ; touch $*.1 $*.15 $*.3
 !,
-              '', "touch a.1 a.2 a.3\ncat a.1 a.2 a.3 >a.4\nrm a.1 a.2");
+              '', "touch a.1 a.15 a.3\ncat a.1 a.15 a.3 >a.4\nrm a.15 a.1");
 
 unlink('a.3', 'a.4');
 
@@ -396,10 +397,10 @@ unlink('a.3', 'a.4');
 # a.3 is explicit and should not be removed.
 run_make_test(q!
 a.4:
-%.4: a.3 %.1 %.2 ; cat $^ >$@
-%.1 %.2 %.3: ; touch $*.1 $*.2 $*.3
+%.4: a.3 %.1 %.15 ; cat $^ >$@
+%.1 %.15 %.3: ; touch $*.1 $*.15 $*.3
 !,
-              '', "touch a.1 a.2 a.3\ncat a.3 a.1 a.2 >a.4\nrm a.1 a.2");
+              '', "touch a.1 a.15 a.3\ncat a.3 a.1 a.15 >a.4\nrm a.15 a.1");
 
 unlink('a.3', 'a.4');
 
