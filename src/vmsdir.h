@@ -70,7 +70,7 @@ typedef struct DIR
 
 DIR *opendir ();
 struct direct *readdir (DIR *dfd);
-int closedir (DIR *dfd);
+void closedir (DIR *dfd);
 const char *vmsify (const char *name, int type);
 
 #endif /* VMSDIR_H */

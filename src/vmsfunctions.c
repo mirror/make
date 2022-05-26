@@ -110,7 +110,7 @@ readdir (DIR *dir)
   return (dentry);
 }
 
-int
+void
 closedir (DIR *dir)
 {
   if (dir != NULL)
@@ -122,8 +122,6 @@ closedir (DIR *dir)
       free (dnam);
       free (dir);
     }
-
-  return 0;
 }
 #endif /* compiled for OpenVMS prior to V7.x */
 
