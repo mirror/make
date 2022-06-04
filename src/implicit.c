@@ -22,6 +22,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "variable.h"
 #include "job.h"      /* struct child, used inside commands.h */
 #include "commands.h" /* set_file_variables */
+#include "shuffle.h"
 #include <assert.h>
 
 static int pattern_search (struct file *file, int archive,
@@ -1053,7 +1054,13 @@ pattern_search (struct file *file, int archive,
 
       dep->next = file->deps;
       file->deps = dep;
+
+      /* The file changed its dependencies; schedule the shuffle.  */
+      file->was_shuffled = 0;
     }
+
+  if (!file->was_shuffled)
+    shuffle_deps_recursive (file->deps);
 
   if (!tryrules[foundrule].checked_lastslash)
     {

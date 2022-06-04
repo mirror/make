@@ -25,6 +25,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "commands.h"
 #include "variable.h"
 #include "os.h"
+#include "dep.h"
+#include "shuffle.h"
 
 /* Default shell to use.  */
 #ifdef WINDOWS32
@@ -539,6 +541,7 @@ child_error (struct child *child,
   const struct file *f = child->file;
   const floc *flocp = &f->cmds->fileinfo;
   const char *nm;
+  const char *smode;
   size_t l;
 
   if (ignored && run_silent)
@@ -564,18 +567,29 @@ child_error (struct child *child,
 
   l = strlen (pre) + strlen (nm) + strlen (f->name) + strlen (post);
 
+  smode = shuffle_get_mode ();
+  if (smode)
+    {
+#define SHUFFLE_PREFIX " shuffle="
+      char *a = alloca (CSTRLEN(SHUFFLE_PREFIX) + strlen (smode) + 1);
+      sprintf (a, SHUFFLE_PREFIX "%s", smode);
+      smode = a;
+      l += strlen (smode);
+#undef SHUFFLE_PREFIX
+    }
+
   OUTPUT_SET (&child->output);
 
   show_goal_error ();
 
   if (exit_sig == 0)
-    error (NILF, l + INTSTR_LENGTH,
-           _("%s[%s: %s] Error %d%s"), pre, nm, f->name, exit_code, post);
+    error (NILF, l + INTSTR_LENGTH, _("%s[%s: %s] Error %d%s%s"),
+           pre, nm, f->name, exit_code, post, smode ? smode : "");
   else
     {
       const char *s = strsignal (exit_sig);
-      error (NILF, l + strlen (s) + strlen (dump),
-             "%s[%s: %s] %s%s%s", pre, nm, f->name, s, dump, post);
+      error (NILF, l + strlen (s) + strlen (dump), "%s[%s: %s] %s%s%s%s",
+             pre, nm, f->name, s, dump, post, smode ? smode : "");
     }
 
   OUTPUT_UNSET ();

@@ -61,6 +61,13 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   avoiding the need for heuristics.
   Implementation provided by Sven C. Dack <sdack@gmx.com>
 
+* New feature: The --shuffle command line option
+  This option reorders goals and prerequisites to simulate non-determinism
+  that may be seen using parallel build.  Shuffle mode allows a form of "fuzz
+  testing" of parallel builds to verify that all prerequisites are correctly
+  described in the makefile.
+  Implementation provided by Sergei Trofimovich <siarheit@google.com>
+
 * GNU make has sometimes chosen unexpected, and sub-optimal, chains of
   implicit rules due to the definition of "ought to exist" in the implicit
   rule search algorithm, which considered any prerequisite mentioned in the

@@ -9422,6 +9422,45 @@ from the top-level @code{make} via @code{MAKEFLAGS}
 (@pxref{Recursion, ,Recursive Use of @code{make}})
 or if you set @samp{-k} in @code{MAKEFLAGS} in your environment.@refill
 
+@item --shuffle[=@var{mode}]
+@cindex @code{--shuffle}
+@c Extra blank line here makes the table look better.
+
+This option enables a form of fuzz-testing of prerequisite relationships.
+When parallelism is enabled (@samp{-j}) the order in which targets are
+built becomes less deterministic.  If prerequisites are not fully declared
+in the makefile this can lead to intermittent and hard-to-track-down build
+failures.
+
+The @samp{--shuffle} option forces @code{make} to purposefully reorder goals
+and prerequisites so target/prerequisite relationships still hold, but
+ordering of prerequisites of a given target are reordered as described below.
+
+The order in which prerequisites are listed in automatic variables is not
+changed by this option.
+
+The @code{.NOTPARALLEL} pseudo-target disables shuffling for that makefile.
+
+The @samp{--shuffle=} option accepts these values:
+
+@table @code
+@item random
+Choose a random seed for the shuffle.  This is the default if no mode is
+specified.  The chosen seed is also provided to sub-@code{make} commands.  The
+seed is included in error messages so that it can be re-used in future runs to
+reproduce the problem or verify that it has been resolved.
+
+@item reverse
+Reverse the order of goals and prerequisites, rather than a random shuffle.
+
+@item @var{seed}
+Use @samp{random} shuffle initialized with the specified seed value.  The
+@var{seed} is an integer.
+
+@item none
+Disable shuffling.  This negates any previous @samp{--shuffle} options.
+@end table
+
 @item -t
 @cindex @code{-t}
 @itemx --touch

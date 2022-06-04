@@ -35,8 +35,9 @@ make_SRCS =	src/ar.c src/arscan.c src/commands.c src/commands.h \
 		src/hash.c src/hash.h src/implicit.c src/job.c src/job.h \
 		src/load.c src/loadapi.c src/main.c src/makeint.h src/misc.c \
 		src/os.h src/output.c src/output.h src/read.c src/remake.c \
-		src/rule.c src/rule.h src/signame.c src/strcache.c \
-		src/variable.c src/variable.h src/version.c src/vpath.c
+		src/rule.c src/rule.h src/shuffle.h src/shuffle.c \
+		src/signame.c src/strcache.c src/variable.c src/variable.h \
+		src/version.c src/vpath.c
 
 w32_SRCS =	src/w32/pathstuff.c src/w32/w32os.c src/w32/compat/dirent.c \
 		src/w32/compat/posixfcn.c src/w32/include/dirent.h \

@@ -46,6 +46,7 @@ struct nameseq
 #define DEP(_t)                                 \
     NAMESEQ (_t);                               \
     struct file *file;                          \
+    _t *shuf;                                   \
     const char *stem;                           \
     unsigned int flags : 8;                     \
     unsigned int changed : 1;                   \

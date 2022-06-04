@@ -76,7 +76,7 @@ $ filelist = "[.src]ar [.src]arscan [.src]commands [.src]default [.src]dir " + -
              "[.src]hash [.src]implicit [.src]job [.src]load [.src]main " + -
              "[.src]misc [.src]read [.src]remake [.src]remote-stub " + -
              "[.src]rule [.src]output [.src]signame [.src]variable " + -
-             "[.src]version [.src]strcache [.src]vpath " + -
+             "[.src]version [.src]shuffle [.src]strcache [.src]vpath " + -
              "[.src]vmsfunctions [.src]vmsify [.src]vms_progname " + -
              "[.src]vms_exit [.src]vms_export_symbol " + -
              "[.lib]alloca [.lib]fnmatch [.lib]glob [.src]getopt1 [.src]getopt"

@@ -24,6 +24,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "rule.h"
 #include "debug.h"
 #include "getopt.h"
+#include "shuffle.h"
 
 #include <assert.h>
 #ifdef _AMIGA
@@ -233,6 +234,10 @@ static const int inf_jobs = 0;
 
 static char *jobserver_auth = NULL;
 
+/* Shuffle mode for goals and prerequisites.  */
+
+static char *shuffle_mode = NULL;
+
 /* Handle for the mutex used on Windows to synchronize output of our
    children under -O.  */
 
@@ -361,6 +366,9 @@ static const char *const usage[] =
     N_("\
   -R, --no-builtin-variables  Disable the built-in variable settings.\n"),
     N_("\
+  --shuffle[={SEED|random|reverse|none}]\n\
+                              Perform shuffle of prerequisites and goals.\n"),
+    N_("\
   -s, --silent, --quiet       Don't echo recipes.\n"),
     N_("\
   --no-silent                 Echo recipes (disable --silent mode).\n"),
@@ -479,6 +487,7 @@ static const struct command_switch switches[] =
     { CHAR_MAX+9, string, &jobserver_auth, 1, 0, 0, 0, 0, "jobserver-fds" },
     /* There is special-case handling for this in decode_switches() as well.  */
     { TEMP_STDIN_OPT, filename, &makefiles, 0, 0, 0, 0, 0, "temp-stdin" },
+    { CHAR_MAX+11, string, &shuffle_mode, 1, 1, 0, "random", 0, "shuffle" },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
   };
 
@@ -1503,6 +1512,22 @@ main (int argc, char **argv, char **envp)
     if (arg_job_slots == INVALID_JOB_SLOTS)
       arg_job_slots = env_slots;
   }
+
+  /* Handle shuffle mode argument.  */
+  if (shuffle_mode)
+    {
+      const char *effective_mode;
+      shuffle_set_mode (shuffle_mode);
+
+      /* Write fixed seed back to argument list to propagate mode and
+         fixed seed to child $(MAKE) runs.  */
+      free (shuffle_mode);
+      effective_mode = shuffle_get_mode ();
+      if (effective_mode)
+        shuffle_mode = xstrdup (effective_mode);
+      else
+        shuffle_mode = NULL;
+    }
 
   /* Set a variable specifying whether stdout/stdin is hooked to a TTY.  */
 #ifdef HAVE_ISATTY
@@ -2758,6 +2783,10 @@ main (int argc, char **argv, char **envp)
 
       O (fatal, NILF, _("No targets specified and no makefile found"));
     }
+
+  /* Shuffle prerequisites to catch makefiles with incomplete depends. */
+
+  shuffle_goaldeps_recursive (goals);
 
   /* Update the goals.  */
 

@@ -37,6 +37,7 @@ src/read.c
 src/remake.c
 src/remote-cstms.c
 src/rule.c
+src/shuffle.c
 src/signame.c
 src/strcache.c
 src/variable.c

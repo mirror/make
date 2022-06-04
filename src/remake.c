@@ -93,8 +93,8 @@ update_goal_chain (struct goaldep *goaldeps)
   enum update_status status = us_none;
 
   /* Duplicate the chain so we can remove things from it.  */
-
-  struct dep *goals = copy_dep_chain ((struct dep *)goaldeps);
+  struct dep *goals_orig = copy_dep_chain ((struct dep *)goaldeps);
+  struct dep *goals = goals_orig;
 
   goal_list = rebuilding_makefiles ? goaldeps : NULL;
 
@@ -108,7 +108,7 @@ update_goal_chain (struct goaldep *goaldeps)
 
   while (goals != 0)
     {
-      struct dep *g, *lastgoal;
+      struct dep *gu, *g, *lastgoal;
 
       /* Start jobs that are waiting for the load to go down.  */
 
@@ -119,12 +119,14 @@ update_goal_chain (struct goaldep *goaldeps)
       reap_children (1, 0);
 
       lastgoal = 0;
-      g = goals;
-      while (g != 0)
+      gu = goals;
+      while (gu != 0)
         {
           /* Iterate over all double-colon entries for this file.  */
           struct file *file;
           int stop = 0, any_not_updated = 0;
+
+          g = gu->shuf ? gu->shuf : gu;
 
           goal_dep = g;
 
@@ -235,30 +237,29 @@ update_goal_chain (struct goaldep *goaldeps)
 
               /* This goal is finished.  Remove it from the chain.  */
               if (lastgoal == 0)
-                goals = g->next;
+                goals = gu->next;
               else
-                lastgoal->next = g->next;
+                lastgoal->next = gu->next;
 
-              /* Free the storage.  */
-              free (g);
-
-              g = lastgoal == 0 ? goals : lastgoal->next;
+              gu = lastgoal == 0 ? goals : lastgoal->next;
 
               if (stop)
                 break;
             }
           else
             {
-              lastgoal = g;
-              g = g->next;
+              lastgoal = gu;
+              gu = gu->next;
             }
         }
 
       /* If we reached the end of the dependency graph update CONSIDERED
          for the next pass.  */
-      if (g == 0)
+      if (gu == 0)
         ++considered;
     }
+
+  free_dep_chain (goals_orig);
 
   if (rebuilding_makefiles)
     {
@@ -424,7 +425,7 @@ update_file_1 (struct file *file, unsigned int depth)
   FILE_TIMESTAMP this_mtime;
   int noexist, must_make, deps_changed;
   struct file *ofile;
-  struct dep *d, *ad;
+  struct dep *du, *d, *ad;
   struct dep amake;
   int running = 0;
 
@@ -532,15 +533,17 @@ update_file_1 (struct file *file, unsigned int depth)
       struct dep *lastd = 0;
 
       /* Find the deps we're scanning */
-      d = ad->file->deps;
+      du = ad->file->deps;
       ad = ad->next;
 
-      while (d)
+      while (du)
         {
           enum update_status new;
           FILE_TIMESTAMP mtime;
           int maybe_make;
           int dontcare = 0;
+
+          d = du->shuf ? du->shuf : du;
 
           check_renamed (d->file);
 
@@ -551,14 +554,16 @@ update_file_1 (struct file *file, unsigned int depth)
             {
               OSS (error, NILF, _("Circular %s <- %s dependency dropped."),
                    file->name, d->file->name);
+
               /* We cannot free D here because our the caller will still have
                  a reference to it when we were called recursively via
                  check_dep below.  */
               if (lastd == 0)
-                file->deps = d->next;
+                file->deps = du->next;
               else
-                lastd->next = d->next;
-              d = d->next;
+                lastd->next = du->next;
+
+              du = du->next;
               continue;
             }
 
@@ -607,8 +612,8 @@ update_file_1 (struct file *file, unsigned int depth)
             d->changed = ((file_mtime (d->file) != mtime)
                           || (mtime == NONEXISTENT_MTIME));
 
-          lastd = d;
-          d = d->next;
+          lastd = du;
+          du = du->next;
         }
     }
 
@@ -617,58 +622,61 @@ update_file_1 (struct file *file, unsigned int depth)
 
   if (must_make || always_make_flag)
     {
-      for (d = file->deps; d != 0; d = d->next)
-        if (d->file->intermediate)
-          {
-            enum update_status new;
-            int dontcare = 0;
+      for (du = file->deps; du != 0; du = du->next)
+        {
+          d = du->shuf ? du->shuf : du;
+          if (d->file->intermediate)
+            {
+              enum update_status new;
+              int dontcare = 0;
 
-            FILE_TIMESTAMP mtime = file_mtime (d->file);
-            check_renamed (d->file);
-            d->file->parent = file;
+              FILE_TIMESTAMP mtime = file_mtime (d->file);
+              check_renamed (d->file);
+              d->file->parent = file;
 
-            /* Inherit dontcare flag from our parent. */
-            if (rebuilding_makefiles)
+              /* Inherit dontcare flag from our parent. */
+              if (rebuilding_makefiles)
+                {
+                  dontcare = d->file->dontcare;
+                  d->file->dontcare = file->dontcare;
+                }
+
+              /* We may have already considered this file, when we didn't know
+                 we'd need to update it.  Force update_file() to consider it and
+                 not prune it.  */
+              d->file->considered = 0;
+
+              new = update_file (d->file, depth);
+              if (new > dep_status)
+                dep_status = new;
+
+              /* Restore original dontcare flag. */
+              if (rebuilding_makefiles)
+                d->file->dontcare = dontcare;
+
+              check_renamed (d->file);
+
               {
-                dontcare = d->file->dontcare;
-                d->file->dontcare = file->dontcare;
+                struct file *f = d->file;
+                if (f->double_colon)
+                  f = f->double_colon;
+                do
+                  {
+                    running |= (f->command_state == cs_running
+                                || f->command_state == cs_deps_running);
+                    f = f->prev;
+                  }
+                while (f != 0);
               }
 
-            /* We may have already considered this file, when we didn't know
-               we'd need to update it.  Force update_file() to consider it and
-               not prune it.  */
-            d->file->considered = 0;
+              if (dep_status && !keep_going_flag)
+                break;
 
-            new = update_file (d->file, depth);
-            if (new > dep_status)
-              dep_status = new;
-
-            /* Restore original dontcare flag. */
-            if (rebuilding_makefiles)
-              d->file->dontcare = dontcare;
-
-            check_renamed (d->file);
-
-            {
-              struct file *f = d->file;
-              if (f->double_colon)
-                f = f->double_colon;
-              do
-                {
-                  running |= (f->command_state == cs_running
-                              || f->command_state == cs_deps_running);
-                  f = f->prev;
-                }
-              while (f != 0);
+              if (!running)
+                d->changed = ((file->phony && file->cmds != 0)
+                              || file_mtime (d->file) != mtime);
             }
-
-            if (dep_status && !keep_going_flag)
-              break;
-
-            if (!running)
-              d->changed = ((file->phony && file->cmds != 0)
-                            || file_mtime (d->file) != mtime);
-          }
+        }
     }
 
   finish_updating (file);

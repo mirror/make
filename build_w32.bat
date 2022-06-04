@@ -257,6 +257,7 @@ call :Compile src/read
 call :Compile src/remake
 call :Compile src/remote-stub
 call :Compile src/rule
+call :Compile src/shuffle
 call :Compile src/signame
 call :Compile src/strcache
 call :Compile src/variable
