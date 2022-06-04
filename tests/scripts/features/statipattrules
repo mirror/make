@@ -291,10 +291,9 @@ ${d}bye.x: $r%.x: $dollar\$(%); \$(info \$@ from \$^)
 for my $d (@dir) {
 my $prereqs = "${d}the%weird\\\\_hello_pattern%\\\\.1 ${d}the%weird\\\\_hello_pattern%\\\\.2";
 run_make_test("
-$se
 .PHONY: $prereqs
 all: ${d}the%weird\\\\_hello_pattern\\\\.x
-${d}the\\%weird\\\\_hello_pattern\\\\.x: ${d}the\\%weird\\\\_%_pattern\\\\.x: $dollar\$(wordlist 1, 99, ${d}the\\%weird\\\\_%_pattern%\\\\.1 ${d}the\\%weird\\\\_%_pattern%\\\\.2); \$(info \$@ from \$^)
+${d}the\\%weird\\\\_hello_pattern\\\\.x: ${d}the\\%weird\\\\_%_pattern\\\\.x: \$(wordlist 1, 99, ${d}the\\%weird\\\\_%_pattern%\\\\.1 ${d}the\\%weird\\\\_%_pattern%\\\\.2); \$(info \$@ from \$^)
 ", '', "${d}the%weird\\\\_hello_pattern\\\\.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
 }
 

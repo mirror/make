@@ -50,7 +50,7 @@ check_tempfile($tdir);
 # sv 62118,62145.
 # Test that a stdin temp file is removed, even when make re-execs.
 # Also test that make nohors TMPDIR to create the temp file.
-my $tdir = tempdir(CLEANUP => 1);
+$tdir = tempdir(CLEANUP => 1);
 $ENV{'TMPDIR'} = $tdir;
 $ENV{'TMP'} = $tdir;
 # Ensure touching bye.mk causes re-exec.
