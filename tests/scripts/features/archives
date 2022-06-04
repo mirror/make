@@ -36,7 +36,7 @@ my $redir = '2>&1';
 $redir = '' if $osname eq 'VMS';
 
 # This is the value from src/default.c
-my $arflags = $ostype eq 'aix' ? '-Xany -rv' : '-rv';
+my $arflags = $osname eq 'aix' ? '-Xany -rv' : '-rv';
 my $arvar = "AR=$ar";
 
 # Newer versions of binutils can be built with --enable-deterministic-archives
