@@ -173,6 +173,16 @@ concat (unsigned int num, ...)
   return result;
 }
 
+
+#ifndef HAVE_UNISTD_H
+pid_t getpid ();
+#endif
+
+pid_t make_pid ()
+{
+  return getpid ();
+}
+
 /* Like malloc but get fatal error if memory is exhausted.  */
 /* Don't bother if we're using dmalloc; it provides these for us.  */
 

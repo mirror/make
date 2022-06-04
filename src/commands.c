@@ -30,10 +30,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #else
 # define FILE_LIST_SEPARATOR ' '
 #endif
-
-#ifndef HAVE_UNISTD_H
-pid_t getpid ();
-#endif
 
 
 static unsigned long
@@ -599,7 +595,7 @@ fatal_error_signal (int sig)
 #else
   /* Signal the same code; this time it will really be fatal.  The signal
      will be unblocked when we return and arrive then to kill us.  */
-  if (kill (getpid (), sig) < 0)
+  if (kill (make_pid (), sig) < 0)
     pfatal_with_name ("kill");
 #endif /* not WINDOWS32 */
 #endif /* not Amiga */

@@ -541,6 +541,7 @@ void die (int) NORETURN;
 void pfatal_with_name (const char *) NORETURN;
 void perror_with_name (const char *, const char *);
 #define xstrlen(_s) ((_s)==NULL ? 0 : strlen (_s))
+pid_t make_pid ();
 void *xmalloc (size_t);
 void *xcalloc (size_t);
 void *xrealloc (void *, size_t);
