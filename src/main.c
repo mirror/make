@@ -1411,7 +1411,7 @@ main (int argc, char **argv, char **envp)
                 OUTPUT_TRACED ();
                 ++ep;
               }
-            restarts = (unsigned int) atoi (ep);
+            restarts = make_toui (ep, NULL);
             export = v_noexport;
           }
 
@@ -1536,7 +1536,7 @@ main (int argc, char **argv, char **envp)
   {
     struct variable *v = lookup_variable (STRING_SIZE_TUPLE (MAKELEVEL_NAME));
     if (v && v->value[0] != '\0' && v->value[0] != '-')
-      makelevel = (unsigned int) atoi (v->value);
+      makelevel = make_toui (v->value, NULL);
     else
       makelevel = 0;
   }
@@ -3187,14 +3187,10 @@ decode_switches (int argc, const char **argv, int env)
 
                   if (coptarg)
                     {
-                      int i = atoi (coptarg);
-                      const char *cp;
+                      const char *err;
+                      unsigned int i = make_toui (coptarg, &err);
 
-                      /* Yes, I realize we're repeating this in some cases.  */
-                      for (cp = coptarg; ISDIGIT (cp[0]); ++cp)
-                        ;
-
-                      if (i < 1 || cp[0] != '\0')
+                      if (err || i == 0)
                         {
                           error (NILF, 0,
                                  _("the '-%c' option requires a positive integer argument"),

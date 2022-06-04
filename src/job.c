@@ -2065,8 +2065,8 @@ load_too_high (void)
 
               if (p && ISDIGIT(p[1]))
                 {
-                  int cnt = atoi (p+1);
-                  DB (DB_JOBS, ("Running: system = %d / make = %u (max requested = %f)\n",
+                  unsigned int cnt = make_toui (p+1, NULL);
+                  DB (DB_JOBS, ("Running: system = %u / make = %u (max requested = %f)\n",
                                 cnt, job_slots_used, max_load_average));
                   return (double)cnt > max_load_average;
                 }

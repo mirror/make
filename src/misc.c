@@ -34,6 +34,25 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # include <sys/file.h>
 #endif
 
+unsigned int
+make_toui (const char *str, const char **error)
+{
+  char *end;
+  unsigned long val = strtoul (str, &end, 10);
+
+  if (error)
+    {
+      if (str[0] == '\0')
+        *error = "Missing value";
+      else if (*end != '\0')
+        *error = "Invalid value";
+      else
+        *error = NULL;
+    }
+
+  return val;
+}
+
 /* Compare strings *S1 and *S2.
    Return negative if the first is less, positive if it is greater,
    zero if they are equal.  */

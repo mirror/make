@@ -441,7 +441,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
 # endif
 #endif
   char *namemap = 0;
-  int namemap_size = 0;
+  unsigned int namemap_size = 0;
   int desc = open (archive, O_RDONLY, 0);
   if (desc < 0)
     return -1;
@@ -541,7 +541,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
 
     while (1)
       {
-        int nread;
+        ssize_t nread;
         struct ar_hdr member_header;
 #ifdef AIAMAGBIG
         struct ar_hdr_big member_header_big;
@@ -696,10 +696,11 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
               && (name[0] == ' ' || name[0] == '/')
               && namemap != 0)
             {
-              int name_off = atoi (name + 1);
-              int name_len;
+              const char* err;
+              unsigned int name_off = make_toui (name + 1, &err);
+              size_t name_len;
 
-              if (name_off < 0 || name_off >= namemap_size)
+              if (err|| name_off >= namemap_size)
                 goto invalid;
 
               name = namemap + name_off;
@@ -712,9 +713,10 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
                    && name[1] == '1'
                    && name[2] == '/')
             {
-              int name_len = atoi (name + 3);
+              const char* err;
+              unsigned int name_len = make_toui (name + 3, &err);
 
-              if (name_len < 1)
+              if (err || name_len == 0 || name_len > PATH_MAX)
                 goto invalid;
 
               name = alloca (name_len + 1);
