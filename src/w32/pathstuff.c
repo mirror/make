@@ -100,13 +100,17 @@ w32ify(const char *filename, int resolve)
     char *p;
 
     if (resolve)
-        _fullpath(w32_path, filename, sizeof (w32_path));
+      {
+        char *fp = _fullpath (NULL, filename, sizeof (w32_path));
+        strncpy (w32_path, fp, sizeof (w32_path));
+        free (fp);
+      }
     else
-        strncpy(w32_path, filename, sizeof (w32_path));
+      strncpy(w32_path, filename, sizeof (w32_path));
 
     for (p = w32_path; p && *p; p++)
-        if (*p == '\\')
-            *p = '/';
+      if (*p == '\\')
+        *p = '/';
 
     return w32_path;
 }
