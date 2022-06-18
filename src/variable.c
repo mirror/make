@@ -1145,10 +1145,7 @@ set_special_var (struct variable *var)
       cmd_prefix = var->value[0]=='\0' ? RECIPEPREFIX_DEFAULT : var->value[0];
     }
   else if (streq (var->name, MAKEFLAGS_NAME))
-    {
-      reset_switches ();
-      decode_env_switches (STRING_SIZE_TUPLE(MAKEFLAGS_NAME));
-    }
+    decode_env_switches (STRING_SIZE_TUPLE(MAKEFLAGS_NAME));
 
   return var;
 }
