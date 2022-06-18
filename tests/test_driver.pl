@@ -59,33 +59,46 @@ $test_passed = 1;
 $test_timeout = 5;
 $test_timeout = 10 if $^O eq 'VMS';
 
+$diff_name = undef;
+
 # Path to Perl
 $perl_name = $^X;
 if ($^O ne 'VMS') {
     $perl_name .= $Config{_exe} unless $perl_name =~ m/$Config{_exe}$/i;
 }
-# If it's a simple name, look it up on PATH
-{
-    my ($v,$d,$f) = File::Spec->splitpath($perl_name);
-    if (!$d) {
-        my $perl = undef;
-        foreach my $p (File::Spec->path()) {
-            my $f = File::Spec->catfile($p, $f);
-            if (-e $f) {
-                $perl = $f;
-                last;
-            }
-        }
-        if ($perl) {
-            $perl_name = $perl;
-        } else {
-            print "Cannot locate Perl interpreter $perl_name\n";
-        }
+
+sub which {
+  my $cmd = $_[0];
+
+  # Poor man's File::Which
+  my ($v,$d,$f) = File::Spec->splitpath($cmd);
+  if ($d) {
+    # The command has a pathname so don't look for it in PATH.
+    # Use forward-slashes even on Windows, else it fails in recipes.
+    (-f $cmd and -x _) or return undef;
+    $cmd =~ tr,\\,/,;
+    return $cmd;
+  }
+
+  my @ext;
+  if ($port_type eq 'UNIX' || $port_type eq 'VMS-DCL') {
+    @ext = ('');
+  } else {
+    @ext = index($f, '.') == -1 ? () : ('');
+    push @ext, split /;/, $ENV{PATHEXT};
+  }
+
+  foreach my $dir (File::Spec->path()) {
+    foreach my $e (@ext) {
+      my $p = File::Spec->catfile($dir, "$cmd$e");
+      (-f $p and -x _) or next;
+      # Use forward-slashes even on Windows, else it fails in recipes.
+      $p =~ tr,\\,/,;
+      return $p;
     }
+  }
+  return undef;
 }
-# Make sure it uses forward-slashes even on Windows, else it won't work
-# in recipes
-$perl_name =~ tr,\\,/,;
 
 # %makeENV is the cleaned-out environment.  Tests must not modify it.
 %makeENV = ();
@@ -185,7 +198,7 @@ sub toplevel
            # Purify things
            'PURIFYOPTIONS',
            # Windows-specific things
-           'Path', 'SystemRoot', 'TEMP', 'TMP', 'USERPROFILE',
+           'Path', 'SystemRoot', 'TEMP', 'TMP', 'USERPROFILE', 'PATHEXT',
            # DJGPP-specific things
            'DJDIR', 'DJGPP', 'SHELL', 'COMSPEC', 'HOSTNAME', 'LFN',
            'FNCASE', '387', 'EMU387', 'GROUP'
@@ -221,6 +234,14 @@ sub toplevel
   $cwdslash = "";             # $cwd . $pathsep, but "" rather than "./"
 
   &get_osname;  # sets $osname, $vos, $pathsep, and $short_filenames
+
+  $perl_name = which($perl_name);
+
+  # See if we have a diff
+  $diff_name = which('diff');
+  if (!$diff_name) {
+      print "No diff found; differences will not be shown\n";
+  }
 
   &set_defaults;  # suite-defined
 
@@ -941,9 +962,13 @@ sub compare_output
     print "\nCreating Difference File ...\n" if $debug;
 
     # Create the difference file
-
-    my $command = "diff -c " . &get_basefile . " " . $logfile;
-    &run_command_with_output(get_difffile(), $command);
+    my $base = get_basefile();
+    if ($diff_name) {
+        my $command = "$diff_name -c $base $logfile";
+        &run_command_with_output(get_difffile(), $command);
+    } else {
+        create_file(get_difffile(), "Log file $logfile differs from base file $base\n");
+    }
   }
 
   return 0;
