@@ -1413,7 +1413,7 @@ main (int argc, char **argv, char **envp)
 
         /* If this is MAKE_RESTARTS, check to see if the "already printed
            the enter statement" flag is set.  */
-        if (len == 13 && memcmp (envp[i], "MAKE_RESTARTS", 13) == 0)
+        if (len == 13 && memcmp (envp[i], STRING_SIZE_TUPLE ("MAKE_RESTARTS")) == 0)
           {
             if (*ep == '-')
               {
@@ -1480,10 +1480,13 @@ main (int argc, char **argv, char **envp)
 #endif
 
   /* Decode the switches.  */
-  decode_env_switches (STRING_SIZE_TUPLE (GNUMAKEFLAGS_NAME));
+  if (lookup_variable (STRING_SIZE_TUPLE (GNUMAKEFLAGS_NAME)))
+    {
+      decode_env_switches (STRING_SIZE_TUPLE (GNUMAKEFLAGS_NAME));
 
-  /* Clear GNUMAKEFLAGS to avoid duplication.  */
-  define_variable_cname (GNUMAKEFLAGS_NAME, "", o_env, 0);
+      /* Clear GNUMAKEFLAGS to avoid duplication.  */
+      define_variable_cname (GNUMAKEFLAGS_NAME, "", o_env, 0);
+    }
 
   decode_env_switches (STRING_SIZE_TUPLE (MAKEFLAGS_NAME));
 

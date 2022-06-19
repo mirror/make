@@ -39,4 +39,16 @@ x.mk: ; @echo $@; echo MAKEFLAGS = $$MAKEFLAGS; echo GNUMAKEFLAGS = $$GNUMAKEFLA
 
 unlink('x.mk');
 
+# Ensure that we don't add GNUMAKEFLAGS to the environment if it's not there
+run_make_test(q!
+all: ; @env | grep GNUMAKEFLAGS; true
+!,
+              '', '');
+
+$ENV{GNUMAKEFLAGS} = '-Itst/bad';
+run_make_test(q!
+all: ; @env | grep GNUMAKEFLAGS; true
+!,
+              '', 'GNUMAKEFLAGS=');
+
 1;
