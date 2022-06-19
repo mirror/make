@@ -69,10 +69,20 @@ $answer = "EXTRA EXTRA\n";
 
 unlink("defs.h","test.h","config.h","extra.h");
 
+# sv 62650.
+# Test the message that make prints when a file found by directory search
+# is preferred over the local one.
+run_make_test(q!
+vpath hello.c src
+all: hello.c; $(info $@ from $^)
+hello.c: ; $(info 1 $@)
+src/hello.c: ; $(info 2 $@)
+!, '',
+    "#MAKEFILE#:4: Recipe was specified for file 'hello.c' at #MAKEFILE#:4,
+#MAKEFILE#:4: but 'hello.c' is now considered the same file as 'src/hello.c'.
+#MAKEFILE#:4: Recipe for 'hello.c' will be ignored in favor of the one for 'src/hello.c'.
+2 src/hello.c
+all from src/hello.c
+#MAKE#: 'all' is up to date.\n");
+
 1;
-
-
-
-
-
-

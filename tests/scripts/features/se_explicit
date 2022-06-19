@@ -185,9 +185,9 @@ foo: $$@.o ;
 # Not creating libcat.a here prevents segfault,
 libcat.a: ; @touch $@
 !,
-              '', q!#MAKEFILE#:16: Recipe was specified for file '-lcat' at #MAKEFILE#:19,
+              '', q!#MAKEFILE#:16: Recipe was specified for file '-lcat' at #MAKEFILE#:16,
 #MAKEFILE#:16: but '-lcat' is now considered the same file as 'libcat.a'.
-#MAKEFILE#:16: Recipe for 'libcat.a' will be ignored in favor of the one for '-lcat'.!);
+#MAKEFILE#:16: Recipe for '-lcat' will be ignored in favor of the one for 'libcat.a'.!);
 unlink('libcat.a');
 
 # SV 28456 : Don't reset $$< for default recipes
