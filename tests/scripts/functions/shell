@@ -32,14 +32,61 @@ foo: ; echo '$(FOO)'
 !,
               '', "echo '#'\n#\n");
 
-# Test shells inside exported environment variables.
-# This is the test that fails if we try to put make exported variables into
-# the environment for a $(shell ...) call.
+# Test that exported variables are passed to $(shell ...)
+$ENV{FOO} = 'baz';
+run_make_test(q!
+OUT = $(shell echo $$FOO)
+foo: ; @echo '$(OUT)'
+!,
+              '', 'baz');
+
+$ENV{FOO} = 'baz';
+run_make_test(q!
+FOO = bar
+OUT = $(shell echo $$FOO)
+foo: ; @echo '$(OUT)'
+!,
+              '', 'bar');
+
+run_make_test(q!
+export FOO = bar
+OUT = $(shell echo $$FOO)
+foo: ; @echo '$(OUT)'
+!,
+              '', 'bar');
+
+# Test shells inside exported environment variables, simply expanded.
+run_make_test('
+export HI := $(shell echo hi)
+.PHONY: all
+all: ; @echo $$HI
+',
+              '','hi');
+
+# Test shells inside exported environment variables.  See SV 10593
 run_make_test('
 export HI = $(shell echo hi)
 .PHONY: all
 all: ; @echo $$HI
-    ','','hi');
+',
+              '',"hi");
+
+$ENV{HI} = 'foo';
+run_make_test('
+HI = $(shell echo hi)
+.PHONY: all
+all: ; @echo $$HI
+',
+              '',"hi");
+
+$ENV{HI} = 'foo';
+run_make_test('
+HI = $(shell echo hi)
+bad := $(HI)
+.PHONY: all
+all: ; @echo $$HI $(bad)
+',
+              '',"hi hi");
 
 if ($port_type ne 'W32') {
     # Test shell errors in recipes including offset

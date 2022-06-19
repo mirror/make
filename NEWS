@@ -33,6 +33,12 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   variable that was visible while parsing makefiles.  Now, all options
   are available in MAKEFLAGS.
 
+* WARNING: Backward-incompatibility!
+  Previously makefile variables marked as export were not exported to commands
+  started by the $(shell ...) function.  Now, all exported variables are
+  exported to $(shell ...).
+  To detect this change search for 'shell-export' in the .FEATURES variable.
+
 * WARNING: New build requirement
   GNU make utilizes facilities from GNU Gnulib: Gnulib requires certain C99
   features in the C compiler and so these features are required by GNU make:

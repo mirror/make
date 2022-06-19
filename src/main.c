@@ -1344,6 +1344,7 @@ main (int argc, char **argv, char **envp)
     const char *features = "target-specific order-only second-expansion"
                            " else-if shortest-stem undefine oneshell nocomment"
                            " grouped-target extra-prereqs notintermediate"
+                           " shell-export"
 #ifndef NO_ARCHIVES
                            " archives"
 #endif

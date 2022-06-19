@@ -8616,6 +8616,23 @@ using a very strange shell, this has the same result as
 @w{@samp{$(wildcard *.c)}} (as long as at least one @samp{.c} file
 exists).@refill
 
+All variables that are marked as @code{export} will also be passed to the
+shell started by the @code{shell} function.  It is possible to create a
+variable expansion loop: consider this @file{makefile}:
+
+@example
+export HI = $(shell echo hi)
+all: ; @@echo $$HI
+@end example
+
+When @code{make} wants to run the recipe it must add the variable @var{HI} to
+the environment; to do so it must be expanded.  The value of this variable
+requires an invocation of the @code{shell} function, and to invoke it we must
+create its environment.  Since @var{HI} is exported, we need to expand it to
+create its environment.  And so on.  In this obscure case @code{make} will not
+add recursively-expanded variables to the @code{shell} environment rather than
+fail with an error.
+
 @node Guile Function,  , Shell Function, Functions
 @section The @code{guile} Function
 @findex guile

@@ -1117,6 +1117,20 @@ reap_children (int block, int err)
 
 /* Free the storage allocated for CHILD.  */
 
+void
+free_childbase (struct childbase *child)
+{
+  if (child->environment != 0)
+    {
+      char **ep = child->environment;
+      while (*ep != 0)
+        free (*ep++);
+      free (child->environment);
+    }
+
+  free (child->cmd_name);
+}
+
 static void
 free_child (struct child *child)
 {
@@ -1149,15 +1163,8 @@ free_child (struct child *child)
       free (child->command_lines);
     }
 
-  if (child->environment != 0)
-    {
-      char **ep = child->environment;
-      while (*ep != 0)
-        free (*ep++);
-      free (child->environment);
-    }
+  free_childbase ((struct childbase*)child);
 
-  free (child->cmd_name);
   free (child);
 }
 

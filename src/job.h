@@ -73,6 +73,7 @@ int is_bourne_compatible_shell(const char *path);
 void new_job (struct file *file);
 void reap_children (int block, int err);
 void start_waiting_jobs (void);
+void free_childbase (struct childbase* child);
 
 char **construct_command_argv (char *line, char **restp, struct file *file,
                                int cmd_flags, char** batch_file);

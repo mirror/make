@@ -19,6 +19,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <assert.h>
 
 #include "filedef.h"
+#include "debug.h"
 #include "dep.h"
 #include "job.h"
 #include "commands.h"
@@ -1099,17 +1100,24 @@ target_environment (struct file *file)
         /* If V is recursively expanded and didn't come from the environment,
            expand its value.  If it came from the environment, it should
            go back into the environment unchanged.  */
-        if (v->recursive
-            && v->origin != o_env && v->origin != o_env_override)
+        if (v->recursive && v->origin != o_env && v->origin != o_env_override)
           {
-            char *value = recursively_expand_for_file (v, file);
+            /* If V is being recursively expanded and this is for a shell
+               function, just skip it.  */
+            if (v->expanding && file == NULL)
+              DB (DB_VERBOSE, (_("%s:%lu: Skipping export of %s to shell function due to recursive expansion"),
+                               v->fileinfo.filenm, v->fileinfo.lineno, v->name));
+            else
+              {
+                char *value = recursively_expand_for_file (v, file);
 #ifdef WINDOWS32
-            if (strcmp (v->name, "Path") == 0 ||
-                strcmp (v->name, "PATH") == 0)
-              convert_Path_to_windows32 (value, ';');
+                if (strcmp (v->name, "Path") == 0 ||
+                    strcmp (v->name, "PATH") == 0)
+                  convert_Path_to_windows32 (value, ';');
 #endif
-            *result++ = xstrdup (concat (3, v->name, "=", value));
-            free (value);
+                *result++ = xstrdup (concat (3, v->name, "=", value));
+                free (value);
+              }
           }
         else
           {
@@ -1858,21 +1866,20 @@ print_target_variables (const struct file *file)
 
 #ifdef WINDOWS32
 void
-sync_Path_environment (void)
+sync_Path_environment ()
 {
-  char *path = allocated_variable_expand ("$(PATH)");
   static char *environ_path = NULL;
+  char *oldpath = environ_path;
+  char *path = allocated_variable_expand ("PATH=$(PATH)");
 
   if (!path)
     return;
 
-  /* If done this before, free the previous entry before allocating new one.  */
-  free (environ_path);
-
-  /* Create something WINDOWS32 world can grok.  */
+  /* Convert PATH into something WINDOWS32 world can grok.  */
   convert_Path_to_windows32 (path, ';');
-  environ_path = xstrdup (concat (3, "PATH", "=", path));
+
+  environ_path = path;
   putenv (environ_path);
-  free (path);
+  free (oldpath);
 }
 #endif
