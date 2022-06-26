@@ -136,7 +136,7 @@ AS_IF([test "$ac_cv_func_gettimeofday" = yes],
 AC_CHECK_FUNCS([strtoll strdup strndup memrchr mempcpy umask mkstemp mktemp \
                 fdopen dup dup2 getcwd realpath sigsetmask sigaction \
                 getgroups seteuid setegid setlinebuf setreuid setregid \
-                getrlimit setrlimit setvbuf pipe strsignal \
+                getrlimit setrlimit setvbuf pipe strerror strsignal \
                 lstat readlink atexit isatty ttyname pselect posix_spawn \
                 posix_spawnattr_setsigmask])
 

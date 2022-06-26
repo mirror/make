@@ -891,3 +891,122 @@ mempcpy (void *dest, const void *src, size_t n)
 # define QUAD 1
 # include <strtol.c>
 #endif
+
+#if !HAVE_STRERROR
+char *
+strerror (int errnum)
+{
+  static char msg[256];
+
+#define SETMSG(_e, _m) case _e: strcpy(msg, _m); break
+
+  switch (errnum)
+    {
+#ifdef EPERM
+    SETMSG (EPERM  , "Operation not permitted");
+#endif
+#ifdef ENOENT
+    SETMSG (ENOENT , "No such file or directory");
+#endif
+#ifdef ESRCH
+    SETMSG (ESRCH  , "No such process");
+#endif
+#ifdef EINTR
+    SETMSG (EINTR  , "Interrupted system call");
+#endif
+#ifdef EIO
+    SETMSG (EIO    , "I/O error");
+#endif
+#ifdef ENXIO
+    SETMSG (ENXIO  , "No such device or address");
+#endif
+#ifdef E2BIG
+    SETMSG (E2BIG  , "Argument list too long");
+#endif
+#ifdef ENOEXEC
+    SETMSG (ENOEXEC, "Exec format error");
+#endif
+#ifdef EBADF
+    SETMSG (EBADF  , "Bad file number");
+#endif
+#ifdef ECHILD
+    SETMSG (ECHILD , "No child processes");
+#endif
+#ifdef EAGAIN
+    SETMSG (EAGAIN , "Try again");
+#endif
+#ifdef ENOMEM
+    SETMSG (ENOMEM , "Out of memory");
+#endif
+#ifdef EACCES
+    SETMSG (EACCES , "Permission denied");
+#endif
+#ifdef EFAULT
+    SETMSG (EFAULT , "Bad address");
+#endif
+#ifdef ENOTBLK
+    SETMSG (ENOTBLK, "Block device required");
+#endif
+#ifdef EBUSY
+    SETMSG (EBUSY  , "Device or resource busy");
+#endif
+#ifdef EEXIST
+    SETMSG (EEXIST , "File exists");
+#endif
+#ifdef EXDEV
+    SETMSG (EXDEV  , "Cross-device link");
+#endif
+#ifdef ENODEV
+    SETMSG (ENODEV , "No such device");
+#endif
+#ifdef ENOTDIR
+    SETMSG (ENOTDIR, "Not a directory");
+#endif
+#ifdef EISDIR
+    SETMSG (EISDIR , "Is a directory");
+#endif
+#ifdef EINVAL
+    SETMSG (EINVAL , "Invalid argument");
+#endif
+#ifdef ENFILE
+    SETMSG (ENFILE , "File table overflow");
+#endif
+#ifdef EMFILE
+    SETMSG (EMFILE , "Too many open files");
+#endif
+#ifdef ENOTTY
+    SETMSG (ENOTTY , "Not a typewriter");
+#endif
+#ifdef ETXTBSY
+    SETMSG (ETXTBSY, "Text file busy");
+#endif
+#ifdef EFBIG
+    SETMSG (EFBIG  , "File too large");
+#endif
+#ifdef ENOSPC
+    SETMSG (ENOSPC , "No space left on device");
+#endif
+#ifdef ESPIPE
+    SETMSG (ESPIPE , "Illegal seek");
+#endif
+#ifdef EROFS
+    SETMSG (EROFS  , "Read-only file system");
+#endif
+#ifdef EMLINK
+    SETMSG (EMLINK , "Too many links");
+#endif
+#ifdef EPIPE
+    SETMSG (EPIPE  , "Broken pipe");
+#endif
+#ifdef EDOM
+    SETMSG (EDOM   , "Math argument out of domain of func");
+#endif
+#ifdef ERANGE
+    SETMSG (ERANGE , "Math result not representable");
+#endif
+    default: sprintf (msg, "Unknown error %d", errnum); break;
+    }
+
+  return msg;
+}
+#endif
