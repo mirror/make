@@ -883,3 +883,11 @@ mempcpy (void *dest, const void *src, size_t n)
   return (char *) memcpy (dest, src, n) + n;
 }
 #endif
+
+#if !HAVE_STRTOLL
+# undef UNSIGNED
+# undef USE_NUMBER_GROUPING
+# undef USE_WIDE_CHAR
+# define QUAD 1
+# include <strtol.c>
+#endif
