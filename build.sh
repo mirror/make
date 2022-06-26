@@ -57,7 +57,12 @@ compile ()
 {
   objs=
   for ofile in "$@"; do
+    # We should try to use a Makefile variable like libgnu_a_SOURCES or
+    # something but just hardcode it.
     file="${ofile%.$OBJEXT}.c"
+    case $file in
+        (lib/libgnu_a-*.c) file="lib/${file#lib/libgnu_a-}" ;;
+    esac
     echo "compiling $file..."
     of="$OUTDIR/$ofile"
     mkdir -p "${of%/*}"
@@ -75,10 +80,13 @@ convert ()
   var="GENERATE_$(echo $base | tr 'a-z./+' A-Z__X)"
 
   # Is this file disabled?
-  grep "${var}_FALSE\"]=\"\"" config.status >/dev/null && return
+  grep "${var}_FALSE\"]=\"\"" config.status >/dev/null && return 0
+
+  # If there's no .in file then no conversion needed
+  in="$top_srcdir/lib/$(echo ${base%.*}.in.${base##*.} | tr / _)"
+  test -f "$in" || return 0
 
   # Not disabled, so create it
-  in="$top_srcdir/lib/$(echo ${base%.*}.in.${base##*.} | tr / _)"
   out="$OUTLIB/$base"
   mkdir -p "${out%/*}"
 
