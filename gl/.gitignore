@@ -1,0 +1,10 @@
+*~
+#*
+.#*
+.*cache
+*.diff
+*.patch
+*.orig
+*.rej
+*.out
+*.log

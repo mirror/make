@@ -1,0 +1,65 @@
+04 July 2022                                                         -*-text-*-
+
+The gnulib project provides a fantastic array of modules that can support both
+POSIX and also extended features for GNU software.
+
+Unfortunately using it in GNU make is problematic: GNU make is a foundational
+utility (if you don't have a "make" program you pretty much can't build any
+software), one of our goals in GNU make is to provide scripts (e.g.,
+"build.sh") that will build GNU make without needing an instance of make.
+
+Instead of running "./configure && make", you should be able to run
+"./configure && ./build.sh" and get a build of GNU make as a result.
+
+However, more and more gnulib modules are relying not on M4 macros and
+the configure script to manage their configuration, but in addition special
+makefile recipes that perform various post-configure operations.  Since we
+don't have an instance of "make", we cannot use these modules as-is.
+
+There are various options we could choose for solving this:
+
+- Avoid gnulib modules and write our own portability interfaces.
+  I really am not too excited about this.
+
+- Give up on "build.sh" and require users to already have "make".
+  The argument here is that you must already have a compiler, and it couldn't
+  have been built without "make", and/or if you build it with a cross-compiler
+  then you should be able to use that cross-development environment to build
+  GNU make as well.
+
+- Provide a "mini-make" with just enough functionality to support the gnulib
+  makefiles but no extra features, that didn't need any complex gnulib
+  modules.  As with the first option, I'm not too excited about this.
+
+Although arguably the second option is the sane one, I'm not really excited
+about any of them for the time being.  So I elected to try something between
+the first and second options:
+
+The gnulib-port Git branch will contain unmodified copies of gnulib modules
+that we want to use with GNU make.  From there, we merge them into the main
+Git branch then modify / simplify them to avoid unnecessary extra modules and
+allow "build.sh" to be used.
+
+By keeping the unmodified versions on the gnulib-port branch, we enable Git
+merge facilities to merge in new versions as follows:
+
+* Check out the gnulib-port branch
+
+* Update its content with any updates to gnulib modules.  Something like:
+  (
+    cd gl \
+      && find */. -type f \
+        | while read fn; do
+            test -f "$GNULIB_SRCDIR/$fn" && cp "$GNULIB_SRCDIR/$fn" "$fn"
+          done
+  )
+
+* Commit the changes _without modification_
+
+* Check out the main branch
+
+* Run "git merge --no-ff gnulib-port" to merge in the changes
+
+* Resolve any conflicts and commit the merge.
+
+-- pds
