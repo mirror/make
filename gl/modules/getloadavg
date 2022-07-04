@@ -1,0 +1,39 @@
+Description:
+Return the current system load averages.
+
+Files:
+lib/getloadavg.c
+m4/getloadavg.m4
+
+Depends-on:
+extensions
+intprops  [test $HAVE_GETLOADAVG = 0]
+open      [case $host_os in mingw*) false;; *) test $HAVE_GETLOADAVG = 0;; esac]
+stdbool   [test $HAVE_GETLOADAVG = 0]
+stdlib    [test $HAVE_GETLOADAVG = 0]
+
+configure.ac:
+AC_REQUIRE([AC_CANONICAL_HOST])
+gl_GETLOADAVG
+gl_CONDITIONAL([GL_COND_OBJ_GETLOADAVG], [test $HAVE_GETLOADAVG = 0])
+AM_COND_IF([GL_COND_OBJ_GETLOADAVG], [
+  gl_PREREQ_GETLOADAVG
+])
+gl_STDLIB_MODULE_INDICATOR([getloadavg])
+
+Makefile.am:
+if GL_COND_OBJ_GETLOADAVG
+lib_SOURCES += getloadavg.c
+endif
+
+Include:
+<stdlib.h>
+
+Link:
+$(GETLOADAVG_LIBS)
+
+License:
+GPL
+
+Maintainer:
+Jim Meyering
