@@ -50,10 +50,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Use high resolution file timestamps if nonzero. */
 #define FILE_TIMESTAMP_HI_RES 0
 
-/* Define to 1 if the 'getloadavg' function needs to be run setuid or setgid.
-   */
-/* #undef GETLOADAVG_PRIVILEGED */
-
 /* Define to 1 if you have 'alloca', as a function or macro. */
 #define HAVE_ALLOCA 1
 

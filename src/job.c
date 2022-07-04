@@ -2105,7 +2105,6 @@ load_too_high (void)
     }
 
   /* Find the real system load average.  */
-  make_access ();
   if (getloadavg (&load, 1) != 1)
     {
       static int lossage = -1;
@@ -2122,7 +2121,6 @@ load_too_high (void)
       lossage = errno;
       load = 0;
     }
-  user_access ();
 
   /* If we're in a new second zero the counter and correct the backlog
      value.  Only keep the backlog for one extra second; after that it's 0.  */
@@ -2547,9 +2545,6 @@ exec_command (char **argv, char **envp)
 #else  /* !WINDOWS32 */
 
   pid_t pid = -1;
-
-  /* Be the user, permanently.  */
-  child_access ();
 
 # ifdef __EMX__
   /* Run the program.  */

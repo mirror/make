@@ -1301,9 +1301,6 @@ main (int argc, char **argv, char **envp)
 #endif
     }
 
-  /* Set up to access user data (files).  */
-  user_access ();
-
   initialize_global_hash_tables ();
 
   /* Figure out where we are.  */

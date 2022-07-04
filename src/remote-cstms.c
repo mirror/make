@@ -77,18 +77,11 @@ start_remote_job_p (int first_p)
           return 0;
         }
 
-      /* For secure Customs, make is installed setuid root and
-         Customs requires a privileged source port be used.  */
-      make_access ();
-
       if (ISDB (DB_JOBS))
         Rpc_Debug (1);
 
       /* Ping the daemon once to see if it is there.  */
       inited = Customs_Ping () == RPC_SUCCESS ? 1 : -1;
-
-      /* Return to normal user access.  */
-      user_access ();
 
       if (starting_directory == 0)
         /* main couldn't figure it out.  */
@@ -175,7 +168,7 @@ start_remote_job (char **argv, char **envp, int stdin_fd,
   len = Customs_MakeWayBill (&permit, normalized_cwd, argv[0], argv,
                              envp, retport, waybill);
 
-  /* Modify the waybill as if the remote child had done 'child_access ()'.  */
+  /* Modify the waybill for the child's uid/gid.  */
   {
     WayBill *wb = (WayBill *) waybill;
     wb->ruid = wb->euid;
