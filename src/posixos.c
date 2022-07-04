@@ -356,7 +356,7 @@ jobserver_acquire (int timeout)
    during the section mentioned above, the read(2) will be invoked with an
    invalid FD and will return immediately with EBADF.  */
 
-static RETSIGTYPE
+static void
 job_noop (int sig UNUSED)
 {
 }

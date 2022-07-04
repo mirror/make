@@ -18,7 +18,7 @@
 
 AC_INIT([GNU make],[4.3.90],[bug-make@gnu.org])
 
-AC_PREREQ([2.69])
+AC_PREREQ([2.71])
 
 # Autoconf setup
 AC_CONFIG_AUX_DIR([build-aux])
@@ -38,9 +38,6 @@ AM_INIT_AUTOMAKE([1.16.1 foreign -Werror -Wall])
 AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
 
-# GNU Gnulib requires C99, so I guess we might as well too...
-AC_PROG_CC_C99
-
 # Configure gnulib
 gl_EARLY
 gl_INIT
@@ -54,9 +51,6 @@ AC_CHECK_PROG([PERL], [perl], [perl], [perl])
 
 # Specialized system macros
 AC_CANONICAL_HOST
-AC_AIX
-AC_ISC_POSIX
-AC_MINIX
 AC_C_BIGENDIAN
 
 # Enable gettext, in "external" mode.
@@ -69,20 +63,18 @@ AM_GNU_GETTEXT([external])
 AC_SYS_LARGEFILE
 
 # Checks for libraries.
+AC_SEARCH_LIBS([strerror],[cposix])
 AC_SEARCH_LIBS([getpwnam], [sun])
 
-# Checks for header files.
-AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_STAT
-AC_HEADER_TIME
+
 AC_CHECK_HEADERS([stdlib.h locale.h unistd.h limits.h fcntl.h string.h \
-                  memory.h sys/param.h sys/resource.h sys/time.h sys/timeb.h \
+                  memory.h sys/param.h sys/resource.h sys/timeb.h sys/time.h \
                   sys/select.h sys/file.h spawn.h])
 
 AM_PROG_CC_C_O
 AC_C_CONST
-AC_TYPE_SIGNAL
 AC_TYPE_UID_T
 AC_TYPE_PID_T
 AC_TYPE_OFF_T
@@ -254,8 +246,7 @@ AS_IF([test "$PATH_SEPARATOR" = ';'],
 AC_SUBST([REMOTE]) REMOTE=stub
 use_customs=false
 AC_ARG_WITH([customs],
-[AC_HELP_STRING([--with-customs=DIR],
-                [enable remote jobs via Customs--see README.customs])],
+[AS_HELP_STRING([--with-customs=DIR],[enable remote jobs via Customs--see README.customs])],
 [ AS_CASE([$withval], [n|no], [:],
     [make_cppflags="$CPPFLAGS"
      AS_CASE([$withval],
@@ -278,14 +269,12 @@ AM_CONDITIONAL([USE_CUSTOMS], [test "$use_customs" = true])
 # See if the user asked to handle case insensitive file systems.
 AH_TEMPLATE([HAVE_CASE_INSENSITIVE_FS], [Use case insensitive file names])
 AC_ARG_ENABLE([case-insensitive-file-system],
-  AC_HELP_STRING([--enable-case-insensitive-file-system],
-                 [assume file systems are case insensitive]),
+  AS_HELP_STRING([--enable-case-insensitive-file-system],[assume file systems are case insensitive]),
   [AS_IF([test "$enableval" = yes], [AC_DEFINE([HAVE_CASE_INSENSITIVE_FS])])])
 
 # See if we can handle the job server feature, and if the user wants it.
 AC_ARG_ENABLE([job-server],
-  AC_HELP_STRING([--disable-job-server],
-                 [disallow recursive make communication during -jN]),
+  AS_HELP_STRING([--disable-job-server],[disallow recursive make communication during -jN]),
   [make_cv_job_server="$enableval" user_job_server="$enableval"],
   [make_cv_job_server="yes"])
 
@@ -323,8 +312,7 @@ AC_CHECK_DECLS([dlopen, dlsym, dlerror], [], [],
   [[#include <dlfcn.h>]])
 
 AC_ARG_ENABLE([load],
-  AC_HELP_STRING([--disable-load],
-                 [disable support for the 'load' operation]),
+  AS_HELP_STRING([--disable-load],[disable support for the 'load' operation]),
   [make_cv_load="$enableval" user_load="$enableval"],
   [make_cv_load="yes"])
 
@@ -374,8 +362,7 @@ AS_IF([test "$ac_cv_func_lstat" = yes && test "$ac_cv_func_readlink" = yes],
 # Use posix_spawn if we have support and the user didn't disable it
 
 AC_ARG_ENABLE([posix-spawn],
-  AC_HELP_STRING([--disable-posix-spawn],
-                 [disable support for posix_spawn()]),
+  AS_HELP_STRING([--disable-posix-spawn],[disable support for posix_spawn()]),
   [make_cv_posix_spawn="$enableval" user_posix_spawn="$enableval"],
   [make_cv_posix_spawn="yes"])
 

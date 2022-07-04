@@ -25,7 +25,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "commands.h"
 #include "debug.h"
 
-#include <sys/time.h>
+#if HAVE_SYS_TIME_H
+# include <sys/time.h>
+#endif
 #include <netdb.h>
 
 #include "customs.h"

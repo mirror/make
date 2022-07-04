@@ -607,7 +607,7 @@ int fatal_signal_mask;
 # if !defined HAVE_SIGACTION
 #  define bsd_signal signal
 # else
-typedef RETSIGTYPE (*bsd_signal_ret_t) (int);
+typedef void (*bsd_signal_ret_t) (int);
 
 static bsd_signal_ret_t
 bsd_signal (int sig, bsd_signal_ret_t func)
@@ -724,7 +724,7 @@ expand_command_line_file (const char *name)
 /* Toggle -d on receipt of SIGUSR1.  */
 
 #ifdef SIGUSR1
-static RETSIGTYPE
+static void
 debug_signal_handler (int sig UNUSED)
 {
   db_level = db_level ? DB_NONE : DB_BASIC;

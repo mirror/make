@@ -404,9 +404,6 @@ char *ttyname (int);
 /* Define to the character that separates directories in PATH. */
 #define PATH_SEPARATOR_CHAR ';'
 
-/* Define as the return type of signal handlers ('int' or 'void'). */
-#define RETSIGTYPE void
-
 /* Define to the name of the SCCS 'get' command. */
 #define SCCS_GET "echo no sccs get"
 
@@ -437,11 +434,6 @@ char *ttyname (int);
 
 /* Define to 1 on System V Release 4. */
 /* #undef SVR4 */
-
-/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
-#ifdef __MINGW32__
-#define TIME_WITH_SYS_TIME 1
-#endif
 
 /* Define to 1 for Encore UMAX. */
 /* #undef UMAX */

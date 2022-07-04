@@ -609,7 +609,7 @@ child_error (struct child *child,
 
 static unsigned int dead_children = 0;
 
-RETSIGTYPE
+void
 child_handler (int sig UNUSED)
 {
   ++dead_children;

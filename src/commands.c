@@ -482,7 +482,7 @@ int handling_fatal_signal = 0;
 
 /* Handle fatal signals.  */
 
-RETSIGTYPE
+void
 fatal_error_signal (int sig)
 {
 #ifdef __MSDOS__
