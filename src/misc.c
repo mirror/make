@@ -636,6 +636,21 @@ mempcpy (void *dest, const void *src, size_t n)
 }
 #endif
 
+#if !HAVE_STPCPY
+char *
+stpcpy (char *dest, const char *src)
+{
+  char *d = dest;
+  const char *s = src;
+
+  do
+    *d++ = *s;
+  while (*s++ != '\0');
+
+  return d - 1;
+}
+#endif
+
 #if !HAVE_STRTOLL
 # undef UNSIGNED
 # undef USE_NUMBER_GROUPING
