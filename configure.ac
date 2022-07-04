@@ -148,8 +148,6 @@ AC_CHECK_DECLS([bsd_signal], [], [], [[#define _GNU_SOURCE 1
 
 AC_FUNC_FORK
 
-AC_FUNC_SETVBUF_REVERSED
-
 # Rumor has it that strcasecmp lives in -lresolv on some odd systems.
 # It doesn't hurt much to use our own if we can't find it so I don't
 # make the effort here.

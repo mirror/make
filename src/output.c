@@ -464,12 +464,7 @@ output_init (struct output *out)
   /* Configure this instance of make.  Be sure stdout is line-buffered.  */
 
 #ifdef HAVE_SETVBUF
-# ifdef SETVBUF_REVERSED
-  setvbuf (stdout, _IOLBF, xmalloc (BUFSIZ), BUFSIZ);
-# else  /* setvbuf not reversed.  */
-  /* Some buggy systems lose if we pass 0 instead of allocating ourselves.  */
   setvbuf (stdout, 0, _IOLBF, BUFSIZ);
-# endif /* setvbuf reversed.  */
 #elif HAVE_SETLINEBUF
   setlinebuf (stdout);
 #endif  /* setlinebuf missing.  */
