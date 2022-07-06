@@ -185,9 +185,9 @@ sub valid_option
 
    if ($option =~ /^-make([-_]?path)?$/i) {
        $make_path = shift @argv;
-       if (!-f $make_path) {
+       if (! -f $make_path) {
            print "$option $make_path: Not found.\n";
-           exit 0;
+           exit 1;
        }
        return 1;
    }
@@ -196,7 +196,7 @@ sub valid_option
        $srcdir = shift @argv;
        if (! -f File::Spec->catfile($srcdir, 'src', 'gnumake.h')) {
            print "$option $srcdir: Not a valid GNU make source directory.\n";
-           exit 0;
+           exit 1;
        }
        return 1;
    }
