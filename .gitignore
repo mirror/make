@@ -18,6 +18,7 @@ GTAGS
 
 # Configure artifacts
 /lib/
+/m4/
 ABOUT-NLS
 INSTALL
 Makefile

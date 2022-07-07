@@ -110,9 +110,6 @@ AS_IF([test "$make_cv_file_timestamp_hi_res" = yes],
   ])
 ])
 
-# Check for DOS-style pathnames.
-pds_AC_DOS_PATHS
-
 # See if we have a standard version of gettimeofday().  Since actual
 # implementations can differ, just make sure we have the most common
 # one.

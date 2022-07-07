@@ -1,0 +1,16 @@
+Description:
+Install m4 macros for GNU make.
+
+Files:
+m4/acinclude.m4
+m4/dospaths.m4
+
+configure.ac:
+# Check for DOS-style pathnames.
+pds_AC_DOS_PATHS
+
+License:
+GPLv3+
+
+Maintainer:
+gnumake
