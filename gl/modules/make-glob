@@ -2,6 +2,11 @@ Description:
 GNU make version of fnmatch()/glob() functions.  This is a holdover from
 a very old version of the globbing library.
 
+Files:
+lib/fnmatch.c
+lib/fnmatch.in.h
+lib/glob.c
+lib/glob.in.h
 
 configure.ac:
 # Check the system to see if it provides GNU glob.  If not, use our
@@ -27,7 +32,6 @@ AM_CONDITIONAL([USE_SYSTEM_GLOB], [test "$make_cv_sys_gnu_glob" = yes])
 # Tell build.sh which to use
 USE_SYSTEM_GLOB="$make_cv_sys_gnu_glob"
 AC_SUBST([USE_SYSTEM_GLOB])
-
 
 Makefile.am:
 if !USE_SYSTEM_GLOB
@@ -59,7 +63,6 @@ MOSTLYCLEANFILES += glob.h glob.h-t
 endif
 
 EXTRA_DIST += fnmatch.in.h glob.in.h
-
 
 Include:
 <glob.h>

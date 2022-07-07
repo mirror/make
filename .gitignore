@@ -17,6 +17,7 @@ GTAGS
 *.rej
 
 # Configure artifacts
+/lib/
 ABOUT-NLS
 INSTALL
 Makefile
