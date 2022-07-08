@@ -216,7 +216,7 @@ pid2str (pid_t pid)
   return pidstring;
 }
 
-#ifndef HAVE_GETLOADAVG
+#ifndef HAVE_DECL_GETLOADAVG
 int getloadavg (double loadavg[], int nelem);
 #endif
 

@@ -29,16 +29,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if the 'closedir' function returns void instead of 'int'. */
 /* #undef CLOSEDIR_VOID */
 
-/* Define to one of '_getb67', 'GETB67', 'getb67' for Cray-2 and Cray-YMP
-   systems. This function is required for 'alloca.c' support on those systems.
-   */
-/* #undef CRAY_STACKSEG_END */
-
 /* Define to 1 if using 'alloca.c'. */
 /* #undef C_ALLOCA */
-
-/* Define to 1 if using 'getloadavg.c'. */
-#define C_GETLOADAVG 1
 
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
 /* #undef DGUX */
@@ -50,11 +42,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Use high resolution file timestamps if nonzero. */
 #define FILE_TIMESTAMP_HI_RES 0
 
-/* Define to 1 if you have 'alloca', as a function or macro. */
+/* Define to 1 if you have 'alloca' after including <alloca.h>, a header that
+   may be supplied by this distribution. */
 #define HAVE_ALLOCA 1
 
-/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
-   */
+/* Define to 1 if <alloca.h> works. */
 /* #undef HAVE_ALLOCA_H */
 
 /* Define to 1 if you have the 'atexit' function. */
@@ -66,10 +58,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the clock_gettime function. */
 /* #undef HAVE_CLOCK_GETTIME */
 
-/* Embed GNU Guile support.  Windows build sets this on the
-   compilation command line.  */
-/* #undef HAVE_GUILE */
-
 /* Define if the GNU dcgettext() function is already present or preinstalled.
    */
 /* #undef HAVE_DCGETTEXT */
@@ -77,6 +65,21 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the declaration of 'bsd_signal', and to 0 if you
    don't. */
 #define HAVE_DECL_BSD_SIGNAL 0
+
+/* Define to 1 if you have the declaration of `dlerror', and to 0 if you
+   don't. */
+#define HAVE_DECL_DLERROR 0
+
+/* Define to 1 if you have the declaration of `dlopen', and to 0 if you don't.
+   */
+#define HAVE_DECL_DLOPEN 0
+
+/* Define to 1 if you have the declaration of `dlsym', and to 0 if you don't.
+   */
+#define HAVE_DECL_DLSYM 0
+
+/* Define to 1 if you have the declaration of 'getloadavg'. */
+/* #undef HAVE_DECL_GETLOADAVG */
 
 /* Define to 1 if you have the declaration of 'sys_siglist', and to 0 if you
    don't. */
@@ -104,6 +107,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Use platform specific coding */
 #define HAVE_DOS_PATHS 1
 
+/* Define to 1 if you have the 'dup' function. */
+#define HAVE_DUP 1
+
 /* Define to 1 if you have the 'dup2' function. */
 #define HAVE_DUP2 1
 
@@ -115,8 +121,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_FDOPEN 1
 #endif
 
-/* Define to 1 if you have the 'fileno' function. */
-#define HAVE_FILENO 1
+/* Define to 1 if you have the `fork' function. */
+/* #undef HAVE_FORK */
 
 /* Define to 1 if you have the 'getcwd' function.  */
 #define HAVE_GETCWD 1
@@ -130,9 +136,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the 'gethostname' function. */
 /* #undef HAVE_GETHOSTNAME */
 
-/* Define to 1 if you have the 'getloadavg' function. */
-/* #undef HAVE_GETLOADAVG */
-
 /* Define to 1 if you have the 'getrlimit' function. */
 /* #undef HAVE_GETRLIMIT */
 
@@ -144,6 +147,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_GETTIMEOFDAY 1
 #endif
 
+/* Embed GNU Guile support.  Windows build sets this on the
+   compilation command line.  */
+/* #undef HAVE_GUILE */
+
 /* Define if you have the iconv() function. */
 /* #undef HAVE_ICONV */
 
@@ -152,17 +159,23 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_INTTYPES_H 1
 #endif
 
+/* Define to 1 if you have the `isatty' function. */
+#define HAVE_ISATTY 1
+
 /* Define to 1 if you have the 'dgc' library (-ldgc). */
 /* #undef HAVE_LIBDGC */
 
 /* Define to 1 if you have the 'kstat' library (-lkstat). */
 /* #undef HAVE_LIBKSTAT */
 
+/* Define to 1 if you have the `perfstat' library (-lperfstat). */
+/* #undef HAVE_LIBPERFSTAT */
+
 /* Define to 1 if you have the <limits.h> header file. */
 #define HAVE_LIMITS_H 1
 
 /* Define to 1 if you have the <locale.h> header file. */
-/*#define HAVE_LOCALE_H 1*/
+/* #undef HAVE_LOCALE_H */
 
 /* Define to 1 if you have the 'lstat' function. */
 /* #undef HAVE_LSTAT */
@@ -176,7 +189,16 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `mempcpy' function.  */
 /* #undef HAVE_MEMPCPY */
 
+/* Define to 1 if you have the `memrchr' function. */
+/* #undef HAVE_MEMRCHR */
+
+/* Define to 1 if you have the <minix/config.h> header file. */
+/* #undef HAVE_MINIX_CONFIG_H */
+
 /* Define to 1 if you have the 'mkstemp' function. */
+/* #undef HAVE_MKSTEMP */
+
+/* Define to 1 if you have the `mkstemp' function. */
 /* #undef HAVE_MKSTEMP */
 
 /* Define to 1 if you have the 'mktemp' function. */
@@ -190,6 +212,15 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the 'pipe' function. */
 /* #undef HAVE_PIPE */
+
+/* Define to 1 if you have the `posix_spawn' function. */
+/* #undef HAVE_POSIX_SPAWN */
+
+/* Define to 1 if you have the `posix_spawnattr_setsigmask' function. */
+/* #undef HAVE_POSIX_SPAWNATTR_SETSIGMASK */
+
+/* Define to 1 if you have the `pselect' function. */
+/* #undef HAVE_PSELECT */
 
 /* Define to 1 if you have the 'pstat_getdynamic' function. */
 /* #undef HAVE_PSTAT_GETDYNAMIC */
@@ -212,9 +243,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the 'setlinebuf' function. */
 /* #undef HAVE_SETLINEBUF */
 
-/* Define to 1 if you have the 'setlocale' function. */
-/*#define HAVE_SETLOCALE 1*/
-
 /* Define to 1 if you have the 'setregid' function. */
 /* #undef HAVE_SETREGID */
 
@@ -236,13 +264,22 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the 'socket' function. */
 /* #undef HAVE_SOCKET */
 
+/* Define to 1 if you have the <spawn.h> header file. */
+/* #undef HAVE_SPAWN_H */
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #ifdef __MINGW32__
 #define HAVE_STDINT_H 1
 #endif
 
+/* Define to 1 if you have the <stdio.h> header file. */
+#define HAVE_STDIO_H 1
+
 /* Define to 1 if you have the <stdlib.h> header file. */
 #define HAVE_STDLIB_H 1
+
+/* Define to 1 if you have the `stpcpy' function. */
+/* #undef HAVE_STPCPY */
 
 /* Define to 1 if you have the 'strcasecmp' function. */
 #if defined(__MINGW32__) || defined(__TINYC__)
@@ -258,6 +295,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the 'strdup' function. */
 #define HAVE_STRDUP 1
+
+/* Define to 1 if you have the `strerror' function. */
+#define HAVE_STRERROR 1
 
 /* Define to 1 if you have the 'stricmp' function. */
 #define HAVE_STRICMP 1
@@ -298,24 +338,18 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define HAVE_STRUCT_DIRENT_D_TYPE 1
 #endif
 
-/* Define to 1 if you have the `isatty' function. */
-#define HAVE_ISATTY 1
-
-/* Define to 1 if you have the `ttyname' function. */
-#define HAVE_TTYNAME 1
-char *ttyname (int);
-
-/* Define to 1 if you have the `umask' function. */
-#if defined(__MINGW32__) || defined(__TINYC__)
-# define HAVE_UMASK 1
-#endif
-
 /* Define to 1 if 'n_un.n_name' is a member of 'struct nlist'. */
 /* #undef HAVE_STRUCT_NLIST_N_UN_N_NAME */
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines 'DIR'.
    */
 /* #undef HAVE_SYS_DIR_H */
+
+/* Define to 1 if you have the <sys/file.h> header file. */
+/* #undef HAVE_SYS_FILE_H */
+
+/* Define to 1 if you have the <sys/loadavg.h> header file. */
+/* #undef HAVE_SYS_LOADAVG_H */
 
 /* Define to 1 if you have the <sys/ndir.h> header file, and it defines 'DIR'.
    */
@@ -328,6 +362,9 @@ char *ttyname (int);
 
 /* Define to 1 if you have the <sys/resource.h> header file. */
 /* #undef HAVE_SYS_RESOURCE_H */
+
+/* Define to 1 if you have the <sys/select.h> header file. */
+/* #undef HAVE_SYS_SELECT_H */
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #define HAVE_SYS_STAT_H 1
@@ -346,6 +383,18 @@ char *ttyname (int);
 /* Define to 1 if you have the <sys/wait.h> header file. */
 /* #undef HAVE_SYS_WAIT_H */
 
+/* Define to 1 if you have the `ttyname' function. */
+#define HAVE_TTYNAME 1
+char *ttyname (int);
+
+/* Define to 1 if the system has the type `uintmax_t'. */
+#define HAVE_UINTMAX_T 1
+
+/* Define to 1 if you have the `umask' function. */
+#if defined(__MINGW32__) || defined(__TINYC__)
+# define HAVE_UMASK 1
+#endif
+
 /* Define to 1 if you have the \'union wait' type in <sys/wait.h>. */
 /* #undef HAVE_UNION_WAIT */
 
@@ -354,11 +403,32 @@ char *ttyname (int);
 #define HAVE_UNISTD_H 1
 #endif
 
+/* Define to 1 if the system has the type 'unsigned long long int'. */
+#define HAVE_UNSIGNED_LONG_LONG_INT 1
+
+/* Define to 1 if you have the `vfork' function. */
+/* #undef HAVE_VFORK */
+
+/* Define to 1 if you have the <vfork.h> header file. */
+/* #undef HAVE_VFORK_H */
+
 /* Define to 1 if you have the 'wait3' function. */
 /* #undef HAVE_WAIT3 */
 
 /* Define to 1 if you have the 'waitpid' function. */
 /* #undef HAVE_WAITPID */
+
+/* Define to 1 if you have the <wchar.h> header file. */
+/* #undef HAVE_WCHAR_H */
+
+/* Define to 1 if `fork' works. */
+/* #undef HAVE_WORKING_FORK */
+
+/* Define to 1 if `vfork' works. */
+/* #undef HAVE_WORKING_VFORK */
+
+/* Define to 1 if the system has the type `_Bool'. */
+/* #undef HAVE__BOOL */
 
 /* Build host information. */
 #define MAKE_HOST "Windows32"
@@ -392,7 +462,7 @@ char *ttyname (int);
 #define PACKAGE_NAME "GNU make"
 
 /* Define to the home page for this package. */
-#define PACKAGE_URL "http://www.gnu.org/software/make/"
+#define PACKAGE_URL "https://www.gnu.org/software/make/"
 
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "%VERSION%"

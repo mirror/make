@@ -78,14 +78,14 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).  */
 /* #undef HAVE_ALLOCA_H */
 
+/* Define to 1 if you have the declaration of 'getloadavg'. */
+/* #undef HAVE_DECL_GETLOADAVG */
+
 /* Define to 1 if you have the fdopen function.  */
 #define HAVE_FDOPEN 1
 
 /* Define to 1 if your system has a working fnmatch function.  */
 /* #undef HAVE_FNMATCH */
-
-/* Define to 1 if your system has its own 'getloadavg' function.  */
-/* #undef HAVE_GETLOADAVG */
 
 /* Define to 1 if you have the getmntent function.  */
 /* #undef HAVE_GETMNTENT */
@@ -204,6 +204,18 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Name of this package (needed by automake) */
 #define PACKAGE "%PACKAGE%"
+
+/* Define to the address where bug reports for this package should be sent. */
+#define PACKAGE_BUGREPORT "bug-make@gnu.org"
+
+/* Define to the full name of this package. */
+#define PACKAGE_NAME "GNU make"
+
+/* Define to the home page for this package. */
+#define PACKAGE_URL "https://www.gnu.org/software/make/"
+
+/* Define to the version of this package. */
+#define PACKAGE_VERSION "%VERSION%"
 
 /* Version of this package (needed by automake) */
 #define VERSION "%VERSION%"

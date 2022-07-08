@@ -437,6 +437,9 @@ AS_CASE([$host],
 AC_DEFINE_UNQUOTED([PATH_SEPARATOR_CHAR],['$PATH_SEPARATOR'],
         [Define to the character that separates directories in PATH.])
 
+AC_DEFINE_UNQUOTED([HAVE_DECL_GETLOADAVG],[$HAVE_DECL_GETLOADAVG],
+        [Define to 1 if you have the declaration of 'getloadavg'.])
+
 # Include the Maintainer's Makefile section, if it's here.
 
 MAINT_MAKEFILE=/dev/null
