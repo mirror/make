@@ -67,8 +67,7 @@ variable_buffer_output (char *ptr, const char *string, size_t length)
       ptr = variable_buffer + offset;
     }
 
-  memcpy (ptr, string, length);
-  return ptr + length;
+  return mempcpy (ptr, string, length);
 }
 
 /* Return a pointer to the beginning of the variable buffer.

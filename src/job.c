@@ -3413,9 +3413,10 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
       }
     *(ap++) = ' ';
     if (shellflags)
-      memcpy (ap, shellflags, sflags_len);
-    ap += sflags_len;
-    *(ap++) = ' ';
+      {
+        ap = mempcpy (ap, shellflags, sflags_len);
+        *(ap++) = ' ';
+      }
 #ifdef WINDOWS32
     command_ptr = ap;
 #endif
@@ -3460,8 +3461,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
         else if (unixy_shell && strneq (p, "...", 3))
           {
             /* The case of '...' wildcard again.  */
-            strcpy (ap, "\\.\\.\\");
-            ap += 5;
+            ap = stpcpy (ap, "\\.\\.\\");
             p  += 2;
           }
 #endif

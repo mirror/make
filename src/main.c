@@ -1977,8 +1977,7 @@ main (int argc, char **argv, char **envp)
       p = endp = value = alloca (len);
       for (i = 0; i < eval_strings->idx; ++i)
         {
-          strcpy (p, "--eval=");
-          p += CSTRLEN ("--eval=");
+          p = stpcpy (p, "--eval=");
           p = quote_for_env (p, eval_strings->list[i]);
           endp = p++;
           *endp = ' ';
@@ -3251,11 +3250,12 @@ decode_env_switches (const char *envar, size_t len)
   const char **argv;
 
   /* Get the variable's value.  */
-  varref[0] = '$';
-  varref[1] = '(';
-  memcpy (&varref[2], envar, len);
-  varref[2 + len] = ')';
-  varref[2 + len + 1] = '\0';
+  p = varref;
+  *(p++) = '$';
+  *(p++) = '(';
+  p = mempcpy (p, envar, len);
+  *(p++) = ')';
+  *p = '\0';
   value = variable_expand (varref);
 
   /* Skip whitespace, and check for an empty value.  */
@@ -3489,8 +3489,7 @@ define_makeflags (int all, int makefile)
         {
           /* Long options require a double-dash.  */
           *p++ = '-';
-          strcpy (p, flags->cs->long_name);
-          p += strlen (p);
+          p = stpcpy (p, flags->cs->long_name);
         }
       /* An omitted optional argument has an ARG of "".  */
       if (flags->arg && flags->arg[0] != '\0')
@@ -3522,8 +3521,7 @@ define_makeflags (int all, int makefile)
   if (eval_strings)
     {
       *p++ = ' ';
-      memcpy (p, evalref, CSTRLEN (evalref));
-      p += CSTRLEN (evalref);
+      p = mempcpy (p, evalref, CSTRLEN (evalref));
     }
 
   if (all)
@@ -3538,13 +3536,10 @@ define_makeflags (int all, int makefile)
 
       if (v && v->value && v->value[0] != '\0')
         {
-          strcpy (p, " -- ");
-          p += 4;
-
+          p = stpcpy (p, " -- ");
           *(p++) = '$';
           *(p++) = '(';
-          memcpy (p, r, l);
-          p += l;
+          p = mempcpy (p, r, l);
           *(p++) = ')';
         }
     }

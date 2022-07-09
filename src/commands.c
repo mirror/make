@@ -213,8 +213,7 @@ set_file_variables (struct file *file, const char *stem)
 #endif
             len = strlen (c);
 
-          memcpy (cp, c, len);
-          cp += len;
+          cp = mempcpy (cp, c, len);
           *cp++ = FILE_LIST_SEPARATOR;
           if (! (d->changed || always_make_flag))
             qmark_len -= len + 1;       /* Don't space in $? for this one.  */
@@ -284,19 +283,16 @@ set_file_variables (struct file *file, const char *stem)
 
         if (d->ignore_mtime)
           {
-            memcpy (bp, c, len);
-            bp += len;
+            bp = mempcpy (bp, c, len);
             *bp++ = FILE_LIST_SEPARATOR;
           }
         else
           {
-            memcpy (cp, c, len);
-            cp += len;
+            cp = mempcpy (cp, c, len);
             *cp++ = FILE_LIST_SEPARATOR;
             if (d->changed || always_make_flag)
               {
-                memcpy (qp, c, len);
-                qp += len;
+                qp = mempcpy (qp, c, len);
                 *qp++ = FILE_LIST_SEPARATOR;
               }
           }

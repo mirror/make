@@ -560,14 +560,9 @@ pattern_search (struct file *file, int archive,
                     {
                       char *o = depname;
                       if (check_lastslash)
-                        {
-                          memcpy (o, filename, pathlen);
-                          o += pathlen;
-                        }
-                      memcpy (o, nptr, cp - nptr);
-                      o += cp - nptr;
-                      memcpy (o, stem, stemlen);
-                      o += stemlen;
+                        o = mempcpy (o, filename, pathlen);
+                      o = mempcpy (o, nptr, cp - nptr);
+                      o = mempcpy (o, stem, stemlen);
                       strcpy (o, cp + 1);
                       is_explicit = 0;
                     }
@@ -651,20 +646,17 @@ pattern_search (struct file *file, int archive,
                         {
                           size_t i = cp - nptr;
                           assert (o + i < dend);
-                          memcpy (o, nptr, i);
-                          o += i;
+                          o = mempcpy (o, nptr, i);
                           if (check_lastslash)
                             {
                               add_dir = 1;
                               assert (o + 5 < dend);
-                              memcpy (o, "$(*F)", 5);
-                              o += 5;
+                              o = mempcpy (o, "$(*F)", 5);
                             }
                           else
                             {
                               assert (o + 2 < dend);
-                              memcpy (o, "$*", 2);
-                              o += 2;
+                              o = mempcpy (o, "$*", 2);
                             }
                           assert (o < dend);
                           ++cp;
@@ -1108,11 +1100,9 @@ pattern_search (struct file *file, int archive,
           struct dep *new = alloc_dep ();
 
           /* GKM FIMXE: handle '|' here too */
-          memcpy (p, rule->targets[ri],
-                  rule->suffixes[ri] - rule->targets[ri] - 1);
-          p += rule->suffixes[ri] - rule->targets[ri] - 1;
-          memcpy (p, file->stem, fullstemlen);
-          p += fullstemlen;
+          p = mempcpy (p, rule->targets[ri],
+                       rule->suffixes[ri] - rule->targets[ri] - 1);
+          p = mempcpy (p, file->stem, fullstemlen);
           memcpy (p, rule->suffixes[ri],
                   rule->lens[ri] - (rule->suffixes[ri] - rule->targets[ri])+1);
           new->name = strcache_add (nm);

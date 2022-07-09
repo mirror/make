@@ -379,8 +379,7 @@ selective_vpath_search (struct vpath *path, const char *file,
       size_t vlen = strlen (vpath[i]);
 
       /* Put the next VPATH entry into NAME at P and increment P past it.  */
-      memcpy (p, vpath[i], vlen);
-      p += vlen;
+      p = mempcpy (p, vpath[i], vlen);
 
       /* Add the directory prefix already in *FILE.  */
       if (name_dplen > 0)
@@ -392,8 +391,7 @@ selective_vpath_search (struct vpath *path, const char *file,
           if ((*p != ':') && (*p != ']') && (*p != '>'))
             *p++ = '/';
 #endif
-          memcpy (p, file, name_dplen);
-          p += name_dplen;
+          p = mempcpy (p, file, name_dplen);
         }
 
 #ifdef HAVE_DOS_PATHS

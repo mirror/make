@@ -51,9 +51,8 @@ MyExecute (char **argv)
         if (((*aptr)[0] == ';' && !(*aptr)[1]))
         {
             *ptr ++ = '"';
-            strcpy (ptr, *aptr);
-            ptr += strlen (ptr);
-            *ptr ++ = '"';
+            ptr = stpcpy (ptr, *aptr);
+            *(ptr++) = '"';
         }
         else if ((*aptr)[0] == '@' && (*aptr)[1] == '@' && !(*aptr)[2])
         {
@@ -61,10 +60,7 @@ MyExecute (char **argv)
             continue;
         }
         else
-        {
-            strcpy (ptr, *aptr);
-            ptr += strlen (ptr);
-        }
+          ptr = stpcpy (ptr, *aptr);
         *ptr ++ = ' ';
         *ptr = 0;
     }

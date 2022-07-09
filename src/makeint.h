@@ -670,6 +670,11 @@ int strncasecmp (const char *s1, const char *s2, int n);
 void *mempcpy (void *dest, const void *src, size_t n);
 #endif
 
+#if !HAVE_STPCPY
+/* Create our own, in misc.c */
+char *stpcpy (char *dest, const char *src);
+#endif
+
 #define OUTPUT_SYNC_NONE    0
 #define OUTPUT_SYNC_LINE    1
 #define OUTPUT_SYNC_TARGET  2

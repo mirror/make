@@ -620,8 +620,7 @@ expand_deps (struct file *f)
 
               while (cs)
                 {
-                  memcpy (s, pcs, cs - pcs);
-                  s += cs - pcs;
+                  s = mempcpy (s, pcs, cs - pcs);
                   *(s++) = '$';
                   *(s++) = '*';
                   pcs = ++cs;
@@ -1273,8 +1272,7 @@ build_target_list (char *value)
                 p = &value[off];
               }
 
-            memcpy (p, f->name, l);
-            p += l;
+            p = mempcpy (p, f->name, l);
             *(p++) = ' ';
           }
       *(p-1) = '\0';

@@ -435,8 +435,7 @@ lookup_special_var (struct variable *var)
                 p = &var->value[off];
               }
 
-            memcpy (p, v->name, l);
-            p += l;
+            p = mempcpy (p, v->name, l);
             *(p++) = ' ';
           }
       *(p-1) = '\0';
@@ -1855,7 +1854,7 @@ print_target_variables (const struct file *file)
       size_t l = strlen (file->name);
       char *t = alloca (l + 3);
 
-      strcpy (t, file->name);
+      memcpy (t, file->name, l);
       t[l] = ':';
       t[l+1] = ' ';
       t[l+2] = '\0';

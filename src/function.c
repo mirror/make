@@ -1185,7 +1185,7 @@ func_error (char *o, char **argv, const char *funcname)
       {
         size_t len = strlen (argv[0]);
         char *msg = alloca (len + 2);
-        strcpy (msg, argv[0]);
+        memcpy (msg, argv[0], len);
         msg[len] = '\n';
         msg[len + 1] = '\0';
         outputs (0, msg);
@@ -2060,8 +2060,8 @@ func_shell_base (char *o, char **argv, int trim_newlines)
     {
       strcpy (ptr, *aptr);
       ptr += strlen (ptr) + 1;
-      *ptr ++ = ' ';
-      *ptr = 0;
+      *(ptr++) = ' ';
+      *ptr = '\0';
     }
 
   ptr[-1] = '\n';
@@ -2249,8 +2249,7 @@ abspath (const char *name, char *apath)
           if (dest + len >= apath_limit)
             return NULL;
 
-          dest = memcpy (dest, start, len);
-          dest += len;
+          dest = mempcpy (dest, start, len);
           *dest = '\0';
         }
     }
@@ -2646,9 +2645,8 @@ handle_function (char **op, const char **stringp)
       char *p, *aend;
 
       abeg = xmalloc (len+1);
-      memcpy (abeg, beg, len);
-      abeg[len] = '\0';
-      aend = abeg + len;
+      aend = mempcpy (abeg, beg, len);
+      *aend = '\0';
 
       for (p=abeg, nargs=0; p <= aend; ++argvp)
         {
