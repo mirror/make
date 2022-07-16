@@ -1088,7 +1088,7 @@ main (int argc, char **argv, char **envp)
   PATH_VAR (current_directory);
   unsigned int restarts = 0;
   unsigned int syncing = 0;
-  int argv_slots;
+  int argv_slots;  /* The jobslot info we got from our parent process.  */
 #ifdef WINDOWS32
   const char *unix_path = NULL;
   const char *windows32_path = NULL;
@@ -2013,7 +2013,7 @@ main (int argc, char **argv, char **envp)
     if (arg_job_slots == INVALID_JOB_SLOTS || argv_slots != INVALID_JOB_SLOTS)
       arg_job_slots = old_arg_job_slots;
 
-    else if (jobserver_auth)
+    else if (jobserver_auth && arg_job_slots != old_arg_job_slots)
       {
         /* Makefile MAKEFLAGS set -j, but we already have a jobserver.
            Make us the master of a new jobserver group.  */
@@ -3395,22 +3395,19 @@ define_makeflags (int all, int makefile)
           break;
 
         case positive_int:
-          if (all)
+          if ((cs->default_value != 0
+               && (*(unsigned int *) cs->value_ptr
+                   == *(unsigned int *) cs->default_value)))
+            break;
+          if (cs->noarg_value != 0
+              && (*(unsigned int *) cs->value_ptr ==
+                  *(unsigned int *) cs->noarg_value))
+            ADD_FLAG ("", 0); /* Optional value omitted; see below.  */
+          else
             {
-              if ((cs->default_value != 0
-                   && (*(unsigned int *) cs->value_ptr
-                       == *(unsigned int *) cs->default_value)))
-                break;
-              if (cs->noarg_value != 0
-                  && (*(unsigned int *) cs->value_ptr ==
-                      *(unsigned int *) cs->noarg_value))
-                ADD_FLAG ("", 0); /* Optional value omitted; see below.  */
-              else
-                {
-                  char *buf = alloca (30);
-                  sprintf (buf, "%u", *(unsigned int *) cs->value_ptr);
-                  ADD_FLAG (buf, strlen (buf));
-                }
+              char *buf = alloca (30);
+              sprintf (buf, "%u", *(unsigned int *) cs->value_ptr);
+              ADD_FLAG (buf, strlen (buf));
             }
           break;
 
@@ -3430,12 +3427,9 @@ define_makeflags (int all, int makefile)
           break;
 
         case string:
-          if (all)
-            {
-              p = *((char **)cs->value_ptr);
-              if (p)
-                ADD_FLAG (p, strlen (p));
-            }
+          p = *((char **)cs->value_ptr);
+          if (p)
+            ADD_FLAG (p, strlen (p));
           break;
 
         case filename:

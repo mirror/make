@@ -140,6 +140,21 @@ all: ; @echo '$(.SHELLSTATUS): $(out)'
 !,
                       '', "127: $_\n");
     }
+
+    # If we're using pipes for jobserver, then we will close them and not
+    # allow them to be available to sub-makes invoked via $(shell ...)
+    run_make_test(q!
+ifeq ($(ELT),)
+default:; @$(MAKE) -f #MAKEFILE# ELT=1
+else ifeq ($(ELT),1)
+OUTPUT := $(shell $(MAKE) -f #MAKEFILE# ELT=2)
+$(info $(OUTPUT))
+default:;: $(ELT)
+else
+default:;: $(ELT)
+endif
+!,
+                  '--no-print-directory -j2', "#MAKE#[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.\n: 2\n: 1");
 }
 
 1;

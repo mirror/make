@@ -129,4 +129,14 @@ all:; $(info makeflags='$(MAKEFLAGS)')
 '-Onone -l2.5 -l2.5 -Onone -I/tmp -iknqrswd -i -n -s -k -I/tmp',
 "/makeflags='Bdiknqrsw -I/tmp -l2.5 -Onone --trace --warn-undefined-variables'/");
 
+# Verify MAKEFLAGS are all available to shell functions
+$ENV{'MAKEFLAGS'} = 'ikB --no-print-directory --warn-undefined-variables';
+run_make_test(q!
+MAKEFLAGS := iknqrsw -I/tmp -I/tmp -Onone -Onone -l2.5 -l2.5 --no-print-directory
+XX := $(shell echo "$$MAKEFLAGS")
+all:; $(info makeflags='$(XX)')
+!,
+    '-Onone -l2.5 -l2.5 -Onone -I/tmp -iknqrs -i -n -s -k -I/tmp',
+    "makeflags='iknqrsw -I/tmp -I/tmp -Onone -Onone -l2.5 -l2.5 --no-print-directory'");
+
 1;
