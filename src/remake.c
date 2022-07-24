@@ -532,6 +532,12 @@ update_file_1 (struct file *file, unsigned int depth)
     {
       struct dep *lastd = 0;
 
+      /* Perform second expansion and enter each dependency name as a file.
+         We only need to do this if second_expansion has been defined; if it
+         hasn't then all deps were expanded as the makefile was read in.  */
+      if (second_expansion)
+        expand_deps (ad->file);
+
       /* Find the deps we're scanning */
       du = ad->file->deps;
       ad = ad->next;
@@ -1089,6 +1095,12 @@ check_dep (struct file *file, unsigned int depth,
             }
 
           ld = 0;
+          /* Perform second expansion and enter each dependency name as a file.
+             We only need to do this if second_expansion has been defined; if it
+             hasn't then all deps were expanded as the makefile was read in.  */
+          if (second_expansion)
+            expand_deps (file);
+
           d = file->deps;
           while (d != 0)
             {

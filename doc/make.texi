@@ -1703,18 +1703,16 @@ this second expansion to occur, the special target
 @code{.SECONDEXPANSION} must be defined before the first prerequisite
 list that makes use of this feature.
 
-If that special target is defined then in between the two phases
-mentioned above, right at the end of the read-in phase, all the
-prerequisites of the targets defined after the special target are
-expanded a @emph{second time}.  In most circumstances this secondary
-expansion will have no effect, since all variable and function
-references will have been expanded during the initial parsing of the
-makefiles.  In order to take advantage of the secondary expansion
-phase of the parser, then, it's necessary to @emph{escape} the
-variable or function reference in the makefile.  In this case the
-first expansion merely un-escapes the reference but doesn't expand it,
-and expansion is left to the secondary expansion phase.  For example,
-consider this makefile:
+If @code{.SECONDEXPANSION} is defined then when GNU @code{make} needs to check
+the prerequisites of a target, the prerequisites are expanded a @emph{second
+time}.  In most circumstances this secondary expansion will have no effect,
+since all variable and function references will have been expanded during the
+initial parsing of the makefiles.  In order to take advantage of the secondary
+expansion phase of the parser, then, it's necessary to @emph{escape} the
+variable or function reference in the makefile.  In this case the first
+expansion merely un-escapes the reference but doesn't expand it, and expansion
+is left to the secondary expansion phase.  For example, consider this
+makefile:
 
 @example
 .SECONDEXPANSION:

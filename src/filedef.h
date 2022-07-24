@@ -110,6 +110,8 @@ struct file
                                    diagnostics has been issued (dontcare). */
     unsigned int was_shuffled:1; /* Did we already shuffle 'deps'? used when
                                     --shuffle passes through the graph.  */
+    unsigned int snapped:1;     /* True if the deps of this file have been
+                                   secondary expanded.  */
   };
 
 
@@ -120,6 +122,7 @@ struct file *lookup_file (const char *name);
 struct file *enter_file (const char *name);
 struct dep *split_prereqs (char *prereqstr);
 struct dep *enter_prereqs (struct dep *prereqs, const char *stem);
+void expand_deps (struct file *f);
 struct dep *expand_extra_prereqs (const struct variable *extra);
 void remove_intermediates (int sig);
 void snap_deps (void);

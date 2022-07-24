@@ -292,8 +292,11 @@ all: hello.z
 !, '', "hello.z\n");
 
 # subtest 3.
-# hello.x is explicitly mentioned on an unrelated rule and thus is not an
-# intermediate file.
+# make is building hello.z and does not second expand the prerequisites of rule
+# 'unrelated: $$(dep)'. '$$(dep)' stays not expanded and 'hello.x' is never
+# entered to the database. Make considers 'hello.x' intermediate while building
+# 'hello.z'. Because 'hello.z' is present and 'hello.x' is missing and
+# 'hello.x' is intermediate, there is no need to rebuild 'hello.z'.
 run_make_test(q!
 .SECONDEXPANSION:
 dep:=hello.x
@@ -301,7 +304,19 @@ all: hello.z
 %.z: %.x; @echo $@
 %.x: ;
 unrelated: $$(dep)
-!, '', "hello.z\n");
+!, '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+# subtest 4.
+# Just like subtest 3. $$(dep) is not second expanded. 'hello.x' is
+# intermediate.
+run_make_test(q!
+.SECONDEXPANSION:
+dep:=hello.x
+all: hello.z
+%.z: %.x; @echo $@
+%.x: ;
+%.q: $$(dep)
+!, '', "#MAKE#: Nothing to be done for 'all'.\n");
 
 unlink('hello.z');
 
@@ -441,6 +456,52 @@ run_make_test(q!
 all: bye.x
 %.x: $$(firstword %.1;
 !, '', "#MAKE#: *** unterminated call to function 'firstword': missing ')'.  Stop.", 512);
+
+# sv 62706.
+# Test that makes avoids second expanding prerequisites of the rules which are
+# not tried during implicit search.
+# Here, make tries rules '%.tsk: %.o' and '%.o' and their prerequisites are
+# second expanded.
+# Rules '%.bin: %.x' and '%.x:' are not used in implicit search for 'hello.tsk'
+# and 'hello.o' and their prerequisites are not expanded.
+run_make_test(q!
+.SECONDEXPANSION:
+%.bin: %.x $$(info second expansion of $$@ prereqs); $(info $@ from $<)
+%.tsk: %.o $$(info second expansion of $$@ prereqs); $(info $@ from $<)
+%.x: $$(info second expansion of $$@ prereqs); $(info $@)
+%.o: $$(info second expansion of $$@ prereqs); $(info $@)
+!, '-R hello.tsk',
+"second expansion of hello.o prereqs
+second expansion of hello.tsk prereqs
+hello.o
+hello.tsk from hello.o
+#MAKE#: 'hello.tsk' is up to date.\n");
+
+# sv 62706.
+# No side effects from second expansion of unrelated rules.
+run_make_test(q!
+.SECONDEXPANSION:
+all: hello.tsk
+%.tsk: %.o; cp hello.1 $@
+hello.o:;
+%.q: $$(shell touch hello.1);
+!, '',
+"cp hello.1 hello.tsk
+cp: cannot stat 'hello.1': $ERR_no_such_file
+#MAKE#: *** [#MAKEFILE#:4: hello.tsk] Error 1\n", 512);
+
+# sv 62706.
+# Second expansion of intermediate prerequisites.
+# The rule to build hello.x is implicit.
+# Test that $$(deps) is secondary expanded.
+run_make_test(q!
+deps:=hello.h
+.SECONDEXPANSION:
+all: hello.tsk
+%.tsk: %.x; $(info $@)
+%.x: $$(deps); $(info $@)
+hello.h:; $(info $@)
+!, '', "hello.h\nhello.x\nhello.tsk\n#MAKE#: Nothing to be done for 'all'.\n");
 
 # This tells the test driver that the perl test script executed properly.
 1;

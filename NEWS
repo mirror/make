@@ -83,6 +83,11 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   mentioned in other targets as "ought to exist".
   Implementation provided by Dmitry Goncharov <dgoncharov@users.sf.net>
 
+* GNU make was performing secondary expansion of all targets, even targets
+  which didn't need to be considered during the build.  In this release
+  only targets which are considered will be secondarily expanded.
+  Implementation provided by Dmitry Goncharov <dgoncharov@users.sf.net>
+
 * If the MAKEFLAGS variable is modified in a makefile, it will be re-parsed
   immediately rather than after all makefiles have been read.  Note that
   although all options are parsed immediately, some special effects won't

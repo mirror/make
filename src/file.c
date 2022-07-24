@@ -342,6 +342,7 @@ rehash_file (struct file *from_file, const char *to_hname)
   MERGE (secondary);
   MERGE (notintermediate);
   MERGE (ignore_vpath);
+  MERGE (snapped);
 #undef MERGE
 
   to_file->builtin = 0;
@@ -565,8 +566,10 @@ enter_prereqs (struct dep *deps, const char *stem)
   return deps;
 }
 
-/* Expand and parse each dependency line. */
-static void
+/* Expand and parse each dependency line.
+   For each dependency of the file, make the 'struct dep' point
+   at the appropriate 'struct file' (which may have to be created).  */
+void
 expand_deps (struct file *f)
 {
   struct dep *d;
@@ -574,7 +577,9 @@ expand_deps (struct file *f)
   const char *fstem;
   int initialized = 0;
 
-  f->updating = 0;
+  if (f->snapped)
+    return;
+  f->snapped = 1;
 
   /* Walk through the dependencies.  For any dependency that needs 2nd
      expansion, expand it then insert the result into the list.  */
@@ -646,6 +651,7 @@ expand_deps (struct file *f)
 
       set_file_variables (f, d->stem ? d->stem : f->stem);
 
+      /* Perform second expansion.  */
       p = variable_expand_for_file (d->name, f);
 
       /* Free the un-expanded name.  */
@@ -758,10 +764,7 @@ snap_file (const void *item, void *arg)
     }
 }
 
-/* For each dependency of each file, make the 'struct dep' point
-   at the appropriate 'struct file' (which may have to be created).
-
-   Also mark the files depended on by .PRECIOUS, .PHONY, .SILENT,
+/* Mark the files depended on by .PRECIOUS, .PHONY, .SILENT,
    and various other special targets.  */
 
 void
@@ -774,37 +777,6 @@ snap_deps (void)
   /* Remember that we've done this.  Once we start snapping deps we can no
      longer define new targets.  */
   snapped_deps = 1;
-
-  /* Perform second expansion and enter each dependency name as a file.  We
-     must use hash_dump() here because within these loops we likely add new
-     files to the table, possibly causing an in-situ table expansion.
-
-     We only need to do this if second_expansion has been defined; if it
-     hasn't then all deps were expanded as the makefile was read in.  If we
-     ever change make to be able to unset .SECONDARY_EXPANSION this will have
-     to change.  */
-
-  if (second_expansion)
-    {
-      struct file **file_slot_0 = (struct file **) hash_dump (&files, 0, 0);
-      struct file **file_end = file_slot_0 + files.ht_fill;
-      struct file **file_slot;
-      const char *suffixes;
-
-      /* Expand .SUFFIXES: its prerequisites are used for $$* calc.  */
-      f = lookup_file (".SUFFIXES");
-      suffixes = f ? f->name : 0;
-      for (; f != 0; f = f->prev)
-        expand_deps (f);
-
-      /* For every target that's not .SUFFIXES, expand its prerequisites.  */
-
-      for (file_slot = file_slot_0; file_slot < file_end; file_slot++)
-        for (f = *file_slot; f != 0; f = f->prev)
-          if (f->name != suffixes)
-            expand_deps (f);
-      free (file_slot_0);
-    }
 
   /* Now manage all the special targets.  */
 
