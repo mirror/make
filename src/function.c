@@ -1876,7 +1876,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
   errfd = (output_context && output_context->err >= 0
            ? output_context->err : FD_STDERR);
 
-  child.environment = target_environment (NULL);
+  child.environment = target_environment (NULL, 0);
 
 #if defined(__MSDOS__)
   fpipe = msdos_openpipe (pipedes, &pid, argv[0]);

@@ -6,17 +6,17 @@ $details = "DETAILS";
 
 # Normal flags aren't prefixed with "-"
 run_make_test(q!
-all: ; @echo $(MAKEFLAGS)
+all: ; @echo /$(MAKEFLAGS)/
 !,
-              '-e -r -R', 'erR');
+              '-e -r -R', '/erR/');
 
 # Long arguments mean everything is prefixed with "-"
 run_make_test(q!
-all: ; @echo $(MAKEFLAGS)
+all: ; @echo /$(MAKEFLAGS)/
 !,
               '--no-print-directory -e -r -R --trace', "#MAKEFILE#:2: update target 'all' due to: target does not exist
-echo erR --trace --no-print-directory
-erR --trace --no-print-directory");
+echo /erR --trace --no-print-directory/
+/erR --trace --no-print-directory/");
 
 
 # Recursive invocations of make should accumulate MAKEFLAGS values.
@@ -138,5 +138,21 @@ all:; $(info makeflags='$(XX)')
 !,
     '-Onone -l2.5 -l2.5 -Onone -I/tmp -iknqrs -i -n -s -k -I/tmp',
     "makeflags='iknqrsw -I/tmp -I/tmp -Onone -Onone -l2.5 -l2.5 --no-print-directory'");
+
+# Verify that command line arguments are included in MAKEFLAGS
+run_make_test(q!
+all: ; @echo $(MAKEFLAGS)
+!,
+              '-e FOO=bar -r -R', 'erR -- FOO=bar');
+
+# Long arguments mean everything is prefixed with "-"
+run_make_test(q!
+all: ; @echo /$(MAKEFLAGS)/
+!,
+              '--no-print-directory -e -r -R --trace FOO=bar',
+              "#MAKEFILE#:2: update target 'all' due to: target does not exist
+echo /erR --trace --no-print-directory -- FOO=bar/
+/erR --trace --no-print-directory -- FOO=bar/");
+
 
 1;

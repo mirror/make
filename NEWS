@@ -107,6 +107,13 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
 * Special targets like .POSIX are detected upon definition, ensuring that any
   change in behavior takes effect immediately, before the next line is parsed.
 
+* When the jobserver is enabled and GNU make decides it is invoking a non-make
+  sub-process and closes the jobserver pipes, it will now add a new option to
+  the MAKEFLAGS environment variable that disables the jobserver.
+  This prevents sub-processes that invoke make from accidentally using other
+  open file descriptors as jobserver pipes.  For more information see
+  https://savannah.gnu.org/bugs/?57242 and https://savannah.gnu.org/bugs/?62397
+
 * A long-standing issue with the directory cache has been resolved: changes
   made as a side-effect of some other target's recipe are now noticed as
   expected.

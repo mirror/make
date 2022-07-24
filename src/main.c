@@ -232,7 +232,7 @@ static const int inf_jobs = 0;
 
 /* Authorization for the jobserver.  */
 
-static char *jobserver_auth = NULL;
+char *jobserver_auth = NULL;
 
 /* Shuffle mode for goals and prerequisites.  */
 
@@ -241,7 +241,7 @@ static char *shuffle_mode = NULL;
 /* Handle for the mutex used on Windows to synchronize output of our
    children under -O.  */
 
-char *sync_mutex = NULL;
+static char *sync_mutex = NULL;
 
 /* Maximum load average at which multiple jobs will be run.
    Negative values mean unlimited, while zero means limit to
@@ -475,7 +475,7 @@ static const struct command_switch switches[] =
 
     /* These are long-style options.  */
     { CHAR_MAX+1, strlist, &db_flags, 1, 1, 0, "basic", 0, "debug" },
-    { CHAR_MAX+2, string, &jobserver_auth, 1, 1, 0, 0, 0, "jobserver-auth" },
+    { CHAR_MAX+2, string, &jobserver_auth, 1, 1, 0, 0, 0, JOBSERVER_AUTH_OPT },
     { CHAR_MAX+3, flag, &trace_flag, 1, 1, 0, 0, 0, "trace" },
     { CHAR_MAX+4, flag_off, &print_directory_flag, 1, 1, 0, 0,
       &default_print_directory_flag, "no-print-directory" },

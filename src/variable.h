@@ -16,6 +16,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "hash.h"
 
+struct file;
+
 /* Codes in a variable definition saying where the definition came from.
    Increasing numeric values signify less-overridable definitions.  */
 enum variable_origin
@@ -235,7 +237,7 @@ void undefine_variable_in_set (const char *name, size_t length,
                                        (int)(l), (n));                  \
                               }while(0)
 
-char **target_environment (struct file *file);
+char **target_environment (struct file *file, int recursive);
 
 struct pattern_var *create_pattern_var (const char *target,
                                         const char *suffix);

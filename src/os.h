@@ -25,11 +25,16 @@ unsigned int jobserver_enabled (void);
 /* Called in the master instance to set up the jobserver initially.  */
 unsigned int jobserver_setup (int job_slots);
 
-/* Called in a child instance to connect to the jobserver.  */
+/* Called in a child instance to connect to the jobserver.
+   Return 1 if we got a valid auth, else 0.  */
 unsigned int jobserver_parse_auth (const char* auth);
 
 /* Returns an allocated buffer used to pass to child instances.  */
-char *jobserver_get_auth (void);
+char *jobserver_get_auth ();
+
+/* Returns a pointer to a static string used to indicate that the child
+   cannot access the jobserver, or NULL if it always can.  */
+const char *jobserver_get_invalid_auth ();
 
 /* Clear this instance's jobserver configuration.  */
 void jobserver_clear (void);

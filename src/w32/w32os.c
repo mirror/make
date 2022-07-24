@@ -90,6 +90,13 @@ jobserver_get_auth ()
   return xstrdup (jobserver_semaphore_name);
 }
 
+const char *
+jobserver_get_invalid_auth ()
+{
+  /* Because we're using a semaphore we don't need to invalidate.  */
+  return NULL;
+}
+
 unsigned int
 jobserver_enabled ()
 {

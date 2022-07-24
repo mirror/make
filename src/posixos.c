@@ -121,6 +121,9 @@ jobserver_parse_auth (const char *auth)
   DB (DB_JOBS,
       (_("Jobserver client (fds %d,%d)\n"), job_fds[0], job_fds[1]));
 
+  if (job_fds[0] == -2 || job_fds[1] == -2)
+    return 0;
+
 #ifdef HAVE_FCNTL_H
 # define FD_OK(_f) (fcntl ((_f), F_GETFD) != -1)
 #else
@@ -154,11 +157,19 @@ jobserver_parse_auth (const char *auth)
 }
 
 char *
-jobserver_get_auth (void)
+jobserver_get_auth ()
 {
   char *auth = xmalloc ((INTSTR_LENGTH * 2) + 2);
   sprintf (auth, "%d,%d", job_fds[0], job_fds[1]);
   return auth;
+}
+
+const char *
+jobserver_get_invalid_auth ()
+{
+  /* It's not really great that we are assuming the command line option
+     here but other alternatives are also gross.  */
+  return " --" JOBSERVER_AUTH_OPT "=-2,-2";
 }
 
 unsigned int

@@ -1430,7 +1430,7 @@ start_job_command (struct child *child)
 #ifndef _AMIGA
   /* Set up the environment for the child.  */
   if (child->environment == 0)
-    child->environment = target_environment (child->file);
+    child->environment = target_environment (child->file, child->recursive);
 #endif
 
 #if !defined(__MSDOS__) && !defined(_AMIGA) && !defined(WINDOWS32)
