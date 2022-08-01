@@ -1813,48 +1813,13 @@ main (int argc, char **argv, char **envp)
                and thus re-read the makefiles, we read standard input
                into a temporary file and read from that.  */
             FILE *outfile;
-            char *template;
             char *newnm;
-            const char *tmpdir;
 
             if (stdin_offset >= 0)
               O (fatal, NILF,
                  _("Makefile from standard input specified twice"));
 
-#ifdef VMS
-# define DEFAULT_TMPDIR     "/sys$scratch/"
-#else
-# ifdef P_tmpdir
-#  define DEFAULT_TMPDIR    P_tmpdir
-# else
-#  define DEFAULT_TMPDIR    "/tmp"
-# endif
-#endif
-#define DEFAULT_TMPFILE     "GmXXXXXX"
-
-            if (
-#if defined (__MSDOS__) || defined (WINDOWS32) || defined (__EMX__)
-                ((tmpdir = getenv ("TMP")) == NULL || *tmpdir == '\0') &&
-                ((tmpdir = getenv ("TEMP")) == NULL || *tmpdir == '\0') &&
-#endif
-                ((tmpdir = getenv ("TMPDIR")) == NULL || *tmpdir == '\0'))
-              tmpdir = DEFAULT_TMPDIR;
-
-            template = alloca (strlen (tmpdir) + CSTRLEN (DEFAULT_TMPFILE) + 2);
-            strcpy (template, tmpdir);
-
-#ifdef HAVE_DOS_PATHS
-            if (strchr ("/\\", template[strlen (template) - 1]) == NULL)
-              strcat (template, "/");
-#else
-# ifndef VMS
-            if (template[strlen (template) - 1] != '/')
-              strcat (template, "/");
-# endif /* !VMS */
-#endif /* !HAVE_DOS_PATHS */
-
-            strcat (template, DEFAULT_TMPFILE);
-            outfile = get_tmpfile (&newnm, template);
+            outfile = get_tmpfile (&newnm);
             if (outfile == 0)
               OSS (fatal, NILF,
                    _("fopen: temporary file %s: %s"), newnm, strerror (errno));

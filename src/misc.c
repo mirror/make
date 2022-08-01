@@ -505,8 +505,76 @@ umask (mode_t mask)
 }
 #endif
 
+static char *
+get_tmptemplate ()
+{
+  const char *tmpdir;
+  char *template;
+  size_t len;
+
+#ifdef VMS
+# define DEFAULT_TMPFILE     "sys$scratch:gnv$make_cmdXXXXXX.com"
+#else
+# define DEFAULT_TMPFILE     "GmXXXXXX"
+#endif
+
+#ifdef VMS
+# define DEFAULT_TMPDIR     "/sys$scratch/"
+#else
+# ifdef P_tmpdir
+#  define DEFAULT_TMPDIR    P_tmpdir
+# else
+#  define DEFAULT_TMPDIR    "/tmp"
+# endif
+#endif
+
+  if (
+#if defined (__MSDOS__) || defined (WINDOWS32) || defined (__EMX__)
+      ((tmpdir = getenv ("TMP")) == NULL || *tmpdir == '\0') &&
+      ((tmpdir = getenv ("TEMP")) == NULL || *tmpdir == '\0') &&
+#endif
+      ((tmpdir = getenv ("TMPDIR")) == NULL || *tmpdir == '\0'))
+    tmpdir = DEFAULT_TMPDIR;
+
+  len = strlen (tmpdir);
+  template = xmalloc (len + CSTRLEN (DEFAULT_TMPFILE) + 2);
+  strcpy (template, tmpdir);
+
+#ifdef HAVE_DOS_PATHS
+  if (template[len - 1] != '/' && template[len - 1] != '\\')
+    strcat (template, "/");
+#else
+# ifndef VMS
+  if (template[len - 1] != '/')
+    strcat (template, "/");
+# endif /* !VMS */
+#endif /* !HAVE_DOS_PATHS */
+
+  strcat (template, DEFAULT_TMPFILE);
+
+  return template;
+}
+
+char *
+get_tmppath ()
+{
+  char *path;
+
+#ifdef HAVE_MKTEMP
+  path = get_tmptemplate();
+  if (*mktemp (path) == '\0')
+    pfatal_with_name ("mktemp");
+#else
+  path = xmalloc (L_tmpnam + 1);
+  if (tmpnam (path) == NULL)
+    pfatal_with_name ("tmpnam");
+#endif
+
+  return path;
+}
+
 FILE *
-get_tmpfile (char **name, const char *template)
+get_tmpfile (char **name)
 {
   FILE *file;
 #ifdef HAVE_FDOPEN
@@ -516,15 +584,9 @@ get_tmpfile (char **name, const char *template)
   /* Preserve the current umask, and set a restrictive one for temp files.  */
   mode_t mask = umask (0077);
 
-#if defined(HAVE_MKSTEMP) || defined(HAVE_MKTEMP)
-# define TEMPLATE_LEN   strlen (template)
-#else
-# define TEMPLATE_LEN   L_tmpnam
-#endif
-  *name = xmalloc (TEMPLATE_LEN + 1);
-  strcpy (*name, template);
-
 #if defined(HAVE_MKSTEMP) && defined(HAVE_FDOPEN)
+  *name = get_tmptemplate ();
+
   /* It's safest to use mkstemp(), if we can.  */
   EINTRLOOP (fd, mkstemp (*name));
   if (fd == -1)
@@ -532,14 +594,10 @@ get_tmpfile (char **name, const char *template)
   else
     file = fdopen (fd, "w");
 #else
-# ifdef HAVE_MKTEMP
-  (void) mktemp (*name);
-# else
-  (void) tmpnam (*name);
-# endif
+  *name = get_tmppath ();
 
 # ifdef HAVE_FDOPEN
-  /* Can't use mkstemp(), but guard against a race condition.  */
+  /* Can't use mkstemp(), but try to guard against a race condition.  */
   EINTRLOOP (fd, open (*name, O_CREAT|O_EXCL|O_WRONLY, 0600));
   if (fd == -1)
     return 0;

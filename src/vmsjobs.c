@@ -1241,9 +1241,7 @@ child_execute_job (struct childbase *child, int good_stdin UNUSED, char *argv)
       FILE *outfile;
       int cmd_len;
 
-      outfile = get_tmpfile (&child->comname,
-                             "sys$scratch:gnv$make_cmdXXXXXX.com");
-      /*                      123456789012345678901234567890 */
+      outfile = get_tmpfile (&child->comname);
       if (outfile == 0)
         pfatal_with_name (_("fopen (temporary file)"));
       comnamelen = strlen (child->comname);
