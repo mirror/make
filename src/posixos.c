@@ -20,8 +20,13 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
+# define FD_OK(_f) (fcntl ((_f), F_GETFD) != -1)
 #elif defined(HAVE_SYS_FILE_H)
 # include <sys/file.h>
+#endif
+
+#if !defined(FD_OK)
+# define FD_OK(_f) 1
 #endif
 
 #if defined(HAVE_PSELECT) && defined(HAVE_SYS_SELECT_H)
@@ -33,6 +38,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "os.h"
 
 #ifdef MAKE_JOBSERVER
+
+#define FIFO_PREFIX    "fifo:"
 
 /* This section provides OS-specific functions to support the jobserver.  */
 
@@ -47,8 +54,21 @@ static int job_rfd = -1;
 /* Token written to the pipe (could be any character...)  */
 static char token = '+';
 
+/* The type of jobserver we're using.  */
+enum js_type
+  {
+    js_none = 0,        /* No jobserver.  */
+    js_pipe,            /* Use a simple pipe as the jobserver.  */
+    js_fifo             /* Use a named pipe as the jobserver.  */
+  };
+
+static enum js_type js_type = js_none;
+
+/* The name of the named pipe (if used).  */
+static char *fifo_name = NULL;
+
 static int
-make_job_rfd (void)
+make_job_rfd ()
 {
 #ifdef HAVE_PSELECT
   /* Pretend we succeeded.  */
@@ -81,13 +101,57 @@ set_blocking (int fd, int blocking)
 }
 
 unsigned int
-jobserver_setup (int slots)
+jobserver_setup (int slots, const char *style)
 {
   int r;
 
-  EINTRLOOP (r, pipe (job_fds));
-  if (r < 0)
-    pfatal_with_name (_("creating jobs pipe"));
+#if HAVE_MKFIFO
+  if (style == NULL || strcmp (style, "fifo") == 0)
+    {
+      fifo_name = get_tmppath ();
+
+      EINTRLOOP (r, mkfifo (fifo_name, 0600));
+      if (r < 0)
+        {
+          perror_with_name("jobserver mkfifo: ", fifo_name);
+          free (fifo_name);
+        }
+      else
+        {
+          /* We have to open the read side in non-blocking mode, else it will
+             hang until the write side is open.  */
+          EINTRLOOP (job_fds[0], open (fifo_name, O_RDONLY|O_NONBLOCK));
+          if (job_fds[0] < 0)
+            OSS (fatal, NILF, _("Cannot open jobserver %s: %s"),
+                 fifo_name, strerror (errno));
+
+          EINTRLOOP (job_fds[1], open (fifo_name, O_WRONLY));
+          if (job_fds[0] < 0)
+            OSS (fatal, NILF, _("Cannot open jobserver %s: %s"),
+                 fifo_name, strerror (errno));
+
+          DB (DB_JOBS,
+              (_("Jobserver setup (fifo %s)\n"), fifo_name));
+
+          js_type = js_fifo;
+        }
+    }
+#endif
+
+  if (js_type == js_none)
+    {
+      if (style && strcmp (style, "pipe") != 0)
+        OS (fatal, NILF, _("Unknown jobserver auth style '%s'"), style);
+
+      EINTRLOOP (r, pipe (job_fds));
+      if (r < 0)
+        pfatal_with_name (_("creating jobs pipe"));
+
+      DB (DB_JOBS,
+          (_("Jobserver setup (fds %d,%d)\n"), job_fds[0], job_fds[1]));
+
+      js_type = js_pipe;
+    }
 
   /* By default we don't send the job pipe FDs to our children.
      See jobserver_pre_child() and jobserver_post_child().  */
@@ -113,34 +177,63 @@ jobserver_setup (int slots)
 unsigned int
 jobserver_parse_auth (const char *auth)
 {
+  int rfd, wfd;
+
   /* Given the command-line parameter, parse it.  */
-  if (sscanf (auth, "%d,%d", &job_fds[0], &job_fds[1]) != 2)
-    OS (fatal, NILF,
-        _("internal error: invalid --jobserver-auth string '%s'"), auth);
 
-  DB (DB_JOBS,
-      (_("Jobserver client (fds %d,%d)\n"), job_fds[0], job_fds[1]));
+  /* First see if we're using a named pipe.  */
+  if (strncmp (auth, FIFO_PREFIX, CSTRLEN (FIFO_PREFIX)) == 0)
+    {
+      fifo_name = xstrdup (auth + CSTRLEN (FIFO_PREFIX));
 
-  if (job_fds[0] == -2 || job_fds[1] == -2)
-    return 0;
+      EINTRLOOP (job_fds[0], open (fifo_name, O_RDONLY));
+      if (job_fds[0] < 0)
+        OSS (fatal, NILF,
+             _("Cannot open jobserver %s: %s"), fifo_name, strerror (errno));
 
-#ifdef HAVE_FCNTL_H
-# define FD_OK(_f) (fcntl ((_f), F_GETFD) != -1)
-#else
-# define FD_OK(_f) 1
-#endif
+      EINTRLOOP (job_fds[1], open (fifo_name, O_WRONLY));
+      if (job_fds[0] < 0)
+        OSS (fatal, NILF,
+             _("Cannot open jobserver %s: %s"), fifo_name, strerror (errno));
 
-  /* Make sure our pipeline is valid, and (possibly) create a duplicate pipe,
-     that will be closed in the SIGCHLD handler.  If this fails with EBADF,
-     the parent has closed the pipe on us because it didn't think we were a
-     submake.  If so, warn and default to -j1.  */
+      js_type = js_fifo;
+    }
+  /* If not, it must be a simple pipe.  */
+  else if (sscanf (auth, "%d,%d", &rfd, &wfd) == 2)
+    {
+      DB (DB_JOBS,
+          (_("Jobserver client (fds %d,%d)\n"), rfd, wfd));
 
-  if (!FD_OK (job_fds[0]) || !FD_OK (job_fds[1]) || make_job_rfd () < 0)
+      /* The parent overrode our FDs because we aren't a recursive make.  */
+      if (rfd == -2 || wfd == -2)
+        return 0;
+
+      /* Make sure our pipeline is valid.  */
+      if (!FD_OK (rfd) || !FD_OK (wfd))
+        return 0;
+
+      job_fds[0] = rfd;
+      job_fds[1] = wfd;
+
+      js_type = js_pipe;
+    }
+  /* Who knows what it is?  */
+  else
+    {
+      OS (error, NILF, _("invalid --jobserver-auth string '%s'"), auth);
+      return 0;
+    }
+
+  /* Create a duplicate pipe, if needed, that will be closed in the SIGCHLD
+     handler.  If this fails with EBADF, the parent closed the pipe on us as
+     it didn't think we were a submake.  If so, warn and default to -j1.  */
+
+  if (make_job_rfd () < 0)
     {
       if (errno != EBADF)
-        pfatal_with_name (_("jobserver pipeline"));
+        pfatal_with_name ("jobserver readfd");
 
-      job_fds[0] = job_fds[1] = -1;
+      jobserver_clear ();
 
       return 0;
     }
@@ -159,27 +252,40 @@ jobserver_parse_auth (const char *auth)
 char *
 jobserver_get_auth ()
 {
-  char *auth = xmalloc ((INTSTR_LENGTH * 2) + 2);
-  sprintf (auth, "%d,%d", job_fds[0], job_fds[1]);
+  char *auth;
+
+  if (js_type == js_fifo) {
+    auth = xmalloc (strlen (fifo_name) + CSTRLEN (FIFO_PREFIX) + 1);
+    sprintf (auth, FIFO_PREFIX "%s", fifo_name);
+  } else {
+    auth = xmalloc ((INTSTR_LENGTH * 2) + 2);
+    sprintf (auth, "%d,%d", job_fds[0], job_fds[1]);
+  }
+
   return auth;
 }
 
 const char *
 jobserver_get_invalid_auth ()
 {
+  /* If we're using a named pipe we don't need to invalidate the jobserver.  */
+  if (js_type == js_fifo) {
+    return NULL;
+  }
+
   /* It's not really great that we are assuming the command line option
      here but other alternatives are also gross.  */
   return " --" JOBSERVER_AUTH_OPT "=-2,-2";
 }
 
 unsigned int
-jobserver_enabled (void)
+jobserver_enabled ()
 {
-  return job_fds[0] >= 0;
+  return js_type != js_none;
 }
 
 void
-jobserver_clear (void)
+jobserver_clear ()
 {
   if (job_fds[0] >= 0)
     close (job_fds[0]);
@@ -189,6 +295,11 @@ jobserver_clear (void)
     close (job_rfd);
 
   job_fds[0] = job_fds[1] = job_rfd = -1;
+
+  free (fifo_name);
+  fifo_name = NULL;
+
+  js_type = js_none;
 }
 
 void
@@ -205,8 +316,9 @@ jobserver_release (int is_fatal)
 }
 
 unsigned int
-jobserver_acquire_all (void)
+jobserver_acquire_all ()
 {
+  int r;
   unsigned int tokens = 0;
 
   /* Use blocking reads to wait for all outstanding jobs.  */
@@ -219,19 +331,25 @@ jobserver_acquire_all (void)
   while (1)
     {
       char intake;
-      int r;
       EINTRLOOP (r, read (job_fds[0], &intake, 1));
       if (r != 1)
-        return tokens;
+        break;
       ++tokens;
     }
+
+  if (fifo_name)
+    EINTRLOOP (r, unlink (fifo_name));
+
+  DB (DB_JOBS, ("Acquired all %u jobserver tokens.\n", tokens));
+
+  return tokens;
 }
 
 /* Prepare the jobserver to start a child process.  */
 void
 jobserver_pre_child (int recursive)
 {
-  if (recursive && job_fds[0] >= 0)
+  if (recursive && js_type == js_pipe)
     {
       fd_inherit (job_fds[0]);
       fd_inherit (job_fds[1]);
@@ -242,7 +360,7 @@ jobserver_pre_child (int recursive)
 void
 jobserver_post_child (int recursive)
 {
-  if (recursive && job_fds[0] >= 0)
+  if (recursive && js_type == js_pipe)
     {
       fd_noinherit (job_fds[0]);
       fd_noinherit (job_fds[1]);
@@ -250,7 +368,7 @@ jobserver_post_child (int recursive)
 }
 
 void
-jobserver_signal (void)
+jobserver_signal ()
 {
   if (job_rfd >= 0)
     {
@@ -260,7 +378,7 @@ jobserver_signal (void)
 }
 
 void
-jobserver_pre_acquire (void)
+jobserver_pre_acquire ()
 {
   /* Make sure we have a dup'd FD.  */
   if (job_rfd < 0 && job_fds[0] >= 0 && make_job_rfd () < 0)
@@ -460,7 +578,7 @@ jobserver_acquire (int timeout)
 
 /* Create a "bad" file descriptor for stdin when parallel jobs are run.  */
 int
-get_bad_stdin (void)
+get_bad_stdin ()
 {
   static int bad_stdin = -1;
 

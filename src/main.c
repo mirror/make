@@ -234,6 +234,9 @@ static const int inf_jobs = 0;
 
 char *jobserver_auth = NULL;
 
+/* Style for the jobserver.  */
+static char *jobserver_style = NULL;
+
 /* Shuffle mode for goals and prerequisites.  */
 
 static char *shuffle_mode = NULL;
@@ -341,6 +344,8 @@ static const char *const usage[] =
                               Search DIRECTORY for included makefiles.\n"),
     N_("\
   -j [N], --jobs[=N]          Allow N jobs at once; infinite jobs with no arg.\n"),
+    N_("\
+  --jobserver-style=STYLE     Select the style of jobserver to use.\n"),
     N_("\
   -k, --keep-going            Keep going when some targets can't be made.\n"),
     N_("\
@@ -488,6 +493,7 @@ static const struct command_switch switches[] =
     /* There is special-case handling for this in decode_switches() as well.  */
     { TEMP_STDIN_OPT, filename, &makefiles, 0, 0, 0, 0, 0, "temp-stdin" },
     { CHAR_MAX+11, string, &shuffle_mode, 1, 1, 0, "random", 0, "shuffle" },
+    { CHAR_MAX+12, string, &jobserver_style, 1, 0, 0, 0, 0, "jobserver-style" },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
   };
 
@@ -1347,6 +1353,9 @@ main (int argc, char **argv, char **envp)
 #endif
 #ifdef MAKE_JOBSERVER
                            " jobserver"
+#ifdef HAVE_MKFIFO
+                           " jobserver-fifo"
+#endif
 #endif
 #ifndef NO_OUTPUT_SYNC
                            " output-sync"
@@ -2094,7 +2103,7 @@ main (int argc, char **argv, char **envp)
      submakes it's the token they were given by their parent.  For the top
      make, we just subtract one from the number the user wants.  */
 
-  if (job_slots > 1 && jobserver_setup (job_slots - 1))
+  if (job_slots > 1 && jobserver_setup (job_slots - 1, jobserver_style))
     {
       /* Fill in the jobserver_auth for our children.  */
       jobserver_auth = jobserver_get_auth ();

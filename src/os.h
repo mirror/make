@@ -20,10 +20,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef MAKE_JOBSERVER
 
 /* Returns 1 if the jobserver is enabled, else 0.  */
-unsigned int jobserver_enabled (void);
+unsigned int jobserver_enabled ();
 
 /* Called in the master instance to set up the jobserver initially.  */
-unsigned int jobserver_setup (int job_slots);
+unsigned int jobserver_setup (int job_slots, const char *style);
 
 /* Called in a child instance to connect to the jobserver.
    Return 1 if we got a valid auth, else 0.  */
@@ -37,16 +37,16 @@ char *jobserver_get_auth ();
 const char *jobserver_get_invalid_auth ();
 
 /* Clear this instance's jobserver configuration.  */
-void jobserver_clear (void);
+void jobserver_clear ();
 
 /* Recover all the jobserver tokens and return the number we got.  */
-unsigned int jobserver_acquire_all (void);
+unsigned int jobserver_acquire_all ();
 
 /* Release a jobserver token.  If it fails and is_fatal is 1, fatal.  */
 void jobserver_release (int is_fatal);
 
 /* Notify the jobserver that a child exited.  */
-void jobserver_signal (void);
+void jobserver_signal ();
 
 /* Get ready to start a non-recursive child.  */
 void jobserver_pre_child (int);
@@ -55,7 +55,7 @@ void jobserver_pre_child (int);
 void jobserver_post_child (int);
 
 /* Set up to acquire a new token.  */
-void jobserver_pre_acquire (void);
+void jobserver_pre_acquire ();
 
 /* Wait until we can acquire a jobserver token.
    TIMEOUT is 1 if we have other jobs waiting for the load to go down;
@@ -66,18 +66,18 @@ unsigned int jobserver_acquire (int timeout);
 
 #else
 
-#define jobserver_enabled()         (0)
-#define jobserver_setup(_slots)     (0)
-#define jobserver_parse_auth(_auth) (0)
-#define jobserver_get_auth()        (NULL)
-#define jobserver_clear()           (void)(0)
-#define jobserver_release(_fatal)   (void)(0)
-#define jobserver_acquire_all()     (0)
-#define jobserver_signal()          (void)(0)
-#define jobserver_pre_child(_r)     (void)(0)
-#define jobserver_post_child(_r)    (void)(0)
-#define jobserver_pre_acquire()     (void)(0)
-#define jobserver_acquire(_tmout)   (0)
+#define jobserver_enabled()             (0)
+#define jobserver_setup(_slots, _style) (0)
+#define jobserver_parse_auth(_auth)     (0)
+#define jobserver_get_auth()            (NULL)
+#define jobserver_clear()               (void)(0)
+#define jobserver_release(_fatal)       (void)(0)
+#define jobserver_acquire_all()         (0)
+#define jobserver_signal()              (void)(0)
+#define jobserver_pre_child(_r)         (void)(0)
+#define jobserver_post_child(_r)        (void)(0)
+#define jobserver_pre_acquire()         (void)(0)
+#define jobserver_acquire(_tmout)       (0)
 
 #endif
 
@@ -85,7 +85,7 @@ unsigned int jobserver_acquire (int timeout);
 #if defined(VMS) || defined(WINDOWS32) || defined(_AMIGA) || defined(__MSDOS__)
 # define get_bad_stdin() (-1)
 #else
-int get_bad_stdin (void);
+int get_bad_stdin ();
 #endif
 
 /* Set a file descriptor to close/not close in a subprocess.  */

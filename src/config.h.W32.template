@@ -195,6 +195,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <minix/config.h> header file. */
 /* #undef HAVE_MINIX_CONFIG_H */
 
+/* Define to 1 if you have the 'mkfifo' function. */
+/* #undef HAVE_MKFIFO */
+
 /* Define to 1 if you have the 'mkstemp' function. */
 /* #undef HAVE_MKSTEMP */
 

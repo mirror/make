@@ -74,6 +74,19 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   described in the makefile.
   Implementation provided by Sergei Trofimovich <siarheit@google.com>
 
+* New feature: The --jobserver-style command line option and named pipes
+  A new jobserver method is used on systems where mkfifo(3) is supported.
+  This solves a number of obscure issues related to using the jobserver
+  and recursive invocations of GNU make.  This change means that sub-makes
+  will connect to the jobserver even if they are not marked as recursive.
+  It also means that other tools that want to participate in the jobserver
+  will need to be enhanced as described in the GNU make manual.
+  You can force GNU make to use the simple pipe-based jobserver (perhaps if
+  you are integrating with other tools or older versions of GNU make) by
+  adding the '--jobserver-style=pipe' option to the command line of the
+  top-level invocation of GNU make, or via MAKEFLAGS or GNUMAKEFLAGS.
+  To detect this change search for 'jobserver-fifo' in the .FEATURES variable.
+
 * GNU make has sometimes chosen unexpected, and sub-optimal, chains of
   implicit rules due to the definition of "ought to exist" in the implicit
   rule search algorithm, which considered any prerequisite mentioned in the

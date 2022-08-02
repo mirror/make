@@ -260,6 +260,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the memmove function.  */
 #define HAVE_MEMMOVE 1
 
+/* Define to 1 if you have the 'mkfifo' function.  */
+/* #undef HAVE_MKFIFO */
+
 /* Define to 1 if you have the mktemp function.  */
 #define HAVE_MKTEMP 1
 

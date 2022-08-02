@@ -6800,9 +6800,32 @@ Supports the @code{-L} (@code{--check-symlink-times}) flag.
 Supports ``else if'' non-nested conditionals.  @xref{Conditional
 Syntax, ,Syntax of Conditionals}.
 
+@item extra-prereqs
+Supports the @code{.EXTRA_PREREQS} special target.
+
+@item grouped-target
+Supports grouped target syntax for explicit rules.  @xref{Multiple Targets,
+,Multiple Targets in a Rule}.
+
+@item guile
+Has GNU Guile available as an embedded extension language.
+@xref{Guile Integration, ,GNU Guile Integration}.
+
 @item jobserver
 Supports ``job server'' enhanced parallel builds.  @xref{Parallel,
 ,Parallel Execution}.
+
+@item jobserver-fifo
+Supports ``job server'' enhanced parallel builds using named pipes.
+@xref{Integrating make, ,Integrating GNU @code{make}}.
+
+@item load
+Supports dynamically loadable objects for creating custom extensions.
+@xref{Loading Objects, ,Loading Dynamic Objects}.
+
+@item notintermediate
+Supports the @code{.NOTINTERMEDIATE} special target.
+@xref{Integrating make, ,Integrating GNU @code{make}}.
 
 @item oneshell
 Supports the @code{.ONESHELL} special target.  @xref{One Shell, ,Using
@@ -6812,8 +6835,15 @@ One Shell}.
 Supports order-only prerequisites.  @xref{Prerequisite Types, ,Types
 of Prerequisites}.
 
+@item output-sync
+Supports the @code{--output-sync} command line option.  @xref{Options Summary,
+,Summary of Options}.
+
 @item second-expansion
 Supports secondary expansion of prerequisite lists.
+
+@item shell-export
+Supports exporting @code{make} variables to @code{shell} functions.
 
 @item shortest-stem
 Uses the ``shortest stem'' method of choosing which pattern, of
@@ -6826,14 +6856,6 @@ Supports target-specific and pattern-specific variable assignments.
 
 @item undefine
 Supports the @code{undefine} directive.  @xref{Undefine Directive}.
-
-@item guile
-Has GNU Guile available as an embedded extension language.
-@xref{Guile Integration, ,GNU Guile Integration}.
-
-@item load
-Supports dynamically loadable objects for creating custom extensions.
-@xref{Loading Objects, ,Loading Dynamic Objects}.
 @end table
 
 @vindex .INCLUDE_DIRS @r{(list of include directories)}
@@ -9285,6 +9307,15 @@ argument, @code{make} runs as many recipes simultaneously as possible.
 If there is more than one @samp{-j} option, the last one is effective.
 @xref{Parallel, ,Parallel Execution}, for more information on how
 recipes are run.  Note that this option is ignored on MS-DOS.
+
+@item --jobserver-style=[@var{style}]
+@cindex @code{--jobserver-style}
+Chooses the style of jobserver to use.  This option only has effect if
+parallel builds are enabled (@pxref{Parallel, ,Parallel Execution}).  On POSIX
+systems @var{style} can be one of @code{fifo} (the default) or @code{pipe}.
+On Windows the only acceptable @var{style} is @code{sem} (the default).  This
+option is useful if you need to use an older versions of GNU @code{make}, or a
+different tool that requires a specific jobserver style.
 
 @item -k
 @cindex @code{-k}
@@ -12025,20 +12056,20 @@ number of active jobs across recursive invocations.  The actual
 implementation of the jobserver varies across different operating
 systems, but some fundamental aspects are always true.
 
-First, only command lines that @code{make} understands to be recursive
-invocations of @code{make} (@pxref{MAKE Variable, ,How the @code{MAKE}
-Variable Works}) will have access to the jobserver.  When writing
-makefiles you must be sure to mark the command as recursive (most
-commonly by prefixing the command line with the @code{+} indicator
-(@pxref{Recursion, ,Recursive Use of @code{make}}).
+@cindex @code{--jobserver-auth}
+First, @code{make} will provide information necessary for accessing the
+jobserver through the environment to its children, in the @code{MAKEFLAGS}
+environment variable.  Tools which want to participate in the jobserver
+protocol will need to parse this environment variable and find the word
+starting with @code{--jobserver-auth=}.  The value of this option will
+describe how to communicate with the jobserver.  The interpretation of this
+value is described in the sections below.
 
-Second, @code{make} will provide information necessary for accessing
-the jobserver through the environment to its children, in the
-@code{MAKEFLAGS} environment variable.  Tools which want to
-participate in the jobserver protocol will need to parse this
-environment variable, as described in subsequent sections.
+Be aware that the @code{MAKEFLAGS} variable may contain multiple instances of
+the @code{--jobserver-auth=} option.  Only the @emph{last} instance is
+relevant.
 
-Third, every command @code{make} starts has one implicit job slot
+Second, every command @code{make} starts has one implicit job slot
 reserved for it before it starts.  Any tool which wants to participate
 in the jobserver protocol should assume it can always run one job
 without having to contact the jobserver at all.
@@ -12075,54 +12106,75 @@ the jobserver.
 @subsection POSIX Jobserver Interaction
 @cindex jobserver on POSIX
 
-On POSIX systems the jobserver is implemented as a simple UNIX pipe.
-The pipe will be pre-loaded with one single-character token for each
-available job.  To obtain an extra slot you must read a single
-character from the jobserver pipe; to release a slot you must write a
-single character back into the jobserver pipe.  Note that the read
-side of the jobserver pipe is set to ``blocking'' mode.
+On POSIX systems the jobserver is implemented in one of two ways: on systems
+that support it, GNU @code{make} will create a named pipe and use that for the
+jobserver.  In this case the auth option will have the form
+@code{--jobserver-auth=fifo:PATH} where @samp{PATH} is the pathname of the
+named pipe.  To access the jobserver you should open the named pipe path and
+read/write to it as described below.
 
-To access the pipe you must parse the @code{MAKEFLAGS} variable and
-look for the argument string @code{--jobserver-auth=R,W} where
-@samp{R} and @samp{W} are non-negative integers representing file
-descriptors: @samp{R} is the read file descriptor and @samp{W} is the
-write file descriptor.
+@cindex @code{--jobserver-style}
+If the system doesn't support named pipes, or if the user provided the
+@code{--jobserver-style} option and specified @samp{pipe}, then the jobserver
+will be implemented as a simple UNIX pipe.  In this case the auth option will
+have the form @code{--jobserver-auth=R,W} where @samp{R} and @samp{W} are
+non-negative integers representing file descriptors: @samp{R} is the read file
+descriptor and @samp{W} is the write file descriptor.  If either or both of
+these file descriptors are negative, it means the jobserver is disabled for
+this process.
 
-It's important that when you release the job slot, you write back the
-same character you read from the pipe for that slot.  Don't assume
-that all tokens are the same character; different characters may have
-different meanings to GNU @code{make}.  The order is not important,
-since @code{make} has no idea in what order jobs will complete anyway.
+When using a simple pipe, only command lines that @code{make} understands to
+be recursive invocations of @code{make} (@pxref{MAKE Variable, ,How the
+@code{MAKE} Variable Works}) will have access to the jobserver.  When writing
+makefiles you must be sure to mark the command as recursive (most commonly by
+prefixing the command line with the @code{+} indicator (@pxref{Recursion,
+,Recursive Use of @code{make}}).  Note that the read side of the jobserver
+pipe is set to ``blocking'' mode.  This should not be changed.
+
+In both implementations of the jobserver, the pipe will be pre-loaded with one
+single-character token for each available job.  To obtain an extra slot you
+must read a single character from the jobserver; to release a slot you must
+write a single character back into the jobserver.
+
+It's important that when you release the job slot, you write back the same
+character you read.  Don't assume that all tokens are the same character;
+different characters may have different meanings to GNU @code{make}.  The
+order is not important, since @code{make} has no idea in what order jobs will
+complete anyway.
 
 There are various error conditions you must consider to ensure your
 implementation is robust:
 
 @itemize @bullet
 @item
-Usually you will have a command-line argument controlling the parallel
-operation of your tool.  Consider whether your tool should detect
-situations where both the jobserver and the command-line argument are
-specified, and how it should react.
+If you have a command-line argument controlling the parallel operation of your
+tool, consider whether your tool should detect situations where both the
+jobserver and the command-line argument are specified, and how it should
+react.
 
 @item
-If your tool determines that the @code{--jobserver-auth} option is
-available in @code{MAKEFLAGS} but that the file descriptors specified
-are closed, this means that the calling @code{make} process did not
-think that your tool was a recursive @code{make} invocation (e.g., the
-command line was not prefixed with a @code{+} character).  You should
-notify your users of this situation.
+If your tool does not recognize the format of the @code{--jobserver-auth}
+string, it should assume the jobserver is using a different style and it
+cannot connect.
 
 @item
-Your tool should also examine the first word of the @code{MAKEFLAGS}
-variable and look for the character @code{n}.  If this character is
-present then @code{make} was invoked with the @samp{-n} option and
-your tool should stop without performing any operations.
+If your tool determines that the @code{--jobserver-auth} option references a
+simple pipe but that the file descriptors specified are closed, this means
+that the calling @code{make} process did not think that your tool was a
+recursive @code{make} invocation (e.g., the command line was not prefixed with
+a @code{+} character).  You should notify your users of this situation.
 
 @item
-Your tool should be sure to write back the tokens it read, even under
-error conditions.  This includes not only errors in your tool but also
-outside influences such as interrupts (@code{SIGINT}), etc.  You may
-want to install signal handlers to manage this write-back.
+Your tool should be sure to write back the tokens it read, even under error
+conditions.  This includes not only errors in your tool but also outside
+influences such as interrupts (@code{SIGINT}), etc.  You may want to install
+signal handlers to manage this write-back.
+
+@item
+Your tool may also examine the first word of the @code{MAKEFLAGS} variable and
+look for the character @code{n}.  If this character is present then
+@code{make} was invoked with the @samp{-n} option and your tool may want to
+stop without performing any operations.
 @end itemize
 
 @node Windows Jobserver,  , POSIX Jobserver, Job Slots
@@ -12138,6 +12190,9 @@ To access the semaphore you must parse the @code{MAKEFLAGS} variable and
 look for the argument string @code{--jobserver-auth=NAME} where
 @samp{NAME} is the name of the named semaphore.  Use this name with
 @code{OpenSemaphore} to create a handle to the semaphore.
+
+@cindex @code{--jobserver-style} for Windows
+The only valid style for @code{--jobserver-style} is @samp{sem}.
 
 There are various error conditions you must consider to ensure your
 implementation is robust:

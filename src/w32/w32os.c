@@ -34,9 +34,12 @@ static char jobserver_semaphore_name[MAX_PATH + 1];
 static HANDLE jobserver_semaphore = NULL;
 
 unsigned int
-jobserver_setup (int slots)
+jobserver_setup (int slots, const char *style)
 {
   /* sub_proc.c is limited in the number of objects it can wait for. */
+
+  if (style && strcmp (style, "sem") != 0)
+    OS (fatal, NILF, _("Unknown jobserver auth style '%s'"), style);
 
   if (slots > process_table_usable_size())
     {

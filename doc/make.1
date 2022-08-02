@@ -205,6 +205,16 @@ option is given without an argument,
 .BR make
 will not limit the number of jobs that can run simultaneously.
 .TP 0.5i
+\fB\--jobserver-style=\fR\fIstyle\fR
+The style of jobserver to use.  The
+.I style
+may be one of
+.BR fifo ,
+.BR pipe ,
+or
+.B sem
+(Windows only).
+.TP 0.5i
 \fB\-k\fR, \fB\-\-keep\-going\fR
 Continue as much as possible after an error.
 While the target that failed, and those that depend on it, cannot
