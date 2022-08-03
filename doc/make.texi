@@ -4957,6 +4957,13 @@ in its environment.  In response, it takes the flags from that value and
 processes them as if they had been given as arguments.
 @xref{Options Summary, ,Summary of Options}.
 
+The value of @code{MAKEFLAGS} is a possibly empty group of characters
+representing single-letter options that take no argument, followed by a space
+and any options that take arguments or which have long option names.  If an
+option has both single-letter and long options, the single-letter option is
+always preferred.  If there are no single-letter options on the command line,
+then the value of @code{MAKEFLAGS} starts with a space.
+
 @cindex command line variable definitions, and recursion
 @cindex variables, command line, and recursion
 @cindex recursion, and command line variable definitions
@@ -5006,7 +5013,7 @@ meaning to run as many jobs as possible in parallel, this is passed
 down, since multiple infinities are no more than one.@refill
 
 If you do not want to pass the other flags down, you must change the
-value of @code{MAKEFLAGS}, like this:
+value of @code{MAKEFLAGS}, for example like this:
 
 @example
 subsystem:
@@ -7209,17 +7216,23 @@ You can write a conditional that tests @code{make} command flags such as
 This is useful when @code{touch} is not enough to make a file appear up
 to date.
 
+Recall that @code{MAKEFLAGS} will put all single-letter options (such as
+@samp{-t}) into the first word, and that word will be empty if no
+single-letter options were given.  To work with this, it's helpful to add a
+value at the start to ensure there's a word: for example
+@samp{-$(MAKEFLAGS)}.
+
 The @code{findstring} function determines whether one string appears as a
-substring of another.  If you want to test for the @samp{-t} flag,
-use @samp{t} as the first string and the value of @code{MAKEFLAGS} as
-the other.
+substring of another.  If you want to test for the @samp{-t} flag, use
+@samp{t} as the first string and the first word of @code{MAKEFLAGS} as the
+other.
 
 For example, here is how to arrange to use @samp{ranlib -t} to finish
 marking an archive file up to date:
 
 @example
 archive.a: @dots{}
-ifneq (,$(findstring t,$(MAKEFLAGS)))
+ifneq (,$(findstring t,$(word 1,-$(MAKEFLAGS))))
         +touch archive.a
         +ranlib -t archive.a
 else
