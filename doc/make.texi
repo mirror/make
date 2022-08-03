@@ -10301,18 +10301,21 @@ longer needed.  Therefore, an intermediate file which did not exist before
 deletion to you by printing a @samp{rm} command showing which file it is
 deleting.
 
-Ordinarily, a file cannot be intermediate if it is mentioned in the
-makefile as a target or prerequisite.  However, you can explicitly mark a
-file as intermediate by listing it as a prerequisite of the special target
-@code{.INTERMEDIATE}.  This takes effect even if the file is mentioned
-explicitly in some other way.
+You can explicitly mark a file as intermediate by listing it as a prerequisite
+of the special target @code{.INTERMEDIATE}.  This takes effect even if the
+file is mentioned explicitly in some other way.
 
-Listing a file as a prerequisite of the special target
-@code{.NOTINTERMEDIATE} forces it to not be considered intermediate
-(just as any other mention of the file will do).  Also, listing the
-target pattern of a pattern rule as a prerequisite of
-@code{.NOTINTERMEDIATE} ensures that no targets generated using that
-pattern rule are considered intermediate.
+A file cannot be intermediate if it is mentioned in the makefile as a target
+or prerequisite, so one way to avoid the deletion of intermediate files is by
+adding it as a prerequisite to some target.  However, doing so can cause make
+to do extra work when searching pattern rules (@pxref{Implicit Rule Search,
+,Implicit Rule Search Algorithm}).
+
+As an alternative, listing a file as a prerequisite of the special target
+@code{.NOTINTERMEDIATE} forces it to not be considered intermediate (just as
+any other mention of the file will do).  Also, listing the target pattern of a
+pattern rule as a prerequisite of @code{.NOTINTERMEDIATE} ensures that no
+targets generated using that pattern rule are considered intermediate.
 
 You can disable intermediate files completely in your makefile by
 providing @code{.NOTINTERMEDIATE} as a target with no prerequisites:
