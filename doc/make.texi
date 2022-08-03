@@ -1399,10 +1399,24 @@ makefile and restart, and never do anything else.  So, to avoid this,
 @code{make} will @strong{not} attempt to remake makefiles which are specified
 as targets of a double-colon rule with a recipe but no prerequisites.
 
-Phony targets (@pxref{Phony Targets}) have the same issue: they are never
+Phony targets (@pxref{Phony Targets}) have the same effect: they are never
 considered up-to-date and so an included file marked as phony would cause
 @code{make} to restart continuously.  To avoid this @code{make} will not
 attempt to remake makefiles which are marked phony.
+
+You can take advantage of this to optimize startup time: if you know you don't
+need your @file{Makefile} to be remade you can prevent make from trying to
+remake it by adding either:
+
+@example
+.PHONY: Makefile
+@end example
+
+or:
+
+@example
+Makefile:: ;
+@end example
 
 If you do not specify any makefiles to be read with @samp{-f} or
 @samp{--file} options, @code{make} will try the default makefile names;
