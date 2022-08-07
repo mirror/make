@@ -8804,7 +8804,7 @@ again:@refill
 @group
 sources = foo.c bar.c
 
-ifneq ($(MAKECMDGOALS),clean)
+ifeq (,$(filter clean,$(MAKECMDGOALS))
 include $(sources:.c=.d)
 endif
 @end group
