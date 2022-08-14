@@ -98,8 +98,10 @@ force:
 check_tempfile($tdir);
 
 @make_command = @make_orig;
+unlink($makecopy);
 }
 
+close(STDIN);
 unlink('input.mk', 'bye.mk');
 
 # This tells the test driver that the perl test script executed properly.

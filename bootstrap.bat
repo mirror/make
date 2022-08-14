@@ -19,16 +19,66 @@ setlocal
 set "svurl=https://git.savannah.gnu.org/cgit"
 set "gnuliburl=%svurl%/gnulib.git/plain"
 
+where curl >nul 2>&1
+if ERRORLEVEL 1 (
+    echo Cannot find curl: it must be installed for bootstrap
+    exit /b 1
+)
+
+where sed >nul 2>&1
+if ERRORLEVEL 1 (
+    echo Cannot find sed: it must be installed for bootstrap
+    echo Hint: you can use the sed provided in the Git for Windows install
+    exit /b 1
+)
+
+if exist lib goto Downloads
+mkdir lib
+if ERRORLEVEL 1 exit /b 1
+
+:Downloads
+echo -- Downloading Gnulib modules
 call :Download lib getloadavg.c
 call :Download lib intprops.h
-goto :Done
+call :Download lib intprops-internal.h
+
+echo -- Configuring the workspace
+copy /Y gl\lib\*.* lib > nul
+
+:: Create a sed script to convert templates
+if exist convert.sed del /Q convert.sed
+echo s,%%PACKAGE%%,make,g > convert.sed
+if ERRORLEVEL 1 goto Failed
+sed -n "s/^AC_INIT(\[GNU.make\],\[\([0-9.]*\)\].*/s,%%VERSION%%,\1,g/p" configure.ac >> convert.sed
+if ERRORLEVEL 1 goto Failed
+sed -z -e s/\\\n//g -e "s/[ \t][ \t]*/ /g" -e "s, [^ ]*\.h,,g" -e "s,src/,$(src),g" -e "s,lib/,$(lib),g" Makefile.am | sed -n "s/^\([A-Za-z0-9]*\)_SRCS *= *\(.*\)/s,%%\1_SOURCES%%,\2,/p" >> convert.sed
+if ERRORLEVEL 1 goto Failed
+
+echo - Creating Basic.mk
+call sed -f convert.sed Basic.mk.template > Basic.mk
+if ERRORLEVEL 1 goto Failed
+echo - Creating src\config.h.W32
+call sed -f convert.sed src\config.h.W32.template > src\config.h.W32
+if ERRORLEVEL 1 goto Failed
+
+echo - Creating src\gmk-default.h
+echo static const char *const GUILE_module_defn = ^" \ > src\gmk-default.h
+call sed -e "s/;.*//" -e "/^[ \t]*$/d" -e "s/\"/\\\\\"/g" -e "s/$/ \\\/" src\gmk-default.scm >> src\gmk-default.h
+if ERRORLEVEL 1 goto Failed
+echo ^";>> src\gmk-default.h
+
+echo.
+echo Done.  Run build_w32.bat to build GNU make.
+goto :EOF
 
 :Download
-echo Downloading %1\%2
-curl -sS -o %1\%2 "%gnuliburl%/%1/%2"
+if exist "%1\%2" goto :EOF
+echo - Downloading %1\%2
+curl -sS -o "%1\%2" "%gnuliburl%/%1/%2"
 if ERRORLEVEL 1 exit /b 1
 goto :EOF
 
-:Done
-echo Done.  Run build_w32.bat to build GNU make.
-goto :EOF
+:Failed
+echo *** Bootstrap failed.
+echo Resolve the issue, or use the configured source in the release tarball
+exit /b 1

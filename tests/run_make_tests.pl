@@ -573,7 +573,7 @@ sub set_more_defaults
     create_file('make.mk', 'all:;$(info $(MAKE))');
     my $mk = `$make_path -sf make.mk`;
     unlink('make.mk');
-    chop $mk;
+    $mk =~ s/\r?\n$//;
     $mk or die "FATAL ERROR: Cannot determine the value of \$(MAKE)\n";
     $make_path = $mk;
   }
@@ -583,7 +583,7 @@ sub set_more_defaults
   create_file('shell.mk', 'all:;$(info $(SHELL))');
   $sh_name = `$make_path -sf shell.mk`;
   unlink('shell.mk');
-  chop $sh_name;
+  $sh_name =~ s/\r?\n$//;
   if (! $sh_name) {
       print "Cannot determine shell\n";
       $is_posix_sh = 0;

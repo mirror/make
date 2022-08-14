@@ -37,6 +37,7 @@ configure
 stamp-h1
 .dirstamp
 gnulib
+convert.sed
 
 # Build artifacts
 .deps/

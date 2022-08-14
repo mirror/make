@@ -162,6 +162,10 @@ script to prime your Git workspace:
 Next, rename the file README.W32.template to README.W32 and follow those
 instructions.
 
+Note, neither of these methods are tested regularly by the GNU make
+maintainers.  Building for Windows from a distribution tarball IS tested
+regularly.
+
 
 Debugging and Testing
 ---------------------

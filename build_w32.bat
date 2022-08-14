@@ -38,6 +38,7 @@ set O=obj
 set ARCH=x64
 set DEBUG=N
 set DIRENT=Y
+set VERBOSE=N
 
 if exist maintMakefile (
     set MAINT=Y
@@ -46,6 +47,7 @@ if exist maintMakefile (
 )
 
 :ParseSW
+if "%1" == "--verbose" goto SetVerbose
 if "%1" == "--debug" goto SetDebug
 if "%1" == "--without-guile" goto NoGuile
 if "%1" == "--x86" goto Set32Bit
@@ -53,6 +55,11 @@ if "%1" == "gcc" goto SetCC
 if "%1" == "tcc" goto SetTCC
 if "%1" == "" goto DoneSW
 goto Usage
+
+:SetVerbose
+set VERBOSE=Y
+shift
+goto ParseSW
 
 :SetDebug
 set DEBUG=Y
@@ -223,10 +230,11 @@ mkdir %OUTDIR%\lib
 
 if "%GUILE%" == "Y" call :ChkGuile
 
+if not exist src\config.h.W32 goto NotConfig
+
 echo.
 echo Compiling %OUTDIR% version
 
-if exist src\config.h.W32.template call :ConfigSCM
 copy src\config.h.W32 %OUTDIR%\src\config.h
 
 copy lib\glob.in.h %OUTDIR%\lib\glob.h
@@ -295,6 +303,7 @@ goto :EOF
 ::
 
 :Compile
+if "%VERBOSE%" == "N" echo - Compiling %1.c
 echo %LNKOUT%/%1.%O% >>%OUTDIR%\link.sc
 set EXTRAS=
 if "%2" == "GUILE" set "EXTRAS=%GUILECFLAGS%"
@@ -303,21 +312,21 @@ if "%COMPILER%" == "gcc" goto GccCompile
 if "%COMPILER%" == "tcc" goto TccCompile
 
 :: MSVC Compile
-echo on
+if "%VERBOSE%" == "Y" echo on
 call %COMPILER% /nologo /MT /W4 /EHsc %OPTS% /I %OUTDIR%/src /I src /I %OUTDIR%/lib /I lib /I src/w32/include /D WINDOWS32 /D WIN32 /D _CONSOLE /D HAVE_CONFIG_H /FR%OUTDIR% /Fp%OUTDIR%\%MAKE%.pch /Fo%OUTDIR%\%1.%O% /Fd%OUTDIR%\%MAKE%.pdb %EXTRAS% /c %1.c
 @echo off
 goto CompileDone
 
 :GccCompile
 :: GCC Compile
-echo on
+if "%VERBOSE%" == "Y" echo on
 call %COMPILER% -mthreads -Wall -std=gnu99 -gdwarf-2 -g3 %OPTS% -I%OUTDIR%/src -I./src -I%OUTDIR%/lib -I./lib -I./src/w32/include -DWINDOWS32 -DHAVE_CONFIG_H %EXTRAS% -o %OUTDIR%/%1.%O% -c %1.c
 @echo off
 goto CompileDone
 
 :TccCompile
 :: TCC Compile
-echo on
+if "%VERBOSE%" == "Y" echo on
 call %COMPILER% -mthreads -Wall -std=c11 %OPTS% -I%OUTDIR%/src -I./src -I%OUTDIR%/lib -I./lib -I./src/w32/include -D_cdecl= -D_MSC_VER -DWINDOWS32 -DHAVE_CONFIG_H %EXTRAS% -o %OUTDIR%/%1.%O% -c %1.c
 @echo off
 goto CompileDone
@@ -328,20 +337,20 @@ goto :EOF
 
 :Link
 echo.
-echo Linking %LNKOUT%/%MAKE%.exe
+echo - Linking %LNKOUT%/%MAKE%.exe
 if "%COMPILER%" == "gcc" goto GccLink
 if "%COMPILER%" == "tcc" goto TccLink
 
 :: MSVC Link
 echo %GUILELIBS% kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib >>%OUTDIR%\link.sc
-echo on
+if "%VERBOSE%" == "Y" echo on
 call link.exe /NOLOGO /SUBSYSTEM:console /PDB:%LNKOUT%\%MAKE%.pdb %LINKOPTS% /OUT:%LNKOUT%\%MAKE%.exe @%LNKOUT%\link.sc
 @echo off
 goto :EOF
 
 :GccLink
 :: GCC Link
-echo on
+if "%VERBOSE%" == "Y" echo on
 echo %GUILELIBS% -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32 >>%OUTDIR%\link.sc
 call %COMPILER% -mthreads -gdwarf-2 -g3 %OPTS% -o %LNKOUT%/%MAKE%.exe @%LNKOUT%/link.sc -Wl,--out-implib=%LNKOUT%/libgnumake-1.dll.a
 @echo off
@@ -349,20 +358,10 @@ goto :EOF
 
 :TccLink
 :: TCC Link
-echo on
+if "%VERBOSE%" == "Y" echo on
 echo %GUILELIBS% -lkernel32 -luser32 -lgdi32 -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -lodbc32 -lodbccp32 >>%OUTDIR%\link.sc
 call %COMPILER% -mthreads %OPTS% -o %LNKOUT%/%MAKE%.exe @%LNKOUT%/link.sc 
 @echo off
-goto :EOF
-
-:ConfigSCM
-echo Generating config from SCM templates
-call sed -n "s/^AC_INIT(\[GNU make\],\[\([^]]\+\)\].*/s,%%VERSION%%,\1,g/p" configure.ac > %OUTDIR%\src\config.h.W32.sed
-echo s,%%PACKAGE%%,make,g >> %OUTDIR%\src\config.h.W32.sed
-call sed -f %OUTDIR%\src\config.h.W32.sed src\config.h.W32.template > src\config.h.W32
-echo static const char *const GUILE_module_defn = ^" \ > src\gmk-default.h
-call sed -e "s/;.*//" -e "/^[ \t]*$/d" -e "s/\"/\\\\\"/g" -e "s/$/ \\\/" src\gmk-default.scm >> src\gmk-default.h
-echo ^";>> src\gmk-default.h
 goto :EOF
 
 :ChkGuile
@@ -421,6 +420,13 @@ if ERRORLEVEL 1 exit /b 1
 call %COMPILER% >nul 2>&1
 if ERRORLEVEL 1 exit /b 1
 goto :EOF
+
+:NotConfig
+echo.
+echo *** This workspace is not configured.
+echo Either retrieve the configured source in the release tarball
+echo or, if building from Git, run the .\bootstrap.bat script first.
+exit /b 1
 
 :Usage
 echo Usage: %0 [options] [gcc] OR [tcc]
