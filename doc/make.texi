@@ -3171,10 +3171,10 @@ for a particular run of @code{make}, use the @samp{-s} or
 @findex .EXPORT_ALL_VARIABLES
 @item .EXPORT_ALL_VARIABLES
 
-Simply by being mentioned as a target, this tells @code{make} to
-export all variables to child processes by default.
-@xref{Variables/Recursion, ,Communicating Variables to a
-Sub-@code{make}}.
+Simply by being mentioned as a target, this tells @code{make} to export all
+variables to child processes by default.  This is an alternative to using
+@code{export} with no arguments.  @xref{Variables/Recursion, ,Communicating
+Variables to a Sub-@code{make}}.
 
 @findex .NOTPARALLEL
 @item .NOTPARALLEL
@@ -4795,10 +4795,8 @@ initialize its table of variable values.  @xref{Environment,
 ,Variables from the Environment}.
 
 Except by explicit request, @code{make} exports a variable only if it
-is either defined in the environment initially or set on the command
-line, and if its name consists only of letters, numbers, and underscores.
-Some shells cannot cope with environment variable names consisting of
-characters other than letters, numbers, and underscores.
+is either defined in the environment initially, or if set on the command
+line and its name consists only of letters, numbers, and underscores.
 
 @cindex SHELL, exported value
 The value of the @code{make} variable @code{SHELL} is not exported.
@@ -4904,31 +4902,39 @@ export
 @end example
 
 @noindent
-This tells @code{make} that variables which are not explicitly mentioned
-in an @code{export} or @code{unexport} directive should be exported.
-Any variable given in an @code{unexport} directive will still @emph{not}
-be exported.  If you use @code{export} by itself to export variables by
-default, variables whose names contain characters other than
-alphanumerics and underscores will not be exported unless specifically
-mentioned in an @code{export} directive.@refill
+This tells @code{make} that variables which are not explicitly mentioned in an
+@code{export} or @code{unexport} directive should be exported.  Any variable
+given in an @code{unexport} directive will still @emph{not} be exported.
 
 @findex .EXPORT_ALL_VARIABLES
-The behavior elicited by an @code{export} directive by itself was the
-default in older versions of GNU @code{make}.  If your makefiles depend
-on this behavior and you want to be compatible with old versions of
-@code{make}, you can write a rule for the special target
-@code{.EXPORT_ALL_VARIABLES} instead of using the @code{export} directive.
-This will be ignored by old @code{make}s, while the @code{export}
-directive will cause a syntax error.@refill
 @cindex compatibility in exporting
+The behavior elicited by an @code{export} directive by itself was the default
+in older versions of GNU @code{make}.  If your makefiles depend on this
+behavior and you want to be compatible with old versions of @code{make}, you
+can add the special target @code{.EXPORT_ALL_VARIABLES} to your makefile
+instead of using the @code{export} directive.  This will be ignored by old
+@code{make}s, while the @code{export} directive will cause a syntax
+error.
 
-Likewise, you can use @code{unexport} by itself to tell @code{make}
-@emph{not} to export variables by default.  Since this is the default
-behavior, you would only need to do this if @code{export} had been used
-by itself earlier (in an included makefile, perhaps).  You
-@strong{cannot} use @code{export} and @code{unexport} by themselves to
-have variables exported for some recipes and not for others.  The last
-@code{export} or @code{unexport} directive that appears by itself
+When using @code{export} by itself or @code{.EXPORT_ALL_VARIABLES} to export
+variables by default, only variables whose names consist solely of
+alphanumerics and underscores will be exported.  To export other variables you
+must specifically mention them in an @code{export} directive.
+
+Adding a variable's value to the environment requires it to be expanded.  If
+expanding a variable has side-effects (such as the @code{info} or @code{eval}
+or similar functions) then these side-effects will be seen every time a
+command is invoked.  You can avoid this by ensuring that such variables have
+names which are not exportable by default.  However, a better solution is to
+@emph{not} use this ``export by default'' facility at all, and instead
+explicitly @code{export} the relevant variables by name.
+
+You can use @code{unexport} by itself to tell @code{make} @emph{not} to export
+variables by default.  Since this is the default behavior, you would only need
+to do this if @code{export} had been used by itself earlier (in an included
+makefile, perhaps).  You @strong{cannot} use @code{export} and @code{unexport}
+by themselves to have variables exported for some recipes and not for others.
+The last @code{export} or @code{unexport} directive that appears by itself
 determines the behavior for the entire run of @code{make}.@refill
 
 @vindex MAKELEVEL
