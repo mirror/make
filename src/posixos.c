@@ -115,6 +115,7 @@ jobserver_setup (int slots, const char *style)
         {
           perror_with_name("jobserver mkfifo: ", fifo_name);
           free (fifo_name);
+          fifo_name = NULL;
         }
       else
         {

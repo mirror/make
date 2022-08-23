@@ -131,4 +131,19 @@ all a: ; @echo $@
               '--jobserver-style=foo -j8',
               "#MAKE#: *** Unknown jobserver auth style 'foo'.  Stop.", 512);
 
+# sv 62908.
+# Test that when mkfifo fails, make switches to pipe and succeeds.
+# Force mkfifo to fail by attempting to create a fifo in a non existent
+# directory.
+# run_make_test does not allow matching a multiline pattern, therefore run the
+# test twice.
+# First time look for /$ERR_no_such_file/ to ensure mkfifo failed.
+# Second time look for /Nothing to be done/ to ensure make succeeded.
+$ENV{TMPDIR} = "nosuchdir";
+run_make_test("all:\n", '-j2', "/$ERR_no_such_file/");
+
+$ENV{TMPDIR} = "nosuchdir";
+run_make_test(undef, '-j2', "/Nothing to be done/");
+
+
 1;
