@@ -285,24 +285,8 @@ release_semaphore (void *sem)
 int
 output_tmpfd (void)
 {
-  mode_t mask = umask (0077);
-  int fd = -1;
-  FILE *tfile = tmpfile ();
-
-  if (! tfile)
-    pfatal_with_name ("tmpfile");
-
-  /* Create a duplicate so we can close the stream.  */
-  fd = dup (fileno (tfile));
-  if (fd < 0)
-    pfatal_with_name ("dup");
-
-  fclose (tfile);
-
+  int fd = get_tmpfd (NULL);
   set_append_mode (fd);
-
-  umask (mask);
-
   return fd;
 }
 

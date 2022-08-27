@@ -15,6 +15,13 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
+/* Return a file descriptor for a new anonymous temp file, or -1.  */
+#if defined(WINDOWS32)
+int os_anontmp ();
+#else
+# define os_anontmp() (-1)
+#endif
+
 /* This section provides OS-specific functions to support the jobserver.  */
 
 #ifdef MAKE_JOBSERVER

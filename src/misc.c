@@ -17,6 +17,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "makeint.h"
 #include "filedef.h"
 #include "dep.h"
+#include "os.h"
 #include "debug.h"
 
 /* GNU make no longer supports pre-ANSI89 environments.  */
@@ -573,44 +574,79 @@ get_tmppath ()
   return path;
 }
 
-FILE *
-get_tmpfile (char **name)
+/* Generate a temporary file and return an fd for it.  If name is NULL then
+   the temp file is anonymous and will be deleted when the process exits.  */
+int
+get_tmpfd (char **name)
 {
-  FILE *file;
-#ifdef HAVE_FDOPEN
-  int fd;
-#endif
+  int fd = -1;
+  char *tmpnm;
+  mode_t mask;
+
+  /* If there's an os-specific way to get an anoymous temp file use it.  */
+  if (!name)
+    {
+      fd = os_anontmp ();
+      if (fd >= 0)
+        return fd;
+    }
 
   /* Preserve the current umask, and set a restrictive one for temp files.  */
-  mode_t mask = umask (0077);
+  mask = umask (0077);
 
-#if defined(HAVE_MKSTEMP) && defined(HAVE_FDOPEN)
-  *name = get_tmptemplate ();
+#if defined(HAVE_MKSTEMP)
+  tmpnm = get_tmptemplate ();
 
   /* It's safest to use mkstemp(), if we can.  */
-  EINTRLOOP (fd, mkstemp (*name));
-  if (fd == -1)
-    file = NULL;
-  else
-    file = fdopen (fd, "w");
+  EINTRLOOP (fd, mkstemp (tmpnm));
 #else
-  *name = get_tmppath ();
+  tmpnm = get_tmppath ();
 
-# ifdef HAVE_FDOPEN
   /* Can't use mkstemp(), but try to guard against a race condition.  */
-  EINTRLOOP (fd, open (*name, O_CREAT|O_EXCL|O_WRONLY, 0600));
-  if (fd == -1)
-    return 0;
-  file = fdopen (fd, "w");
-# else
-  /* Not secure, but what can we do?  */
-  file = fopen (*name, "w");
-# endif
+  EINTRLOOP (fd, open (tmpnm, O_CREAT|O_EXCL|O_RDWR, 0600));
 #endif
 
   umask (mask);
 
+  if (name)
+    *name = tmpnm;
+  else
+    {
+      unlink (tmpnm);
+      free (tmpnm);
+    }
+
+  return fd;
+}
+
+FILE *
+get_tmpfile (char **name)
+{
+#if defined(HAVE_FDOPEN)
+  int fd = get_tmpfd (name);
+
+  return fd < 0 ? NULL : fdopen (fd, "w");
+#else
+  /* Preserve the current umask, and set a restrictive one for temp files.  */
+  mode_t mask = umask (0077);
+
+  char *tmpnm = get_tmppath ();
+
+  /* Not secure, but...?  If name is NULL we could use tmpfile()...  */
+  FILE *file = fopen (tmpnm, "w");
+
+  umask (mask);
+
+  if (name)
+    *name = tmpnm;
+  else
+    {
+      unlink (tmpnm);
+      free (tmpnm);
+    }
+
   return file;
+#endif
 }
 
 

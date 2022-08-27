@@ -547,6 +547,7 @@ void print_spaces (unsigned int);
 char *find_percent (char *);
 const char *find_percent_cached (const char **);
 char *get_tmppath ();
+int get_tmpfd (char **);
 FILE *get_tmpfile (char **);
 ssize_t writebuf (int, const void *, size_t);
 ssize_t readbuf (int, void *, size_t);
