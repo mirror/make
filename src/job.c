@@ -123,6 +123,10 @@ static void vmsWaitForChildren (int *);
 # include <process.h>
 #endif
 
+#if defined (HAVE_FCNTL_H)
+# include <fcntl.h>
+#endif
+
 #if defined (HAVE_SYS_WAIT_H) || defined (HAVE_UNION_WAIT)
 # include <sys/wait.h>
 #endif
@@ -1022,12 +1026,10 @@ reap_children (int block, int err)
                 }
               else
                 {
-#ifndef NO_OUTPUT_SYNC
                   /* If we're sync'ing per line, write the previous line's
                      output before starting the next one.  */
                   if (output_sync == OUTPUT_SYNC_LINE)
                     output_dump (&c->output);
-#endif
                   /* Check again whether to start remotely.
                      Whether or not we want to changes over time.
                      Also, start_remote_job may need state set up
@@ -1058,10 +1060,8 @@ reap_children (int block, int err)
 
       /* When we get here, all the commands for c->file are finished.  */
 
-#ifndef NO_OUTPUT_SYNC
       /* Synchronize any remaining parallel output.  */
       output_dump (&c->output);
-#endif
 
       /* At this point c->file->update_status is success or failed.  But
          c->file->command_state is still cs_running if all the commands
@@ -1354,12 +1354,10 @@ start_job_command (struct child *child)
 
   OUTPUT_SET (&child->output);
 
-#ifndef NO_OUTPUT_SYNC
   if (! child->output.syncout)
     /* We don't want to sync this command: to avoid misordered
        output ensure any already-synced content is written.  */
     output_dump (&child->output);
-#endif
 
   /* Print the command if appropriate.  */
   if (just_print_flag || ISDB (DB_PRINT)
@@ -1560,8 +1558,8 @@ start_job_command (struct child *child)
   {
       HANDLE hPID;
       char* arg0;
-      int outfd = FD_STDOUT;
-      int errfd = FD_STDERR;
+      int outfd = -1;
+      int errfd = -1;
 
       /* make UNC paths safe for CreateProcess -- backslash format */
       arg0 = argv[0];
@@ -1573,7 +1571,6 @@ start_job_command (struct child *child)
       /* make sure CreateProcess() has Path it needs */
       sync_Path_environment ();
 
-#ifndef NO_OUTPUT_SYNC
       /* Divert child output if output_sync in use.  */
       if (child->output.syncout)
         {
@@ -1582,9 +1579,7 @@ start_job_command (struct child *child)
           if (child->output.err >= 0)
             errfd = child->output.err;
         }
-#else
-      outfd = errfd = -1;
-#endif
+
       hPID = process_easy (argv, child->environment, outfd, errfd);
 
       if (hPID != INVALID_HANDLE_VALUE)

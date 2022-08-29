@@ -515,13 +515,9 @@ get_tmptemplate ()
 
 #ifdef VMS
 # define DEFAULT_TMPFILE     "sys$scratch:gnv$make_cmdXXXXXX.com"
-#else
-# define DEFAULT_TMPFILE     "GmXXXXXX"
-#endif
-
-#ifdef VMS
 # define DEFAULT_TMPDIR     "/sys$scratch/"
 #else
+# define DEFAULT_TMPFILE     "GmXXXXXX"
 # ifdef P_tmpdir
 #  define DEFAULT_TMPDIR    P_tmpdir
 # else

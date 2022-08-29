@@ -241,8 +241,7 @@ static char *jobserver_style = NULL;
 
 static char *shuffle_mode = NULL;
 
-/* Handle for the mutex used on Windows to synchronize output of our
-   children under -O.  */
+/* Handle for the mutex to synchronize output of our children under -O.  */
 
 static char *sync_mutex = NULL;
 
@@ -830,32 +829,11 @@ decode_output_sync_flags (void)
     }
 
   if (sync_mutex)
-    RECORD_SYNC_MUTEX (sync_mutex);
+    osync_parse_mutex (sync_mutex);
 #endif
 }
 
 #ifdef WINDOWS32
-
-#ifndef NO_OUTPUT_SYNC
-
-/* This is called from start_job_command when it detects that
-   output_sync option is in effect.  The handle to the synchronization
-   mutex is passed, as a string, to sub-makes via the --sync-mutex
-   command-line argument.  */
-void
-prepare_mutex_handle_string (sync_handle_t handle)
-{
-  if (!sync_mutex)
-    {
-      /* Prepare the mutex handle string for our children.  */
-      /* 2 hex digits per byte + 2 characters for "0x" + null.  */
-      sync_mutex = xmalloc ((2 * sizeof (sync_handle_t)) + 2 + 1);
-      sprintf (sync_mutex, "0x%Ix", handle);
-      define_makeflags (1, 0);
-    }
-}
-
-#endif  /* NO_OUTPUT_SYNC */
 
 /*
  * HANDLE runtime exceptions by avoiding a requestor on the GUI. Capture
@@ -1353,9 +1331,9 @@ main (int argc, char **argv, char **envp)
 #endif
 #ifdef MAKE_JOBSERVER
                            " jobserver"
-#ifdef HAVE_MKFIFO
+# ifdef HAVE_MKFIFO
                            " jobserver-fifo"
-#endif
+# endif
 #endif
 #ifndef NO_OUTPUT_SYNC
                            " output-sync"
@@ -2125,6 +2103,22 @@ main (int argc, char **argv, char **envp)
       output_close (&make_sync);
       syncing = 0;
       output_sync = OUTPUT_SYNC_NONE;
+    }
+
+  if (syncing)
+    {
+      /* If there a mutex we're the child, else we're the origin.  */
+      if (!sync_mutex)
+        {
+          osync_setup ();
+          sync_mutex = osync_get_mutex ();
+        }
+      else if (!osync_parse_mutex (sync_mutex))
+        {
+          osync_clear ();
+          free (sync_mutex);
+          sync_mutex = NULL;
+        }
     }
 
 #ifndef MAKE_SYMLINKS
@@ -3686,6 +3680,8 @@ die (int status)
         }
 
       output_close (NULL);
+
+      osync_clear ();
 
       /* Try to move back to the original directory.  This is essential on
          MS-DOS (where there is really only one process), and on Unix it

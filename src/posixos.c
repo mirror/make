@@ -37,7 +37,39 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "job.h"
 #include "os.h"
 
-#ifdef MAKE_JOBSERVER
+#define STREAM_OK(_s) ((fcntl (fileno (_s), F_GETFD) != -1) || (errno != EBADF))
+
+unsigned int
+check_io_state ()
+{
+  static unsigned int state = IO_UNKNOWN;
+
+  /* We only need to compute this once per process.  */
+  if (state != IO_UNKNOWN)
+    return state;
+
+  if (STREAM_OK (stdin))
+    state |= IO_STDIN_OK;
+  if (STREAM_OK (stdout))
+    state |= IO_STDOUT_OK;
+  if (STREAM_OK (stderr))
+    state |= IO_STDERR_OK;
+
+  if (ALL_SET (state, IO_STDOUT_OK|IO_STDERR_OK))
+    {
+      struct stat stbuf_o, stbuf_e;
+
+      if (fstat (fileno (stdout), &stbuf_o) == 0
+          && fstat (fileno (stderr), &stbuf_e) == 0
+          && stbuf_o.st_dev == stbuf_e.st_dev
+          && stbuf_o.st_ino == stbuf_e.st_ino)
+        state |= IO_COMBINED_OUTERR;
+    }
+
+  return state;
+}
+
+#if defined(MAKE_JOBSERVER)
 
 #define FIFO_PREFIX    "fifo:"
 
@@ -454,7 +486,7 @@ jobserver_acquire (int timeout)
           pfatal_with_name (_("read jobs pipe"));
         }
 
-      /* read() should never return 0: only the master make can reap all the
+      /* read() should never return 0: only the parent make can reap all the
          tokens and close the write side...??  */
       return r > 0;
     }
@@ -577,6 +609,119 @@ jobserver_acquire (int timeout)
 
 #endif /* MAKE_JOBSERVER */
 
+#if !defined(NO_OUTPUT_SYNC)
+
+#define MUTEX_PREFIX    "fnm:"
+
+static int osync_handle = -1;
+
+static char *osync_tmpfile = NULL;
+
+static unsigned int sync_parent = 0;
+
+unsigned int
+osync_enabled ()
+{
+  return osync_handle >= 0;
+}
+
+void
+osync_setup ()
+{
+  osync_handle = get_tmpfd (&osync_tmpfile);
+  if (osync_handle >= 0)
+    sync_parent = 1;
+}
+
+char *
+osync_get_mutex ()
+{
+  char *mutex = NULL;
+
+  if (osync_enabled ())
+    {
+      /* Prepare the mutex handle string for our children.  */
+      mutex = xmalloc (strlen (osync_tmpfile) + CSTRLEN (MUTEX_PREFIX) + 1);
+      sprintf (mutex, MUTEX_PREFIX "%s", osync_tmpfile);
+    }
+
+  return mutex;
+}
+
+unsigned int
+osync_parse_mutex (const char *mutex)
+{
+  if (strncmp (mutex, MUTEX_PREFIX, CSTRLEN (MUTEX_PREFIX)) != 0)
+    {
+      OS (error, NILF, _("invalid --sync-mutex string '%s'"), mutex);
+      return 0;
+    }
+
+  osync_tmpfile = xstrdup (mutex + CSTRLEN (MUTEX_PREFIX));
+
+  EINTRLOOP (osync_handle, open (osync_tmpfile, O_WRONLY));
+  if (osync_handle < 0)
+    OSS (fatal, NILF, _("cannot open output sync mutex %s: %s"),
+         osync_tmpfile, strerror (errno));
+
+  return 1;
+}
+
+void
+osync_clear ()
+{
+  if (osync_handle)
+    {
+      close (osync_handle);
+      osync_handle = -1;
+    }
+
+  if (sync_parent && osync_tmpfile)
+    {
+      unlink (osync_tmpfile);
+      osync_tmpfile = NULL;
+    }
+}
+
+unsigned int
+osync_acquire ()
+{
+  if (osync_enabled())
+    {
+      struct flock fl;
+
+      fl.l_type = F_WRLCK;
+      fl.l_whence = SEEK_SET;
+      fl.l_start = 0;
+      fl.l_len = 1;
+      if (fcntl (osync_handle, F_SETLKW, &fl) == -1)
+        {
+          perror ("fcntl()");
+          return 0;
+        }
+    }
+
+  return 1;
+}
+
+void
+osync_release ()
+{
+  if (osync_enabled())
+    {
+      struct flock fl;
+
+      fl.l_type = F_UNLCK;
+      fl.l_whence = SEEK_SET;
+      fl.l_start = 0;
+      fl.l_len = 1;
+      if (fcntl (osync_handle, F_SETLKW, &fl) == -1)
+        perror ("fcntl()");
+    }
+}
+
+#endif
+
 /* Create a "bad" file descriptor for stdin when parallel jobs are run.  */
 int
 get_bad_stdin ()
@@ -636,12 +781,33 @@ void
 fd_noinherit (int fd)
 {
     int flags;
-    EINTRLOOP(flags, fcntl(fd, F_GETFD));
+    EINTRLOOP (flags, fcntl(fd, F_GETFD));
     if (flags >= 0)
       {
         int r;
         flags |= FD_CLOEXEC;
-        EINTRLOOP(r, fcntl(fd, F_SETFD, flags));
+        EINTRLOOP (r, fcntl(fd, F_SETFD, flags));
       }
 }
 #endif
+
+/* Set a file descriptor referring to a regular file to be in O_APPEND mode.
+   If it fails, just ignore it.  */
+
+void
+fd_set_append (int fd)
+{
+#if defined(F_GETFL) && defined(F_SETFL) && defined(O_APPEND)
+  struct stat stbuf;
+  int flags;
+  if (fstat (fd, &stbuf) == 0 && S_ISREG (stbuf.st_mode))
+    {
+      flags = fcntl (fd, F_GETFL, 0);
+      if (flags >= 0)
+        {
+          int r;
+          EINTRLOOP(r, fcntl (fd, F_SETFL, flags | O_APPEND));
+        }
+    }
+#endif
+}

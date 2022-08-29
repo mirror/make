@@ -15,6 +15,30 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
+#define IO_UNKNOWN              0x0001
+#define IO_COMBINED_OUTERR      0x0002
+#define IO_STDIN_OK             0x0004
+#define IO_STDOUT_OK            0x0008
+#define IO_STDERR_OK            0x0010
+
+#if defined(VMS) || defined(_AMIGA) || defined(__MSDOS__)
+# define check_io_state()  (IO_STDIN_OK|IO_STDOUT_OK|IO_STDERR_OK)
+# define fd_inherit(_i)    (0)
+# define fd_noinherit(_i)  (0)
+# define fd_set_append(_i) (void)(0)
+#else
+
+/* Determine the state of stdin/stdout/stderr.  */
+unsigned int check_io_state ();
+
+/* Set a file descriptor to close/not close in a subprocess.  */
+void fd_inherit (int);
+void fd_noinherit (int);
+
+/* If the file descriptor is for a file put it into append mode.  */
+void fd_set_append (int);
+#endif
+
 /* Return a file descriptor for a new anonymous temp file, or -1.  */
 #if defined(WINDOWS32)
 int os_anontmp ();
@@ -29,7 +53,7 @@ int os_anontmp ();
 /* Returns 1 if the jobserver is enabled, else 0.  */
 unsigned int jobserver_enabled ();
 
-/* Called in the master instance to set up the jobserver initially.  */
+/* Called in the parent make to set up the jobserver initially.  */
 unsigned int jobserver_setup (int job_slots, const char *style);
 
 /* Called in a child instance to connect to the jobserver.
@@ -77,6 +101,7 @@ unsigned int jobserver_acquire (int timeout);
 #define jobserver_setup(_slots, _style) (0)
 #define jobserver_parse_auth(_auth)     (0)
 #define jobserver_get_auth()            (NULL)
+#define jobserver_get_invalid_auth()    (NULL)
 #define jobserver_clear()               (void)(0)
 #define jobserver_release(_fatal)       (void)(0)
 #define jobserver_acquire_all()         (0)
@@ -86,20 +111,49 @@ unsigned int jobserver_acquire (int timeout);
 #define jobserver_pre_acquire()         (void)(0)
 #define jobserver_acquire(_tmout)       (0)
 
-#endif
+#endif  /* MAKE_JOBSERVER */
+
+#ifndef NO_OUTPUT_SYNC
+
+/* Returns 1 if output sync is enabled, else 0.  */
+unsigned int osync_enabled ();
+
+/* Called in the parent make to set up output sync initially.  */
+void osync_setup ();
+
+/* Returns an allocated buffer containing output sync info to pass to child
+   instances, or NULL if not needed.  */
+char *osync_get_mutex ();
+
+/* Called in a child instance to obtain info on the output sync mutex.
+   Return 1 if we got a valid mutex, else 0.  */
+unsigned int osync_parse_mutex (const char *mutex);
+
+/* Clean up this instance's output sync facilities.  */
+void osync_clear ();
+
+/* Acquire the output sync lock.  This will wait until available.
+   Returns 0 if there was an error getting the semaphore.  */
+unsigned int osync_acquire ();
+
+/* Release the output sync lock.  */
+void osync_release ();
+
+#else
+
+#define osync_enabled()       (0)
+#define osync_setup()         (void)(0)
+#define osync_get_mutex()     (0)
+#define osync_parse_mutex(_s) (0)
+#define osync_clear()         (void)(0)
+#define osync_acquire()       (1)
+#define osync_release()       (void)(0)
+
+#endif  /* NO_OUTPUT_SYNC */
 
 /* Create a "bad" file descriptor for stdin when parallel jobs are run.  */
 #if defined(VMS) || defined(WINDOWS32) || defined(_AMIGA) || defined(__MSDOS__)
 # define get_bad_stdin() (-1)
 #else
 int get_bad_stdin ();
-#endif
-
-/* Set a file descriptor to close/not close in a subprocess.  */
-#if defined(VMS) || defined(_AMIGA) || defined(__MSDOS__)
-# define fd_inherit(_i)   0
-# define fd_noinherit(_i) 0
-#else
-void fd_inherit (int);
-void fd_noinherit (int);
 #endif

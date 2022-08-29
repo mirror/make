@@ -22,11 +22,89 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <windows.h>
 #include <process.h>
 #include <io.h>
+#include <synchapi.h>
 #include "pathstuff.h"
 #include "sub_proc.h"
 #include "w32err.h"
 #include "os.h"
 #include "debug.h"
+
+unsigned int
+check_io_state ()
+{
+  static unsigned int state = IO_UNKNOWN;
+
+  /* We only need to compute this once per process.  */
+  if (state != IO_UNKNOWN)
+    return state;
+
+  /* Could have used GetHandleInformation, but that isn't supported
+     on Windows 9X.  */
+  HANDLE outfd = (HANDLE)_get_osfhandle (fileno (stdout));
+  HANDLE errfd = (HANDLE)_get_osfhandle (fileno (stderr));
+
+  if ((HANDLE)_get_osfhandle (fileno (stdin)) != INVALID_HANDLE_VALUE)
+    state |= IO_STDIN_OK;
+  if (outfd != INVALID_HANDLE_VALUE)
+    state |= IO_STDOUT_OK;
+  if (errfd != INVALID_HANDLE_VALUE)
+    state |= IO_STDERR_OK;
+
+  if (ALL_SET (state, IO_STDOUT_OK|IO_STDERR_OK))
+    {
+      unsigned int combined = 0;
+
+      if (outfd == errfd)
+        combined = IO_COMBINED_OUTERR;
+      else
+        {
+          DWORD outtype = GetFileType (outfd), errtype = GetFileType (errfd);
+
+          if (outtype == errtype
+              && outtype != FILE_TYPE_UNKNOWN && errtype != FILE_TYPE_UNKNOWN)
+            {
+              if (outtype == FILE_TYPE_CHAR)
+                {
+                  /* For character devices, check if they both refer to a
+                     console.  This loses if both handles refer to the
+                     null device (FIXME!), but in that case we don't care
+                     in the context of Make.  */
+                  DWORD outmode, errmode;
+
+                  /* Each process on Windows can have at most 1 console,
+                     so if both handles are for the console device, they
+                     are the same.  We also compare the console mode to
+                     distinguish between stdin and stdout/stderr.  */
+                  if (GetConsoleMode (outfd, &outmode)
+                      && GetConsoleMode (errfd, &errmode)
+                      && outmode == errmode)
+                    combined = IO_COMBINED_OUTERR;
+                }
+              else
+                {
+                  /* For disk files and pipes, compare their unique
+                     attributes.  */
+                  BY_HANDLE_FILE_INFORMATION outfi, errfi;
+
+                  /* Pipes get zero in the volume serial number, but do
+                     appear to have meaningful information in file index
+                     attributes.  We test file attributes as well, for a
+                     good measure.  */
+                  if (GetFileInformationByHandle (outfd, &outfi)
+                      && GetFileInformationByHandle (errfd, &errfi)
+                      && outfi.dwVolumeSerialNumber == errfi.dwVolumeSerialNumber
+                      && outfi.nFileIndexLow == errfi.nFileIndexLow
+                      && outfi.nFileIndexHigh == errfi.nFileIndexHigh
+                      && outfi.dwFileAttributes == errfi.dwFileAttributes)
+                    combined = IO_COMBINED_OUTERR;
+                }
+            }
+        }
+      state |= combined;
+    }
+
+  return state;
+}
 
 /* A replacement for tmpfile, since the MSVCRT implementation creates
    the file in the root directory of the current drive, which might
@@ -122,6 +200,8 @@ os_anontmp ()
     errno = EEXIST;
   return -1;
 }
+
+#if defined(MAKE_JOBSERVER)
 
 /* This section provides OS-specific functions to support the jobserver.  */
 
@@ -304,6 +384,111 @@ jobserver_acquire (int timeout)
     return dwEvent == WAIT_OBJECT_0;
 }
 
+#endif /* MAKE_JOBSERVER */
+
+#if !defined(NO_OUTPUT_SYNC)
+
+#define MUTEX_PREFIX    "fnm:"
+
+/* Since we're using this with CreateMutex, NULL is invalid.  */
+static HANDLE osync_handle = NULL;
+
+unsigned int
+osync_enabled ()
+{
+  return osync_handle != NULL;
+}
+
+void
+osync_setup ()
+{
+  SECURITY_ATTRIBUTES secattr;
+
+  /* We are the top-level make, and we want the handle to be inherited
+     by our child processes.  */
+  secattr.nLength = sizeof (secattr);
+  secattr.lpSecurityDescriptor = NULL; /* use default security descriptor */
+  secattr.bInheritHandle = TRUE;
+
+  osync_handle = CreateMutex (&secattr, FALSE, NULL);
+  if (!osync_handle)
+    {
+      DWORD err = GetLastError ();
+      fprintf (stderr, "CreateMutex: error %lu\n", err);
+      errno = ENOLCK;
+    }
+}
+
+char *
+osync_get_mutex ()
+{
+  char *mutex = NULL;
+
+  if (osync_enabled ())
+    {
+      /* Prepare the mutex handle string for our children.
+         2 hex digits per byte + 2 characters for "0x" + null.  */
+      mutex = xmalloc ((2 * sizeof (osync_handle)) + 2 + 1);
+      sprintf (mutex, "0x%Ix", (unsigned long long)osync_handle);
+    }
+
+  return mutex;
+}
+
+unsigned int
+osync_parse_mutex (const char *mutex)
+{
+  char *endp;
+  unsigned long long i;
+
+  errno = 0;
+  i = strtoull (mutex, &endp, 16);
+  if (errno != 0)
+    OSS (fatal, NILF, _("cannot parse output sync mutex %s: %s"),
+         mutex, strerror (errno));
+  if (endp[0] != '\0')
+    OS (fatal, NILF, _("invalid output sync mutex: %s"), mutex);
+
+  osync_handle = (HANDLE) i;
+
+  return 1;
+}
+
+void
+osync_clear ()
+{
+  if (osync_handle)
+    {
+      CloseHandle (osync_handle);
+      osync_handle = NULL;
+    }
+}
+
+unsigned int
+osync_acquire ()
+{
+  if (osync_enabled())
+    {
+      DWORD result = WaitForSingleObject (osync_handle, INFINITE);
+      if (result == WAIT_FAILED || result == WAIT_TIMEOUT)
+        return 0;
+    }
+
+  return 1;
+}
+
+void
+osync_release ()
+{
+  if (osync_enabled())
+    /* FIXME: Perhaps we should call ReleaseMutex repatedly until it errors
+       out, to make sure the mutext is released even if we somehow managed to
+       to take ownership multiple times?  */
+    ReleaseMutex (osync_handle);
+}
+
+#endif /* NO_OUTPUT_SYNC */
+
 void
 fd_inherit(int fd)
 {
@@ -321,3 +506,7 @@ fd_noinherit(int fd)
   if (fh && fh != INVALID_HANDLE_VALUE)
         SetHandleInformation(fh, HANDLE_FLAG_INHERIT, 0);
 }
+
+void
+fd_set_append (int fd)
+{}

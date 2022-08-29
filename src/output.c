@@ -47,12 +47,6 @@ unsigned int stdio_traced = 0;
 
 #define OUTPUT_ISSET(_out) ((_out)->out >= 0 || (_out)->err >= 0)
 
-#ifdef HAVE_FCNTL_H
-# define STREAM_OK(_s) ((fcntl (fileno (_s), F_GETFD) != -1) || (errno != EBADF))
-#else
-# define STREAM_OK(_s) 1
-#endif
-
 /* Write a string to the current STDOUT or STDERR.  */
 static void
 _outputs (struct output *out, int is_err, const char *msg)
@@ -143,76 +137,9 @@ log_working_directory (int entering)
 
   return 1;
 }
-
-/* Set a file descriptor referring to a regular file
-   to be in O_APPEND mode.  If it fails, just ignore it.  */
-
-static void
-set_append_mode (int fd)
-{
-#if defined(F_GETFL) && defined(F_SETFL) && defined(O_APPEND)
-  struct stat stbuf;
-  int flags;
-  if (fstat (fd, &stbuf) != 0 || !S_ISREG (stbuf.st_mode))
-    return;
-  flags = fcntl (fd, F_GETFL, 0);
-  if (flags >= 0)
-    {
-      int r;
-      EINTRLOOP(r, fcntl (fd, F_SETFL, flags | O_APPEND));
-    }
-#endif
-}
 
 
 #ifndef NO_OUTPUT_SYNC
-
-/* Semaphore for use in -j mode with output_sync. */
-static sync_handle_t sync_handle = -1;
-
-#define FD_NOT_EMPTY(_f) ((_f) != OUTPUT_NONE && lseek ((_f), 0, SEEK_END) > 0)
-
-/* Set up the sync handle.  Disables output_sync on error.  */
-static int
-sync_init (void)
-{
-  int combined_output = 0;
-
-#ifdef WINDOWS32
-  if ((!STREAM_OK (stdout) && !STREAM_OK (stderr))
-      || (sync_handle = create_mutex ()) == -1)
-    {
-      perror_with_name ("output-sync suppressed: ", "stderr");
-      output_sync = 0;
-    }
-  else
-    {
-      combined_output = same_stream (stdout, stderr);
-      prepare_mutex_handle_string (sync_handle);
-    }
-
-#else
-  if (STREAM_OK (stdout))
-    {
-      struct stat stbuf_o, stbuf_e;
-
-      sync_handle = fileno (stdout);
-      combined_output = (fstat (fileno (stdout), &stbuf_o) == 0
-                         && fstat (fileno (stderr), &stbuf_e) == 0
-                         && stbuf_o.st_dev == stbuf_e.st_dev
-                         && stbuf_o.st_ino == stbuf_e.st_ino);
-    }
-  else if (STREAM_OK (stderr))
-    sync_handle = fileno (stderr);
-  else
-    {
-      perror_with_name ("output-sync suppressed: ", "stderr");
-      output_sync = 0;
-    }
-#endif
-
-  return combined_output;
-}
 
 /* Support routine for output_sync() */
 static void
@@ -254,39 +181,13 @@ pump_from_tmp (int from, FILE *to)
 #endif
 }
 
-/* Obtain the lock for writing output.  */
-static void *
-acquire_semaphore (void)
-{
-  static struct flock fl;
-
-  fl.l_type = F_WRLCK;
-  fl.l_whence = SEEK_SET;
-  fl.l_start = 0;
-  fl.l_len = 1;
-  if (fcntl (sync_handle, F_SETLKW, &fl) != -1)
-    return &fl;
-  perror ("fcntl()");
-  return NULL;
-}
-
-/* Release the lock for writing output.  */
-static void
-release_semaphore (void *sem)
-{
-  struct flock *flp = (struct flock *)sem;
-  flp->l_type = F_UNLCK;
-  if (fcntl (sync_handle, F_SETLKW, flp) == -1)
-    perror ("fcntl()");
-}
-
-/* Returns a file descriptor to a temporary file.  The file is automatically
-   closed/deleted on exit.  Don't use a FILE* stream.  */
+/* Returns a file descriptor to a temporary file, that will be automatically
+   deleted on exit.  */
 int
 output_tmpfd (void)
 {
   int fd = get_tmpfd (NULL);
-  set_append_mode (fd);
+  fd_set_append (fd);
   return fd;
 }
 
@@ -297,13 +198,16 @@ output_tmpfd (void)
 static void
 setup_tmpfile (struct output *out)
 {
-  /* Is make's stdout going to the same place as stderr?  */
-  static int combined_output = -1;
+  unsigned int io_state = check_io_state ();
 
-  if (combined_output < 0)
-    combined_output = sync_init ();
+  if (NONE_SET (io_state, IO_STDOUT_OK|IO_STDERR_OK))
+    {
+      /* This is probably useless since stdout/stderr aren't working. */
+      perror_with_name ("output-sync suppressed: ", "stderr");
+      goto error;
+    }
 
-  if (STREAM_OK (stdout))
+  if (ANY_SET (io_state, IO_STDOUT_OK))
     {
       int fd = output_tmpfd ();
       if (fd < 0)
@@ -312,9 +216,9 @@ setup_tmpfile (struct output *out)
       out->out = fd;
     }
 
-  if (STREAM_OK (stderr))
+  if (ANY_SET (io_state, IO_STDERR_OK))
     {
-      if (out->out != OUTPUT_NONE && combined_output)
+      if (out->out != OUTPUT_NONE && ANY_SET (io_state, IO_COMBINED_OUTERR))
         out->err = out->out;
       else
         {
@@ -332,6 +236,7 @@ setup_tmpfile (struct output *out)
  error:
   output_close (out);
   output_sync = OUTPUT_SYNC_NONE;
+  osync_clear ();
 }
 
 /* Synchronize the output of jobs in -j mode to keep the results of
@@ -342,6 +247,8 @@ setup_tmpfile (struct output *out)
 void
 output_dump (struct output *out)
 {
+#define FD_NOT_EMPTY(_f) ((_f) != OUTPUT_NONE && lseek ((_f), 0, SEEK_END) > 0)
+
   int outfd_not_empty = FD_NOT_EMPTY (out->out);
   int errfd_not_empty = FD_NOT_EMPTY (out->err);
 
@@ -352,7 +259,12 @@ output_dump (struct output *out)
       /* Try to acquire the semaphore.  If it fails, dump the output
          unsynchronized; still better than silently discarding it.
          We want to keep this lock for as little time as possible.  */
-      void *sem = acquire_semaphore ();
+      if (!osync_acquire ())
+        {
+          O (error, NILF,
+             _("warning: Cannot acquire output lock, disabling output sync."));
+          osync_clear ();
+        }
 
       /* Log the working directory for this dump.  */
       if (print_directory && output_sync != OUTPUT_SYNC_RECURSE)
@@ -367,8 +279,7 @@ output_dump (struct output *out)
         log_working_directory (0);
 
       /* Exit the critical section.  */
-      if (sem)
-        release_semaphore (sem);
+      osync_release ();
 
       /* Truncate and reset the output, in case we use it again.  */
       if (out->out != OUTPUT_NONE)
@@ -455,11 +366,11 @@ output_init (struct output *out)
 
   /* Force stdout/stderr into append mode.  This ensures parallel jobs won't
      lose output due to overlapping writes.  */
-  set_append_mode (fileno (stdout));
-  set_append_mode (fileno (stderr));
+  fd_set_append (fileno (stdout));
+  fd_set_append (fileno (stderr));
 
 #ifdef HAVE_ATEXIT
-  if (STREAM_OK (stdout))
+  if (ANY_SET (check_io_state (), IO_STDOUT_OK))
     atexit (close_stdout);
 #endif
 }

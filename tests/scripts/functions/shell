@@ -143,7 +143,8 @@ all: ; @echo '$(.SHELLSTATUS): $(out)'
 
     # If we're using pipes for jobserver, then we will close them and not
     # allow them to be available to sub-makes invoked via $(shell ...)
-    run_make_test(q!
+    if (exists $FEATURES{'jobserver'}) {
+        run_make_test(q!
 ifeq ($(ELT),)
 default:; @$(MAKE) -f #MAKEFILE# ELT=1
 else ifeq ($(ELT),1)
@@ -154,7 +155,8 @@ else
 default:;: $(ELT)
 endif
 !,
-                  '--no-print-directory -j2 --jobserver-style=pipe', "#MAKE#[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.\n: 2\n: 1");
+                      '--no-print-directory -j2 --jobserver-style=pipe', "#MAKE#[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.\n: 2\n: 1");
+    }
 }
 
 # If we're not using pipes for jobserver, then they are available in sub-makes

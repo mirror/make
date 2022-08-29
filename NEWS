@@ -87,6 +87,13 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   top-level invocation of GNU make, or via MAKEFLAGS or GNUMAKEFLAGS.
   To detect this change search for 'jobserver-fifo' in the .FEATURES variable.
 
+* Some POSIX systems (*BSD) do not allow locks to be taken on pipes, which
+  caused the output sync feature to not work properly there.  Also multiple
+  invocations of make redirecting to the same output file (e.g., /dev/null)
+  would cause hangs.  Instead of locking stdout (which does have some useful
+  performance characteristics, but is not portable) create a temporary file
+  and lock that.  Windows continues to use a mutex as before.
+
 * GNU make has sometimes chosen unexpected, and sub-optimal, chains of
   implicit rules due to the definition of "ought to exist" in the implicit
   rule search algorithm, which considered any prerequisite mentioned in the

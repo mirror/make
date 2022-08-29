@@ -393,8 +393,10 @@ extern int unixy_shell;
 # define WIN32_LEAN_AND_MEAN
 #endif  /* WINDOWS32 */
 
+/* ALL_SET() evaluates the second argument twice.  */
 #define ANY_SET(_v,_m)  (((_v)&(_m)) != 0)
 #define NONE_SET(_v,_m) (! ANY_SET ((_v),(_m)))
+#define ALL_SET(_v,_m)  (((_v)&(_m)) == (_m))
 
 #define MAP_NUL         0x0001
 #define MAP_BLANK       0x0002  /* space, TAB */
