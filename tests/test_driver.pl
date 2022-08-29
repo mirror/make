@@ -33,6 +33,7 @@
 use Config;
 use Cwd;
 use File::Spec;
+use File::Temp;
 
 # The number of test categories we've run
 $categories_run = 0;
@@ -60,6 +61,10 @@ $test_timeout = 5;
 $test_timeout = 10 if $^O eq 'VMS';
 
 $diff_name = undef;
+
+# Create a temporary directory that tests can use, outside the temp
+# directory that make is using.
+$TEMPDIR = File::Temp->newdir();
 
 # Path to Perl
 $perl_name = $^X;
@@ -101,7 +106,7 @@ sub which {
 }
 
 # %makeENV is the cleaned-out environment.  Tests must not modify it.
-%makeENV = ();
+my %makeENV = ();
 
 sub vms_get_process_logicals {
   # Sorry for the long note here, but to keep this test running on
@@ -188,6 +193,8 @@ sub cmd2str
 
 sub toplevel
 {
+  %origENV = %ENV unless $^O eq 'VMS';
+
   # Pull in benign variables from the user's environment
 
   foreach (# POSIX-specific things
@@ -213,9 +220,6 @@ sub toplevel
   $makeENV{LANGUAGE} = 'C';
 
   # Replace the environment with the new one
-  #
-  %origENV = %ENV unless $^O eq 'VMS';
-
   resetENV();
 
   $| = 1;                     # unbuffered output
@@ -226,6 +230,7 @@ sub toplevel
   $detail = 0;                # detailed verbosity
   $keep = 0;                  # keep temp files around
   $workdir = "work";          # The directory where the test will start running
+  $tempdir = "_tmp";          # A temporary directory
   $scriptdir = "scripts";     # The directory where we find the test scripts
   $tmpfilesuffix = "t";       # the suffix used on tmpfiles
   $default_output_stack_level = 0;  # used by attach_default_output, etc.
@@ -248,6 +253,23 @@ sub toplevel
   &parse_command_line (@ARGV);
 
   print "OS name = '$osname'\n" if $debug;
+
+  $temppath = File::Spec->rel2abs($tempdir);
+
+  if (-d $temppath) {
+    print "Clearing $temppath...\n";
+    &remove_directory_tree("$temppath/")
+      or &error ("Couldn't wipe out $temppath: $!\n");
+  } else {
+    mkdir ($temppath, 0777) or error ("Cannot mkdir $temppath: $!\n");
+  }
+
+  # This is used by POSIX systems
+  $makeENV{TMPDIR} = $temppath;
+
+  # These are used on Windows
+  $makeENV{TMP} = $temppath;
+  $makeENV{TEMP} = $temppath;
 
   $workpath = "$cwdslash$workdir";
   $scriptpath = "$cwdslash$scriptdir";
@@ -278,7 +300,7 @@ sub toplevel
     &remove_directory_tree("$workpath/")
       or &error ("Couldn't wipe out $workpath: $!\n");
   } else {
-    mkdir ($workpath, 0777) or &error ("Couldn't mkdir $workpath: $!\n");
+    mkdir ($workpath, 0777) or &error ("Cannot mkdir $workpath: $!\n");
   }
 
   if (!-d $scriptpath) {
@@ -331,6 +353,8 @@ sub toplevel
   foreach my $dir (@rmdirs) {
     rmdir ("$workpath/$dir");
   }
+
+  rmdir ($temppath);
 
   $| = 1;
 
@@ -786,12 +810,28 @@ sub error
   die "$caller: $message";
 }
 
+my %old_tempfiles = ();
+
 sub compare_output
 {
   my ($answer, $logfile) = @_;
-  my ($slurp, $answer_matched) = ('', 0);
+  my ($slurp, $answer_matched, $extra) = ('', 0, 0);
 
   ++$tests_run;
+
+  my @tf = ();
+  foreach my $file (glob(File::Spec->catfile($temppath, "*"))) {
+    if (!exists $old_tempfiles{$file}) {
+      push @tf, $file;
+      $old_tempfiles{$file} = 1;
+    }
+  }
+  if (@tf) {
+    open (LOGFILE, '>>', $logfile) or die "Cannot open log file $logfile: $!\n";
+    print LOGFILE "Leftover temporary files: @tf\n";
+    close (LOGFILE);
+    $extra = 1;
+  }
 
   if (! defined $answer) {
     print "Ignoring output ........ " if $debug;
@@ -950,7 +990,7 @@ sub compare_output
     &create_file(&get_runfile, $command_string);
   }
 
-  if ($answer_matched && $test_passed) {
+  if ($answer_matched && $test_passed && !$extra) {
     print "ok\n" if $debug;
     ++$tests_passed;
     return 1;
