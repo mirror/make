@@ -207,12 +207,11 @@ unlink('hello.1');
 run_make_test(q!
 .SECONDEXPANSION:
 all: hello.tsk
-hello.tsk: %.tsk: %.o; cp hello.1 $@
+hello.tsk: %.tsk: %.o; exit 1
 hello.o:;
 bye.tsk: %.tsk: $$(shell touch hello.1);
 !, '',
-"cp hello.1 hello.tsk
-cp: cannot stat 'hello.1': $ERR_no_such_file
+"exit 1
 #MAKE#: *** [#MAKEFILE#:4: hello.tsk] Error 1\n", 512);
 
 # sv 62706.

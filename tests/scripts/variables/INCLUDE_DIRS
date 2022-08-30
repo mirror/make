@@ -8,11 +8,12 @@ use Cwd;
 $dir = cwd;
 $dir =~ s,.*/([^/]+)$,../$1,;
 
-# Test #1: The content of .INCLUDE_DIRS depends on the platform for which
-#          make was built. What we know for sure is that it shouldn't be
-#          empty.
-#
-run_make_test('
+if (-d '/usr/include') {
+  # Test #1: The content of .INCLUDE_DIRS depends on the platform for which
+  #          make was built. What we know for sure is that it shouldn't be
+  #          empty.
+  #
+  run_make_test('
 ifeq ($(.INCLUDE_DIRS),)
 $(warning .INCLUDE_DIRS is empty)
 endif
@@ -20,8 +21,8 @@ endif
 .PHONY: all
 all:;@:
 ',
-              '', '');
-
+                '', '');
+}
 
 # Test #2: Make sure -I paths end up in .INCLUDE_DIRS.
 #
@@ -57,20 +58,21 @@ all:;\@:
 
 # Verify that -I- disables content from .INCLUDE_DIRS
 
-run_make_test("
-ifneq (\$(.INCLUDE_DIRS),)
-\$(warning Mismatched \$(.INCLUDE_DIRS) != )
+run_make_test(q/
+ifneq ($(.INCLUDE_DIRS),)
+$(warning Mismatched $(.INCLUDE_DIRS) != )
 endif
-all:;\@:
-",
+all:;@:
+/,
               '-I-', '');
 
 # Prefix -I dirs to the front
 mkdir('somedir', 0777);
 
+my $xdirs = $dirs ? " $dirs" : '';
 run_make_test("
-ifneq (\$(.INCLUDE_DIRS),somedir $dirs)
-\$(warning Mismatched \$(.INCLUDE_DIRS) != somedir $dirs)
+ifneq (\$(.INCLUDE_DIRS),somedir$xdirs)
+\$(warning Mismatched '\$(.INCLUDE_DIRS)' != 'somedir$xdirs')
 endif
 all:;\@:
 ",
@@ -78,12 +80,12 @@ all:;\@:
 
 # Verify .INCLUDE_DIRS contains files after -I-
 
-run_make_test("
-ifneq (\$(.INCLUDE_DIRS),somedir)
-\$(warning Mismatched \$(.INCLUDE_DIRS) != somedir)
+run_make_test(q/
+ifneq ($(.INCLUDE_DIRS),somedir)
+$(warning Mismatched $(.INCLUDE_DIRS) != somedir)
 endif
-all:;\@:
-",
+all:;@:
+/,
               '-I - -I somedir', '');
 
 rmdir('somedir');

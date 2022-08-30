@@ -139,11 +139,12 @@ all a: ; @echo $@
 # test twice.
 # First time look for /$ERR_no_such_file/ to ensure mkfifo failed.
 # Second time look for /Nothing to be done/ to ensure make succeeded.
-$ENV{TMPDIR} = "nosuchdir";
-run_make_test("all:\n", '-j2', "/$ERR_no_such_file/");
+if (exists $FEATURES{'jobserver-fifo'}) {
+  $ENV{TMPDIR} = "nosuchdir";
+  run_make_test("all:\n", '-j2', "/$ERR_no_such_file/");
 
-$ENV{TMPDIR} = "nosuchdir";
-run_make_test(undef, '-j2', "/Nothing to be done/");
-
+  $ENV{TMPDIR} = "nosuchdir";
+  run_make_test(undef, '-j2', "/Nothing to be done/");
+}
 
 1;

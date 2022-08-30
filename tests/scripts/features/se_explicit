@@ -480,11 +480,10 @@ unlink('hello.1');
 # No side effects from second expansion of unrelated rules.
 run_make_test(q!
 .SECONDEXPANSION:
-hello.tsk:; cp hello.1 $@
+hello.tsk:; exit 1
 unrelated: $$(shell touch hello.1);
 !, '',
-"cp hello.1 hello.tsk
-cp: cannot stat 'hello.1': $ERR_no_such_file
+"exit 1
 #MAKE#: *** [#MAKEFILE#:3: hello.tsk] Error 1\n", 512);
 
 # sv 62706.
