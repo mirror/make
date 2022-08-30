@@ -460,7 +460,7 @@ static const struct command_switch switches[] =
     { 'S', flag_off, &keep_going_flag, 1, 1, 0, 0, &default_keep_going_flag,
       "no-keep-going" },
     { 't', flag, &touch_flag, 1, 1, 1, 0, 0, "touch" },
-    { 'v', flag, &print_version_flag, 1, 1, 0, 0, 0, "version" },
+    { 'v', flag, &print_version_flag, 1, 0, 0, 0, 0, "version" },
     { 'w', flag, &print_directory_flag, 1, 1, 0, 0,
       &default_print_directory_flag, "print-directory" },
 
@@ -686,6 +686,52 @@ initialize_stopchar_map (void)
     }
 }
 
+/* This code is stolen from gnulib.
+   If/when we abandon the requirement to work with K&R compilers, we can
+   remove this (and perhaps other parts of GNU make!) and migrate to using
+   gnulib directly.
+
+   This is called only through atexit(), which means die() has already been
+   invoked.  So, call exit() here directly.  Apparently that works...?
+*/
+
+/* Close standard output, exiting with status 'exit_failure' on failure.
+   If a program writes *anything* to stdout, that program should close
+   stdout and make sure that it succeeds before exiting.  Otherwise,
+   suppose that you go to the extreme of checking the return status
+   of every function that does an explicit write to stdout.  The last
+   printf can succeed in writing to the internal stream buffer, and yet
+   the fclose(stdout) could still fail (due e.g., to a disk full error)
+   when it tries to write out that buffered data.  Thus, you would be
+   left with an incomplete output file and the offending program would
+   exit successfully.  Even calling fflush is not always sufficient,
+   since some file systems (NFS and CODA) buffer written/flushed data
+   until an actual close call.
+
+   Besides, it's wasteful to check the return value from every call
+   that writes to stdout -- just let the internal stream state record
+   the failure.  That's what the ferror test is checking below.
+
+   It's important to detect such failures and exit nonzero because many
+   tools (most notably 'make' and other build-management systems) depend
+   on being able to detect failure in other tools via their exit status.  */
+
+static void
+close_stdout (void)
+{
+  int prev_fail = ferror (stdout);
+  int fclose_fail = fclose (stdout);
+
+  if (prev_fail || fclose_fail)
+    {
+      if (fclose_fail)
+        perror_with_name (_("write error: stdout"), "");
+      else
+        O (error, NILF, _("write error: stdout"));
+      exit (MAKE_TROUBLE);
+    }
+}
+
 static const char *
 expand_command_line_file (const char *name)
 {
@@ -831,6 +877,38 @@ decode_output_sync_flags (void)
   if (sync_mutex)
     osync_parse_mutex (sync_mutex);
 #endif
+}
+
+/* Print a nice usage method and exit.  */
+
+static void NORETURN
+print_usage (int bad)
+{
+  const char *const *cpp;
+  FILE *usageto;
+
+  if (print_version_flag)
+    {
+      print_version ();
+      fputs ("\n", stdout);
+    }
+
+  usageto = bad ? stderr : stdout;
+
+  fprintf (usageto, _("Usage: %s [options] [target] ...\n"), program);
+
+  for (cpp = usage; *cpp; ++cpp)
+    fputs (_(*cpp), usageto);
+
+  if (!remote_description || *remote_description == '\0')
+    fprintf (usageto, _("\nThis program built for %s\n"), make_host);
+  else
+    fprintf (usageto, _("\nThis program built for %s (%s)\n"),
+             make_host, remote_description);
+
+  fprintf (usageto, _("Report bugs to <bug-make@gnu.org>\n"));
+
+  die (bad ? MAKE_FAILURE : MAKE_SUCCESS);
 }
 
 #ifdef WINDOWS32
@@ -1088,6 +1166,11 @@ main (int argc, char **argv, char **envp)
 
   /* Useful for attaching debuggers, etc.  */
   SPIN ("main-entry");
+
+#ifdef HAVE_ATEXIT
+  if (ANY_SET (check_io_state (), IO_STDOUT_OK))
+    atexit (close_stdout);
+#endif
 
   output_init (&make_sync);
 
@@ -1501,6 +1584,23 @@ main (int argc, char **argv, char **envp)
       arg_job_slots = env_slots;
   }
 
+  if (print_usage_flag)
+    print_usage (0);
+
+  /* Print version information, and exit.  */
+  if (print_version_flag)
+    {
+      print_version ();
+      die (MAKE_SUCCESS);
+    }
+
+  /* Now that we know we'll be running, force stdout to be line-buffered.  */
+#ifdef HAVE_SETVBUF
+  setvbuf (stdout, 0, _IOLBF, BUFSIZ);
+#elif HAVE_SETLINEBUF
+  setlinebuf (stdout);
+#endif
+
   /* Handle shuffle mode argument.  */
   if (shuffle_mode)
     {
@@ -1569,15 +1669,14 @@ main (int argc, char **argv, char **envp)
   if (no_builtin_variables_flag)
     no_builtin_rules_flag = 1;
 
-  /* Print version information, and exit.  */
-  if (print_version_flag)
+  if (ISDB (DB_BASIC))
     {
       print_version ();
-      die (MAKE_SUCCESS);
-    }
 
-  if (ISDB (DB_BASIC))
-    print_version ();
+      /* Flush stdout so the user doesn't have to wait to see the
+         version information while make thinks about things.  */
+      fflush (stdout);
+    }
 
 #ifndef VMS
   /* Set the "MAKE_COMMAND" variable to the name we were invoked with.
@@ -2960,33 +3059,6 @@ handle_non_switch_argument (const char *arg, int env)
     }
 }
 
-/* Print a nice usage method.  */
-
-static void
-print_usage (int bad)
-{
-  const char *const *cpp;
-  FILE *usageto;
-
-  if (print_version_flag)
-    print_version ();
-
-  usageto = bad ? stderr : stdout;
-
-  fprintf (usageto, _("Usage: %s [options] [target] ...\n"), program);
-
-  for (cpp = usage; *cpp; ++cpp)
-    fputs (_(*cpp), usageto);
-
-  if (!remote_description || *remote_description == '\0')
-    fprintf (usageto, _("\nThis program built for %s\n"), make_host);
-  else
-    fprintf (usageto, _("\nThis program built for %s (%s)\n"),
-             make_host, remote_description);
-
-  fprintf (usageto, _("Report bugs to <bug-make@gnu.org>\n"));
-}
-
 /* Decode switches from ARGC and ARGV.
    They came from the environment if ENV is nonzero.  */
 
@@ -3187,11 +3259,8 @@ decode_switches (int argc, const char **argv, int env)
   while (optind < argc)
     handle_non_switch_argument (argv[optind++], env);
 
-  if (!env && (bad || print_usage_flag))
-    {
-      print_usage (bad);
-      die (bad ? MAKE_FAILURE : MAKE_SUCCESS);
-    }
+  if (bad && !env)
+    print_usage (bad);
 
   /* If there are any options that need to be decoded do it now.  */
   decode_debug_flags ();
@@ -3558,10 +3627,6 @@ print_version (void)
             precede, precede, precede);
 
   printed_version = 1;
-
-  /* Flush stdout so the user doesn't have to wait to see the
-     version information while make thinks about things.  */
-  fflush (stdout);
 }
 
 /* Print a bunch of information about this and that.  */
