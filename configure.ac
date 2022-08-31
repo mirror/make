@@ -18,7 +18,7 @@
 
 AC_INIT([GNU make],[4.3.90],[bug-make@gnu.org])
 
-AC_PREREQ([2.71])
+AC_PREREQ([2.69])
 
 # Autoconf setup
 AC_CONFIG_AUX_DIR([build-aux])

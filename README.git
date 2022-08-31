@@ -83,7 +83,7 @@ Building From Git for POSIX
 To build GNU make from Git on POSIX systems such as GNU/Linux, you will
 need to install the following extra software:
 
-* autoconf
+* autoconf >= 2.69
 * automake >= 1.16.1
 * gettext
 * autopoint
@@ -102,10 +102,10 @@ GNU make requires Gnulib to provide some facilities.  If you want to maintain
 a local installation of gnulib you can set GNULIB_SRCDIR to point to it.
 Otherwise, ./bootstrap will obtain a clone for you.
 
-Unfortunately due to issues with gnulib's getloadavg, you must have automake
-1.16.1 or above.  This version may not yet be available through GNU/Linux
-package managers.  If you need to install from source be sure to set
-ACLOCAL_PATH to point to the pkg-config location (e.g., /usr/share/aclocal).
+Due to issues with gnulib's getloadavg, you must have automake 1.16.1 or
+above.  This version may not yet be available through GNU/Linux package
+managers.  If you need to install from source be sure to set ACLOCAL_PATH to
+point to the pkg-config location (e.g., /usr/share/aclocal).
 
 If you want to build from Git with a non-GCC compiler, add "MAKE_CFLAGS=" to
 your make command line (or at least remove any flags your compiler does not
@@ -119,6 +119,16 @@ there.
 After checking out the code, you will need to run the bootstrap script:
 
  $ ./bootstrap
+
+Alternatively you can just pull content from remote locations with:
+
+ $ ./autopull.sh
+
+And/or just re-generate auto-generatable files with:
+
+ $ ./autogen.sh
+
+(Running ./bootstrap does both in one step.)
 
 At this point you have successfully brought your Git copy of the GNU
 make source directory up to the point where it can be treated
