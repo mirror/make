@@ -230,6 +230,11 @@ get-doc/make-stds.texi get-doc/fdl.texi:
 # Extra configuration checks.  #
 # ---------------------------- #
 
+# Make the dist file contents more regular, if we're using GNU tar.
+# Suggested by Tzvetelin Katchov <katchov@gnu.org>
+
+export TAR_OPTIONS := --mode=u+w,go-w --owner=0 --group=0 --numeric-owner --sort=name
+
 # When I released 4.3 somehow the INSTALL file was missing.
 # When I tried to build it again, it was there.  I have no idea what happened
 # but add a new check to be sure it doesn't happen again.
