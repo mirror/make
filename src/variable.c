@@ -1106,8 +1106,9 @@ target_environment (struct file *file, int recursive)
                function, just skip it.  */
             if (v->expanding && file == NULL)
               {
-                DB (DB_VERBOSE, (_("%s:%lu: Skipping export of %s to shell function due to recursive expansion"),
-                                 v->fileinfo.filenm, v->fileinfo.lineno, v->name));
+                DB (DB_VERBOSE,
+                    (_("%s:%lu: Skipping export of %s to shell function due to recursive expansion\n"),
+                     v->fileinfo.filenm, v->fileinfo.lineno, v->name));
                 continue;
               }
 

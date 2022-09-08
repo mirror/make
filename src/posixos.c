@@ -163,8 +163,7 @@ jobserver_setup (int slots, const char *style)
             OSS (fatal, NILF, _("Cannot open jobserver %s: %s"),
                  fifo_name, strerror (errno));
 
-          DB (DB_JOBS,
-              (_("Jobserver setup (fifo %s)\n"), fifo_name));
+          DB (DB_JOBS, (_("Jobserver setup (fifo %s)\n"), fifo_name));
 
           js_type = js_fifo;
         }
@@ -180,8 +179,8 @@ jobserver_setup (int slots, const char *style)
       if (r < 0)
         pfatal_with_name (_("creating jobs pipe"));
 
-      DB (DB_JOBS,
-          (_("Jobserver setup (fds %d,%d)\n"), job_fds[0], job_fds[1]));
+      DB (DB_JOBS, (_("Jobserver setup (fds %d,%d)\n"),
+                    job_fds[0], job_fds[1]));
 
       js_type = js_pipe;
     }
@@ -234,8 +233,7 @@ jobserver_parse_auth (const char *auth)
   /* If not, it must be a simple pipe.  */
   else if (sscanf (auth, "%d,%d", &rfd, &wfd) == 2)
     {
-      DB (DB_JOBS,
-          (_("Jobserver client (fds %d,%d)\n"), rfd, wfd));
+      DB (DB_JOBS, (_("Jobserver client (fds %d,%d)\n"), rfd, wfd));
 
       /* The parent overrode our FDs because we aren't a recursive make.  */
       if (rfd == -2 || wfd == -2)

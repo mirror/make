@@ -84,7 +84,7 @@ load_object (const floc *flocp, int noerror, const char *ldname,
         {
           const char *err = dlerror ();
           if (noerror)
-            DB (DB_BASIC, ("%s", err));
+            DB (DB_BASIC, ("%s\n", err));
           else
             OS (error, flocp, "%s", err);
           return NULL;
