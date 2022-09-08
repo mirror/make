@@ -18,9 +18,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <assert.h>
 
+#include "commands.h"
+#include "debug.h"
 #include "filedef.h"
 #include "job.h"
-#include "commands.h"
 #include "variable.h"
 #include "rule.h"
 
@@ -100,6 +101,16 @@ recursively_expand_for_file (struct variable *v, struct file *file)
   const floc **saved_varp;
   struct variable_set_list *save = 0;
   int set_reading = 0;
+
+  /* If we're expanding to put into the environment of a shell function then
+     ignore any recursion issues.  */
+  if (v->expanding && env_recursion)
+    {
+      DB (DB_VERBOSE,
+          (_("%s:%lu: not recursively expanding %s to export to shell function\n"),
+           v->fileinfo.filenm, v->fileinfo.lineno, v->name));
+      return xstrdup ("");
+    }
 
   /* Don't install a new location if this location is empty.
      This can happen for command-line variables, builtin variables, etc.  */

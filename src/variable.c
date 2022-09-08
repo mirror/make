@@ -31,12 +31,15 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #include "hash.h"
 
+/* Incremented every time we enter target_environment().  */
+unsigned long long env_recursion = 0;
+
 /* Incremented every time we add or remove a global variable.  */
-static unsigned long variable_changenum;
+static unsigned long variable_changenum = 0;
 
 /* Chain of all pattern-specific variables.  */
 
-static struct pattern_var *pattern_vars;
+static struct pattern_var *pattern_vars = NULL;
 
 /* Pointer to the last struct in the pack of a specific size, from 1 to 255.*/
 
@@ -1038,15 +1041,20 @@ target_environment (struct file *file, int recursive)
   int found_mflags = 0;
   int found_makeflags = 0;
 
+  /* If file is NULL we're creating the target environment for $(shell ...)
+     Remember this so we can just ignore recursion.  */
+  if (!file)
+    ++env_recursion;
+
   /* We need to update makeflags if (a) we're not recurive, (b) jobserver_auth
      is enabled, and (c) we need to add invalidation.  */
   if (!recursive && jobserver_auth)
     invalid = jobserver_get_invalid_auth ();
 
-  if (file == 0)
-    set_list = current_variable_set_list;
-  else
+  if (file)
     set_list = file->variables;
+  else
+    set_list = current_variable_set_list;
 
   hash_init (&table, VARIABLE_BUCKETS,
              variable_hash_1, variable_hash_2, variable_hash_cmp);
@@ -1101,19 +1109,7 @@ target_environment (struct file *file, int recursive)
            expand its value.  If it came from the environment, it should
            go back into the environment unchanged.  */
         if (v->recursive && v->origin != o_env && v->origin != o_env_override)
-          {
-            /* If V is being recursively expanded and this is for a shell
-               function, just skip it.  */
-            if (v->expanding && file == NULL)
-              {
-                DB (DB_VERBOSE,
-                    (_("%s:%lu: Skipping export of %s to shell function due to recursive expansion\n"),
-                     v->fileinfo.filenm, v->fileinfo.lineno, v->name));
-                continue;
-              }
-
-            value = cp = recursively_expand_for_file (v, file);
-          }
+          value = cp = recursively_expand_for_file (v, file);
 
         /* If this is the SHELL variable remember we already added it.  */
         if (!added_SHELL && streq (v->name, "SHELL"))
@@ -1211,6 +1207,9 @@ target_environment (struct file *file, int recursive)
   *result = NULL;
 
   hash_free (&table, 0);
+
+  if (!file)
+    --env_recursion;
 
   return result_0;
 }

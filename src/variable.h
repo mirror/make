@@ -114,6 +114,7 @@ struct pattern_var
     struct variable variable;
   };
 
+extern unsigned long long env_recursion;
 extern char *variable_buffer;
 extern struct variable_set_list *current_variable_set_list;
 extern struct variable *default_goal_var;

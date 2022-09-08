@@ -88,6 +88,16 @@ all: ; @echo $$HI $(bad)
 ',
               '',"hi hi");
 
+# SV 63016: Exported variable that contains a variable containing $(shell...)
+
+run_make_test('
+HI = $(shell echo hi)
+export bad = $(HI)
+.PHONY: all
+all:; : $(HI)
+',
+              '',": hi");
+
 if ($port_type ne 'W32') {
     # Test shell errors in recipes including offset
     # This needs to be ported to Windows, or else Windows error messages
