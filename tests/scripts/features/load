@@ -4,7 +4,7 @@ $description = "Test the load operator.";
 $details = "Test dynamic loading of modules.";
 
 # Don't do anything if this system doesn't support "load"
-exists $FEATURES{load} or return -1;
+exists $FEATURES{'load'} or return -1;
 
 my $cc = get_config('CC');
 if (! $cc) {
@@ -26,6 +26,9 @@ print $F <<'EOF' ;
 
 int plugin_is_GPL_compatible;
 
+int testload_gmk_setup (gmk_floc *);
+int explicit_setup (gmk_floc *);
+
 int
 testload_gmk_setup (gmk_floc *pos)
 {
@@ -46,14 +49,14 @@ close($F) or die "close: testload.c: $!\n";
 
 # Make sure we can compile
 
-my $cflags = get_config('CFLAGS');
-my $cppflags = get_config('CPPFLAGS');
-my $ldflags = get_config('LDFLAGS');
-my $sobuild = "$cc ".($srcdir? "-I$srcdir/src":'')." $cppflags $cflags -shared -fPIC $ldflags -o testload.so testload.c";
+my $cppflags = get_config('CPPFLAGS') . ($srcdir ? " -I$srcdir/src" : '');
+my $cflags = get_config('CFLAGS') . ' -fPIC';
+my $ldflags = get_config('LDFLAGS') . ' -shared';
+my $sobuild = "$cc $cppflags $cflags $ldflags -o testload.so testload.c";
 
 my $clog = `$sobuild 2>&1`;
 if ($? != 0) {
-    $verbose and print "Failed to build testload.so:\n$sobuild\n$_";
+    $verbose and print "Failed to build testload.so:\n$sobuild\n$clog";
     return -1;
 }
 

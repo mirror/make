@@ -56,7 +56,7 @@ use File::Copy;
 my $makecopy = File::Spec->catfile($TEMPDIR, "make");
 copy("$mkpath", $makecopy);
 # Set file mode bits, because perl copy won't.
-chmod 0750, $makecopy;
+chmod 0700, $makecopy;
 
 my @make_orig = @make_command;
 @make_command = ($makecopy);
@@ -68,10 +68,10 @@ open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
 run_make_test("
 include bye.mk
 all:; \$(info hello)
-\$(MAKE_RESTARTS)bye.mk: force; touch \$@ && chmod -x $makecopy
+\$(MAKE_RESTARTS)bye.mk: force; touch \$@ && chmod u-x $makecopy
 force:
 ",
-              "-f-", "touch bye.mk && chmod -x $makecopy\nmake: $makecopy: $ERR_nonexe_file\n", 32512);
+              "-f-", "touch bye.mk && chmod u-x $makecopy\nmake: $makecopy: $ERR_nonexe_file\n", 32512);
 
 @make_command = @make_orig;
 unlink($makecopy);
