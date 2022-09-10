@@ -17,9 +17,6 @@ GPG_KEYID := 80CB727A20C79BB2
 # SRCROOTDIR is just a handy location to keep source files in
 SRCROOTDIR ?= $(HOME)/src
 
-# Where the gnulib project has been locally cloned
-GNULIBDIR ?= $(SRCROOTDIR)/gnulib
-
 # Where to put the CVS checkout of the GNU web repository
 GNUWEBDIR ?= $(SRCROOTDIR)/gnu-www
 
@@ -118,12 +115,15 @@ GIT :=	git
 git-clean:
 	-$(GIT) clean -fdX
 git-very-clean: git-clean
-	-$(GIT) clean -fd
+	-$(GIT) clean -fdx
 
 
 ## ---------------------- ##
 ## Generating ChangeLog.  ##
 ## ---------------------- ##
+
+# Where the gnulib project has been locally cloned
+GNULIBDIR ?= $(or $(wildcard $(GNULIB_SRCDIR)),./gnulib)
 
 gl2cl-date := 2013-10-10
 gl2cl := $(GNULIBDIR)/build-aux/gitlog-to-changelog
