@@ -98,6 +98,22 @@ all:; : $(HI)
 ',
               '',": hi");
 
+$ENV{HI} = 'outer';
+run_make_test('
+export HI = $(shell echo $$HI)
+.PHONY: all
+all:; @echo $$HI
+',
+              '',"outer");
+
+$ENV{HI} = 'outer';
+run_make_test('
+export HI = $(shell echo $$HI)
+.PHONY: all
+all:; : $(HI)
+',
+              '',": outer");
+
 if ($port_type ne 'W32') {
     # Test shell errors in recipes including offset
     # This needs to be ported to Windows, or else Windows error messages

@@ -8629,21 +8629,25 @@ The @code{shell} function is unlike any other function other than the
 (@pxref{Wildcard Function, ,The Function @code{wildcard}}) in that it
 communicates with the world outside of @code{make}.
 
-The @code{shell} function performs the same function that backquotes
-(@samp{`}) perform in most shells: it does @dfn{command expansion}.
-This means that it takes as an argument a shell command and evaluates
-to the output of the command.  The only processing @code{make} does on
-the result is to convert each newline (or carriage-return / newline
-pair) to a single space.  If there is a trailing (carriage-return
-and) newline it will simply be removed.@refill
+The @code{shell} function provides for @code{make} the same facility that
+backquotes (@samp{`}) provide in most shells: it does @dfn{command expansion}.
+This means that it takes as an argument a shell command and expands to the
+output of the command.  The only processing @code{make} does on the result is
+to convert each newline (or carriage-return / newline pair) to a single space.
+If there is a trailing (carriage-return and) newline it will simply be
+removed.
 
 The commands run by calls to the @code{shell} function are run when the
-function calls are expanded (@pxref{Reading Makefiles, , How
-@code{make} Reads a Makefile}).  Because this function involves
-spawning a new shell, you should carefully consider the performance
-implications of using the @code{shell} function within recursively
-expanded variables vs.@: simply expanded variables (@pxref{Flavors, ,The
-Two Flavors of Variables}).
+function calls are expanded (@pxref{Reading Makefiles, , How @code{make} Reads
+a Makefile}).  Because this function involves spawning a new shell, you should
+carefully consider the performance implications of using the @code{shell}
+function within recursively expanded variables vs.@: simply expanded variables
+(@pxref{Flavors, ,The Two Flavors of Variables}).
+
+An alternative to the @code{shell} function is the @samp{!=} assignment
+operator; it provides a similar behavior but has subtle differences
+(@pxref{Setting, , Setting Variables}).  The @samp{!=} assignment operator is
+included in newer POSIX standards.
 
 @vindex .SHELLSTATUS
 After the @code{shell} function or @samp{!=} assignment operator is
@@ -8682,9 +8686,17 @@ When @code{make} wants to run the recipe it must add the variable @var{HI} to
 the environment; to do so it must be expanded.  The value of this variable
 requires an invocation of the @code{shell} function, and to invoke it we must
 create its environment.  Since @var{HI} is exported, we need to expand it to
-create its environment.  And so on.  In this obscure case @code{make} will not
-add recursively-expanded variables to the @code{shell} environment rather than
-fail with an error.
+create its environment.  And so on.  In this obscure case @code{make} will use
+the value of the variable from the environment provided to @code{make}, or
+else the empty string if there was none, rather than looping or issuing an
+error.  This is often what you want; for example:
+
+@example
+export PATH = $(shell echo /usr/local/bin:$$PATH)
+@end example
+
+However, it would be simpler and more efficient to use a simply-expanded
+variable here (@samp{:=}) in the first place.
 
 @node Guile Function,  , Shell Function, Functions
 @section The @code{guile} Function

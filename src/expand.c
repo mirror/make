@@ -103,12 +103,25 @@ recursively_expand_for_file (struct variable *v, struct file *file)
   int set_reading = 0;
 
   /* If we're expanding to put into the environment of a shell function then
-     ignore any recursion issues.  */
+     ignore any recursion issues: for backward-compatibility we will use
+     the value of the environment variable we were started with.  */
   if (v->expanding && env_recursion)
     {
+      size_t nl = strlen (v->name);
+      char **ep;
       DB (DB_VERBOSE,
           (_("%s:%lu: not recursively expanding %s to export to shell function\n"),
            v->fileinfo.filenm, v->fileinfo.lineno, v->name));
+
+      /* We could create a hash for the original environment for speed, but a
+         reasonably written makefile shouldn't hit this situation...  */
+      for (ep = environ; *ep != 0; ++ep)
+        if ((*ep)[nl] == '=' && strncmp (*ep, v->name, nl) == 0)
+          return xstrdup ((*ep) + nl + 1);
+
+      /* If there's nothing in the parent environment, use the empty string.
+         This isn't quite correct since the variable should not exist at all,
+         but getting that to work would be involved. */
       return xstrdup ("");
     }
 
