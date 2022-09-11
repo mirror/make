@@ -7320,30 +7320,48 @@ Here @var{function} is a function name; one of a short list of names
 that are part of @code{make}.  You can also essentially create your own
 functions by using the @code{call} built-in function.
 
-The @var{arguments} are the arguments of the function.  They are
-separated from the function name by one or more spaces or tabs, and if
-there is more than one argument, then they are separated by commas.
-Such whitespace and commas are not part of an argument's value.  The
-delimiters which you use to surround the function call, whether
-parentheses or braces, can appear in an argument only in matching pairs;
-the other kind of delimiters may appear singly.  If the arguments
-themselves contain other function calls or variable references, it is
-wisest to use the same kind of delimiters for all the references; write
-@w{@samp{$(subst a,b,$(x))}}, not @w{@samp{$(subst a,b,$@{x@})}}.  This
-is because it is clearer, and because only one type of delimiter is
-matched to find the end of the reference.
+The @var{arguments} are the arguments of the function.  They are separated
+from the function name by one or more spaces or tabs, and if there is more
+than one argument, then they are separated by commas.  Such whitespace and
+commas are not part of an argument's value.  The delimiters which you use to
+surround the function call, whether parentheses or braces, can appear in an
+argument only in matching pairs; the other kind of delimiters may appear
+singly.  If the arguments themselves contain other function calls or variable
+references, it is wisest to use the same kind of delimiters for all the
+references; write @w{@samp{$(subst a,b,$(x))}}, not @w{@samp{$(subst
+a,b,$@{x@})}}.  This is because it is clearer, and because only one type of
+delimiter is matched to find the end of the reference.
 
-The text written for each argument is processed by substitution of
-variables and function calls to produce the argument value, which
-is the text on which the function acts.  The substitution is done in the
-order in which the arguments appear.
+Each argument is expanded before the function is invoked, unless otherwise
+noted below.  The substitution is done in the order in which the arguments
+appear.
 
-Commas and unmatched parentheses or braces cannot appear in the text of an
-argument as written; leading spaces cannot appear in the text of the first
-argument as written.  These characters can be put into the argument value
-by variable substitution.  First define variables @code{comma} and
-@code{space} whose values are isolated comma and space characters, then
-substitute these variables where such characters are wanted, like this:
+@subsubheading Special Characters
+@cindex special characters in function arguments
+@cindex function arguments, special characters in
+
+When using characters that are special to @code{make} as function arguments,
+you may need to hide them.  GNU @code{make} doesn't support escaping
+characters with backslashes or other escape sequences; however, because
+arguments are split before they are expanded you can hide them by putting them
+into variables.
+
+Characters you may need to hide include:
+
+@itemize @bullet
+@item
+Commas
+@item
+Initial whitespace in the first argument
+@item
+Unmatched open parenthesis or brace
+@item
+An open parenthesis or brace if you don't want it to start a matched pair
+@end itemize
+
+For example, you can define variables @code{comma} and @code{space} whose
+values are isolated comma and space characters, then substitute these
+variables where such characters are wanted, like this:
 
 @example
 @group
