@@ -716,13 +716,13 @@ to ignore errors from @code{rm} or any other command.
 @cindex processing a makefile
 @cindex makefile, how @code{make} processes
 
-By default, @code{make} starts with the first target (not targets whose
-names start with @samp{.}).  This is called the @dfn{default goal}.
-(@dfn{Goals} are the targets that @code{make} strives ultimately to
-update.    You can override this behavior using the command line
-(@pxref{Goals, , Arguments to Specify the Goals}) or with the
-@code{.DEFAULT_GOAL} special variable (@pxref{Special Variables, ,
-Other Special Variables}).
+By default, @code{make} starts with the first target (not targets whose names
+start with @samp{.} unless they also contain one or more @samp{/}).  This is
+called the @dfn{default goal}.  (@dfn{Goals} are the targets that @code{make}
+strives ultimately to update.  You can override this behavior using the
+command line (@pxref{Goals, , Arguments to Specify the Goals}) or with the
+@code{.DEFAULT_GOAL} special variable (@pxref{Special Variables, , Other
+Special Variables}).
 @cindex default goal
 @cindex goal, default
 @cindex goal
@@ -1919,15 +1919,13 @@ the @dfn{recipe} to use to create or update the target.
 
 @cindex default goal
 @cindex goal, default
-The order of rules is not significant, except for determining the
-@dfn{default goal}: the target for @code{make} to consider, if you do
-not otherwise specify one.  The default goal is the target of the first
-rule in the first makefile.  If the first rule has multiple targets,
-only the first target is taken as the default.  There are two
-exceptions: a target starting with a period is not a default unless it
-contains one or more slashes, @samp{/}, as well; and, a target that
-defines a pattern rule has no effect on the default goal.
-(@xref{Pattern Rules, ,Defining and Redefining Pattern Rules}.)
+The order of rules is not significant, except for determining the @dfn{default
+goal}: the target for @code{make} to consider, if you do not otherwise specify
+one.  The default goal is the first target of the first rule in the first
+makefile.  There are two exceptions: a target starting with a period is not a
+default unless it also contains one or more slashes, @samp{/}; and, a target
+that defines a pattern rule has no effect on the default goal.  (@xref{Pattern
+Rules, ,Defining and Redefining Pattern Rules}.)
 
 Therefore, we usually write the makefile so that the first rule is the
 one for compiling the entire program or all the programs described by
