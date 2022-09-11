@@ -145,6 +145,16 @@ if (exists $FEATURES{'jobserver-fifo'}) {
 
   $ENV{TMPDIR} = "nosuchdir";
   run_make_test(undef, '-j2', "/Nothing to be done/");
+
+  # Verify that MAKE_TMPDIR is preferred if provided
+  $ENV{MAKE_TMPDIR} = '.';
+  $ENV{TMPDIR} = 'nosuchdir';
+
+  run_make_test(q!
+recurse: ; @$(MAKE) -f #MAKEFILE# all
+all:;@echo "$$MAKEFLAGS"
+!,
+              "-j2 --no-print-directory", "/--jobserver-auth=fifo:\\./");
 }
 
 1;

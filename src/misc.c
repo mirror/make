@@ -506,15 +506,9 @@ umask (mode_t mask)
 }
 #endif
 
-static char *
-get_tmptemplate ()
-{
-  const char *tmpdir;
-  char *template;
-  size_t len;
-
+#define MAKE_TMPDIR         "MAKE_TMPDIR"
 #ifdef VMS
-# define DEFAULT_TMPFILE     "sys$scratch:gnv$make_cmdXXXXXX.com"
+# define DEFAULT_TMPFILE    "sys$scratch:gnv$make_cmdXXXXXX.com"
 # define DEFAULT_TMPDIR     "/sys$scratch/"
 #else
 # define DEFAULT_TMPFILE     "GmXXXXXX"
@@ -525,13 +519,31 @@ get_tmptemplate ()
 # endif
 #endif
 
-  if (
+static const char *
+get_tmpdir ()
+{
+  static const char *tmpdir = NULL;
+
+  if (!tmpdir)
+    {
+      if (((tmpdir = getenv (MAKE_TMPDIR)) == NULL || *tmpdir == '\0')
 #if defined (__MSDOS__) || defined (WINDOWS32) || defined (__EMX__)
-      ((tmpdir = getenv ("TMP")) == NULL || *tmpdir == '\0') &&
-      ((tmpdir = getenv ("TEMP")) == NULL || *tmpdir == '\0') &&
+          && ((tmpdir = getenv ("TMP")) == NULL || *tmpdir == '\0')
+          && ((tmpdir = getenv ("TEMP")) == NULL || *tmpdir == '\0')
 #endif
-      ((tmpdir = getenv ("TMPDIR")) == NULL || *tmpdir == '\0'))
-    tmpdir = DEFAULT_TMPDIR;
+          && ((tmpdir = getenv ("TMPDIR")) == NULL || *tmpdir == '\0'))
+        tmpdir = DEFAULT_TMPDIR;
+    }
+
+  return tmpdir;
+}
+
+static char *
+get_tmptemplate ()
+{
+  const char *tmpdir = get_tmpdir ();
+  char *template;
+  size_t len;
 
   len = strlen (tmpdir);
   template = xmalloc (len + CSTRLEN (DEFAULT_TMPFILE) + 2);

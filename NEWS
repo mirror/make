@@ -88,6 +88,14 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   top-level invocation of GNU make, or via MAKEFLAGS or GNUMAKEFLAGS.
   To detect this change search for 'jobserver-fifo' in the .FEATURES variable.
 
+* New feature: The MAKE_TMPDIR environment variable
+  If you prefer that GNU make place temporary files in a different directory
+  than the standard TMPDIR (or TMP or TEMP on Windows), set the MAKE_TMPDIR
+  environment variable before starting make (this value CANNOT be set inside
+  the makefile, since make needs to find its temporary directory before the
+  makefiles are parsed).  This is useful for build systems which reset TMPDIR
+  and clean it out during the build process.
+
 * Some POSIX systems (*BSD) do not allow locks to be taken on pipes, which
   caused the output sync feature to not work properly there.  Also multiple
   invocations of make redirecting to the same output file (e.g., /dev/null)

@@ -309,6 +309,7 @@ How to Run @code{make}
                                   an alternate compiler and other things.
 * Testing::                     How to proceed past some errors, to
                                   test compilation.
+* Temporary Files::             Where @code{make} keeps its temporary files.
 * Options Summary::             Summary of Options
 
 Using Implicit Rules
@@ -8773,6 +8774,7 @@ determines that some target is not already up to date.
                                   an alternate compiler and other things.
 * Testing::                     How to proceed past some errors, to
                                   test compilation.
+* Temporary Files::             Where @code{make} keeps its temporary files.
 * Options Summary::             Summary of Options
 @end menu
 
@@ -9164,7 +9166,7 @@ overridden.  This is to use the @code{override} directive, which is a line
 that looks like this: @samp{override @var{variable} = @var{value}}
 (@pxref{Override Directive, ,The @code{override} Directive}).
 
-@node Testing, Options Summary, Overriding, Running
+@node Testing, Temporary Files, Overriding, Running
 @section Testing the Compilation of a Program
 @cindex testing compilation
 @cindex compilation, testing
@@ -9202,7 +9204,35 @@ program, perhaps to find several independent problems so that you can
 correct them all before the next attempt to compile.  This is why Emacs'
 @kbd{M-x compile} command passes the @samp{-k} flag by default.
 
-@node Options Summary,  , Testing, Running
+@node Temporary Files, Options Summary, Testing, Running
+@section Temporary Files
+@cindex temporary files
+
+In some situations, @code{make} will need to create its own temporary files.
+These files must not be disturbed while @code{make} is running, including all
+recursively-invoked instances of @code{make}.
+
+@cindex @code{MAKE_TMPDIR}
+If the environment variable @code{MAKE_TMPDIR} is set then all temporary files
+created by @code{make} will be placed there.
+
+@cindex @code{TMPDIR}
+@cindex @code{TMP}
+@cindex @code{TEMP}
+If @code{MAKE_TMPDIR} is not set, then the standard location for temporary
+files for the current operating system will be used.  For POSIX systems this
+will be the location set in the @code{TMPDIR} environment variable, or else
+the system's default location (e.g., @file{/tmp}) is used.  On Windows,
+first @code{TMP} then @code{TEMP} will be checked, then @code{TMPDIR}, and
+finally the system default temporary file location will be used.
+
+Note that this directory must already exist or @code{make} will fail:
+@code{make} will not attempt to create it.
+
+These variables @emph{cannot} be set from within a makefile: GNU @code{make}
+must have access to this location before it begins reading the makefiles.
+
+@node Options Summary,  , Temporary Files, Running
 @section Summary of Options
 @cindex options
 @cindex flags
