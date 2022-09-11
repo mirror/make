@@ -19,10 +19,9 @@ unlink(qw(testload.c testload.so));
 
 open(my $F, '> testload.c') or die "open: testload.c: $!\n";
 print $F <<'EOF' ;
-#include <string.h>
-#include <stdio.h>
-
 #include "gnumake.h"
+
+char* getenv (const char*);
 
 int plugin_is_GPL_compatible;
 
@@ -34,6 +33,8 @@ testload_gmk_setup (gmk_floc *pos)
 {
     (void)pos;
     gmk_eval ("TESTLOAD = implicit", 0);
+    if (getenv("TESTAPI_KEEP"))
+      return -1;
     return 1;
 }
 
@@ -42,6 +43,8 @@ explicit_setup (gmk_floc *pos)
 {
     (void)pos;
     gmk_eval ("TESTLOAD = explicit", 0);
+    if (getenv("TESTAPI_KEEP"))
+      return -1;
     return 1;
 }
 EOF
@@ -79,7 +82,7 @@ all: ; @echo pre=$(PRE) post=$(POST) $(TESTLOAD)
 !,
               '', "pre= post=testload.so explicit\n");
 
-# TEST 4
+# TEST 3
 # Check multiple loads
 run_make_test(q!
 PRE := $(.LOADED)
@@ -90,7 +93,7 @@ all: ; @echo pre=$(PRE) post=$(POST) $(TESTLOAD)
 !,
               '', "pre= post=testload.so implicit\n");
 
-# TEST 5
+# TEST 4
 # Check auto-rebuild of loaded file that's out of date
 utouch(-10, 'testload.so');
 touch('testload.c');
@@ -114,6 +117,32 @@ POST := $(.LOADED)
 all: ; @echo pre=$(PRE) post=$(POST) $(TESTLOAD)
 %.so: %.c ; @echo "rebuilding $@"; !.$sobuild,
               '', "rebuilding testload.so\npre= post=testload.so explicit\n");
+
+# sv 63044.
+# Test that the loaded shared object is present in .LOADED when the setup
+# routine returns -1.
+$ENV{TESTAPI_KEEP} = 1;
+run_make_test(q!
+PRE := $(.LOADED)
+load testload.so
+POST := $(.LOADED)
+all: ; @echo pre=$(PRE) post=$(POST) $(TESTLOAD)
+!,
+              '--warn-undefined-variables', "pre= post=testload.so implicit\n");
+
+# Check that we don't auto-rebuild of loaded file that's out of date
+# if we return -1 from the setup
+utouch(-10, 'testload.so');
+touch('testload.c');
+
+$ENV{TESTAPI_KEEP} = 1;
+run_make_test(q!
+PRE := $(.LOADED)
+load ./testload.so
+POST := $(.LOADED)
+all: ; @echo pre=$(PRE) post=$(POST) $(TESTLOAD)
+testload.so: testload.c ; @echo "rebuilding $@"; !.$sobuild,
+              '', "pre= post=testload.so implicit\n");
 
 unlink(qw(testload.c testload.so)) unless $keep;
 

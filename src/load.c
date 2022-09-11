@@ -211,8 +211,9 @@ load_file (const floc *flocp, const char **ldname, int noerror)
   /* Invoke the symbol.  */
   r = (*symp) (flocp);
 
-  /* If it succeeded, add the load file to the loaded variable.  */
-  if (r > 0)
+  /* If it succeeded, add the load file to the loaded variable.
+     Anything other than 0, including -1, is a success.  */
+  if (r)
     {
       size_t loadlen = strlen (loaded);
       char *newval = alloca (loadlen + strlen (*ldname) + 2);
