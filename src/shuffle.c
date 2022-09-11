@@ -146,7 +146,7 @@ identity_shuffle_array (void **a UNUSED, size_t len UNUSED)
   /* No-op!  */
 }
 
-/* Shuffle list of dependencies by populating '->next'
+/* Shuffle list of dependencies by populating '->shuf'
    field in each 'struct dep'.  */
 static void
 shuffle_deps (struct dep *deps)

@@ -116,4 +116,13 @@ run_make_test('
 ',
               '--shuffle=reverse a_ b_ c_', "a_\nb_\nc_");
 
+# Check if SECONDEXPANSION targets also get reshuffled.
+run_make_test('
+.SECONDEXPANSION:
+all: $$(var)
+%_: ; @echo $@
+var = a_ b_ c_
+',
+              '--shuffle=reverse', "c_\nb_\na_");
+
 1;

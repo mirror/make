@@ -25,6 +25,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "variable.h"
 #include "debug.h"
 #include "hash.h"
+#include "shuffle.h"
 
 
 /* Remember whether snap_deps has been invoked: we need this to be sure we
@@ -576,6 +577,7 @@ expand_deps (struct file *f)
   struct dep **dp;
   const char *fstem;
   int initialized = 0;
+  int changed_dep = 0;
 
   if (f->snapped)
     return;
@@ -664,6 +666,7 @@ expand_deps (struct file *f)
       if (new == 0)
         {
           *dp = d->next;
+          changed_dep = 1;
           free_dep (d);
           d = *dp;
           continue;
@@ -672,6 +675,7 @@ expand_deps (struct file *f)
       /* Add newly parsed prerequisites.  */
       fstem = d->stem;
       next = d->next;
+      changed_dep = 1;
       free_dep (d);
       *dp = new;
       for (dp = &new, d = new; d != 0; dp = &d->next, d = d->next)
@@ -688,6 +692,12 @@ expand_deps (struct file *f)
       *dp = next;
       d = *dp;
     }
+
+    /* Shuffle mode assumes '->next' and '->shuf' links both traverse the same
+       dependencies (in different sequences).  Regenerate '->shuf' so we don't
+       refer to stale data.  */
+    if (changed_dep)
+      shuffle_deps_recursive (f->deps);
 }
 
 /* Add extra prereqs to the file in question.  */
