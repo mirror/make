@@ -160,6 +160,7 @@ struct patdeps
     unsigned int ignore_mtime : 1;
     unsigned int ignore_automatic_vars : 1;
     unsigned int is_explicit : 1;
+    unsigned int wait_here : 1;
   };
 
 /* This structure stores information about pattern rules that we need
@@ -569,12 +570,14 @@ pattern_search (struct file *file, int archive,
 
                   /* Parse the expanded string.  It might have wildcards.  */
                   p = depname;
-                  dl = PARSE_FILE_SEQ (&p, struct dep, MAP_NUL, NULL, PARSEFS_ONEWORD);
+                  dl = PARSE_FILE_SEQ (&p, struct dep, MAP_NUL, NULL,
+                                       PARSEFS_ONEWORD|PARSEFS_WAIT);
                   for (d = dl; d != NULL; d = d->next)
                     {
                       ++deps_found;
                       d->ignore_mtime = dep->ignore_mtime;
                       d->ignore_automatic_vars = dep->ignore_automatic_vars;
+                      d->wait_here |= dep->wait_here;
                       d->is_explicit = is_explicit;
                     }
 
@@ -708,7 +711,8 @@ pattern_search (struct file *file, int archive,
                       /* Parse the expanded string. */
                       struct dep *dp = PARSE_FILE_SEQ (&p, struct dep,
                                                        order_only ? MAP_NUL : MAP_PIPE,
-                                                       add_dir ? pathdir : NULL, PARSEFS_NONE);
+                                                       add_dir ? pathdir : NULL,
+                                                       PARSEFS_WAIT);
                       *dptr = dp;
 
                       for (d = dp; d != NULL; d = d->next)
@@ -773,6 +777,7 @@ pattern_search (struct file *file, int archive,
                   memset (pat, '\0', sizeof (struct patdeps));
                   pat->ignore_mtime = d->ignore_mtime;
                   pat->ignore_automatic_vars = d->ignore_automatic_vars;
+                  pat->wait_here = d->wait_here;
                   pat->is_explicit = d->is_explicit;
 
                   DBS (DB_IMPLICIT,
@@ -1021,6 +1026,7 @@ pattern_search (struct file *file, int archive,
       dep->ignore_mtime = pat->ignore_mtime;
       dep->is_explicit = pat->is_explicit;
       dep->ignore_automatic_vars = pat->ignore_automatic_vars;
+      dep->wait_here = pat->wait_here;
       s = strcache_add (pat->name);
       if (recursions)
         dep->name = s;

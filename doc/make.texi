@@ -224,6 +224,7 @@ Recipe Execution
 
 Parallel Execution
 
+* Parallel Disable::            Disabling parallel execution
 * Parallel Output::             Handling output during parallel execution
 * Parallel Input::              Handling input during parallel execution
 
@@ -3179,11 +3180,15 @@ Variables to a Sub-@code{make}}.
 @item .NOTPARALLEL
 @cindex parallel execution, overriding
 
-If @code{.NOTPARALLEL} is mentioned as a target, then this invocation
-of @code{make} will be run serially, even if the @samp{-j} option is
-given.  Any recursively invoked @code{make} command will still run
-recipes in parallel (unless its makefile also contains this target).
-Any prerequisites on this target are ignored.
+If @code{.NOTPARALLEL} is mentioned as a target with no prerequisites, all
+targets in this invocation of @code{make} will be run serially, even if the
+@samp{-j} option is given.  Any recursively invoked @code{make} command will
+still run recipes in parallel (unless its makefile also contains this target).
+
+If @code{.NOTPARALLEL} has targets as prerequisites, then all the
+prerequisites of those targets will be run serially.  This implicitly adds a
+@code{.WAIT} between each prerequisite of the listed targets.  @xref{Parallel
+Disable, , Disabling Parallel Execution}.
 
 @findex .ONESHELL
 @item .ONESHELL
@@ -3191,8 +3196,8 @@ Any prerequisites on this target are ignored.
 
 If @code{.ONESHELL} is mentioned as a target, then when a target is
 built all lines of the recipe will be given to a single invocation of
-the shell rather than each line being invoked separately
-(@pxref{Execution, ,Recipe Execution}).
+the shell rather than each line being invoked separately.
+@xref{Execution, ,Recipe Execution}.
 
 @findex .POSIX
 @item .POSIX
@@ -4329,13 +4334,12 @@ directory along your @code{PATH}.
 @cindex @code{-j}
 @cindex @code{--jobs}
 
-GNU @code{make} knows how to execute several recipes at once.
-Normally, @code{make} will execute only one recipe at a time, waiting
-for it to finish before executing the next.  However, the @samp{-j} or
-@samp{--jobs} option tells @code{make} to execute many recipes
-simultaneously.  You can inhibit parallelism in a particular makefile
-with the @code{.NOTPARALLEL} pseudo-target (@pxref{Special
-Targets,Special Built-in Target Names}).
+GNU @code{make} knows how to execute several recipes at once.  Normally,
+@code{make} will execute only one recipe at a time, waiting for it to finish
+before executing the next.  However, the @samp{-j} or @samp{--jobs} option
+tells @code{make} to execute many recipes simultaneously.  You can inhibit
+parallelism for some or all targets from within the makefile (@pxref{Parallel
+Disable, ,Disabling Parallel Execution}).
 
 On MS-DOS, the @samp{-j} option has no effect, since that system doesn't
 support multi-processing.
@@ -4389,11 +4393,109 @@ average goes below that limit, or until all the other jobs finish.
 By default, there is no load limit.
 
 @menu
+* Parallel Disable::            Disabling parallel execution
 * Parallel Output::             Handling output during parallel execution
 * Parallel Input::              Handling input during parallel execution
 @end menu
 
-@node Parallel Output, Parallel Input, Parallel, Parallel
+@node Parallel Disable, Parallel Output, Parallel, Parallel
+@subsection Disabling Parallel Execution
+@cindex disabling parallel execution
+@cindex parallel execution, disabling
+
+If a makefile completely and accurately defines the dependency relationships
+between all of its targets, then @code{make} will correctly build the goals
+regardless of whether parallel execution is enabled or not.  This is the ideal
+way to write makefiles.
+
+However, sometimes some or all of the targets in a makefile cannot be executed
+in parallel and it's not feasible to add the prerequisites needed to inform
+@code{make}.  In that case the makefile can use various methods to disable
+parallel execution.
+
+@cindex .NOTPARALLEL special target
+@findex .NOTPARALLEL
+If the @code{.NOTPARALLEL} special target with no prerequisites is specified
+anywhere then the entire instance of @code{make} will be run serially,
+regardless of the parallel setting.  For example:
+
+@example
+@group
+all: one two three
+one two three: ; @@sleep 1; echo $@@
+
+.NOTPARALLEL:
+@end group
+@end example
+
+Regardless of how @code{make} is invoked, the targets @file{one}, @file{two},
+and @file{three} will be run serially.
+
+If the @code{.NOTPARALLEL} special target has prerequisites, then each of
+those prerequisites will be considered a target and all prerequisites of these
+targets will be run serially.  Note that only when building this target will
+the prerequisites be run serially: if some other target lists the same
+prerequisites and is not in @code{.NOTPARALLEL} then these prerequisites may
+be run in parallel.  For example:
+
+@example
+@group
+all: base notparallel
+
+base: one two three
+notparallel: one two three
+
+one two three: ; @@sleep 1; echo $@@
+
+.NOTPARALLEL: notparallel
+@end group
+@end example
+
+Here @samp{make -j base} will run the targets @file{one}, @file{two}, and
+@file{three} in parallel, while @samp{make -j notparallel} will run them
+serially.  If you run @samp{make -j all} then they @emph{will} be run in
+parallel since @file{base} lists them as prerequisites and is not serialized.
+
+The @code{.NOTPARALLEL} target should not have commands.
+
+@cindex .WAIT special target
+@findex .WAIT
+Finally you can control the serialization of specific prerequisites in a
+fine-grained way using the @code{.WAIT} special target.  When this target
+appears in a prerequisite list and parallel execution is enabled, @code{make}
+will not build any of the prerequisites to the @emph{right} of @code{.WAIT}
+until all prerequisites to the @emph{left} of @code{.WAIT} have completed.
+For example:
+
+@example
+@group
+all: one two .WAIT three
+one two three: ; @@sleep 1; echo $@@
+@end group
+@end example
+
+If parallel execution is enabled, @code{make} will try to build @file{one} and
+@file{two} in parallel but will not try to build @file{three} until both are
+complete.
+
+As with targets provided to @code{.NOTPARALLEL}, @code{.WAIT} has an effect
+only when building the target in whose prerequisite list it appears.  If the
+same prerequisites are present in other targets, without @code{.WAIT}, then
+they may still be run in parallel.  Because of this, @code{.WAIT} is an
+unreliable way to impose ordering than defining a prerequisite relationship.
+However it is easy to use and may suffice for simple needs.
+
+The @code{.WAIT} prerequisite will not be present in any of the automatic
+variables for the rule.
+
+You can create an actual target @code{.WAIT} in your makefile for portability
+but this is not required to use this feature.  If a @code{.WAIT} target is
+created it should not have prerequisites or commands.
+
+The @code{.WAIT} feature is also implemented in other versions of @code{make}
+and it's specified in the POSIX standard for @code{make}.
+
+@node Parallel Output, Parallel Input, Parallel Disable, Parallel
 @subsection Output During Parallel Execution
 @cindex output during parallel execution
 @cindex parallel execution, output during
@@ -9575,6 +9677,8 @@ The order in which prerequisites are listed in automatic variables is not
 changed by this option.
 
 The @code{.NOTPARALLEL} pseudo-target disables shuffling for that makefile.
+Also any prerequisite list which contains @code{.WAIT} will not be shuffled.
+@xref{Parallel Disable, ,Disabling Parallel Execution}.
 
 The @samp{--shuffle=} option accepts these values:
 

@@ -157,7 +157,13 @@ shuffle_deps (struct dep *deps)
   void **dp;
 
   for (dep = deps; dep; dep = dep->next)
-    ndeps++;
+    {
+      /* Do not reshuffle prerequisites if any .WAIT is present.  */
+      if (dep->wait_here)
+        return;
+
+      ndeps++;
+    }
 
   if (ndeps == 0)
     return;
@@ -215,8 +221,7 @@ shuffle_deps_recursive (struct dep *deps)
   if (config.mode == sm_none)
     return;
 
-  /* Do not reshuffle targets if Makefile is explicitly marked as
-     problematic for parallelism.  */
+  /* Do not reshuffle prerequisites if .NOTPARALLEL was specified.  */
   if (not_parallel)
     return;
 

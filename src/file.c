@@ -455,8 +455,7 @@ remove_intermediates (int sig)
 struct dep *
 split_prereqs (char *p)
 {
-  struct dep *new = PARSE_FILE_SEQ (&p, struct dep, MAP_PIPE, NULL,
-                                    PARSEFS_NONE);
+  struct dep *new = PARSE_FILE_SEQ (&p, struct dep, MAP_PIPE, NULL, PARSEFS_WAIT);
 
   if (*p)
     {
@@ -465,7 +464,7 @@ split_prereqs (char *p)
       struct dep *ood;
 
       ++p;
-      ood = PARSE_SIMPLE_SEQ (&p, struct dep);
+      ood = PARSE_FILE_SEQ (&p, struct dep, MAP_NUL, NULL, PARSEFS_WAIT);
 
       if (! new)
         new = ood;
@@ -888,7 +887,19 @@ snap_deps (void)
 
   f = lookup_file (".NOTPARALLEL");
   if (f != 0 && f->is_target)
-    not_parallel = 1;
+    {
+      struct dep *d2;
+
+      if (!f->deps)
+        not_parallel = 1;
+      else
+        /* Set a wait point between every prerequisite of each target.  */
+        for (d = f->deps; d != NULL; d = d->next)
+          for (f2 = d->file; f2 != NULL; f2 = f2->prev)
+            if (f2->deps)
+              for (d2 = f2->deps->next; d2 != NULL; d2 = d2->next)
+                d2->wait_here = 1;
+    }
 
   {
     struct dep *prereqs = expand_extra_prereqs (lookup_variable (STRING_SIZE_TUPLE(".EXTRA_PREREQS")));
@@ -1039,17 +1050,17 @@ print_prereqs (const struct dep *deps)
   /* Print all normal dependencies; note any order-only deps.  */
   for (; deps != 0; deps = deps->next)
     if (! deps->ignore_mtime)
-      printf (" %s", dep_name (deps));
+      printf (" %s%s", deps->wait_here ? ".WAIT " : "", dep_name (deps));
     else if (! ood)
       ood = deps;
 
   /* Print order-only deps, if we have any.  */
   if (ood)
     {
-      printf (" | %s", dep_name (ood));
+      printf (" | %s%s", ood->wait_here ? ".WAIT " : "", dep_name (ood));
       for (ood = ood->next; ood != 0; ood = ood->next)
         if (ood->ignore_mtime)
-          printf (" %s", dep_name (ood));
+          printf (" %s%s", ood->wait_here ? ".WAIT " : "", dep_name (ood));
     }
 
   putchar ('\n');

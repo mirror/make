@@ -46,6 +46,21 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   https://www.gnu.org/software/gnulib/manual/html_node/C99-features-assumed.html
   The configure script should verify the compiler has these features.
 
+* New feature: The .WAIT special target
+  If the .WAIT target appears between two prerequisites of a target, then
+  GNU make will wait for all of the targets to the left of .WAIT in the list
+  to complete before starting any of the targets to the right of .WAIT.
+  This feature is available in some other versions of make, and it will be
+  required by an upcoming version of the POSIX standard for make.
+  Different patches were made by Alexey Neyman <alex.neyman@auriga.ru> (2005)
+  and Steffen Nurpmeso <steffen@sdaoden.eu> (2020) that were useful but the
+  result is a different implementation (closer to Alexey's idea).
+
+* New feature: .NOTPARALLEL accepts prerequisites
+  If the .NOTPARALLEL special target has prerequisites then all prerequisites
+  of those targets will be run serially (as if .WAIT was specified between
+  each prerequisite).
+
 * New feature: The .NOTINTERMEDIATE special target
   .NOTINTERMEDIATE Disables intermediate behavior for specific files, for all
   files built using a pattern, or for the entire makefile.

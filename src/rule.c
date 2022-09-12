@@ -65,21 +65,22 @@ static size_t maxsuffix;
    space separated rule prerequisites, followed by a pipe, followed by
    order-only prerequisites, if present.  */
 
-const char *get_rule_defn (struct rule *r)
+const char *
+get_rule_defn (struct rule *r)
 {
   if (r->_defn == NULL)
     {
+      size_t len = 8; /* Reserve for ":: ", " | ", and nul.  */
       unsigned int k;
-      ptrdiff_t len = 8; // Reserve for ":: ", " | " and the null terminator.
       char *p;
       const char *sep = "";
       const struct dep *dep, *ood = 0;
 
       for (k = 0; k < r->num; ++k)
-        len += r->lens[k] + 1; // Add one for a space.
+        len += r->lens[k] + 1;
 
       for (dep = r->deps; dep; dep = dep->next)
-        len += strlen (dep_name (dep)) + 1; // Add one for a space.
+        len += strlen (dep_name (dep)) + (dep->wait_here ? CSTRLEN (" .WAIT") : 0) + 1;
 
       p = r->_defn = xmalloc (len);
       for (k = 0; k < r->num; ++k, sep = " ")
@@ -91,18 +92,25 @@ const char *get_rule_defn (struct rule *r)
       /* Copy all normal dependencies; note any order-only deps.  */
       for (dep = r->deps; dep; dep = dep->next)
         if (dep->ignore_mtime == 0)
-          p = mempcpy (mempcpy (p, " ", 1), dep_name (dep),
-                       strlen (dep_name (dep)));
+          {
+            if (dep->wait_here)
+              p = mempcpy (p, STRING_SIZE_TUPLE (" .WAIT"));
+            p = mempcpy (mempcpy (p, " ", 1), dep_name (dep),
+                         strlen (dep_name (dep)));
+          }
         else if (ood == 0)
           ood = dep;
 
       /* Copy order-only deps, if we have any.  */
       for (sep = " | "; ood; ood = ood->next, sep = " ")
         if (ood->ignore_mtime)
-          p = mempcpy (mempcpy (p, sep, strlen (sep)), dep_name (ood),
-                       strlen (dep_name (ood)));
+          {
+            p = mempcpy (p, sep, strlen (sep));
+            if (ood->wait_here)
+              p = mempcpy (p, STRING_SIZE_TUPLE (".WAIT "));
+            p = mempcpy (p, dep_name (ood), strlen (dep_name (ood)));
+          }
       *p = '\0';
-      assert (p - r->_defn < len);
     }
 
   return r->_defn;

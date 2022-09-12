@@ -551,6 +551,9 @@ update_file_1 (struct file *file, unsigned int depth)
 
           d = du->shuf ? du->shuf : du;
 
+          if (d->wait_here && running)
+            break;
+
           check_renamed (d->file);
 
           mtime = file_mtime (d->file);
@@ -631,6 +634,10 @@ update_file_1 (struct file *file, unsigned int depth)
       for (du = file->deps; du != 0; du = du->next)
         {
           d = du->shuf ? du->shuf : du;
+
+          if (d->wait_here && running)
+            break;
+
           if (d->file->intermediate)
             {
               enum update_status new;
