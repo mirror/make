@@ -2429,6 +2429,24 @@ main (int argc, char **argv, char **envp)
           break;
 
         case us_none:
+          {
+             /* Reload any unloaded shared objects.  Do not re-exec to have
+                that shared object loaded: a re-exec would cause an infinite
+                loop, because the shared object was not updated.  */
+            struct goaldep *d;
+
+            for (d = read_files; d; d = d->next)
+              if (d->file->unloaded)
+                {
+                  struct file *f = d->file;
+                  /* Load the file.  0 means failure.  */
+                  if (load_file (&d->floc, f, 0) == 0)
+                    OS (fatal, &d->floc, _("%s: failed to load"), f->name);
+                  f->unloaded = 0;
+                  f->loaded = 1;
+                }
+          }
+
           /* No makefiles needed to be updated.  If we couldn't read some
              included file that we care about, fail.  */
           if (0)

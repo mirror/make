@@ -84,6 +84,7 @@ struct file
     unsigned int builtin:1;     /* True if the file is a builtin rule. */
     unsigned int precious:1;    /* Non-0 means don't delete file on quit */
     unsigned int loaded:1;      /* True if the file is a loaded object. */
+    unsigned int unloaded:1;    /* True if this loaded object was unloaded. */
     unsigned int low_resolution_time:1; /* Nonzero if this file's time stamp
                                            has only one-second resolution.  */
     unsigned int tried_implicit:1; /* Nonzero if have searched
