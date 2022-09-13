@@ -30,8 +30,10 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
 
 * WARNING: Backward-incompatibility!
   Previously only simple (one-letter) options were added to the MAKEFLAGS
-  variable that was visible while parsing makefiles.  Now, all options
-  are available in MAKEFLAGS.
+  variable that was visible while parsing makefiles.  Now, all options are
+  available in MAKEFLAGS.  If you want to check MAKEFLAGS for a one-letter
+  option, expanding "$(firstword -$(MAKEFLAGS))" is a reliable way to return
+  the set of one-letter options which can be examined via findstring, etc.
 
 * WARNING: Backward-incompatibility!
   Previously makefile variables marked as export were not exported to commands

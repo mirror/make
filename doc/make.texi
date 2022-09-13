@@ -4478,12 +4478,13 @@ If parallel execution is enabled, @code{make} will try to build @file{one} and
 @file{two} in parallel but will not try to build @file{three} until both are
 complete.
 
-As with targets provided to @code{.NOTPARALLEL}, @code{.WAIT} has an effect
+As with targets provided to @code{.NOTPARALLEL}, @code{.WAIT} takes effect
 only when building the target in whose prerequisite list it appears.  If the
 same prerequisites are present in other targets, without @code{.WAIT}, then
-they may still be run in parallel.  Because of this, @code{.WAIT} is an
-unreliable way to impose ordering than defining a prerequisite relationship.
-However it is easy to use and may suffice for simple needs.
+they may still be run in parallel.  Because of this, neither
+@code{.NOTPARALLEL} with targets nor @code{.WAIT} are as reliable for
+controlling parallel execution as defining a prerequisite relationship.
+However they are easy to use and may be sufficient in less complex situations.
 
 The @code{.WAIT} prerequisite will not be present in any of the automatic
 variables for the rule.
