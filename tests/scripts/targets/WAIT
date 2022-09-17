@@ -101,13 +101,15 @@ run_make_test(q!
 all : one two
 one: pre1 .WAIT pre2
 two: pre2 pre1
-pre1: ; @#HELPER# -q out start-$@ sleep 1 out end-$@
-pre2: ; @#HELPER# -q out $@
+pre1: ; @#HELPER# -q out start-$@ file PRE1 wait PRE2 out end-$@
+pre2: ; @#HELPER# -q wait PRE1 out $@ file PRE2
+
 
 # This is just here so we don't fail with older versions of make
 .WAIT:
 !,
               '-j10', "start-pre1\npre2\nend-pre1\n");
+unlink(qw(PRE1 PRE2));
 
 # Check that .WAIT works with pattern rules
 
@@ -153,8 +155,9 @@ run_make_test(q!
 all : p1 .WAIT np1
 
 p1: pre1 pre2
-pre1: ; @#HELPER# -q out start-$@ sleep 1 out end-$@
-pre2: ; @#HELPER# -q out $@
+pre1: ; @#HELPER# -q out start-$@ file PRE1 wait PRE2 out end-$@
+pre2: ; @#HELPER# -q wait PRE1 out $@ file PRE2
+
 
 np1: npre1 npre2
 npre1: ; @#HELPER# -q out start-$@ sleep 1 out end-$@
@@ -163,6 +166,7 @@ npre2: ; @#HELPER# -q out $@
 .NOTPARALLEL: np1
 !,
               '-j10', "start-pre1\npre2\nend-pre1\nstart-npre1\nend-npre1\nnpre2\n");
+unlink(qw(PRE1 PRE2));
 
 # Ensure we don't shuffle if .WAIT is set
 
@@ -187,7 +191,3 @@ all:;@:
 
 # This tells the test driver that the perl test script executed properly.
 1;
-
-### Local Variables:
-### eval: (setq whitespace-action (delq 'auto-cleanup whitespace-action))
-### End:
