@@ -474,6 +474,61 @@ unlink('1.all', '1.q', '1.r');
 my @dir = ('', 'lib/'); # With and without last slash.
 my @secondexpansion = ('', '.SECONDEXPANSION:');
 
+# SV 62809: Missing grouped pattern peer causes remake regardless of which
+# target caused the rule to run.
+touch(qw(gta));  # but not gtb
+run_make_test(q!
+%a %b : ; touch $*a $*b
+!,
+              'gta', "touch gta gtb\n");
+unlink(qw(gta gtb));
+
+# Ensure both goal targets are built if they depend on a grouped pattern
+touch(qw(gta));  # but not gtb
+run_make_test(q!
+x y: ; touch $@
+
+x: gta
+y: gtb
+
+%a %b : ; touch $*a $*b
+!,
+              'x y', "touch gta gtb\ntouch x\ntouch y\n");
+
+# Now everything should be up to date
+run_make_test(undef, 'x y',
+              "#MAKE#: 'x' is up to date.\n#MAKE#: 'y' is up to date.");
+
+unlink(qw(x y gta gtb));
+
+# sv 12078 : make sure we notice when all targets need to be rebuilt
+# a.1st exists but b.1st doesn't: make sure a.2nd is out of date as well
+
+utouch(-20, 'a.1st');
+utouch(-10, 'a.2nd', 'b.2nd');
+
+run_make_test(q!
+1st := a.1st b.1st
+2nd := ${1st:.1st=.2nd}
+.PHONY: all
+all: ${2nd}
+a.% b.% : ; touch a.$* b.$*
+${2nd}: %.2nd: %.1st ; cp $< $@
+!
+              , '', "touch a.1st b.1st\ncp a.1st a.2nd\ncp b.1st b.2nd\n");
+
+unlink(qw(a.1st b.1st a.2nd b.2nd));
+
+# Variation: b.1st exists but is newer
+
+utouch(-20, 'a.1st');
+utouch(-10, 'a.2nd', 'b.2nd');
+touch(qw(b.1st));
+
+run_make_test(undef, '', "cp b.1st b.2nd\n");
+
+unlink(qw(a.1st b.1st a.2nd b.2nd));
+
 # The following combinations are generated with and without second expansion.
 # 1.
 # all: bye.x
@@ -548,7 +603,7 @@ $prereqs = "${pdir}bye1%2% ${pdir}bye ${pdir}3bye4%5 ${pdir}6bye ${pdir}bye7%8 $
 
 # Multiple funcs, each has multiple words, each word has multiple %, sole %,
 # various corner cases.
-# Make should substitude the first % and only the first % in each word with the
+# Make should substitute the first % and only the first % in each word with the
 # stem.
 run_make_test("
 $se

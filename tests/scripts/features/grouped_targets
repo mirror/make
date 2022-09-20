@@ -165,5 +165,43 @@ unrelated: hello.x
 unlink('hello.z');
 unlink('hello.q');
 
+# SV 62809: Missing grouped target peer causes remake regardless of which
+# target caused the rule to run.
+touch(qw(gta));  # but not gtb
+run_make_test(q!
+gta gtb &: ; touch gta gtb
+!,
+              'gta', "touch gta gtb\n");
+unlink(qw(gta gtb));
+
+# Ensure both goal targets are built if they depend on a grouped prereq
+touch(qw(gta));  # but not gtb
+run_make_test(q!
+x1 x2: ; touch $@
+
+x1: gta
+x2: gtb
+
+gta gtb &: ; touch gta gtb
+!,
+              'x1 x2', "touch gta gtb\ntouch x1\ntouch x2\n");
+
+# Now everything should be up to date
+run_make_test(undef, 'x1 x2',
+              "#MAKE#: 'x1' is up to date.\n#MAKE#: 'x2' is up to date.");
+
+unlink(qw(x1 x2 gta gtb));
+
+# If an also-make file is older than a prerequisite build both
+
+utouch(-20, 'gtb');
+utouch(-10, 'pre');
+touch(qw(gta));
+run_make_test(q!
+gta gtb &: pre ; touch gta gtb
+!,
+              'gta', "touch gta gtb\n");
+unlink(qw(pre gta gtb));
+
 # This tells the test driver that the perl test script executed properly.
 1;

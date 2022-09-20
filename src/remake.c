@@ -503,10 +503,8 @@ update_file_1 (struct file *file, unsigned int depth)
       this_mtime += FILE_TIMESTAMPS_PER_S - 1 - ns;
     }
 
-  must_make = noexist;
-
-  /* If file was specified as a target with no commands,
-     come up with some default commands.  */
+  /* If file was specified as a target with no commands, come up with some
+     default commands.  This may also add more also_make files.  */
 
   if (!file->phony && file->cmds == 0 && !file->tried_implicit)
     {
@@ -519,6 +517,26 @@ update_file_1 (struct file *file, unsigned int depth)
       DBF (DB_IMPLICIT, _("Using default recipe for '%s'.\n"));
       file->cmds = default_file->cmds;
     }
+
+  /* If any also_make target doesn't exist, we must remake this one too.
+     If they do exist choose the oldest mtime so they will rebuild.  */
+
+  for (ad = file->also_make; ad && !noexist; ad = ad->next)
+    {
+      struct file *adfile = ad->file;
+      FILE_TIMESTAMP fmtime = file_mtime (adfile);
+
+      check_renamed (adfile);
+      noexist = fmtime == NONEXISTENT_MTIME;
+      if (noexist)
+        DBS (DB_BASIC,
+             (_("Grouped target peer '%s' of file '%s' does not exist.\n"),
+              adfile->name, file->name));
+      else if (fmtime < this_mtime)
+        this_mtime = fmtime;
+    }
+
+  must_make = noexist;
 
   /* Update all non-intermediate files we depend on, if necessary, and see
      whether any of them is more recent than this file.  We need to walk our

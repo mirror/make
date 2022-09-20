@@ -251,6 +251,7 @@ sub subst_make_string
     s/#MAKE#/$make_name/g;
     s/#PERL#/$perl_name/g;
     s/#PWD#/$cwdpath/g;
+    s/#WORK#/$workdir/g;
     # If we're using a shell
     s/#HELPER#/$perl_name $helptool/g;
     return $_;
