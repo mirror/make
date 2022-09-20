@@ -138,8 +138,19 @@ hello.z: %.z: %.x ; @echo $@
 unrelated: hello.x
 !, '', "hello.z\n");
 
-
 unlink('hello.z');
+
+# sv 17374 Ensure double-colon static pattern rules work
+
+touch(qw(a.src b.src));
+
+run_make_test(q!
+all: a.tgt b.tgt
+a.tgt b.tgt:: %.tgt : %.src ; cp $< $@
+!,
+    '', "cp a.src a.tgt\ncp b.src b.tgt\n");
+
+unlink(qw(a.src b.src a.tgt b.tgt));
 
 my @dir = ('', 'lib/'); # With and without last slash.
 my @secondexpansion = ('', '.SECONDEXPANSION:');
