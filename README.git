@@ -46,7 +46,10 @@ added before it so be sure your comment lines are not longer than 72
 characters; prefer 70 or less.  Please use standard ChangeLog formats for
 your commit messages (sans the leading TAB of course).
 
-Rule #1: Don't rewrite pushed history (don't use "git push --force").
+Rule #1: Don't rewrite pushed history on master (no "git push --force").
+Rule #2: Feel free to rewrite pushed history on personal branches.
+Rule #3: Prefer to squash-merge or rebase + merge --ff-only, rather than
+         merging from personal branches into master.
 
 Typical simple workflow might be:
 
@@ -54,14 +57,14 @@ Typical simple workflow might be:
   * Use "git status" and "git diff" to verify your changes
   * Use "git add" to stage the changes you want to make
   * Use "git commit" to commit the staged changes to your local repository
-  * Use "git pull" to accept & merge new changes from the Savannah repository
-  * Use "git push" to push your commits back to the Savannah repository
+  * Use "git pull -r" to accept new changes from the upstream repository
+  * Use "git push" to push your commits back to the upstream repository
 
 For Emacs users, there are many options for Git integration but I strongly
-recommend the Magit package: https://www.emacswiki.org/emacs/Magit
-It makes the workflow much clearer, and has advanced features such as
-constructing multiple commits from various files and even from different
-diff chunks in the same file.  There is a video available which helps a lot.
+recommend Magit: https://magit.vc/  It makes the workflow much clearer, and
+has advanced features such as constructing multiple commits from various files
+and even from different diff chunks in the same file.  There is a video
+available which helps a lot.
 
 
 Coding Standards
