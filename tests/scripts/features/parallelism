@@ -7,46 +7,47 @@ if (!$parallel_jobs) {
   return -1;
 }
 
-run_make_test("
+run_make_test(q!
 all : def_1 def_2 def_3
-def_1 : ; \@#HELPER# file ONE wait THREE out TWO
-def_2 : ; \@#HELPER# wait FOUR file THREE
-def_3 : ; \@#HELPER# wait ONE file FOUR",
+def_1 : ; @#HELPER# file ONE wait THREE out TWO
+def_2 : ; @#HELPER# wait FOUR file THREE
+def_3 : ; @#HELPER# wait ONE file FOUR!,
               '-j4', "file ONE\nwait ONE\nfile FOUR\nwait FOUR\nfile THREE\nwait THREE\nTWO");
 rmfiles(qw(ONE TWO THREE FOUR));
 
 # Verify -j added to MAKEFLAGS in the makefile
-run_make_test("
+run_make_test(q!
 MAKEFLAGS += -j4
 all : def_1 def_2 def_3
-def_1 : ; \@#HELPER# file ONE wait THREE out TWO
-def_2 : ; \@#HELPER# wait FOUR file THREE
-def_3 : ; \@#HELPER# wait ONE file FOUR",
+def_1 : ; @#HELPER# file ONE wait THREE out TWO
+def_2 : ; @#HELPER# wait FOUR file THREE
+def_3 : ; @#HELPER# wait ONE file FOUR!,
               '', "file ONE\nwait ONE\nfile FOUR\nwait FOUR\nfile THREE\nwait THREE\nTWO");
 rmfiles(qw(ONE TWO THREE FOUR));
 
 # Command line should take precedence
-run_make_test("
+run_make_test(q!
 MAKEFLAGS += -j2
 all : def_1 def_2 def_3
-def_1 : ; \@#HELPER# file ONE wait THREE out TWO
-def_2 : ; \@#HELPER# wait FOUR file THREE
-def_3 : ; \@#HELPER# wait ONE file FOUR",
+def_1 : ; @#HELPER# file ONE wait THREE out TWO
+def_2 : ; @#HELPER# wait FOUR file THREE
+def_3 : ; @#HELPER# wait ONE file FOUR!,
               '-j4', "file ONE\nwait ONE\nfile FOUR\nwait FOUR\nfile THREE\nwait THREE\nTWO");
 rmfiles(qw(ONE TWO THREE FOUR));
 
 # Test parallelism with included files.  Here we sleep/echo while
 # building the included files, to test that they are being built in
 # parallel.
-run_make_test("
-all: 1 2; \@#HELPER# out success
+run_make_test(q!
+all: 1 2; @#HELPER# out success
 -include 1.inc 2.inc
+.RECIPEPREFIX := >
 1.inc:
-\t\@#HELPER# file ONE.inc wait THREE.inc file TWO.inc
-\t\@echo '1: ; \@#HELPER# file ONE wait THREE file TWO' > \$\@
+> @#HELPER# file ONE.inc wait THREE.inc file TWO.inc
+> @echo '1: ; @#HELPER# file ONE wait THREE file TWO' > $@
 2.inc:
-\t\@#HELPER# wait ONE.inc file THREE.inc
-\t\@echo '2: ; \@#HELPER# wait ONE file THREE' > \$\@",
+> @#HELPER# wait ONE.inc file THREE.inc
+> @echo '2: ; @#HELPER# wait ONE file THREE' > $@!,
               "-j4",
               "file ONE.inc\nwait ONE.inc\nfile THREE.inc\nwait THREE.inc\nfile TWO.inc\nfile ONE\nwait ONE\nfile THREE\nwait THREE\nfile TWO\nsuccess\n", 0, 7);
 rmfiles(qw(ONE.inc TWO.inc THREE.inc ONE TWO THREE 1.inc 2.inc));
@@ -54,17 +55,17 @@ rmfiles(qw(ONE.inc TWO.inc THREE.inc ONE TWO THREE 1.inc 2.inc));
 
 # Test parallelism with included files--this time recurse first and make
 # sure the jobserver works.
-run_make_test("
-recurse: ; \@\$(MAKE) --no-print-directory -f #MAKEFILE# INC=yes all
-all: 1 2; \@#HELPER# out success
+run_make_test(q!
+recurse: ; @$(MAKE) --no-print-directory -f #MAKEFILE# INC=yes all
+all: 1 2; @#HELPER# out success
 
 INC = no
-ifeq (\$(INC),yes)
+ifeq ($(INC),yes)
 -include 1.inc 2.inc
 endif
 
-1.inc: ; \@#HELPER# file ONE.inc wait THREE.inc file TWO.inc; echo '1: ; \@#HELPER# file ONE wait THREE file TWO' > \$\@
-2.inc: ; \@#HELPER# wait ONE.inc file THREE.inc; echo '2: ; \@#HELPER# wait ONE file THREE' > \$\@",
+1.inc: ; @#HELPER# file ONE.inc wait THREE.inc file TWO.inc; echo '1: ; @#HELPER# file ONE wait THREE file TWO' > $@
+2.inc: ; @#HELPER# wait ONE.inc file THREE.inc; echo '2: ; @#HELPER# wait ONE file THREE' > $@!,
               "-j4",
               "file ONE.inc\nwait ONE.inc\nfile THREE.inc\nwait THREE.inc\nfile TWO.inc\nfile ONE\nwait ONE\nfile THREE\nwait THREE\nfile TWO\nsuccess\n", 0, 7);
 rmfiles(qw(ONE.inc TWO.inc THREE.inc ONE TWO THREE 1.inc 2.inc));
@@ -76,45 +77,41 @@ rmfiles(qw(ONE.inc TWO.inc THREE.inc ONE TWO THREE 1.inc 2.inc));
 # to trigger this code when I added it but no longer does after the fix.
 # We have to increase the timeout from the default (5s) on this test.
 
-run_make_test("
-export HI = \$(shell \$(\$\@.CMD))
+run_make_test(q!
+export HI = $(shell $($@.CMD))
 first.CMD = #HELPER# out hi
 second.CMD = #HELPER# sleep 4
 
 .PHONY: all first second
 all: first second
 
-first second: ; \@#HELPER# out \$\@ sleep 1 out \$\@",
+first second: ; @#HELPER# out $@ sleep 1 out $@!,
               '-j2', "first\nsleep 1\nfirst\nsecond\nsleep 1\nsecond", 0, 7);
 
 # Michael Matz <matz@suse.de> reported a bug where if make is running in
 # parallel without -k and two jobs die in a row, but not too close to each
 # other, then make will quit without waiting for the rest of the jobs to die.
 
-run_make_test("
+run_make_test(q!
 .PHONY: all fail.1 fail.2 fail.3 ok
 all: fail.1 ok fail.2 fail.3
 
-.RECIPEPREFIX := >
+fail.1: ; @#HELPER# -q sleep 1 out $@ file fail.1 fail 1
+fail.2: ; @#HELPER# -q sleep 2 out $@ wait fail.1 file fail.2 fail 1
+fail.3: ; @#HELPER# -q sleep 3 out $@ wait fail.2 file fail.3 fail 1
 
-fail.1 fail.2 fail.3:
-> \@#HELPER# sleep \$(patsubst fail.%,%,\$\@)
-> \@#HELPER# out Fail
-> \@#HELPER# fail 1
-
-ok:
-> \@#HELPER# sleep 4
-> \@#HELPER# out OK",
-              '-rR -j5', "sleep 1\nFail\nfail 1
-#MAKE#: *** [#MAKEFILE#:10: fail.1] Error 1
+ok: ; @#HELPER# -q sleep 4 wait fail.3 out OK!,
+              '-rR -j5', "fail.1\nfail 1
+#MAKE#: *** [#MAKEFILE#:5: fail.1] Error 1
 #MAKE#: *** Waiting for unfinished jobs....
-sleep 2\nFail\nfail 1
-#MAKE#: *** [#MAKEFILE#:10: fail.2] Error 1
-sleep 3\nFail\nfail 1
-#MAKE#: *** [#MAKEFILE#:10: fail.3] Error 1
-sleep 4\nOK",
+fail.2\nfail 1
+#MAKE#: *** [#MAKEFILE#:6: fail.2] Error 1
+fail.3\nfail 1
+#MAKE#: *** [#MAKEFILE#:7: fail.3] Error 1
+OK",
              512);
 
+rmfiles(qw(fail.1 fail.2 fail.3));
 
 # Test for Savannah bug #15641.
 #
@@ -190,7 +187,7 @@ fff1.mk: ; touch $@
 !,
               '-j2', "touch fff1.mk\nfile TWO\nwait TWO\nfile ONE\n");
 
-unlink('fff1.mk', 'ONE', 'TWO');
+rmfiles('fff1.mk', 'ONE', 'TWO');
 
 # Test if a sub-make needs to re-exec and the makefile is built via
 # sub-make.  Reported by Masahiro Yamada <yamada.masahiro@socionext.com>
@@ -211,7 +208,7 @@ endif
 !,
               '--no-print-directory -j2', "touch fff1.mk\nfile TWO\nwait TWO\nfile ONE\nrecurse\n");
 
-unlink('fff1.mk', 'ONE', 'TWO');
+rmfiles('fff1.mk', 'ONE', 'TWO');
 
 
 # Make sure that all jobserver FDs are closed if we need to re-exec the
