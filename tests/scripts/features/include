@@ -8,16 +8,11 @@ Test extra whitespace at the end of the include, multiple -includes and
 sincludes (should not give an error) and make sure that errors are reported
 for targets that were also -included.";
 
-$makefile2 = &get_tmpfile;
+create_file('incl.mk', "ANOTHER: ; \@echo This is another included makefile\n");
 
-open(MAKEFILE,"> $makefile");
-
-# The contents of the Makefile ...
-
-print MAKEFILE <<EOF;
-\#Extra space at the end of the following file name
-include $makefile2
-all: ; \@echo There should be no errors for this makefile.
+run_make_test(qq!#Extra space at the end of the following file name
+include incl.mk    ! . q!
+all: ; @echo There should be no errors for this makefile.
 
 -include nonexistent.mk
 -include nonexistent.mk
@@ -27,27 +22,12 @@ sinclude nonexistent-2.mk
 sinclude makeit.mk
 
 error: makeit.mk
-EOF
+!,
+              "all", "There should be no errors for this makefile.\n");
 
-close(MAKEFILE);
+run_make_test(undef, "ANOTHER", "This is another included makefile\n");
 
-
-open(MAKEFILE,"> $makefile2");
-
-print MAKEFILE "ANOTHER: ; \@echo This is another included makefile\n";
-
-close(MAKEFILE);
-
-# Create the answer to what should be produced by this Makefile
-&run_make_with_options($makefile, "all", &get_logfile);
-$answer = "There should be no errors for this makefile.\n";
-&compare_output($answer, &get_logfile(1));
-
-&run_make_with_options($makefile, "ANOTHER", &get_logfile);
-$answer = "This is another included makefile\n";
-&compare_output($answer, &get_logfile(1));
-
-$makefile = undef;
+unlink('incl.mk');
 
 # Try to build the "error" target; this will fail since we don't know
 # how to create makeit.mk, but we should also get a message (even though
@@ -442,6 +422,31 @@ hello.mk: ; echo 'FOO=bar' > $@
 .PHONY: hello.mk
 !,
               '', 'FOO=');
+
+# SV 56301 Verify pattern rules creating optional includes.
+# -k shouldn't matter when creating include files.
+
+run_make_test(q!
+all:; @echo hello
+-include inc_a.mk
+include inc_b.mk
+%_a.mk %_b.mk:; exit 1
+!,
+              '', "exit 1\n#MAKEFILE#:4: Failed to remake makefile 'inc_b.mk'.\n", 512);
+
+run_make_test(undef, '-k', "exit 1\n#MAKEFILE#:4: Failed to remake makefile 'inc_b.mk'.\n", 512);
+
+# It seems wrong to me that this gives a different error message, but at
+# least it doesn't keep going.
+run_make_test(q!
+all:; @echo hello
+include inc_a.mk
+-include inc_b.mk
+%_a.mk %_b.mk:; exit 1
+!,
+              '', "exit 1\n#MAKEFILE#:3: inc_a.mk: $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:5: inc_a.mk] Error 1\n", 512);
+
+run_make_test(undef, '-k', "exit 1\n#MAKEFILE#:3: inc_a.mk: $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:5: inc_a.mk] Error 1\n#MAKEFILE#:3: Failed to remake makefile 'inc_a.mk'.\n", 512);
 
 # Check the default makefiles... this requires us to invoke make with no
 # arguments.  Also check MAKEFILES

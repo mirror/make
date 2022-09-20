@@ -2499,6 +2499,7 @@ main (int argc, char **argv, char **envp)
                         any_remade |= (mtime != NONEXISTENT_MTIME
                                        && mtime != makefile_mtimes[i]);
                         makefile_status = MAKE_FAILURE;
+                        any_failed = 1;
                       }
                   }
 

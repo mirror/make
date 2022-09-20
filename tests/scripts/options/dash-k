@@ -103,13 +103,12 @@ $make_name: Target 'all' not remade because of errors.\n";
 if (defined $ERR_no_such_file) {
     run_make_test('all: ; @echo hi
 include ifile
-ifile: no-such-file; @false
+ifile: no-such-file; exit 1
 ',
                   '-k',
                   "#MAKEFILE#:2: ifile: $ERR_no_such_file
 #MAKE#: *** No rule to make target 'no-such-file', needed by 'ifile'.
-#MAKEFILE#:2: Failed to remake makefile 'ifile'.
-hi\n",
+#MAKEFILE#:2: Failed to remake makefile 'ifile'.\n",
                   512);
 }
 
