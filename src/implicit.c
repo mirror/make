@@ -234,7 +234,9 @@ pattern_search (struct file *file, int archive,
      We may replace % by $(*F) for second expansion, increasing the length.  */
   size_t deplen = namelen + max_pattern_dep_length + 4;
   char *depname = alloca (deplen);
+#ifndef NDEBUG
   char *dend = depname + deplen;
+#endif
 
   /* The start and length of the stem of FILENAME for the current rule.  */
   const char *stem = 0;
