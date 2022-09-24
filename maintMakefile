@@ -520,7 +520,7 @@ distsign: $(DIST_ARCHIVES_SIG) $(DIST_ARCHIVES_DIRECTIVE)
 
 # Upload the artifacts
 
-FTPPUT = ncftpput
+FTPPUT := $(firstword $(shell command -v ncftpput) $(wildcard $(GNULIBDIR)/build-aux/ncftpput-ftp) invalid)
 gnu-upload-host = ftp-upload.gnu.org
 gnu-upload-dir  = /incoming
 
