@@ -668,7 +668,7 @@ osync_parse_mutex (const char *mutex)
 void
 osync_clear ()
 {
-  if (osync_handle)
+  if (osync_handle >= 0)
     {
       close (osync_handle);
       osync_handle = -1;
