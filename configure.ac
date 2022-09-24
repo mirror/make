@@ -369,20 +369,16 @@ AS_IF([test "$make_cv_posix_spawn" = yes],
     [make_cv_synchronous_posix_spawn],
     [make_cv_synchronous_posix_spawn=no
      AC_RUN_IFELSE([AC_LANG_SOURCE([[
+       #include <errno.h>
        #include <spawn.h>
-       #include <string.h>
-
        extern char **environ;
-
-       int main() {
-         char* path = strdup("./non-existent");
-         char *argv[[2]];
-         argv[[0]] = path;
-         argv[[1]] =  0;
-         return posix_spawn(0, path, 0, 0, argv, environ);
+       int main () {
+         char path[[]] = "./xxx-non-existent";
+         char *argv[[]] = {path, 0};
+         return posix_spawn (0, path, 0, 0, argv, environ) == ENOENT ? 0 : 1;
        }]])],
-       [make_cv_synchronous_posix_spawn=no],
        [make_cv_synchronous_posix_spawn=yes],
+       [make_cv_synchronous_posix_spawn=no],
        [make_cv_synchronous_posix_spawn="no (cross-compiling)"])]))
 
 AS_CASE([/$user_posix_spawn/$make_cv_posix_spawn/$make_cv_synchronous_posix_spawn/],
