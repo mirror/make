@@ -688,7 +688,7 @@ strcasecmp (const char *s1, const char *s2)
    substitute for it, define our own version.  */
 
 int
-strncasecmp (const char *s1, const char *s2, int n)
+strncasecmp (const char *s1, const char *s2, size_t n)
 {
   while (n-- > 0)
     {

@@ -675,7 +675,7 @@ int strcasecmp (const char *s1, const char *s2);
 #  define strncasecmp strncmpi
 # else
 /* Create our own, in misc.c */
-int strncasecmp (const char *s1, const char *s2, int n);
+int strncasecmp (const char *s1, const char *s2, size_t n);
 # endif
 #endif
 
