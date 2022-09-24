@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT([GNU make],[4.3.90],[bug-make@gnu.org])
+AC_INIT([GNU make],[4.3.91],[bug-make@gnu.org])
 
 AC_PREREQ([2.69])
 
