@@ -102,11 +102,11 @@ w32ify(const char *filename, int resolve)
     if (resolve)
       {
         char *fp = _fullpath (NULL, filename, sizeof (w32_path));
-        strncpy (w32_path, fp, sizeof (w32_path));
+        strncpy (w32_path, fp, sizeof (w32_path) - 1);
         free (fp);
       }
     else
-      strncpy(w32_path, filename, sizeof (w32_path));
+      strncpy(w32_path, filename, sizeof (w32_path) - 1);
 
     for (p = w32_path; p && *p; p++)
       if (*p == '\\')

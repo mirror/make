@@ -290,6 +290,14 @@ char *strerror (int errnum);
 
 #if HAVE_INTTYPES_H
 # include <inttypes.h>
+#else
+# ifndef PRId64
+#  ifdef WINDOWS32
+#   define PRId64 "I64d"
+#  else
+#   define PRId64 "lld"
+#  endif
+# endif
 #endif
 #if HAVE_STDINT_H
 # include <stdint.h>

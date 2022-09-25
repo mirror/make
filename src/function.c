@@ -825,11 +825,11 @@ func_wordlist (char *o, char **argv, const char *funcname UNUSED)
 
   if (start < 1)
     ON (fatal, *expanding_var,
-        "invalid first argument to 'wordlist' function: '%lld'", start);
+        "invalid first argument to 'wordlist' function: '%" PRId64 "'", start);
 
   if (stop < 0)
     ON (fatal, *expanding_var,
-        "invalid second argument to 'wordlist' function: '%lld'", stop);
+        "invalid second argument to 'wordlist' function: '%" PRId64 "'", stop);
 
   count = stop - start + 1;
 

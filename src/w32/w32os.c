@@ -22,7 +22,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <windows.h>
 #include <process.h>
 #include <io.h>
+#if _WIN32_WINNT > 0x0601
 #include <synchapi.h>
+#endif
 #include "pathstuff.h"
 #include "sub_proc.h"
 #include "w32err.h"
@@ -429,7 +431,7 @@ osync_get_mutex ()
       /* Prepare the mutex handle string for our children.
          2 hex digits per byte + 2 characters for "0x" + null.  */
       mutex = xmalloc ((2 * sizeof (osync_handle)) + 2 + 1);
-      sprintf (mutex, "0x%Ix", (unsigned long long)osync_handle);
+      sprintf (mutex, "0x%Ix", (unsigned long long)(DWORD_PTR)osync_handle);
     }
 
   return mutex;
@@ -449,7 +451,7 @@ osync_parse_mutex (const char *mutex)
   if (endp[0] != '\0')
     OS (fatal, NILF, _("invalid output sync mutex: %s"), mutex);
 
-  osync_handle = (HANDLE) i;
+  osync_handle = (HANDLE) (DWORD_PTR) i;
 
   return 1;
 }
