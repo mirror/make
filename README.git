@@ -334,7 +334,7 @@ Announce the release:
 
   * For release candidate builds:
     To:  bug-make@gnu.org
-    CC:  coordinator@translationproject.org
+    CC:  coordinator@translationproject.org, platform-testers@gnu.org
     BCC: help-make@gnu.org, make-w32@gnu.org, make-alpha@gnu.org
 
   * For release builds
