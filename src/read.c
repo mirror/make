@@ -984,6 +984,7 @@ eval (struct ebuffer *ebuf, int set_default)
               /* Otherwise add it to the list to be rebuilt.  */
               deps = alloc_goaldep ();
               deps->next = read_files;
+              deps->floc = ebuf->floc;
               read_files = deps;
               deps->file = f;
             }
