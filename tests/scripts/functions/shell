@@ -183,6 +183,15 @@ endif
 !,
                       '--no-print-directory -j2 --jobserver-style=pipe', "#MAKE#[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.\n: 2\n: 1");
     }
+
+    # This crashes if we use vfork and don't reset environ properly
+    run_make_test(q!
+export PATH = $(shell echo "tests:$$PATH")
+foo = $(shell echo yes)
+
+all:;echo $(foo)
+!,
+                  '', "echo yes\nyes\n");
 }
 
 # If we're not using pipes for jobserver, then they are available in sub-makes

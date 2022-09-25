@@ -1460,9 +1460,6 @@ start_job_command (struct child *child)
 #endif /* !VMS */
     {
       /* Fork the child process.  */
-
-      char **parent_environ;
-
     run_local:
       block_sigs ();
 
@@ -1473,14 +1470,11 @@ start_job_command (struct child *child)
 
 #else
 
-      parent_environ = environ;
-
       jobserver_pre_child (flags & COMMANDS_RECURSE);
 
       child->pid = child_execute_job ((struct childbase *)child,
                                       child->good_stdin, argv);
 
-      environ = parent_environ; /* Restore value child may have clobbered.  */
       jobserver_post_child (flags & COMMANDS_RECURSE);
 
 #endif /* !VMS */
@@ -1503,7 +1497,7 @@ start_job_command (struct child *child)
         char *cmdline = argv[0];
         /* We don't have a way to pass environment to 'system',
            so we need to save and restore ours, sigh...  */
-        char **parent_environ = environ;
+        char **parent_env = environ;
 
         environ = child->environment;
 
@@ -1518,7 +1512,7 @@ start_job_command (struct child *child)
 
         dos_command_running = 1;
         proc_return = system (cmdline);
-        environ = parent_environ;
+        environ = parent_env;
         execute_by_shell = 0;   /* for the next time */
       }
     else
@@ -2299,9 +2293,16 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
 
 #if !defined(USE_POSIX_SPAWN)
 
-  pid = vfork();
-  if (pid != 0)
-    return pid;
+  {
+    /* The child may clobber environ so remember ours and restore it.  */
+    char **parent_env = environ;
+    pid = vfork ();
+    if (pid != 0)
+      {
+        environ = parent_env;
+        return pid;
+      }
+  }
 
   /* We are the child.  */
   unblock_all_sigs ();
@@ -2552,7 +2553,9 @@ exec_command (char **argv, char **envp)
     errno = ENOEXEC;
 
 # else
-  /* Run the program.  */
+
+  /* Run the program.  Don't use execvpe() as we want the search for argv[0]
+     to use the new PATH, but execvpe() searches before resetting PATH.  */
   environ = envp;
   execvp (argv[0], argv);
 
