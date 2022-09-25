@@ -3307,17 +3307,17 @@ can do it with a @dfn{static pattern rule}.  @xref{Static Pattern,
 @cindex grouped targets
 @cindex targets, grouped
 
-If instead of independent targets you have a recipe that generates
-multiple files from a single invocation, you can express that
-relationship by declaring your rule to use @emph{grouped targets}.  A
-grouped target rule uses the separator @code{&:} (the @samp{&} here is
-used to imply ``all'').
+If instead of independent targets you have a recipe that generates multiple
+files from a single invocation, you can express that relationship by declaring
+your rule to use @emph{grouped targets}.  A grouped target rule uses the
+separator @code{&:} (the @samp{&} here is used to imply ``all'').
 
-When @code{make} builds any one of the grouped targets, it understands
-that all the other targets in the group are also created as a result
-of the invocation of the recipe.  Furthermore, if only some of the
-grouped targets are out of date or missing @code{make} will realize
-that running the recipe will update all of the targets.
+When @code{make} builds any one of the grouped targets, it understands that
+all the other targets in the group are also updated as a result of the
+invocation of the recipe.  Furthermore, if only some of the grouped targets
+are out of date or missing @code{make} will realize that running the recipe
+will update all of the targets.  Finally, if any of the grouped targets are
+out of date, all the grouped targets are considered out of date.
 
 As an example, this rule defines a grouped target:
 
@@ -10618,10 +10618,10 @@ More than one pattern rule may match a target.  In this case
 
 @cindex multiple targets, in pattern rule
 @cindex target, multiple in pattern rule
-Pattern rules may have more than one target; however, every target
-must contain a @code{%} character.  Pattern rules are always treated
-as grouped targets (@pxref{Multiple Targets, , Multiple Targets in a
-Rule}) regardless of whether they use the @code{:} or @code{&:}
+Pattern rules may have more than one target; however, every target must
+contain a @code{%} character.  Multiple target patterns in pattern rules are
+always treated as grouped targets (@pxref{Multiple Targets, , Multiple Targets
+in a Rule}) regardless of whether they use the @code{:} or @code{&:}
 separator.
 
 @node Pattern Examples, Automatic Variables, Pattern Intro, Pattern Rules
