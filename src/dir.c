@@ -1102,6 +1102,9 @@ print_dir_data_base (void)
   unsigned int impossible;
   struct directory **dir_slot;
   struct directory **dir_end;
+#ifdef WINDOWS32
+  char buf[INTSTR_LENGTH + 1];
+#endif
 
   puts (_("\n# Directories\n"));
 
@@ -1117,24 +1120,19 @@ print_dir_data_base (void)
           if (dir->contents == 0)
             printf (_("# %s: could not be stat'd.\n"), dir->name);
           else if (dir->contents->dirfiles.ht_vec == 0)
-            {
 #ifdef WINDOWS32
-              printf (_("# %s (key %s, mtime %I64u): could not be opened.\n"),
-                      dir->name, dir->contents->path_key,
-                      (unsigned long long)dir->contents->mtime);
-#else  /* WINDOWS32 */
-#ifdef VMS_INO_T
-              printf (_("# %s (device %d, inode [%d,%d,%d]): could not be opened.\n"),
-                      dir->name, dir->contents->dev,
-                      dir->contents->ino[0], dir->contents->ino[1],
-                      dir->contents->ino[2]);
+            printf (_("# %s (key %s, mtime %s): could not be opened.\n"),
+                    dir->name, dir->contents->path_key,
+                    make_ulltoa ((unsigned long long)dir->contents->mtime, buf));
+#elif defined(VMS_INO_T)
+            printf (_("# %s (device %d, inode [%d,%d,%d]): could not be opened.\n"),
+                    dir->name, dir->contents->dev,
+                    dir->contents->ino[0], dir->contents->ino[1],
+                    dir->contents->ino[2]);
 #else
-              printf (_("# %s (device %ld, inode %ld): could not be opened.\n"),
-                      dir->name, (long int) dir->contents->dev,
-                      (long int) dir->contents->ino);
+            printf (_("# %s (device %ld, inode %ld): could not be opened.\n"),
+                    dir->name, (long) dir->contents->dev, (long) dir->contents->ino);
 #endif
-#endif /* WINDOWS32 */
-            }
           else
             {
               unsigned int f = 0;
@@ -1156,21 +1154,18 @@ print_dir_data_base (void)
                     }
                 }
 #ifdef WINDOWS32
-              printf (_("# %s (key %s, mtime %I64u): "),
+              printf (_("# %s (key %s, mtime %s): "),
                       dir->name, dir->contents->path_key,
-                      (unsigned long long)dir->contents->mtime);
-#else  /* WINDOWS32 */
-#ifdef VMS_INO_T
+                      make_ulltoa ((unsigned long long)dir->contents->mtime, buf));
+#elif defined(VMS_INO_T)
               printf (_("# %s (device %d, inode [%d,%d,%d]): "),
                       dir->name, dir->contents->dev,
                       dir->contents->ino[0], dir->contents->ino[1],
                       dir->contents->ino[2]);
 #else
-              printf (_("# %s (device %ld, inode %ld): "),
-                      dir->name,
+              printf (_("# %s (device %ld, inode %ld): "), dir->name,
                       (long)dir->contents->dev, (long)dir->contents->ino);
 #endif
-#endif /* WINDOWS32 */
               if (f == 0)
                 fputs (_("No"), stdout);
               else

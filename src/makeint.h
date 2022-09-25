@@ -290,14 +290,6 @@ char *strerror (int errnum);
 
 #if HAVE_INTTYPES_H
 # include <inttypes.h>
-#else
-# ifndef PRId64
-#  ifdef WINDOWS32
-#   define PRId64 "I64d"
-#  else
-#   define PRId64 "lld"
-#  endif
-# endif
 #endif
 #if HAVE_STDINT_H
 # include <stdint.h>
@@ -543,6 +535,8 @@ void pfatal_with_name (const char *) NORETURN;
 void perror_with_name (const char *, const char *);
 #define xstrlen(_s) ((_s)==NULL ? 0 : strlen (_s))
 unsigned int make_toui (const char*, const char**);
+char *make_lltoa (long long, char *);
+char *make_ulltoa (unsigned long long, char *);
 pid_t make_pid ();
 void *xmalloc (size_t);
 void *xcalloc (size_t);

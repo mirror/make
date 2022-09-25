@@ -816,20 +816,18 @@ func_word (char *o, char **argv, const char *funcname UNUSED)
 static char *
 func_wordlist (char *o, char **argv, const char *funcname UNUSED)
 {
+  char buf[INTSTR_LENGTH + 1];
   long long start, stop, count;
+  const char* badfirst = _("invalid first argument to 'wordlist' function");
+  const char* badsecond = _("invalid second argument to 'wordlist' function");
 
-  start = parse_numeric (argv[0],
-                         _("invalid first argument to 'wordlist' function"));
-  stop = parse_numeric (argv[1],
-                        _("invalid second argument to 'wordlist' function"));
-
+  start = parse_numeric (argv[0], badfirst);
   if (start < 1)
-    ON (fatal, *expanding_var,
-        "invalid first argument to 'wordlist' function: '%" PRId64 "'", start);
+    OSS (fatal, *expanding_var, "%s: '%s'", badfirst, make_lltoa (start, buf));
 
+  stop = parse_numeric (argv[1], badsecond);
   if (stop < 0)
-    ON (fatal, *expanding_var,
-        "invalid second argument to 'wordlist' function: '%" PRId64 "'", stop);
+    OSS (fatal, *expanding_var, "%s: '%s'", badsecond, make_lltoa (stop, buf));
 
   count = stop - start + 1;
 
