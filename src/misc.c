@@ -78,6 +78,35 @@ make_ulltoa (unsigned long long val, char *buf)
   return buf;
 }
 
+/* Simple random number generator, for use with shuffle.
+   This doesn't need to be truly random, just pretty random.  Use our own
+   implementation rather than relying on the C runtime's rand() so we always
+   get the same results for a given seed, regardless of OS.  */
+
+static unsigned int mk_state = 0;
+
+void
+make_seed(unsigned int seed)
+{
+  mk_state = seed;
+}
+
+unsigned int
+make_rand()
+{
+  /* mk_state must never be 0.  */
+  if (mk_state == 0) {
+    mk_state = (unsigned int)(time (NULL) ^ make_pid ()) + 1;
+  }
+
+  /* A simple xorshift RNG.  */
+  mk_state ^= mk_state << 13;
+  mk_state ^= mk_state >> 17;
+  mk_state ^= mk_state << 5;
+
+  return mk_state;
+}
+
 /* Compare strings *S1 and *S2.
    Return negative if the first is less, positive if it is greater,
    zero if they are equal.  */

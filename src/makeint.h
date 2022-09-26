@@ -537,6 +537,8 @@ void perror_with_name (const char *, const char *);
 unsigned int make_toui (const char*, const char**);
 char *make_lltoa (long long, char *);
 char *make_ulltoa (unsigned long long, char *);
+void make_seed (unsigned int);
+unsigned int make_rand ();
 pid_t make_pid ();
 void *xmalloc (size_t);
 void *xcalloc (size_t);

@@ -82,9 +82,7 @@ shuffle_set_mode (const char *cmdarg)
     }
   else
     {
-      if (strcasecmp (cmdarg, "random") == 0)
-        config.seed = (unsigned int) (time (NULL) ^ make_pid ());
-      else
+      if (strcasecmp (cmdarg, "random") != 0)
         {
           /* Assume explicit seed.  */
           const char *err;
@@ -109,7 +107,7 @@ random_shuffle_array (void **a, size_t len)
       void *t;
 
       /* Pick random element and swap. */
-      unsigned int j = rand () % len;
+      unsigned int j = make_rand () % len;
       if (i == j)
         continue;
 
@@ -227,7 +225,7 @@ shuffle_deps_recursive (struct dep *deps)
 
   /* Set specific seed at the top level of recursion.  */
   if (config.mode == sm_random)
-    srand (config.seed);
+    make_seed (config.seed);
 
   shuffle_deps (deps);
 
