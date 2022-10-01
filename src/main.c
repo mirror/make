@@ -2206,7 +2206,7 @@ main (int argc, char **argv, char **envp)
 
   if (syncing)
     {
-      /* If there a mutex we're the child, else we're the origin.  */
+      /* If there is no mutex we're the base: create one.  Else parse it.  */
       if (!sync_mutex)
         {
           osync_setup ();
@@ -2214,11 +2214,18 @@ main (int argc, char **argv, char **envp)
         }
       else if (!osync_parse_mutex (sync_mutex))
         {
+          /* Parsing failed; continue without output sync.  */
           osync_clear ();
           free (sync_mutex);
           sync_mutex = NULL;
+          syncing = 0;
         }
     }
+
+  if (jobserver_auth)
+    DB (DB_VERBOSE|DB_JOBS, (_("Using jobserver controller %s\n"), jobserver_auth));
+  if (sync_mutex)
+    DB (DB_VERBOSE, (_("Using output-sync mutex %s\n"), sync_mutex));
 
 #ifndef MAKE_SYMLINKS
   if (check_symlink_flag)
