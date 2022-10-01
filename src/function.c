@@ -2516,14 +2516,14 @@ static struct function_table_entry function_table_init[] =
 /* These must come after the definition of function_table.  */
 
 static char *
-expand_builtin_function (char *o, int argc, char **argv,
+expand_builtin_function (char *o, unsigned int argc, char **argv,
                          const struct function_table_entry *entry_p)
 {
   char *p;
 
-  if (argc < (int)entry_p->minimum_args)
+  if (argc < entry_p->minimum_args)
     fatal (*expanding_var, strlen (entry_p->name),
-           _("insufficient number of arguments (%d) to function '%s'"),
+           _("insufficient number of arguments (%u) to function '%s'"),
            argc, entry_p->name);
 
   /* I suppose technically some function could do something with no arguments,
@@ -2572,7 +2572,7 @@ handle_function (char **op, const char **stringp)
   int count = 0;
   char *abeg = NULL;
   char **argv, **argvp;
-  int nargs;
+  unsigned int nargs;
 
   beg = *stringp + 1;
 
@@ -2684,11 +2684,11 @@ handle_function (char **op, const char **stringp)
 static char *
 func_call (char *o, char **argv, const char *funcname UNUSED)
 {
-  static int max_args = 0;
+  static unsigned int max_args = 0;
   char *fname;
   char *body;
   size_t flen;
-  int i;
+  unsigned int i;
   int saved_args;
   const struct function_table_entry *entry_p;
   struct variable *v;
@@ -2739,7 +2739,7 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
     {
       char num[INTSTR_LENGTH];
 
-      sprintf (num, "%d", i);
+      sprintf (num, "%u", i);
       define_variable (num, strlen (num), *argv, o_automatic, 0);
     }
 
@@ -2752,7 +2752,7 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
     {
       char num[INTSTR_LENGTH];
 
-      sprintf (num, "%d", i);
+      sprintf (num, "%u", i);
       define_variable (num, strlen (num), "", o_automatic, 0);
     }
 
