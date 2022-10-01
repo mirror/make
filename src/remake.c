@@ -491,8 +491,7 @@ update_file_1 (struct file *file, unsigned int depth)
   noexist = this_mtime == NONEXISTENT_MTIME;
   if (noexist)
     DBF (DB_BASIC, _("File '%s' does not exist.\n"));
-  else if (ORDINARY_MTIME_MIN <= this_mtime && this_mtime <= ORDINARY_MTIME_MAX
-           && file->low_resolution_time)
+  else if (is_ordinary_mtime (this_mtime) && file->low_resolution_time)
     {
       /* Avoid spurious rebuilds due to low resolution time stamps.  */
       int ns = FILE_TIMESTAMP_NS (this_mtime);

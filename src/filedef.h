@@ -212,6 +212,8 @@ FILE_TIMESTAMP f_mtime (struct file *file, int search);
                              << FILE_TIMESTAMP_LO_BITS) \
                             + ORDINARY_MTIME_MIN + FILE_TIMESTAMPS_PER_S - 1)
 
+#define is_ordinary_mtime(_t) ((_t) >= ORDINARY_MTIME_MIN && (_t) <= ORDINARY_MTIME_MAX)
+
 /* Modtime value to use for 'infinitely new'.  We used to get the current time
    from the system and use that whenever we wanted 'new'.  But that causes
    trouble when the machine running make and the machine holding a file have
