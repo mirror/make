@@ -462,7 +462,7 @@ jobserver_acquire (int timeout)
           case EBADF:
             /* Someone closed the jobs pipe.
                That shouldn't happen but if it does we're done.  */
-              O (fatal, NILF, _("job server shut down"));
+            O (fatal, NILF, _("job server shut down"));
 
           default:
             pfatal_with_name (_("pselect jobs pipe"));
@@ -628,7 +628,10 @@ osync_setup ()
 {
   osync_handle = get_tmpfd (&osync_tmpfile);
   if (osync_handle >= 0)
-    sync_parent = 1;
+    {
+      fd_noinherit (osync_handle);
+      sync_parent = 1;
+    }
 }
 
 char *
@@ -661,6 +664,8 @@ osync_parse_mutex (const char *mutex)
   if (osync_handle < 0)
     OSS (fatal, NILF, _("cannot open output sync mutex %s: %s"),
          osync_tmpfile, strerror (errno));
+
+  fd_noinherit (osync_handle);
 
   return 1;
 }

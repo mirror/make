@@ -2727,6 +2727,8 @@ main (int argc, char **argv, char **envp)
           fflush (stdout);
           fflush (stderr);
 
+          osync_clear();
+
           /* The exec'd "child" will be another make, of course.  */
           jobserver_pre_child(1);
 
