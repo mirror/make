@@ -15,14 +15,21 @@ A complete list of bugs fixed in this version is available here:
 
 https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&set=custom
 
+* WARNING: Deprecation!
+  The following systems are deprecated in this release:
+    - OS/2 (EMX)
+    - AmigaOS
+  In the NEXT release of GNU make, support for these systems will be removed.
+  If you want to see them continue to be supported, contact <bug-make@gnu.org>.
+
 * WARNING: Backward-incompatibility!
   GNU make now uses temporary files in more situations than previous releases.
   If your build system sets TMPDIR (or TMP or TEMP on Windows) and deletes the
   contents during the build, or uses restrictive permissions, this may cause
   problems.  You can choose an alternative temporary directory only for use by
-  GNU make by setting the new MAKE_TMPDIR environment variable.  Note that
-  this value CANNOT be set inside the makefile, since make needs to find its
-  temporary directory before the makefiles are parsed.
+  GNU make by setting the new MAKE_TMPDIR environment variable before invoking
+  make.  Note that this value CANNOT be set inside the makefile, since make
+  needs to find its temporary directory before the makefiles are parsed.
 
 * WARNING: Backward-incompatibility!
   Previously each target in a grouped target rule (pattern or explicit) was
