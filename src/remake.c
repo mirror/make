@@ -416,7 +416,7 @@ complain (struct file *file)
 }
 
 /* Consider a single 'struct file' and update it as appropriate.
-   Return 0 on success, or non-0 on failure.  */
+   Return an update_status value; use us_success if we aren't sure yet.  */
 
 static enum update_status
 update_file_1 (struct file *file, unsigned int depth)
@@ -449,7 +449,7 @@ update_file_1 (struct file *file, unsigned int depth)
         }
 
       DBF (DB_VERBOSE, _("File '%s' was considered already.\n"));
-      return 0;
+      return us_success;
     }
 
   switch (file->command_state)
@@ -459,7 +459,7 @@ update_file_1 (struct file *file, unsigned int depth)
       break;
     case cs_running:
       DBF (DB_VERBOSE, _("Still updating file '%s'.\n"));
-      return 0;
+      return us_success;
     case cs_finished:
       DBF (DB_VERBOSE, _("Finished updating file '%s'.\n"));
       return file->update_status;
@@ -720,7 +720,7 @@ update_file_1 (struct file *file, unsigned int depth)
       set_command_state (file, cs_deps_running);
       --depth;
       DBF (DB_VERBOSE, _("The prerequisites of '%s' are being made.\n"));
-      return 0;
+      return us_success;
     }
 
   /* If any dependency failed, give up now.  */
@@ -864,7 +864,7 @@ update_file_1 (struct file *file, unsigned int depth)
           file = file->prev;
         }
 
-      return 0;
+      return us_success;
     }
 
   DBF (DB_BASIC, _("Must remake target '%s'.\n"));
@@ -883,7 +883,7 @@ update_file_1 (struct file *file, unsigned int depth)
   if (file->command_state != cs_finished)
     {
       DBF (DB_VERBOSE, _("Recipe of '%s' is being run.\n"));
-      return 0;
+      return us_success;
     }
 
   switch (file->update_status)
