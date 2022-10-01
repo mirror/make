@@ -12031,7 +12031,7 @@ arguments.
 @item max_args
 The maximum number of arguments the function will accept.  Must be
 between 0 and 255.  GNU @code{make} will check this and fail before
-invoking @code{func_ptr} if the function was invoked with too few
+invoking @code{func_ptr} if the function was invoked with too many
 arguments.  If the value is 0, then any number of arguments is
 accepted.  If the value is greater than 0, then it must be greater
 than or equal to @code{min_args}.
@@ -12109,12 +12109,13 @@ needed) using @code{gmk_free}.
 @findex gmk_alloc
 Return a pointer to a newly-allocated buffer.  This function will
 always return a valid pointer; if not enough memory is available
-@code{make} will exit.
+@code{make} will exit.  @code{gmk_alloc} does not initialize allocated memory.
 
 @item gmk_free
 @findex gmk_free
 Free a buffer returned to you by @code{make}.  Once the
 @code{gmk_free} function returns the string will no longer be valid.
+If NULL is passed to @code{gmk_free}, no operation is performed.
 @end table
 
 @node Loaded Object Example,  , Loaded Object API, Loading Objects
@@ -12129,7 +12130,6 @@ function in a file @file{mk_temp.c}:
 
 @example
 @group
-#include <stdlib.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -12167,8 +12167,9 @@ gen_tmpfile(const char *nm, int argc, char **argv)
 @}
 
 int
-mk_temp_gmk_setup ()
+mk_temp_gmk_setup (const gmk_floc *floc)
 @{
+  printf ("mk_temp plugin loaded from %s:%lu\n", floc->filenm, floc->lineno);
   /* Register the function with make name "mk-temp".  */
   gmk_add_function ("mk-temp", gen_tmpfile, 1, 1, 1);
   return 1;
@@ -12176,7 +12177,7 @@ mk_temp_gmk_setup ()
 @end group
 @end example
 
-Next, we will write a makefile that can build this shared object, load
+Next, we will write a @file{Makefile} that can build this shared object, load
 it, and use it:
 
 @example
@@ -12187,7 +12188,7 @@ all:
 load mk_temp.so
 
 mk_temp.so: mk_temp.c
-        $(CC) -shared -fPIC -o $@ $<
+        $(CC) -shared -fPIC -o $@@ $<
 @end group
 @end example
 
@@ -12201,7 +12202,7 @@ object will look on Windows like this (assuming the API version is 1):
 @example
 @group
 mk_temp.dll: mk_temp.c
-        $(CC) -shared -o $@ $< -lgnumake-1
+        $(CC) -shared -o $@@ $< -lgnumake-1
 @end group
 @end example
 
@@ -12209,6 +12210,7 @@ Now when you run @code{make} you'll see something like:
 
 @example
 $ make
+mk_temp plugin loaded from Makefile:4
 cc -shared -fPIC -o mk_temp.so mk_temp.c
 Temporary filename: tmpfile.A7JEwd
 @end example
