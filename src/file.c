@@ -1018,13 +1018,16 @@ file_timestamp_sprintf (char *p, FILE_TIMESTAMP ts)
   struct tm *tm = localtime (&t);
 
   if (tm)
-    sprintf (p, "%04d-%02d-%02d %02d:%02d:%02d",
-             tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
-             tm->tm_hour, tm->tm_min, tm->tm_sec);
+    {
+      intmax_t year = tm->tm_year;
+      sprintf (p, "%04" PRIdMAX "-%02d-%02d %02d:%02d:%02d",
+               year + 1900, tm->tm_mon + 1, tm->tm_mday,
+               tm->tm_hour, tm->tm_min, tm->tm_sec);
+    }
   else if (t < 0)
-    sprintf (p, "%ld", (long) t);
+    sprintf (p, "%" PRIdMAX, (intmax_t) t);
   else
-    sprintf (p, "%lu", (unsigned long) t);
+    sprintf (p, "%" PRIuMAX, (uintmax_t) t);
   p += strlen (p);
 
   /* Append nanoseconds as a fraction, but remove trailing zeros.  We don't

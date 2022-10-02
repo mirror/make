@@ -22,6 +22,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "filedef.h"
 #include "dep.h"
 #include <fnmatch.h>
+#include <intprops.h>
 
 /* Return nonzero if NAME is an archive-member reference, zero if not.  An
    archive-member reference is a name like 'lib(member)' where member is a
@@ -69,10 +70,10 @@ ar_parse_name (const char *name, char **arname_p, char **memname_p)
 /* This function is called by 'ar_scan' to find which member to look at.  */
 
 /* ARGSUSED */
-static long int
+static intmax_t
 ar_member_date_1 (int desc UNUSED, const char *mem, int truncated,
                   long int hdrpos UNUSED, long int datapos UNUSED,
-                  long int size UNUSED, long int date,
+                  long int size UNUSED, intmax_t date,
                   int uid UNUSED, int gid UNUSED, unsigned int mode UNUSED,
                   const void *name)
 {
@@ -86,7 +87,7 @@ ar_member_date (const char *name)
 {
   char *arname;
   char *memname;
-  long int val;
+  intmax_t val;
 
   ar_parse_name (name, &arname, &memname);
 
@@ -111,7 +112,7 @@ ar_member_date (const char *name)
 
   free (arname);
 
-  return (val <= 0 ? (time_t) -1 : (time_t) val);
+  return 0 < val && val <= TYPE_MAXIMUM (time_t) ? val : -1;
 }
 
 /* Set the archive-member NAME's modtime to now.  */
@@ -194,10 +195,10 @@ struct ar_glob_state
 /* This function is called by 'ar_scan' to match one archive
    element against the pattern in STATE.  */
 
-static long int
+static intmax_t
 ar_glob_match (int desc UNUSED, const char *mem, int truncated UNUSED,
                long int hdrpos UNUSED, long int datapos UNUSED,
-               long int size UNUSED, long int date UNUSED, int uid UNUSED,
+               long int size UNUSED, intmax_t date UNUSED, int uid UNUSED,
                int gid UNUSED, unsigned int mode UNUSED, const void *arg)
 {
   struct ar_glob_state *state = (struct ar_glob_state *)arg;
@@ -218,7 +219,7 @@ ar_glob_match (int desc UNUSED, const char *mem, int truncated UNUSED,
       ++state->n;
     }
 
-  return 0L;
+  return 0;
 }
 
 /* Return nonzero if PATTERN contains any metacharacters.

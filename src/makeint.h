@@ -294,6 +294,21 @@ char *strerror (int errnum);
 #if HAVE_STDINT_H
 # include <stdint.h>
 #endif
+
+#if defined _MSC_VER || defined __MINGW32__
+# define MK_PRI64_PREFIX "I64"
+#else
+# define MK_PRI64_PREFIX "ll"
+#endif
+#ifndef PRIdMAX
+# define PRIdMAX MK_PRI64_PREFIX "d"
+#endif
+#ifndef PRIuMAX
+# define PRIuMAX MK_PRI64_PREFIX "u"
+#endif
+#ifndef SCNdMAX
+# define SCNdMAX PRIdMAX
+#endif
 #define FILE_TIMESTAMP uintmax_t
 
 #if !defined(HAVE_STRSIGNAL)
@@ -570,13 +585,14 @@ void ar_parse_name (const char *, char **, char **);
 int ar_touch (const char *);
 time_t ar_member_date (const char *);
 
-typedef long int (*ar_member_func_t) (int desc, const char *mem, int truncated,
+typedef intmax_t (*ar_member_func_t) (int desc, const char *mem, int truncated,
                                       long int hdrpos, long int datapos,
-                                      long int size, long int date, int uid,
+                                      long int size, intmax_t date, int uid,
                                       int gid, unsigned int mode,
                                       const void *arg);
 
-long int ar_scan (const char *archive, ar_member_func_t function, const void *arg);
+intmax_t ar_scan (const char *archive, ar_member_func_t function,
+                  const void *arg);
 int ar_name_equal (const char *name, const char *mem, int truncated);
 #ifndef VMS
 int ar_member_touch (const char *arname, const char *memname);

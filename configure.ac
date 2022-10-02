@@ -57,11 +57,6 @@ AC_C_BIGENDIAN
 AM_GNU_GETTEXT_VERSION([0.19.4])
 AM_GNU_GETTEXT([external])
 
-# This test must come as early as possible after the compiler configuration
-# tests, because the choice of the file model can (in principle) affect
-# whether functions and headers are available, whether they work, etc.
-AC_SYS_LARGEFILE
-
 # Checks for libraries.
 AC_SEARCH_LIBS([strerror],[cposix])
 AC_SEARCH_LIBS([getpwnam], [sun])

@@ -75,9 +75,9 @@ static void *VMS_lib_idx;
 
 static const void *VMS_saved_arg;
 
-static long int (*VMS_function) ();
+static intmax_t (*VMS_function) ();
 
-static long int VMS_function_ret;
+static intmax_t VMS_function_ret;
 
 
 /* This is a callback procedure for lib$get_index */
@@ -203,7 +203,7 @@ VMS_get_member_info(struct dsc$descriptor_s *module, unsigned long *rfa)
    Returns -2 if archive has invalid format.
    Returns 0 if have scanned successfully.  */
 
-long int
+intmax_t
 ar_scan (const char *archive, ar_member_func_t function, const void *varg)
 {
   char *vms_archive;
@@ -379,13 +379,13 @@ struct ar_hdr
 #include "output.h"
 
 
-static unsigned long int
+static uintmax_t
 parse_int (const char *ptr, const size_t len, const int base,
            const char *type, const char *archive, const char *name)
 {
   const char *const ep = ptr + len;
   const char max = '0' + base - 1;
-  long int val = 0;
+  uintmax_t val = 0;
 
   /* In all the versions I know of the spaces come last, but be safe.  */
   while (ptr < ep && *ptr == ' ')
@@ -430,7 +430,7 @@ parse_int (const char *ptr, const size_t len, const int base,
    Returns -2 if archive has invalid format.
    Returns 0 if have scanned successfully.  */
 
-long int
+intmax_t
 ar_scan (const char *archive, ar_member_func_t function, const void *arg)
 {
 #ifdef AIAMAG
@@ -550,7 +550,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
 # define ARNAME_MAX 255
         char name[ARNAME_MAX + 1];
         int name_len;
-        long int dateval;
+        intmax_t dateval;
         int uidval, gidval;
         long int data_offset;
 #else
@@ -562,7 +562,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
 #endif
         long int eltsize;
         unsigned int eltmode;
-        long int fnval;
+        intmax_t fnval;
         off_t o;
 
         memset(&member_header, '\0', sizeof (member_header));
@@ -593,7 +593,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
 
             name[name_len] = '\0';
 
-            sscanf (member_header_big.ar_date, "%12ld", &dateval);
+            sscanf (member_header_big.ar_date, "%12" SCNdMAX, &dateval);
             sscanf (member_header_big.ar_uid, "%12d", &uidval);
             sscanf (member_header_big.ar_gid, "%12d", &gidval);
             sscanf (member_header_big.ar_mode, "%12o", &eltmode);
@@ -621,7 +621,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
 
             name[name_len] = '\0';
 
-            sscanf (member_header.ar_date, "%12ld", &dateval);
+            sscanf (member_header.ar_date, "%12" SCNdMAX, &dateval);
             sscanf (member_header.ar_uid, "%12d", &uidval);
             sscanf (member_header.ar_gid, "%12d", &gidval);
             sscanf (member_header.ar_mode, "%12o", &eltmode);
@@ -885,10 +885,10 @@ ar_name_equal (const char *name, const char *mem, int truncated)
 
 #ifndef VMS
 /* ARGSUSED */
-static long int
+static intmax_t
 ar_member_pos (int desc UNUSED, const char *mem, int truncated,
                long int hdrpos, long int datapos UNUSED, long int size UNUSED,
-               long int date UNUSED, int uid UNUSED, int gid UNUSED,
+               intmax_t date UNUSED, int uid UNUSED, int gid UNUSED,
                unsigned int mode UNUSED, const void *name)
 {
   if (!ar_name_equal (name, mem, truncated))
@@ -911,7 +911,7 @@ ar_member_touch (const char *arname, const char *memname)
   struct ar_hdr ar_hdr;
   off_t o;
   int r;
-  unsigned int ui;
+  int datelen;
   struct stat statbuf;
 
   if (pos < 0)
@@ -935,10 +935,11 @@ ar_member_touch (const char *arname, const char *memname)
     goto lose;
   /* Advance member's time to that time */
 #if defined(ARFMAG) || defined(ARFZMAG) || defined(AIAMAG) || defined(WINDOWS32)
-  for (ui = 0; ui < sizeof ar_hdr.ar_date; ui++)
-    ar_hdr.ar_date[ui] = ' ';
-  sprintf (TOCHAR (ar_hdr.ar_date), "%lu", (long unsigned) statbuf.st_mtime);
-  ar_hdr.ar_date[strlen ((char *) ar_hdr.ar_date)] = ' ';
+  datelen = snprintf (TOCHAR (ar_hdr.ar_date), sizeof ar_hdr.ar_date,
+                      "%" PRIdMAX, (intmax_t) statbuf.st_mtime);
+  if (! (0 <= datelen && datelen < (int) sizeof ar_hdr.ar_date))
+    goto lose;
+  memset (ar_hdr.ar_date + datelen, ' ', sizeof ar_hdr.ar_date - datelen);
 #else
   ar_hdr.ar_date = statbuf.st_mtime;
 #endif
@@ -962,18 +963,21 @@ ar_member_touch (const char *arname, const char *memname)
 
 #ifdef TEST
 
-long int
+intmax_t
 describe_member (int desc, const char *name, int truncated,
                  long int hdrpos, long int datapos, long int size,
-                 long int date, int uid, int gid, unsigned int mode,
+                 intmax_t date, int uid, int gid, unsigned int mode,
                  const void *arg)
 {
   extern char *ctime ();
+  time_t d = date;
+  char const *ds;
 
   printf (_("Member '%s'%s: %ld bytes at %ld (%ld).\n"),
           name, truncated ? _(" (name might be truncated)") : "",
           size, hdrpos, datapos);
-  printf (_("  Date %s"), ctime (&date));
+  ds = ctime (&d);
+  printf (_("  Date %s"), ds ? ds : "?");
   printf (_("  uid = %d, gid = %d, mode = 0%o.\n"), uid, gid, mode);
 
   return 0;
