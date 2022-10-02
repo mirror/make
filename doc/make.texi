@@ -2075,26 +2075,25 @@ extra features (@pxref{Recipes, ,Writing Recipes in Rules}).
 @cindex normal prerequisites
 @cindex prerequisites, order-only
 @cindex order-only prerequisites
-There are actually two different types of prerequisites understood by
-GNU @code{make}: normal prerequisites such as described in the
-previous section, and @dfn{order-only} prerequisites.  A normal
-prerequisite makes two statements: first, it imposes an order in which
-recipes will be invoked: the recipes for all prerequisites of a target
-will be completed before the recipe for the target is run.  Second, it
-imposes a dependency relationship: if any prerequisite is newer than
-the target, then the target is considered out-of-date and must be
+There are two different types of prerequisites understood by GNU @code{make}:
+normal prerequisites, described in the previous section, and @dfn{order-only}
+prerequisites.  A normal prerequisite makes two statements: first, it imposes
+an order in which recipes will be invoked: the recipes for all prerequisites
+of a target will be completed before the recipe for the target is started.
+Second, it imposes a dependency relationship: if any prerequisite is newer
+than the target, then the target is considered out-of-date and must be
 rebuilt.
 
 Normally, this is exactly what you want: if a target's prerequisite is
 updated, then the target should also be updated.
 
-Occasionally, however, you have a situation where you want to impose a
-specific ordering on the rules to be invoked @emph{without} forcing
-the target to be updated if one of those rules is executed.  In that
-case, you want to define @dfn{order-only} prerequisites.  Order-only
-prerequisites can be specified by placing a pipe symbol (@code{|})
-in the prerequisites list: any prerequisites to the left of the pipe
-symbol are normal; any prerequisites to the right are order-only:
+Occasionally you may want to ensure that a prerequisite is built before a
+target, but @emph{without} forcing the target to be updated if the
+prerequisite is updated.  @dfn{Order-only} prerequisites are used to create
+this type of relationship.  Order-only prerequisites can be specified by
+placing a pipe symbol (@code{|}) in the prerequisites list: any prerequisites
+to the left of the pipe symbol are normal; any prerequisites to the right are
+order-only:
 
 @example
 @var{targets} : @var{normal-prerequisites} | @var{order-only-prerequisites}
