@@ -78,6 +78,24 @@ static FILE_TIMESTAMP name_mtime (const char *name);
 static const char *library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr);
 
 
+static void
+check_also_make (const struct file *file)
+{
+  /* If the target was created by an implicit rule, and it exists and was
+     updated, warn about any of its also_make targets that don't exist.  */
+  if (file->tried_implicit && is_ordinary_mtime (file->last_mtime)
+      && file->last_mtime > file->mtime_before_update)
+    {
+      struct dep *ad;
+
+      for (ad = file->also_make; ad; ad = ad->next)
+        if (ad->file->last_mtime == NONEXISTENT_MTIME)
+          OS (error, file->cmds ? &file->cmds->fileinfo : NILF,
+              _("warning: pattern recipe did not update peer target '%s'."),
+              ad->file->name);
+    }
+}
+
 /* Remake all the goals in the 'struct dep' chain GOALS.  Return update_status
    representing the totality of the status of the goals.
 
@@ -186,6 +204,8 @@ update_goal_chain (struct goaldep *goaldeps)
                     {
                       FILE_TIMESTAMP mtime = MTIME (file);
                       check_renamed (file);
+
+                      check_also_make (file);
 
                       if (file->updated && mtime != file->mtime_before_update)
                         {
@@ -502,6 +522,28 @@ update_file_1 (struct file *file, unsigned int depth)
       this_mtime += FILE_TIMESTAMPS_PER_S - 1 - ns;
     }
 
+  /* If any also_make target doesn't exist, we must remake this one too.
+     If they do exist choose the oldest mtime so they will rebuild.  */
+
+  for (ad = file->also_make; ad && !noexist; ad = ad->next)
+    {
+      struct file *adfile = ad->file;
+      FILE_TIMESTAMP fmtime = file_mtime (adfile);
+
+      noexist = fmtime == NONEXISTENT_MTIME;
+      if (noexist)
+        {
+          check_renamed (adfile);
+          DBS (DB_BASIC,
+               (_("Grouped target peer '%s' of file '%s' does not exist.\n"),
+                adfile->name, file->name));
+        }
+      else if (fmtime < this_mtime)
+        this_mtime = fmtime;
+    }
+
+  must_make = noexist;
+
   /* If file was specified as a target with no commands, come up with some
      default commands.  This may also add more also_make files.  */
 
@@ -516,26 +558,6 @@ update_file_1 (struct file *file, unsigned int depth)
       DBF (DB_IMPLICIT, _("Using default recipe for '%s'.\n"));
       file->cmds = default_file->cmds;
     }
-
-  /* If any also_make target doesn't exist, we must remake this one too.
-     If they do exist choose the oldest mtime so they will rebuild.  */
-
-  for (ad = file->also_make; ad && !noexist; ad = ad->next)
-    {
-      struct file *adfile = ad->file;
-      FILE_TIMESTAMP fmtime = file_mtime (adfile);
-
-      check_renamed (adfile);
-      noexist = fmtime == NONEXISTENT_MTIME;
-      if (noexist)
-        DBS (DB_BASIC,
-             (_("Grouped target peer '%s' of file '%s' does not exist.\n"),
-              adfile->name, file->name));
-      else if (fmtime < this_mtime)
-        this_mtime = fmtime;
-    }
-
-  must_make = noexist;
 
   /* Update all non-intermediate files we depend on, if necessary, and see
      whether any of them is more recent than this file.  We need to walk our
@@ -1072,6 +1094,7 @@ check_dep (struct file *file, unsigned int depth,
       check_renamed (file);
       if (mtime == NONEXISTENT_MTIME || mtime > this_mtime)
         *must_make_ptr = 1;
+      check_also_make (file);
     }
   else
     {

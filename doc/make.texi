@@ -10623,6 +10623,15 @@ always treated as grouped targets (@pxref{Multiple Targets, , Multiple Targets
 in a Rule}) regardless of whether they use the @code{:} or @code{&:}
 separator.
 
+There is one exception: if a pattern target is out of date or does
+not exist and the makefile does not need to build it, then it will not cause
+the other targets to be considered out of date.  Note that this historical
+exception will be removed in future versions of GNU @code{make} and should not
+be relied on.  If this situation is detected @code{make} will generate a
+warning @emph{pattern recipe did not update peer target}; however, @code{make}
+cannot detect all such situations.  Please be sure that your recipe updates
+@emph{all} the target patterns when it runs.
+
 @node Pattern Examples, Automatic Variables, Pattern Intro, Pattern Rules
 @subsection Pattern Rule Examples
 

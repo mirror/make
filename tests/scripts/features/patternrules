@@ -469,12 +469,25 @@ run_make_test(q!
 
 unlink('1.all', '1.q', '1.r');
 
-# sv 62206.
+# SV 63098: Verify that missing also_made in pattern rules gives a warning but
+# doesn't fail.
 
-my @dir = ('', 'lib/'); # With and without last slash.
-my @secondexpansion = ('', '.SECONDEXPANSION:');
+run_make_test(q!
+%a %b : ; touch $*a
+!,
+              'gta', "touch gta\n#MAKEFILE#:2: warning: pattern recipe did not update peer target 'gtb'.\n");
+unlink(qw(gta));
 
-# SV 62809: Missing grouped pattern peer causes remake regardless of which
+run_make_test(q!
+all:;
+include gta
+%a %b : ; touch $*a
+!,
+              '', "touch gta\n#MAKEFILE#:4: warning: pattern recipe did not update peer target 'gtb'.\n#MAKE#: 'all' is up to date.");
+unlink(qw(gta));
+
+if (0) {
+# SV 12078: Missing grouped pattern peer causes remake regardless of which
 # target caused the rule to run.
 touch(qw(gta));  # but not gtb
 run_make_test(q!
@@ -528,6 +541,9 @@ touch(qw(b.1st));
 run_make_test(undef, '', "cp b.1st b.2nd\n");
 
 unlink(qw(a.1st b.1st a.2nd b.2nd));
+}
+
+# sv 62206.
 
 # The following combinations are generated with and without second expansion.
 # 1.
@@ -547,6 +563,9 @@ unlink(qw(a.1st b.1st a.2nd b.2nd));
 # 4.
 # all: bye.x
 # lib/%.x: ...
+
+my @dir = ('', 'lib/'); # With and without last slash.
+my @secondexpansion = ('', '.SECONDEXPANSION:');
 
 for my $se (@secondexpansion) {
 for my $d (@dir) { # The directory of the prerequisite of 'all'.

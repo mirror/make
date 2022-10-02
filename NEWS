@@ -22,6 +22,16 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   In the NEXT release of GNU make, support for these systems will be removed.
   If you want to see them continue to be supported, contact <bug-make@gnu.org>.
 
+* WARNING: Future backward-incompatibility!
+  In the NEXT release of GNU make, pattern rules will implement the same
+  behavior change for multiple targets as explicit grouped targets, below: if
+  any target of the rule is needed by the build, the recipe will be invoked if
+  any target of the rule is missing or out of date.  During testing some
+  makefiles were found to contain pattern rules that do not build all targets;
+  this can cause issues so we are delaying this change for one release cycle
+  to allow these makefiles to be updated.  GNU make show a warning if it
+  detects this situation: "pattern recipe did not update peer target".
+
 * WARNING: Backward-incompatibility!
   GNU make now uses temporary files in more situations than previous releases.
   If your build system sets TMPDIR (or TMP or TEMP on Windows) and deletes the
@@ -32,12 +42,12 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   needs to find its temporary directory before the makefiles are parsed.
 
 * WARNING: Backward-incompatibility!
-  Previously each target in a grouped target rule (pattern or explicit) was
-  considered individually: if the targets needed by the build were not out of
-  date the recipe was not run even if other targets in the group were out of
-  date.  Now if any of the grouped targets are needed by the build, then if
-  any of the grouped targets are out of date the recipe is run and all targets
-  in the group are considered updated.
+  Previously each target in a explicit grouped target rule was considered
+  individually: if the targets needed by the build were not out of date the
+  recipe was not run even if other targets in the group were out of date.  Now
+  if any of the grouped targets are needed by the build, then if any of the
+  grouped targets are out of date the recipe is run and all targets in the
+  group are considered updated.
 
 * WARNING: Backward-incompatibility!
   Previously if --no-print-directory was seen anywhere in the environment or
