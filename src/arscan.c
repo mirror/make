@@ -716,12 +716,12 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
               const char* err;
               unsigned int name_len = make_toui (name + 3, &err);
 
-              if (err || name_len == 0 || name_len > PATH_MAX)
+              if (err || name_len == 0 || name_len >= MIN (PATH_MAX, INT_MAX))
                 goto invalid;
 
               name = alloca (name_len + 1);
               nread = readbuf (desc, name, name_len);
-              if (nread != name_len)
+              if (nread < 0 || (unsigned int) nread != name_len)
                 goto invalid;
 
               name[name_len] = '\0';
