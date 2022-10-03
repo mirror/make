@@ -19,6 +19,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   The following systems are deprecated in this release:
     - OS/2 (EMX)
     - AmigaOS
+    - Xenix
   In the NEXT release of GNU make, support for these systems will be removed.
   If you want to see them continue to be supported, contact <bug-make@gnu.org>.
 
