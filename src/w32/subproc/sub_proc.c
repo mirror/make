@@ -92,7 +92,7 @@ DWORD process_wait_for_multiple_objects(
     for (;;) {
       DWORD objectCount = nCount;
       int blockCount  = 0;
-      DWORD retVal;
+      DWORD retVal = 0;
 
       assert(bWaitAll == FALSE); /* This logic only works for this use case */
       assert(dwMilliseconds == 0 || dwMilliseconds == INFINITE); /* No support for timeouts */

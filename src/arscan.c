@@ -376,15 +376,17 @@ struct ar_hdr
 # define   AR_HDR_SIZE  (sizeof (struct ar_hdr))
 #endif
 
+#include "intprops.h"
+
 #include "output.h"
 
 
 static uintmax_t
-parse_int (const char *ptr, const size_t len, const int base,
+parse_int (const char *ptr, const size_t len, const int base, uintmax_t max,
            const char *type, const char *archive, const char *name)
 {
   const char *const ep = ptr + len;
-  const char max = '0' + base - 1;
+  const int maxchar = '0' + base - 1;
   uintmax_t val = 0;
 
   /* In all the versions I know of the spaces come last, but be safe.  */
@@ -393,10 +395,16 @@ parse_int (const char *ptr, const size_t len, const int base,
 
   while (ptr < ep && *ptr != ' ')
     {
-      if (*ptr < '0' || *ptr > max)
-        OSSS (fatal, NILF, _("Invalid %s for archive %s member %s"),
-                           type, archive, name);
-      val = (val * base) + (*ptr - '0');
+      uintmax_t nv;
+
+      if (*ptr < '0' || *ptr > maxchar)
+        OSSS (fatal, NILF,
+              _("Invalid %s for archive %s member %s"), type, archive, name);
+      nv = (val * base) + (*ptr - '0');
+      if (nv < val || nv > max)
+        OSSS (fatal, NILF,
+              _("Invalid %s for archive %s member %s"), type, archive, name);
+      val = nv;
       ++ptr;
     }
 
@@ -562,6 +570,8 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
 #endif
         long int eltsize;
         unsigned int eltmode;
+        intmax_t eltdate;
+        int eltuid, eltgid;
         intmax_t fnval;
         off_t o;
 
@@ -732,8 +742,16 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
         }
 
 #ifndef M_XENIX
-        eltmode = parse_int (TOCHAR (member_header.ar_mode), sizeof (member_header.ar_mode), 8, "mode", archive, name);
-        eltsize = parse_int (TOCHAR (member_header.ar_size), sizeof (member_header.ar_size), 10, "size", archive, name);
+#define PARSE_INT(_m, _t, _b, _n) \
+        (_t) parse_int (TOCHAR (member_header._m), sizeof (member_header._m), \
+                        _b, TYPE_MAXIMUM (_t), _n, archive, name)
+
+        eltmode = PARSE_INT (ar_mode, unsigned int, 8, "mode");
+        eltsize = PARSE_INT (ar_size, long, 10, "size");
+        eltdate = PARSE_INT (ar_date, intmax_t, 10, "date");
+        eltuid = PARSE_INT (ar_uid, int, 10, "uid");
+        eltgid = PARSE_INT (ar_gid, int, 10, "gid");
+#undef PARSE_INT
 #else   /* Xenix.  */
         eltmode = (unsigned short int) member_header.ar_mode;
         eltsize = member_header.ar_size;
@@ -743,9 +761,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
           (*function) (desc, name, ! long_name, member_offset,
                        member_offset + AR_HDR_SIZE, eltsize,
 #ifndef M_XENIX
-                       parse_int (TOCHAR (member_header.ar_date), sizeof (member_header.ar_date), 10, "date", archive, name),
-                       parse_int (TOCHAR (member_header.ar_uid), sizeof (member_header.ar_uid), 10, "uid", archive, name),
-                       parse_int (TOCHAR (member_header.ar_gid), sizeof (member_header.ar_gid), 10, "gid", archive, name),
+                       eltdate, eltuid, eltgid,
 #else   /* Xenix.  */
                        member_header.ar_date,
                        member_header.ar_uid,
@@ -906,7 +922,8 @@ ar_member_pos (int desc UNUSED, const char *mem, int truncated,
 int
 ar_member_touch (const char *arname, const char *memname)
 {
-  long int pos = ar_scan (arname, ar_member_pos, memname);
+  intmax_t pos = ar_scan (arname, ar_member_pos, memname);
+  off_t opos;
   int fd;
   struct ar_hdr ar_hdr;
   off_t o;
@@ -919,11 +936,13 @@ ar_member_touch (const char *arname, const char *memname)
   if (!pos)
     return 1;
 
+  opos = (off_t) pos;
+
   EINTRLOOP (fd, open (arname, O_RDWR, 0666));
   if (fd < 0)
     return -3;
   /* Read in this member's header */
-  EINTRLOOP (o, lseek (fd, pos, 0));
+  EINTRLOOP (o, lseek (fd, opos, 0));
   if (o < 0)
     goto lose;
   r = readbuf (fd, &ar_hdr, AR_HDR_SIZE);
@@ -944,7 +963,7 @@ ar_member_touch (const char *arname, const char *memname)
   ar_hdr.ar_date = statbuf.st_mtime;
 #endif
   /* Write back this member's header */
-  EINTRLOOP (o, lseek (fd, pos, 0));
+  EINTRLOOP (o, lseek (fd, opos, 0));
   if (o < 0)
     goto lose;
   r = writebuf (fd, &ar_hdr, AR_HDR_SIZE);

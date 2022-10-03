@@ -3071,7 +3071,7 @@ construct_include_path (const char **arg_dirs)
     do_variable_definition (NILF, ".INCLUDE_DIRS", *cpp,
                             o_default, f_append, 0);
 
-  free (include_directories);
+  free ((void *) include_directories);
   include_directories = dirs;
 }
 

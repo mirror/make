@@ -128,7 +128,7 @@ reverse_shuffle_array (void **a, size_t len)
       void *t;
 
       /* Pick mirror and swap. */
-      unsigned int j = len - 1 - i;
+      size_t j = len - 1 - i;
 
       /* Swap. */
       t = a[i];

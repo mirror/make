@@ -985,12 +985,13 @@ a_word_hash_2 (const void *key)
 static int
 a_word_hash_cmp (const void *x, const void *y)
 {
-  int result = (int) ((struct a_word const *) x)->length - ((struct a_word const *) y)->length;
-  if (result)
-    return result;
-  return_STRING_N_COMPARE (((struct a_word const *) x)->str,
-                           ((struct a_word const *) y)->str,
-                           ((struct a_word const *) y)->length);
+  const struct a_word *ax = x;
+  const struct a_word *ay = y;
+
+  if (ax->length != ay->length)
+    return ax->length > ay->length ? 1 : -1;
+
+  return_STRING_N_COMPARE (ax->str, ay->str, ax->length);
 }
 
 struct a_pattern
@@ -1009,7 +1010,7 @@ func_filter_filterout (char *o, char **argv, const char *funcname)
   struct a_pattern *patterns;
   struct a_pattern *pat_end;
   struct a_pattern *pp;
-  size_t pat_count = 0, word_count = 0;
+  unsigned long pat_count = 0, word_count = 0;
 
   struct hash_table a_word_table;
   int is_filter = funcname[CSTRLEN ("filter")] == '\0';
