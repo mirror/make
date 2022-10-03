@@ -54,27 +54,21 @@ make_toui (const char *str, const char **error)
   return val;
 }
 
-#if WINDOWS32
-  /* MSVCRT does not support the 'll' format specifier.  */
-# define LLFMT "I64"
-#else
-# define LLFMT "ll"
-#endif
-
 /* Convert val into a string, written to buf.  buf must be large enough
-   to hold the largest possible value, plus a nul byte.  Returns buf.  */
+   to hold the largest possible value, plus a nul byte.  Returns buf.
+   We can't use standard PRI* here: those are based on intNN_t types.  */
 
 char *
 make_lltoa (long long val, char *buf)
 {
-  sprintf (buf, "%" LLFMT "d", val);
+  sprintf (buf, "%" MK_PRI64_PREFIX "d", val);
   return buf;
 }
 
 char *
 make_ulltoa (unsigned long long val, char *buf)
 {
-  sprintf (buf, "%" LLFMT "u", val);
+  sprintf (buf, "%" MK_PRI64_PREFIX "u", val);
   return buf;
 }
 
