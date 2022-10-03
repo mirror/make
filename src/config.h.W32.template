@@ -177,6 +177,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <locale.h> header file. */
 /* #undef HAVE_LOCALE_H */
 
+/* Define to 1 if the system has the type 'long long int'. */
+#define HAVE_LONG_LONG_INT 1
+
 /* Define to 1 if you have the 'lstat' function. */
 /* #undef HAVE_LSTAT */
 
@@ -390,6 +393,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_TTYNAME 1
 char *ttyname (int);
 
+/* Define to 1 if the system has the type `intmax_t'. */
+#define HAVE_INTMAX_T 1
+
 /* Define to 1 if the system has the type `uintmax_t'. */
 #define HAVE_UINTMAX_T 1
 
@@ -547,6 +553,14 @@ char *ttyname (int);
 # define __USE_MINGW_ANSI_STDIO 1
 #endif
 
+/* Number of bits in a timestamp, on hosts where this is settable. */
+/* #undef _TIME_BITS */
+
+/* For 64-bit time_t on 32-bit mingw. */
+#ifdef __MINGW32__
+# define __MINGW_USE_VC2005_COMPAT 1
+#endif
+
 #include <sys/types.h>
 
 /* Define to 'int' if <sys/types.h> doesn't define. */
@@ -568,9 +582,10 @@ char *ttyname (int);
 /* Define to 'int' if <sys/types.h> doesn't define. */
 #define uid_t int
 
-/* Define uintmax_t if not defined in <stdint.h> or <inttypes.h>. */
+/* Define {u,}intmax_t if not defined in <stdint.h> or <inttypes.h>. */
 #if !HAVE_STDINT_H && !HAVE_INTTYPES_H
-#define uintmax_t unsigned long
+#define intmax_t long long
+#define uintmax_t unsigned long long
 #endif
 
 /* Define if you have <sys/wait.h> that is POSIX.1 compatible.  */

@@ -80,6 +80,7 @@ AC_TYPE_PID_T
 AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
+AC_TYPE_INTMAX_T
 AC_TYPE_UINTMAX_T
 
 # Find out whether our struct stat returns nanosecond resolution timestamps.

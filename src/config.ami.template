@@ -37,6 +37,10 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define for DGUX with <sys/dg_sys_info.h>.  */
 /* #undef DGUX */
 
+/* Define to the widest signed integer type if <stdint.h> and <inttypes.h> do
+   not define. */
+#define intmax_t long
+
 /* Define to 'unsigned long' or 'unsigned long long'
    if <inttypes.h> doesn't define.  */
 #define uintmax_t unsigned long
