@@ -219,9 +219,6 @@ sub toplevel
   $makeENV{LANG} = 'C';
   $makeENV{LANGUAGE} = 'C';
 
-  # Replace the environment with the new one
-  resetENV();
-
   $| = 1;                     # unbuffered output
 
   $debug = 0;                 # debug flag
@@ -270,6 +267,9 @@ sub toplevel
   # These are used on Windows
   $makeENV{TMP} = $temppath;
   $makeENV{TEMP} = $temppath;
+
+  # Replace the environment with the new one
+  resetENV();
 
   $workpath = "$cwdslash$workdir";
   $scriptpath = "$cwdslash$scriptdir";
