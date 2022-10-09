@@ -78,6 +78,9 @@ AC_TYPE_SSIZE_T
 AC_TYPE_INTMAX_T
 AC_TYPE_UINTMAX_T
 
+# Check for sig_atomic_t
+gt_TYPE_SIG_ATOMIC_T
+
 # Find out whether our struct stat returns nanosecond resolution timestamps.
 
 AC_STRUCT_ST_MTIM_NSEC

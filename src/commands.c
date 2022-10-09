@@ -479,7 +479,7 @@ execute_file_commands (struct file *file)
 /* This is set while we are inside fatal_error_signal,
    so things can avoid nonreentrant operations.  */
 
-int handling_fatal_signal = 0;
+volatile sig_atomic_t handling_fatal_signal = 0;
 
 /* Handle fatal signals.  */
 

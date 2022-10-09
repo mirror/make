@@ -791,7 +791,7 @@ extern char *version_string, *remote_description, *make_host;
 
 extern unsigned int commands_started;
 
-extern int handling_fatal_signal;
+extern volatile sig_atomic_t handling_fatal_signal;
 
 #ifndef MIN
 #define MIN(_a,_b) ((_a)<(_b)?(_a):(_b))
