@@ -322,14 +322,12 @@ set_file_variables (struct file *file, const char *stem)
 void
 chop_commands (struct commands *cmds)
 {
-  unsigned int nlines;
-  unsigned short idx;
+  unsigned short nlines;
+  unsigned short i;
   char **lines;
 
-  /* If we don't have any commands,
-     or we already parsed them, never mind.  */
-
-  if (!cmds || cmds->command_lines != 0)
+  /* If we don't have any commands, or we already parsed them, never mind.  */
+  if (!cmds || cmds->command_lines != NULL)
     return;
 
   /* Chop CMDS->commands up into lines in CMDS->command_lines.  */
@@ -348,25 +346,27 @@ chop_commands (struct commands *cmds)
     }
   else
     {
-      const char *p;
+      const char *p = cmds->commands;
+      size_t max = 5;
 
-      nlines = 5;
-      lines = xmalloc (nlines * sizeof (char *));
-      idx = 0;
-      p = cmds->commands;
+      nlines = 0;
+      lines = xmalloc (max * sizeof (char *));
       while (*p != '\0')
         {
           const char *end = p;
         find_end:;
           end = strchr (end, '\n');
-          if (end == 0)
+          if (end == NULL)
             end = p + strlen (p);
           else if (end > p && end[-1] == '\\')
             {
               int backslash = 1;
-              const char *b;
-              for (b = end - 2; b >= p && *b == '\\'; --b)
-                backslash = !backslash;
+              if (end > p + 1)
+                {
+                  const char *b;
+                  for (b = end - 2; b >= p && *b == '\\'; --b)
+                    backslash = !backslash;
+                }
               if (backslash)
                 {
                   ++end;
@@ -374,40 +374,36 @@ chop_commands (struct commands *cmds)
                 }
             }
 
-          if (idx == nlines)
+          if (nlines == USHRT_MAX)
+            ON (fatal, &cmds->fileinfo,
+                _("Recipe has too many lines (limit %hu)"), nlines);
+
+          if (nlines == max)
             {
-              nlines += 2;
-              lines = xrealloc (lines, nlines * sizeof (char *));
+              max += 2;
+              lines = xrealloc (lines, max * sizeof (char *));
             }
-          lines[idx++] = xstrndup (p, (size_t) (end - p));
+
+          lines[nlines++] = xstrndup (p, (size_t) (end - p));
           p = end;
           if (*p != '\0')
             ++p;
-        }
-
-      if (idx != nlines)
-        {
-          nlines = idx;
-          lines = xrealloc (lines, nlines * sizeof (char *));
         }
     }
 
   /* Finally, set the corresponding CMDS->lines_flags elements and the
      CMDS->any_recurse flag.  */
 
-  if (nlines > USHRT_MAX)
-    ON (fatal, &cmds->fileinfo, _("Recipe has too many lines (%ud)"), nlines);
-
-  cmds->ncommand_lines = (unsigned short)nlines;
+  cmds->ncommand_lines = nlines;
   cmds->command_lines = lines;
 
   cmds->any_recurse = 0;
   cmds->lines_flags = xmalloc (nlines);
 
-  for (idx = 0; idx < nlines; ++idx)
+  for (i = 0; i < nlines; ++i)
     {
       unsigned char flags = 0;
-      const char *p = lines[idx];
+      const char *p = lines[i];
 
       while (ISBLANK (*p) || *p == '-' || *p == '@' || *p == '+')
         switch (*(p++))
@@ -424,12 +420,12 @@ chop_commands (struct commands *cmds)
           }
 
       /* If no explicit '+' was given, look for MAKE variable references.  */
-      if (!(flags & COMMANDS_RECURSE)
+      if (! ANY_SET (flags, COMMANDS_RECURSE)
           && (strstr (p, "$(MAKE)") != 0 || strstr (p, "${MAKE}") != 0))
         flags |= COMMANDS_RECURSE;
 
-      cmds->lines_flags[idx] = flags;
-      cmds->any_recurse |= flags & COMMANDS_RECURSE ? 1 : 0;
+      cmds->lines_flags[i] = flags;
+      cmds->any_recurse |= ANY_SET (flags, COMMANDS_RECURSE) ? 1 : 0;
     }
 }
 
