@@ -82,7 +82,9 @@ shuffle_set_mode (const char *cmdarg)
     }
   else
     {
-      if (strcasecmp (cmdarg, "random") != 0)
+      if (strcasecmp (cmdarg, "random") == 0)
+        config.seed = make_rand ();
+      else
         {
           /* Assume explicit seed.  */
           const char *err;

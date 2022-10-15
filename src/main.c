@@ -2318,6 +2318,9 @@ main (int argc, char **argv, char **envp)
   OUTPUT_UNSET ();
   output_close (&make_sync);
 
+  if (shuffle_mode)
+    DB (DB_BASIC, (_("Enabled shuffle mode: %s\n"), shuffle_mode));
+
   if (read_files)
     {
       /* Update any makefiles if necessary.  */
