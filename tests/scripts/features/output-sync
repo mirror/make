@@ -338,5 +338,28 @@ all:: ; @./foo bar baz
               '-O', "#MAKE#: ./foo: $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:2: all] Error 127\n", 512);
 }
 
+if ($port_type eq 'UNIX') {
+# POSIX doesn't require sh to set PPID so test this
+my $cmd = create_command();
+add_options($cmd, '-f', '/dev/null', '-E', q!all:;@echo $$PPID!);
+my $fout = 'ppidtest.out';
+run_command_with_output($fout, @$cmd);
+$_ = read_file_into_string($fout);
+chomp($_);
+if (/^[0-9]+$/) {
+use POSIX ();
+# SV 63157.
+# Test that make removes temporary files, even when a signal is received.
+# The general test_driver postprocessing will ensure the temporary file used
+# to synchronize output and the jobserver fifo are both removed.
+run_make_test(q!
+pid:=$(shell echo $$PPID)
+all:; @kill -TERM $(pid)
+!, '-O -j2', "", POSIX::SIGTERM);
+}
+
+unlink($fout);
+}
+
 # This tells the test driver that the perl test script executed properly.
 1;

@@ -545,6 +545,7 @@ void out_of_memory () NORETURN;
                                  (_f), (_n), (_s))
 
 void decode_env_switches (const char*, size_t line);
+void temp_stdin_unlink (void);
 void die (int) NORETURN;
 void pfatal_with_name (const char *) NORETURN;
 void perror_with_name (const char *, const char *);

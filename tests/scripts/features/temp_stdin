@@ -46,6 +46,35 @@ force:
               '-R --debug=b -f-', "/Re-executing.+?--temp-stdin=\Q$temppath\E/");
 
 if ($port_type eq 'UNIX') {
+# POSIX doesn't require sh to set PPID so test this
+my $cmd = create_command();
+add_options($cmd, '-f', '/dev/null', '-E', q!all:;@echo $$PPID!);
+my $fout = 'ppidtest.out';
+run_command_with_output($fout, @$cmd);
+$_ = read_file_into_string($fout);
+chomp($_);
+if (/^[0-9]+$/) {
+use POSIX ();
+
+# sv 63157.
+# Test that make removes the temporary file which holds make code from stdin,
+# even when a signal is received.
+# include bye.mk and bye.mk: rule is needed to cause make to keep the temporary
+# file for re-exec. Without re-exec make will remove the file before the signal
+# arrives.
+&utouch(-600, 'bye.mk');
+close(STDIN);
+open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
+run_make_test(q!
+include bye.mk
+pid:=$(shell echo $$PPID)
+all:;
+bye.mk: force; @kill -TERM $(pid)
+force:
+!, '-f-', "", POSIX::SIGTERM);
+}
+unlink($fout);
+
 # sv 62118,62145.
 # Test that a stdin temp file is removed, when execvp fails to re-exec make.
 # In order to cause execvp to fail, copy the tested make binary to the temp

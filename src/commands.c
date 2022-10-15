@@ -16,6 +16,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "makeint.h"
 #include "filedef.h"
+#include "os.h"
 #include "dep.h"
 #include "variable.h"
 #include "job.h"
@@ -531,6 +532,10 @@ fatal_error_signal (int sig)
   /* Set the handling for this signal to the default.
      It is blocked now while we run this handler.  */
   signal (sig, SIG_DFL);
+
+  temp_stdin_unlink ();
+  osync_clear ();
+  jobserver_clear ();
 
   /* A termination signal won't be sent to the entire
      process group, but it means we want to kill the children.  */

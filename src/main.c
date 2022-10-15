@@ -1137,6 +1137,23 @@ reset_jobserver (void)
   jobserver_auth = NULL;
 }
 
+void
+temp_stdin_unlink ()
+{
+  /* This function is called from a signal handler.  Keep async-signal-safe.
+     If there is a temp file from reading from stdin, get rid of it.  */
+  if (stdin_offset >= 0)
+    {
+      const char *nm = makefiles->list[stdin_offset];
+      int r = 0;
+
+      stdin_offset = -1;
+      EINTRLOOP(r, unlink (nm));
+      if (r < 0 && errno != ENOENT && !handling_fatal_signal)
+        perror_with_name (_("unlink (temporary file): "), nm);
+    }
+}
+
 #ifdef _AMIGA
 int
 main (int argc, char **argv)
@@ -2776,9 +2793,7 @@ main (int argc, char **argv, char **envp)
 #endif
           jobserver_post_child(1);
 
-          /* Get rid of any stdin temp file.  */
-          if (stdin_offset >= 0)
-            unlink (makefiles->list[stdin_offset]);
+          temp_stdin_unlink ();
 
           _exit (127);
         }
@@ -2804,15 +2819,7 @@ main (int argc, char **argv, char **envp)
         }
     }
 
-  /* If there is a temp file from reading a makefile from stdin, get rid of
-     it now.  */
-  if (stdin_offset >= 0)
-    {
-      const char *nm = makefiles->list[stdin_offset];
-      if (unlink (nm) < 0 && errno != ENOENT)
-        perror_with_name (_("unlink (temporary file): "), nm);
-      stdin_offset = -1;
-    }
+  temp_stdin_unlink ();
 
   /* If there were no command-line goals, use the default.  */
   if (goals == 0)
@@ -3731,13 +3738,7 @@ die (int status)
         print_version ();
 
       /* Get rid of a temp file from reading a makefile from stdin.  */
-      if (stdin_offset >= 0)
-        {
-          const char *nm = makefiles->list[stdin_offset];
-          if (unlink (nm) < 0 && errno != ENOENT)
-            perror_with_name (_("unlink (temporary file): "), nm);
-          stdin_offset = -1;
-        }
+      temp_stdin_unlink ();
 
       /* Wait for children to die.  */
       err = (status != 0);
