@@ -526,7 +526,7 @@ void error (const floc *flocp, size_t length, const char *fmt, ...)
             ATTRIBUTE ((__format__ (__printf__, 3, 4)));
 void fatal (const floc *flocp, size_t length, const char *fmt, ...)
             ATTRIBUTE ((noreturn, __format__ (__printf__, 3, 4)));
-void out_of_memory () NORETURN;
+void out_of_memory (void) NORETURN;
 
 /* When adding macros to this list be sure to update the value of
    XGETTEXT_OPTIONS in the po/Makevars file.  */
@@ -554,8 +554,8 @@ unsigned int make_toui (const char*, const char**);
 char *make_lltoa (long long, char *);
 char *make_ulltoa (unsigned long long, char *);
 void make_seed (unsigned int);
-unsigned int make_rand ();
-pid_t make_pid ();
+unsigned int make_rand (void);
+pid_t make_pid (void);
 void *xmalloc (size_t);
 void *xcalloc (size_t);
 void *xrealloc (void *, size_t);
@@ -570,7 +570,7 @@ int alpha_compare (const void *, const void *);
 void print_spaces (unsigned int);
 char *find_percent (char *);
 const char *find_percent_cached (const char **);
-char *get_tmppath ();
+char *get_tmppath (void);
 int get_tmpfd (char **);
 FILE *get_tmpfile (char **);
 ssize_t writebuf (int, const void *, size_t);
@@ -661,10 +661,10 @@ long int lseek ();
 
 # ifdef  HAVE_GETCWD
 #  if !defined(VMS) && !defined(__DECC)
-char *getcwd ();
+char *getcwd (void);
 #  endif
 # else
-char *getwd ();
+char *getwd (void);
 #  define getcwd(buf, len)       getwd (buf)
 # endif
 

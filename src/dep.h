@@ -102,24 +102,23 @@ char *tilde_expand (const char *name);
 struct nameseq *ar_glob (const char *arname, const char *member_pattern, size_t size);
 #endif
 
-#define dep_name(d)        ((d)->name ? (d)->name : (d)->file->name)
+#define dep_name(d)       ((d)->name ? (d)->name : (d)->file->name)
 
-#define alloc_seq_elt(_t)   xcalloc (sizeof (_t))
+#define alloc_seq_elt(_t) xcalloc (sizeof (_t))
 void free_ns_chain (struct nameseq *n);
 
 #if defined(MAKE_MAINTAINER_MODE) && defined(__GNUC__) && !defined(__STRICT_ANSI__)
 /* Use inline to get real type-checking.  */
 #define SI static inline
-SI struct nameseq *alloc_ns()      { return alloc_seq_elt (struct nameseq); }
-SI struct dep *alloc_dep()         { return alloc_seq_elt (struct dep); }
-SI struct goaldep *alloc_goaldep() { return alloc_seq_elt (struct goaldep); }
+SI struct nameseq *alloc_ns (void)    { return alloc_seq_elt (struct nameseq); }
+SI struct dep *alloc_dep (void)       { return alloc_seq_elt (struct dep); }
+SI struct goaldep *alloc_goaldep (void) { return alloc_seq_elt (struct goaldep); }
 
-SI void free_ns(struct nameseq *n)      { free (n); }
-SI void free_dep(struct dep *d)         { free_ns ((struct nameseq *)d); }
-SI void free_goaldep(struct goaldep *g) { free_dep ((struct dep *)g); }
-
-SI void free_dep_chain(struct dep *d)      { free_ns_chain((struct nameseq *)d); }
-SI void free_goal_chain(struct goaldep *g) { free_dep_chain((struct dep *)g); }
+SI void free_ns (struct nameseq *n)      { free (n); }
+SI void free_dep (struct dep *d)         { free_ns ((struct nameseq *)d); }
+SI void free_goaldep (struct goaldep *g) { free_dep ((struct dep *)g); }
+SI void free_dep_chain (struct dep *d)   { free_ns_chain((struct nameseq *)d); }
+SI void free_goal_chain (struct goaldep *g) { free_dep_chain((struct dep *)g); }
 #else
 # define alloc_ns()          alloc_seq_elt (struct nameseq)
 # define alloc_dep()         alloc_seq_elt (struct dep)

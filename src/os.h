@@ -29,7 +29,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #else
 
 /* Determine the state of stdin/stdout/stderr.  */
-unsigned int check_io_state ();
+unsigned int check_io_state (void);
 
 /* Set a file descriptor to close/not close in a subprocess.  */
 void fd_inherit (int);
@@ -41,7 +41,7 @@ void fd_set_append (int);
 
 /* Return a file descriptor for a new anonymous temp file, or -1.  */
 #if defined(WINDOWS32)
-int os_anontmp ();
+int os_anontmp (void);
 #else
 # define os_anontmp() (-1)
 #endif
@@ -51,7 +51,7 @@ int os_anontmp ();
 #ifdef MAKE_JOBSERVER
 
 /* Returns 1 if the jobserver is enabled, else 0.  */
-unsigned int jobserver_enabled ();
+unsigned int jobserver_enabled (void);
 
 /* Called in the parent make to set up the jobserver initially.  */
 unsigned int jobserver_setup (int job_slots, const char *style);
@@ -61,25 +61,25 @@ unsigned int jobserver_setup (int job_slots, const char *style);
 unsigned int jobserver_parse_auth (const char* auth);
 
 /* Returns an allocated buffer used to pass to child instances.  */
-char *jobserver_get_auth ();
+char *jobserver_get_auth (void);
 
 /* Returns a pointer to a static string used to indicate that the child
    cannot access the jobserver, or NULL if it always can.  */
-const char *jobserver_get_invalid_auth ();
+const char *jobserver_get_invalid_auth (void);
 
 /* Clear this instance's jobserver configuration.
    This method might be invoked from a signal handler.  */
-void jobserver_clear ();
+void jobserver_clear (void);
 
 /* Recover all the jobserver tokens and return the number we got.
    Will also run jobserver_clear() as a side-effect.  */
-unsigned int jobserver_acquire_all ();
+unsigned int jobserver_acquire_all (void);
 
 /* Release a jobserver token.  If it fails and is_fatal is 1, fatal.  */
 void jobserver_release (int is_fatal);
 
 /* Notify the jobserver that a child exited.  */
-void jobserver_signal ();
+void jobserver_signal (void);
 
 /* Get ready to start a non-recursive child.  */
 void jobserver_pre_child (int);
@@ -88,7 +88,7 @@ void jobserver_pre_child (int);
 void jobserver_post_child (int);
 
 /* Set up to acquire a new token.  */
-void jobserver_pre_acquire ();
+void jobserver_pre_acquire (void);
 
 /* Wait until we can acquire a jobserver token.
    TIMEOUT is 1 if we have other jobs waiting for the load to go down;
@@ -118,14 +118,14 @@ unsigned int jobserver_acquire (int timeout);
 #ifndef NO_OUTPUT_SYNC
 
 /* Returns 1 if output sync is enabled, else 0.  */
-unsigned int osync_enabled ();
+unsigned int osync_enabled (void);
 
 /* Called in the parent make to set up output sync initially.  */
-void osync_setup ();
+void osync_setup (void);
 
 /* Returns an allocated buffer containing output sync info to pass to child
    instances, or NULL if not needed.  */
-char *osync_get_mutex ();
+char *osync_get_mutex (void);
 
 /* Called in a child instance to obtain info on the output sync mutex.
    Return 1 if we got a valid mutex, else 0.  */
@@ -133,14 +133,14 @@ unsigned int osync_parse_mutex (const char *mutex);
 
 /* Clean up this instance's output sync facilities.
    This method might be invoked from a signal handler.  */
-void osync_clear ();
+void osync_clear (void);
 
 /* Acquire the output sync lock.  This will wait until available.
    Returns 0 if there was an error getting the semaphore.  */
-unsigned int osync_acquire ();
+unsigned int osync_acquire (void);
 
 /* Release the output sync lock.  */
-void osync_release ();
+void osync_release (void);
 
 #else
 
@@ -158,5 +158,5 @@ void osync_release ();
 #if defined(VMS) || defined(WINDOWS32) || defined(_AMIGA) || defined(__MSDOS__)
 # define get_bad_stdin() (-1)
 #else
-int get_bad_stdin ();
+int get_bad_stdin (void);
 #endif
