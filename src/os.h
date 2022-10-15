@@ -67,10 +67,12 @@ char *jobserver_get_auth ();
    cannot access the jobserver, or NULL if it always can.  */
 const char *jobserver_get_invalid_auth ();
 
-/* Clear this instance's jobserver configuration.  */
+/* Clear this instance's jobserver configuration.
+   This method might be invoked from a signal handler.  */
 void jobserver_clear ();
 
-/* Recover all the jobserver tokens and return the number we got.  */
+/* Recover all the jobserver tokens and return the number we got.
+   Will also run jobserver_clear() as a side-effect.  */
 unsigned int jobserver_acquire_all ();
 
 /* Release a jobserver token.  If it fails and is_fatal is 1, fatal.  */
@@ -129,7 +131,8 @@ char *osync_get_mutex ();
    Return 1 if we got a valid mutex, else 0.  */
 unsigned int osync_parse_mutex (const char *mutex);
 
-/* Clean up this instance's output sync facilities.  */
+/* Clean up this instance's output sync facilities.
+   This method might be invoked from a signal handler.  */
 void osync_clear ();
 
 /* Acquire the output sync lock.  This will wait until available.

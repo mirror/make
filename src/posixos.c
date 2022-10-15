@@ -75,6 +75,9 @@ check_io_state ()
 
 /* This section provides OS-specific functions to support the jobserver.  */
 
+/* True if this is the root make instance.  */
+static unsigned char job_root = 0;
+
 /* These track the state of the jobserver pipe.  Passed to child instances.  */
 static int job_fds[2] = { -1, -1 };
 
@@ -198,6 +201,8 @@ jobserver_setup (int slots, const char *style)
   /* When using pselect() we want the read to be non-blocking.  */
   set_blocking (job_fds[0], 0);
 
+  job_root = 1;
+
   return 1;
 }
 
@@ -320,8 +325,20 @@ jobserver_clear ()
 
   job_fds[0] = job_fds[1] = job_rfd = -1;
 
-  free (fifo_name);
-  fifo_name = NULL;
+  if (fifo_name)
+    {
+      if (job_root)
+        {
+          int r;
+          EINTRLOOP (r, unlink (fifo_name));
+        }
+
+      if (!handling_fatal_signal)
+        {
+          free (fifo_name);
+          fifo_name = NULL;
+        }
+    }
 
   js_type = js_none;
 }
@@ -361,10 +378,9 @@ jobserver_acquire_all ()
       ++tokens;
     }
 
-  if (fifo_name)
-    EINTRLOOP (r, unlink (fifo_name));
-
   DB (DB_JOBS, ("Acquired all %u jobserver tokens.\n", tokens));
+
+  jobserver_clear ();
 
   return tokens;
 }
@@ -608,7 +624,7 @@ static int osync_handle = -1;
 
 static char *osync_tmpfile = NULL;
 
-static unsigned int sync_parent = 0;
+static unsigned int sync_root = 0;
 
 unsigned int
 osync_enabled ()
@@ -623,7 +639,7 @@ osync_setup ()
   if (osync_handle >= 0)
     {
       fd_noinherit (osync_handle);
-      sync_parent = 1;
+      sync_root = 1;
     }
 }
 
@@ -672,9 +688,11 @@ osync_clear ()
       osync_handle = -1;
     }
 
-  if (sync_parent && osync_tmpfile)
+  if (sync_root && osync_tmpfile)
     {
-      unlink (osync_tmpfile);
+      int r;
+
+      EINTRLOOP (r, unlink (osync_tmpfile));
       osync_tmpfile = NULL;
     }
 }
@@ -690,6 +708,7 @@ osync_acquire ()
       fl.l_whence = SEEK_SET;
       fl.l_start = 0;
       fl.l_len = 1;
+      /* We don't want to keep waiting on EINTR.  */
       if (fcntl (osync_handle, F_SETLKW, &fl) == -1)
         {
           perror ("fcntl()");
@@ -711,6 +730,7 @@ osync_release ()
       fl.l_whence = SEEK_SET;
       fl.l_start = 0;
       fl.l_len = 1;
+      /* We don't want to keep waiting on EINTR.  */
       if (fcntl (osync_handle, F_SETLKW, &fl) == -1)
         perror ("fcntl()");
     }
@@ -734,7 +754,7 @@ get_bad_stdin ()
       if (pipe (pd) == 0)
         {
           /* Close the write side.  */
-          (void) close (pd[1]);
+          close (pd[1]);
           /* Save the read side.  */
           bad_stdin = pd[0];
 
