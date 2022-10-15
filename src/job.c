@@ -204,6 +204,15 @@ int getgid ();
 # endif
 #endif
 
+#if HAVE_SYS_LOADAVG_H
+# include <sys/time.h>
+# include <sys/loadavg.h>
+#endif
+
+#ifndef HAVE_DECL_GETLOADAVG
+int getloadavg (double loadavg[], int nelem);
+#endif
+
 /* Different systems have different requirements for pid_t.
    Plus we have to support gettext string translation... Argh.  */
 static const char *
@@ -219,10 +228,6 @@ pid2str (pid_t pid)
 #endif
   return pidstring;
 }
-
-#ifndef HAVE_DECL_GETLOADAVG
-int getloadavg (double loadavg[], int nelem);
-#endif
 
 static void free_child (struct child *);
 static void start_job_command (struct child *child);
