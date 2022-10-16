@@ -1,4 +1,4 @@
-This version of GNU make has been tested on:
+This version of GNU Make has been tested on:
   Microsoft Windows 2000/XP/2003/Vista/7/8/10
 It has also been used on Windows 95/98/NT, and on OS/2.
 
@@ -25,7 +25,7 @@ also provide you with these dependencies or a URL where to download
 them.  A precompiled 32-bit Windows build of Guile is available from
 the ezwinports site mentioned above.
 
-The Windows port of GNU make is maintained jointly by various people.
+The Windows port of GNU Make is maintained jointly by various people.
 It was originally made by Rob Tulloh.
 It is currently maintained by Eli Zaretskii.
 
@@ -53,7 +53,7 @@ Building with (MinGW-)GCC using build_w32.bat
 
     This produces gnumake.exe in the GccRel directory.
 
-    If you want a version of GNU make built with debugging enabled,
+    If you want a version of GNU Make built with debugging enabled,
     add the --debug option.  Output goes into the GccDebug directory.
 
     The batch file will probe for Guile installation, and will build
@@ -75,21 +75,21 @@ Building with (MSVC++-)cl using build_w32.bat
     file will probe your system and choose the newest MSVC version it can
     find.
 
-    If you want a 32bit version of GNU make, add the --x86 option.
+    If you want a 32bit version of GNU Make, add the --x86 option.
 
-    If you want a Debug build of GNU make, add the --debug option.  Output
+    If you want a Debug build of GNU Make, add the --debug option.  Output
     will go into the .\WinDebug directory.
 
     The batch file will probe for Guile installation, and will build
     gnumake.exe with Guile if it finds it.  If Guile is installed,
-    but you prefer to build GNU make without Guile support, add the
+    but you prefer to build GNU Make without Guile support, add the
     --without-guile option.
 
 
-Building with (MinGW-)GCC using GNU make
+Building with (MinGW-)GCC using GNU Make
 ----------------------------------------
 
- 2. If you already have a version of GNU make available you can use it
+ 2. If you already have a version of GNU Make available you can use it
     to build this version.  Open a W32 command prompt for your installed
     (MinGW-)GCC, setup a correct PATH and other environment variables
     for it, then execute ...
@@ -97,7 +97,7 @@ Building with (MinGW-)GCC using GNU make
         make -f Basic.mk TOOLCHAIN=gcc
 
     This produces GccRel\gnumake.exe.
-    If you want a version of GNU make built with debugging enabled,
+    If you want a version of GNU Make built with debugging enabled,
     add the TARGET_TYPE=debug option:
 
         make -f Basic.mk TOOLCHAIN=gcc TARGET_TYPE=debug
@@ -106,10 +106,10 @@ Building with (MinGW-)GCC using GNU make
     if you want to build with Guile support.
 
 
-Building with (MSVC++-)cl using GNU make
+Building with (MSVC++-)cl using GNU Make
 ----------------------------------------
 
- 2. If you already have a version of GNU make available you can use it
+ 2. If you already have a version of GNU Make available you can use it
     to build this version.  Open a W32 command prompt for your installed
     (MSVC++-)cl, setup a correct PATH and other environment variables
     for it (usually via executing vcvars32.bat or vsvars32.bat from the
@@ -119,7 +119,7 @@ Building with (MSVC++-)cl using GNU make
         make -f Basic.mk
 
     This produces an optimized WinRel/gnumake.exe.
-    If you want a version of GNU make built with debugging enabled,
+    If you want a version of GNU Make built with debugging enabled,
     add the TARGET_TYPE=debug option:
 
         make -f Basic.mk TARGET_TYPE=debug
@@ -134,7 +134,7 @@ Running the test suite
  3. You will need an installation of Perl.  Be sure to use a relatively
     modern version: older versions will sometimes throw spurious errors.
 
-    To run the suite after building using GNU make, use:
+    To run the suite after building using GNU Make, use:
 
         make -f Basic.mk check
 
@@ -158,7 +158,7 @@ Running the test suite
 -- Notes/Caveats --
 -------------------
 
-GNU make on Windows 32-bit platforms:
+GNU Make on Windows 32-bit platforms:
 
         This version of make is ported natively to Windows32 platforms
         (Windows NT 3.51, Windows NT 4.0, Windows 2000, Windows XP,
@@ -168,11 +168,11 @@ GNU make on Windows 32-bit platforms:
         officially are the MinGW port of GNU GCC, and the various
         versions of the Microsoft C compiler.
 
-        Do not confuse this port of GNU make with other Windows32 projects
-        which provide a GNU make binary. These are separate projects
+        Do not confuse this port of GNU Make with other Windows32 projects
+        which provide a GNU Make binary. These are separate projects
         and are not connected to this port effort.
 
-GNU make and sh.exe:
+GNU Make and sh.exe:
 
         This port prefers if you have a working sh.exe somewhere on
         your system. If you don't have sh.exe, the port falls back to
@@ -187,7 +187,7 @@ GNU make and sh.exe:
         your own with a package like NutCracker (DataFocus) or Portage
         (Consensys).  Also MinGW includes sh.
 
-GNU make and brain-dead shells (BATCH_MODE_ONLY_SHELL):
+GNU Make and brain-dead shells (BATCH_MODE_ONLY_SHELL):
 
         Some versions of Bourne shell do not behave well when invoked
         as 'sh -c' from CreateProcess().  The main problem is they seem
@@ -213,21 +213,21 @@ Support for parallel builds
         Parallel builds (-jN) are supported in this port.  The number of
         concurrent processes has a hard limit of 4095.
 
-GNU make and Cygnus GNU Windows32 tools:
+GNU Make and Cygnus GNU Windows32 tools:
 
         Good news! Make now has native support for Cygwin sh. To enable,
         define the HAVE_CYGWIN_SHELL in config.h and rebuild make
         from scratch. This version of make tested with B20.1 of Cygwin.
         Do not define BATCH_MODE_ONLY_SHELL if you use HAVE_CYGWIN_SHELL.
 
-GNU make and the MKS shell:
+GNU Make and the MKS shell:
 
         There is now semi-official support for the MKS shell. To turn this
         support on, define HAVE_MKS_SHELL in the config.h.W32 before you
         build make.  Do not define BATCH_MODE_ONLY_SHELL if you turn
         on HAVE_MKS_SHELL.
 
-GNU make handling of drive letters in pathnames (PATH, vpath, VPATH):
+GNU Make handling of drive letters in pathnames (PATH, vpath, VPATH):
 
         There is a caveat that should be noted with respect to handling
         single character pathnames on Windows systems.  When colon is
@@ -293,7 +293,7 @@ Pathnames and Case insensitivity:
         the file with other case permutations will succeed (i.e. opening a
         file named "target" or "TARGET" will open the file "Target").
 
-        By default, GNU make retains its case sensitivity when comparing
+        By default, GNU Make retains its case sensitivity when comparing
         target names and existing files or directories.  It can be
         configured, however, into a case preserving and case insensitive
         mode by adding a define for HAVE_CASE_INSENSITIVE_FS to
@@ -311,10 +311,10 @@ Pathnames and Case insensitivity:
         SUBDIR/DepTarget: SubDir/TARGET
                 cp $^ $@
 
-        Reliance on this behavior also eliminates the ability of GNU make
+        Reliance on this behavior also eliminates the ability of GNU Make
         to use case in comparison of matching rules.  For example, it is
         not possible to set up a C++ rule using %.C that is different
-        than a C rule using %.c.  GNU make will consider these to be the
+        than a C rule using %.c.  GNU Make will consider these to be the
         same rule and will issue a warning.
 
 SAMBA/NTFS/VFAT:
@@ -344,7 +344,7 @@ FAT:
 Bug reports:
 
         Please submit bugs via the normal bug reporting mechanism which
-        is described in the GNU make manual and the base README.
+        is described in the GNU Make manual and the base README.
 
 -------------------------------------------------------------------------------
 Copyright (C) 1996-2022 Free Software Foundation, Inc.

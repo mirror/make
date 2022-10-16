@@ -1,4 +1,4 @@
-"""GDB pretty-printer macros for GNU make."""
+"""GDB pretty-printer macros for GNU Make."""
 
 import gdb  # pylint: disable=import-error
 import gdb.printing  # pylint: disable=import-error

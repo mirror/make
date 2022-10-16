@@ -79,7 +79,7 @@ To build from sources:
 
    6. To install copy make.exe to the preferred location.
 
-      Since GNU make 4.3, support for customized platform installations
+      Since GNU Make 4.3, support for customized platform installations
       has been removed.  If you'd like to collaborate on reinstating
       these capabilities, contact bug-make@gnu.org.
 

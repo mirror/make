@@ -462,7 +462,7 @@ sub print_help
 sub set_defaults
 {
   # $profile = 1;
-  $testee = "GNU make";
+  $testee = "GNU Make";
   $make_path = "make";
   $tmpfilesuffix = "mk";
   if ($port_type eq 'UNIX') {

@@ -1,6 +1,6 @@
-Port of GNU make to OS/2.
+Port of GNU Make to OS/2.
 
-Features of GNU make that do not work under OS/2:
+Features of GNU Make that do not work under OS/2:
   - remote job execution
   - dynamic load balancing
 
@@ -9,7 +9,7 @@ Special features of the OS/2 version:
 
 Due to the fact that some people might want to use sh syntax in
 Makefiles while others might want to use OS/2's native shell cmd.exe,
-GNU make supports both shell types. The following list defines the order
+GNU Make supports both shell types. The following list defines the order
 that is used to determine the shell:
 
  1. The shell specified by the environment variable MAKESHELL.
@@ -37,7 +37,7 @@ I. ***** SPECIAL OPTIONS *****
    cmd or by specifying SHELL=cmd in your Makefile.
 
  - At compile time you can set CPPFLAGS="-DNO_CHDIR2" to turn off that
-   GNU make prints drive letters. This is necessary if you want to run
+   GNU Make prints drive letters. This is necessary if you want to run
    the testsuite.
 
 
@@ -59,7 +59,7 @@ A standard Unix like build environment:
  - gawk
  - grep
  - sed
- - GNU make 3.79.1 (special OS/2 patched version) or higher
+ - GNU Make 3.79.1 (special OS/2 patched version) or higher
  - perl 5.005 or higher
  - GNU texinfo (you can use 3.1 (gnuinfo.zip), but I recommend 4.0)
 
@@ -105,15 +105,15 @@ Note: You can add -DNO_CMD_DEFAULT and -DNO_CHDIR2 to CPPFLAGS.
 
 IV. ***** NLS support *****
 
-GNU make has NLS (National Language Support), with the following
+GNU Make has NLS (National Language Support), with the following
 caveats:
 
  a) It will only work with GNU gettext, and
- b) GNU gettext support is not included in the GNU make package.
+ b) GNU gettext support is not included in the GNU Make package.
 
 Therefore, if you wish to enable the internationalization features of
-GNU make you must install GNU gettext on your system before configuring
-GNU make.
+GNU Make you must install GNU gettext on your system before configuring
+GNU Make.
 
 You can choose the languages to be installed. To install support for
 English, German and French only enter:

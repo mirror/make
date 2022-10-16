@@ -1,12 +1,12 @@
-GNU make NEWS                                               -*-indented-text-*-
+GNU Make NEWS                                               -*-indented-text-*-
   History of user-visible changes.
   20 September 2022
 
 See the end of this file for copyrights and conditions.
 
-All user-visible changes are more fully described in the GNU make manual,
+All user-visible changes are more fully described in the GNU Make manual,
 which is contained in this distribution as the file doc/make.texi.
-See the README file and the GNU make manual for instructions for
+See the README file and the GNU Make manual for instructions for
 reporting bugs.
 
 Version 4.3.91 (20 Sep 2022)
@@ -20,25 +20,25 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
     - OS/2 (EMX)
     - AmigaOS
     - Xenix
-  In the NEXT release of GNU make, support for these systems will be removed.
+  In the NEXT release of GNU Make, support for these systems will be removed.
   If you want to see them continue to be supported, contact <bug-make@gnu.org>.
 
 * WARNING: Future backward-incompatibility!
-  In the NEXT release of GNU make, pattern rules will implement the same
+  In the NEXT release of GNU Make, pattern rules will implement the same
   behavior change for multiple targets as explicit grouped targets, below: if
   any target of the rule is needed by the build, the recipe will be invoked if
   any target of the rule is missing or out of date.  During testing some
   makefiles were found to contain pattern rules that do not build all targets;
   this can cause issues so we are delaying this change for one release cycle
-  to allow these makefiles to be updated.  GNU make show a warning if it
+  to allow these makefiles to be updated.  GNU Make shows a warning if it
   detects this situation: "pattern recipe did not update peer target".
 
 * WARNING: Backward-incompatibility!
-  GNU make now uses temporary files in more situations than previous releases.
+  GNU Make now uses temporary files in more situations than previous releases.
   If your build system sets TMPDIR (or TMP or TEMP on Windows) and deletes the
   contents during the build, or uses restrictive permissions, this may cause
   problems.  You can choose an alternative temporary directory only for use by
-  GNU make by setting the new MAKE_TMPDIR environment variable before invoking
+  GNU Make by setting the new MAKE_TMPDIR environment variable before invoking
   make.  Note that this value CANNOT be set inside the makefile, since make
   needs to find its temporary directory before the makefiles are parsed.
 
@@ -61,7 +61,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   stated, but it was (roughly) the inverse of the order in which they were
   processed by make.  In this release, the order in which makefiles are
   rebuilt is the same order in which make processed them, and this is defined
-  to be true in the GNU make manual.
+  to be true in the GNU Make manual.
 
 * WARNING: Backward-incompatibility!
   Previously only simple (one-letter) options were added to the MAKEFLAGS
@@ -78,14 +78,14 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   To detect this change search for 'shell-export' in the .FEATURES variable.
 
 * WARNING: New build requirement
-  GNU make utilizes facilities from GNU Gnulib: Gnulib requires certain C99
-  features in the C compiler and so these features are required by GNU make:
+  GNU Make utilizes facilities from GNU Gnulib: Gnulib requires certain C99
+  features in the C compiler and so these features are required by GNU Make:
   https://www.gnu.org/software/gnulib/manual/html_node/C99-features-assumed.html
   The configure script should verify the compiler has these features.
 
 * New feature: The .WAIT special target
   If the .WAIT target appears between two prerequisites of a target, then
-  GNU make will wait for all of the targets to the left of .WAIT in the list
+  GNU Make will wait for all of the targets to the left of .WAIT in the list
   to complete before starting any of the targets to the right of .WAIT.
   This feature is available in some other versions of make, and it will be
   required by an upcoming version of the POSIX standard for make.
@@ -115,7 +115,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   Implementation provided by Jouke Witteveen <j.witteveen@gmail.com>
 
 * New feature: Improved support for -l / --load-average
-  On systems that provide /proc/loadavg (Linux), GNU make will use it to
+  On systems that provide /proc/loadavg (Linux), GNU Make will use it to
   determine the number of runnable jobs and use this as the current load,
   avoiding the need for heuristics.
   Implementation provided by Sven C. Dack <sdack@gmx.com>
@@ -130,14 +130,14 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
 * New feature: The --jobserver-style command line option and named pipes
   A new jobserver method is used on systems where mkfifo(3) is supported.
   This solves a number of obscure issues related to using the jobserver
-  and recursive invocations of GNU make.  This change means that sub-makes
+  and recursive invocations of GNU Make.  This change means that sub-makes
   will connect to the jobserver even if they are not marked as recursive.
   It also means that other tools that want to participate in the jobserver
-  will need to be enhanced as described in the GNU make manual.
-  You can force GNU make to use the simple pipe-based jobserver (perhaps if
-  you are integrating with other tools or older versions of GNU make) by
+  will need to be enhanced as described in the GNU Make manual.
+  You can force GNU Make to use the simple pipe-based jobserver (perhaps if
+  you are integrating with other tools or older versions of GNU Make) by
   adding the '--jobserver-style=pipe' option to the command line of the
-  top-level invocation of GNU make, or via MAKEFLAGS or GNUMAKEFLAGS.
+  top-level invocation of GNU Make, or via MAKEFLAGS or GNUMAKEFLAGS.
   To detect this change search for 'jobserver-fifo' in the .FEATURES variable.
 
 * Some POSIX systems (*BSD) do not allow locks to be taken on pipes, which
@@ -147,16 +147,16 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   performance characteristics, but is not portable) create a temporary file
   and lock that.  Windows continues to use a mutex as before.
 
-* GNU make has sometimes chosen unexpected, and sub-optimal, chains of
+* GNU Make has sometimes chosen unexpected, and sub-optimal, chains of
   implicit rules due to the definition of "ought to exist" in the implicit
   rule search algorithm, which considered any prerequisite mentioned in the
   makefile as "ought to exist".  This algorithm has been modified to prefer
   prerequisites mentioned explicitly in the target being built and only if
-  that results in no matching rule, will GNU make consider prerequisites
+  that results in no matching rule, will GNU Make consider prerequisites
   mentioned in other targets as "ought to exist".
   Implementation provided by Dmitry Goncharov <dgoncharov@users.sf.net>
 
-* GNU make was performing secondary expansion of all targets, even targets
+* GNU Make was performing secondary expansion of all targets, even targets
   which didn't need to be considered during the build.  In this release
   only targets which are considered will be secondarily expanded.
   Implementation provided by Dmitry Goncharov <dgoncharov@users.sf.net>
@@ -168,7 +168,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
 
 * The -I option accepts an argument "-" (e.g., "-I-") which means "reset the
   list of search directories to empty".  Among other things this can be used
-  to prevent GNU make from searching in its default list of directories.
+  to prevent GNU Make from searching in its default list of directories.
 
 * New debug option "print" will show the recipe to be run, even when silent
   mode is set, and new debug option "why" will show why a target is rebuilt
@@ -185,7 +185,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
 * Special targets like .POSIX are detected upon definition, ensuring that any
   change in behavior takes effect immediately, before the next line is parsed.
 
-* When the jobserver is enabled and GNU make decides it is invoking a non-make
+* When the jobserver is enabled and GNU Make decides it is invoking a non-make
   sub-process and closes the jobserver pipes, it will now add a new option to
   the MAKEFLAGS environment variable that disables the jobserver.
   This prevents sub-processes that invoke make from accidentally using other

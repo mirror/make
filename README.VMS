@@ -1,7 +1,7 @@
 Overview:                                                       -*-text-mode-*-
 ---------
 
-  This version of GNU make has been tested on:
+  This version of GNU Make has been tested on:
   OpenVMS V8.3/V8.4 (Alpha) and V8.4 (Integrity) AND V7.3 (VAX)
 
   This version of GNU Make is intended to be run from DCL to run
@@ -14,7 +14,7 @@ Overview:                                                       -*-text-mode-*-
   detect that it is running under a POSIX shell and then operate as close to
   GNU Make on Unix as possible.
 
-  The descriptions below are for running GNU make from DCL or equivalent.
+  The descriptions below are for running GNU Make from DCL or equivalent.
 
 Recipe differences:
 -------------------
@@ -84,7 +84,7 @@ Recipe differences:
 
   The format for recipes are a combination of Unix macros, a subset of
   simulated UNIX commands, some shell emulation, and OpenVMS commands.
-  This makes the resulting makefiles unique to the OpenVMS port of GNU make.
+  This makes the resulting makefiles unique to the OpenVMS port of GNU Make.
 
   If you are creating a OpenVMS specific makefile from scratch, you should also
   look at MMK (Madgoat Make) available at https://github.com/endlesssoftware/mmk
@@ -177,7 +177,7 @@ Recipe differences:
   Since the OpenVMS utilities generally expect OpenVMS format paths, you will
   usually have to use OpenVMS format paths for rules and targets.
   BUG: Relative OpenVMS paths may not work in targets, especially combined
-  with vpaths.  This is because GNU make will just concatenate the directories
+  with vpaths.  This is because GNU Make will just concatenate the directories
   as it does on Unix.
 
   The variables $^ and $@ separate files with commas instead of spaces.
@@ -211,9 +211,9 @@ foo: $(addsuffix .3,$(subs $(comma),$(space),$^)
   shows them as "environment override".  On POSIX the test scripts indicate
   that they should show up just as "environment".
 
-  When GNU make reads in a symbol or logical name into the environment, it
+  When GNU Make reads in a symbol or logical name into the environment, it
   converts any dollar signs found to double dollar signs for convenience in
-  using DCL symbols and logical names in recipes.  When GNU make exports a
+  using DCL symbols and logical names in recipes.  When GNU Make exports a
   DCL symbol for a child process, if the first dollar sign found is followed
   by second dollar sign, then all double dollar signs will be converted to
   single dollar signs.
@@ -284,7 +284,7 @@ Runtime issues:
 
   MAKE_FAILURE has a POSIX value of 2 and an OpenVMS status of %x1035a012.
 
-  Output from GNU make may have single quotes around some values where on
+  Output from GNU Make may have single quotes around some values where on
   other platforms it does not.  Also output that would be in double quotes
   on some platforms may show up as single quotes on VMS.
 
@@ -353,7 +353,7 @@ Unix compatibility features:
   A note on appending the redirected output.  A simple mechanism is
   implemented to make ">>" work in action lines. In OpenVMS there is no simple
   feature like ">>" to have DCL command or program output redirected and
-  appended to a file. GNU make for OpenVMS implements the redirection
+  appended to a file. GNU Make for OpenVMS implements the redirection
   of ">>" by using a command procedure.
 
   The current algorithm creates the output file if it does not exist and
@@ -409,7 +409,7 @@ Unimplemented functionality:
   The new feature "Loadable objects" is not yet supported. If you need it,
   please send a change request or submit a bug report.
 
-  The new option --output-sync (-O) is accepted but has no effect: GNU make
+  The new option --output-sync (-O) is accepted but has no effect: GNU Make
   for OpenVMS does not support running multiple commands simultaneously.
 
 
@@ -421,7 +421,7 @@ Self test failures and todos:
   Need to find a way to set the VMS features before running make as a
   child.
 
-  GNU make was not currently translating the OpenVMS encoded POSIX values
+  GNU Make was not currently translating the OpenVMS encoded POSIX values
   returned to it back to the POSIX values.  I have temporarily modified the
   Perl test script to compensate for it.  This should be being handled
   internally to Make.

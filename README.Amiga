@@ -1,11 +1,11 @@
-Short: Port of GNU make with SAS/C (no ixemul.library required)
+Short: Port of GNU Make with SAS/C (no ixemul.library required)
 Author: GNU, Amiga port by Aaron "Optimizer" Digulla
 Uploader: Aaron "Optimizer" Digulla (digulla@fh-konstanz.de)
 Type: dev/c
 
-This is a pure Amiga port of GNU make. It needs no extra libraries or
+This is a pure Amiga port of GNU Make. It needs no extra libraries or
 anything. It has the following features (in addition to any features of
-GNU make):
+GNU Make):
 
 - Runs Amiga-Commands with SystemTags() (Execute)
 - Can run multi-line statements
@@ -44,9 +44,9 @@ COMPILING FROM SCRATCH
 
 To recompile, you need SAS/C 6.51.
 
-As of GNU make 4.3, the build environment has been cleaned up and alternate
+As of GNU Make 4.3, the build environment has been cleaned up and alternate
 make files (including smakefiles) have been removed.  If you have an existing
-version of GNU make available you _should_ be able to run:
+version of GNU Make available you _should_ be able to run:
 
    make -f Basic.mk
 

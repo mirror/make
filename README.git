@@ -31,13 +31,13 @@ make source code via Git from the FSF's Savannah project
 Changes using Git
 -----------------
 
-If you do not have push privileges to the GNU make Git repository, see the
+If you do not have push privileges to the GNU Make Git repository, see the
 README file section "Submitting Patches" for information.
 
-If you have push privileges to the GNU make Git repository keep this
+If you have push privileges to the GNU Make Git repository keep this
 information in mind:
 
-Starting with GNU make 4.0 we no longer keep a separate ChangeLog file in
+Starting with GNU Make 4.0 we no longer keep a separate ChangeLog file in
 source control.  We use the Gnulib git-to-changelog conversion script to
 convert the Git comments into ChangeLog-style entries for release.  As a
 result, please format your Git comments carefully so they will look clean
@@ -70,12 +70,12 @@ available which helps a lot.
 Coding Standards
 ----------------
 
-GNU make code adheres to the GNU Coding Standards.  Please use only spaces and
+GNU Make code adheres to the GNU Coding Standards.  Please use only spaces and
 no TAB characters in source code.
 
-Additionally, GNU make is a foundational bootstrap package for the GNU
+Additionally, GNU Make is a foundational bootstrap package for the GNU
 project; as such it is conservative about language features it expects.
-However, GNU make does rely on the Gnulib portability library, and Gnulib
+However, GNU Make does rely on the Gnulib portability library, and Gnulib
 currently requires a ISO C99 compiler.  So features in ISO C99 can be
 assumed.
 
@@ -83,7 +83,7 @@ assumed.
 Building From Git for POSIX
 ---------------------------
 
-To build GNU make from Git on POSIX systems such as GNU/Linux, you will
+To build GNU Make from Git on POSIX systems such as GNU/Linux, you will
 need to install the following extra software:
 
 * autoconf >= 2.69
@@ -93,7 +93,7 @@ need to install the following extra software:
 * pkg-config
 * texinfo (for makeinfo)
 * GCC
-* GNU make (POSIX make is not sufficient)
+* GNU Make (POSIX make is not sufficient)
 
 And any tools that those utilities require (GNU m4, etc.)
 
@@ -101,7 +101,7 @@ To run the tests you must install Perl.
 
 To build a release you'll need to install lzip.
 
-GNU make requires Gnulib to provide some facilities.  If you want to maintain
+GNU Make requires Gnulib to provide some facilities.  If you want to maintain
 a local installation of gnulib you can set GNULIB_SRCDIR to point to it.
 Otherwise, ./bootstrap will obtain a clone for you.
 
@@ -141,9 +141,9 @@ That is, you can just run:
   $ ./configure
   $ make check
 
-to build and test GNU make.
+to build and test GNU Make.
 
-NOTE! This method builds GNU make in "maintainer mode".  Make programs built
+NOTE! This method builds GNU Make in "maintainer mode".  Make programs built
       in this mode it will be slower, possibly MUCH slower: there are various
       sanity checks enabled.  Further this mode assumes a modern GCC, GNU
       libc, and well-formed system headers and enables a high level of
@@ -174,7 +174,7 @@ script to "prime" your Git workspace:
 
 Next, follow the instructions in the README.W32 file.
 
-Note, neither of these methods are tested regularly by the GNU make
+Note, neither of these methods are tested regularly by the GNU Make
 maintainers.  Building for Windows from a distribution tarball IS tested
 regularly.
 
@@ -213,7 +213,7 @@ Creating a Package
 ------------------
 
 Once you have performed the above steps (including the configuration and
-build) you can create a GNU make package.  This is very simple, just
+build) you can create a GNU Make package.  This is very simple, just
 run:
 
   $ make dist-gzip
@@ -250,19 +250,19 @@ consistent (that's why we don't finalize the Git tag, etc. until the end).
     "Fixed Release" ID number.
   * Run "make distcheck" to be sure it all works.
   * Run "make check-alt-config" to be sure alternative configurations work
-  * Run "make update-makeweb" to get a copy of the GNU make web pages
+  * Run "make update-makeweb" to get a copy of the GNU Make web pages
   * Run "make update-gnuweb" to get a copy of the GNU website boilerplate pages
   * Update the web page boilerplate if necessary:
       ../gnu-www/www/server/standards/patch-from-parent ../make-web/make.html \
             ../gnu-www/www/server/standards/boilerplate.html
   * Run "make gendocs" (requires gnulib) to generate the manual files for
-    the GNU make web pages.
+    the GNU Make web pages.
   * Follow the directions from gendocs for the web page repository
   * run "make tag-release" to create a Git tag for the release
   * Push everything:
     git push --tags origin master
 
-Manage the Savannah project for GNU make:
+Manage the Savannah project for GNU Make:
 
   >>> This is only for real releases, not release candidate builds <<<
 
@@ -276,7 +276,7 @@ Manage the Savannah project for GNU make:
       - Rank:  20
       - Descr: Issues found in code retrieved from Source Code Management (Git), rather than a distributed version. Please include the SHA you are working with.
 
-      - Descr: Fixed in Source Code Management (Git). The fix will be included in the next release of GNU make.
+      - Descr: Fixed in Source Code Management (Git). The fix will be included in the next release of GNU Make.
 
 Start the next release:
 
@@ -349,7 +349,7 @@ Appendix A - For The Brave
 --------------------------
 
 For those of you who trust me implicitly, or are just brave (or
-foolhardy), here is a canned sequence of commands to build a GNU make
+foolhardy), here is a canned sequence of commands to build a GNU Make
 distribution package from a virgin Git source checkout (assuming all the
 prerequisites are available of course).
 
