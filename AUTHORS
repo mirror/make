@@ -1,14 +1,16 @@
 -----------------------------------
 
-GNU make development up to version 3.75 by:
-    Roland McGrath <roland@gnu.org>
-
-
-Development starting with GNU make 3.76 by:
+GNU Make development starting with GNU Make 3.76 by:
     Paul D. Smith <psmith@gnu.org>
 
-    Additional development starting with GNU make 3.81 by:
+    Additional development starting with GNU Make 4.3 by:
+        Dmitry Goncharov <dgoncharov@users.sf.net>
+
+    Additional development starting with GNU Make 3.81 by:
         Boris Kolpackov <boris@kolpackov.net>
+
+GNU Make development up to version 3.75 by:
+    Roland McGrath <roland@gnu.org>
 
 GNU Make User's Manual
   Written by:
@@ -21,7 +23,7 @@ GNU Make User's Manual
     Paul D. Smith <psmith@gnu.org>
 
 -----------------------------------
-GNU make porting efforts:
+GNU Make porting efforts:
 
   Port to VMS by:
       Klaus Kaempf <kkaempf@progis.de>
@@ -44,6 +46,7 @@ GNU make porting efforts:
       Andreas Beuning <andreas.buening@nexgo.de>
       Earnie Boyd <earnie@uses.sf.net>
       Troy Runkel <Troy.Runkel@mathworks.com>
+      Juan M. Guerrero <juan.guerrero@gmx.de>
 
 -----------------------------------
 Other contributors:
@@ -63,7 +66,7 @@ Other contributors:
   Paul Eggert <eggert@twinsun.com>
   Mike Frysinger <vapier@gentoo.org>
   Ramon Garcia Fernandez <ramon.garcia.f@gmail.com>
-  Dmitry Goncharov <dgoncharov@users.sf.net>
+  Noah Goldstein <goldstein.w.n@gmail.com>
   Mike Haboustak <haboustak@gmail.com>
   Frank Heckenbach <f.heckenbach@fh-soft.de>
   Klaus Heinz <kamar@ease.rhein-main.de>
@@ -85,7 +88,7 @@ Other contributors:
   Thomas Riedl <thomas.riedl@siemens.com>
   Jaak Ristioja <jaak@ristioja.ee>
   Christoph Schulz <develop@kristov.de>
-  Andreas Schwab <schwab@issan.informatik.uni-dortmund.de>
+  Andreas Schwab <schwab@suse.de>
   spagoveanu <spagoveanu@gmail.com>
   Carl Staelin (Princeton University)
   Ian Stewartson (Data Logic Limited)
