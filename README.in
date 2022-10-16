@@ -1,4 +1,4 @@
-This directory contains the %VERSION% release of GNU Make.
+This directory contains the @PACKAGE_VERSION@ release of @PACKAGE_NAME@.
 
 See the file NEWS for the user-visible changes from previous releases.
 In addition, there have been bugs fixed.
@@ -6,7 +6,7 @@ In addition, there have been bugs fixed.
 Please check the system-specific notes below for any caveats related to your
 operating system.
 
-If you are trying to build GNU make from a Git clone rather than a downloaded
+If you are trying to build GNU Make from a Git clone rather than a downloaded
 source distribution, see the README.git file for instructions.
 
 For source distribution building and installation instructions, see the file
@@ -15,12 +15,12 @@ INSTALL.
 If you need to build GNU Make and have no other 'make' program to use, you can
 use the shell script 'build.sh' instead.  To do this, first run 'configure' as
 described in INSTALL.  Then, instead of typing 'make' to build the program,
-type 'sh build.sh'.  This should compile the program in the current directory.
-Then you will have a Make program that you can use for './make install', or
+type 'sh build.sh'.  This will compile the program in the current directory.
+Then you will have a 'make' program that you can use for './make install', or
 whatever else.
 
-Some systems' Make programs cannot process the Makefile for GNU Make.  If you
-get errors from your system's Make when building GNU Make, try using
+Some systems' 'make' programs cannot process the Makefile for GNU Make.
+If you get errors from your system's 'make' when building GNU Make, try using
 'build.sh' instead.
 
 
@@ -40,10 +40,10 @@ GNU Make can be obtained in many different ways.  See a description here:
 Documentation
 -------------
 
-GNU make is fully documented in the GNU Make manual, which is contained
-in this distribution as the file make.texinfo.  You can also find
-on-line and preformatted (PostScript and DVI) versions at the FSF's web
-site.  There is information there about ordering hardcopy documentation.
+GNU Make is fully documented in the GNU Make manual, which is contained in
+this distribution as the file make.texi.  You can also find on-line and
+preformatted (PostScript and DVI) versions at the FSF's web site.  There is
+information there about ordering hardcopy documentation.
 
   https://www.gnu.org/
   https://www.gnu.org/doc/doc.html
@@ -69,27 +69,27 @@ this site.
 Bug Reporting
 -------------
 
-You can send GNU make bug reports to <bug-make@gnu.org>.  Please see the
-section of the GNU make manual entitled 'Problems and Bugs' for
-information on submitting useful and complete bug reports.
+If you need help using GNU Make, try asking on <help-make@gnu.org>.
+
+If you found a bug, you can send a bug reports to <bug-make@gnu.org>.
+Please see the section of the GNU Make manual entitled 'Problems and Bugs'
+for information on submitting useful and complete bug reports.
+
+You do not need to subscribe to these lists first.
 
 You can also use the online bug tracking system in the Savannah GNU Make
 project to submit new problem reports or search for existing ones:
 
   https://savannah.gnu.org/bugs/?group=make
 
-If you need help using GNU make, try these forums:
-
-  help-make@gnu.org
-  help-utils@gnu.org
-  news:gnu.utils.help
-  news:gnu.utils.bug
+We prefer to use the bug tracking system ONLY for bugs or enhancements,
+not for help requests: please use the mailing lists to get help.
 
 
 Submitting Patches
 ------------------
 
-If you'd like to propose a change to GNU make, you can provide a patch with
+If you'd like to propose a change to GNU Make, you can provide a patch with
 your changes.  If you are making your changes in a Git workspace you can run
 "git format-patch" to create a patch file.  If not, you can use the diff(1)
 utility to create a patch file; please use "diff -u".
@@ -102,24 +102,23 @@ Once you have a patch you can submit it in any of these ways:
   * Send the patch via email to <bug-make@gnu.org>: be sure to add it as an
     attachment to avoid interference by email processors.
 
-Be aware that all non-trivial changes proposed for GNU make require FSF
-copyright paperwork to be completed before they can be accepted.  Contact
-<bug-make@gnu.org> for help.
+All non-trivial changes require FSF copyright paperwork to be completed
+before they can be accepted.  Contact <bug-make@gnu.org> for help.
 
 
 Git Access
 ----------
 
-The GNU make source repository is available via Git from the GNU Savannah Git
+The GNU Make source repository is available via Git from the GNU Savannah Git
 server; look here for details:
 
   https://savannah.gnu.org/git/?group=make
 
-Please note: you won't be able to build GNU make from Git without installing
+Please note: you won't be able to build GNU Make from Git without installing
 appropriate maintainer's tools, such as GNU m4, automake, autoconf, Perl, GNU
 make, and GCC.
 
-See the README.git file for instructions on how to build GNU make once these
+See the README.git file for instructions on how to build GNU Make once these
 tools are available.  We make no guarantees about the contents or quality of
 the latest code in the Git repository: it is not unheard of for code that is
 known to be broken to be checked in.  Use at your own risk.
@@ -133,7 +132,7 @@ that if you compile make with 'cc -O' on AIX 3.2, it will not work
 correctly.  It is said that using 'cc' without '-O' does work.
 
 The standard /bin/sh on SunOS 4.1.3_U1 and 4.1.4 is broken and cannot be
-used to configure GNU make.  Please install a different shell such as
+used to configure GNU Make.  Please install a different shell such as
 bash or pdksh in order to run "configure".  See this message for more
 information:
   https://mail.gnu.org/archive/html/bug-autoconf/2003-10/msg00190.html
@@ -142,7 +141,7 @@ One area that is often a problem in configuration and porting is the code
 to check the system's current load average.  To make it easier to test and
 debug this code, you can do 'make check-loadavg' to see if it works
 properly on your system.  (You must run 'configure' beforehand, but you
-need not build Make itself to run this test.)
+need not build 'make' itself to run this test.)
 
 Another potential source of porting problems is the support for large
 files (LFS) in configure for those operating systems that provide it.
@@ -151,7 +150,7 @@ difficulties, then as a workaround you should be able to disable LFS by
 adding the '--disable-largefile' option to the 'configure' script.
 
 On systems that support micro- and nano-second timestamp values and
-where stat(2) provides this information, GNU make will use it when
+where stat(2) provides this information, GNU Make will use it when
 comparing timestamps to get the most accurate possible result.  However,
 note that many current implementations of tools that *set* timestamps do
 not preserve micro- or nano-second granularity.  This means that "cp -p"
@@ -165,7 +164,7 @@ force make to treat them properly.  See the manual for details.
 Ports
 -----
 
-  - See README.customs for details on integrating GNU make with the
+  - See README.customs for details on integrating GNU Make with the
     Customs distributed build environment from the Pmake distribution.
 
   - See README.VMS for details about GNU Make on OpenVMS.
@@ -181,12 +180,12 @@ Ports
     of DJGPP; see the WWW page https://www.delorie.com/djgpp/ for more
     information.
 
-    The Cygwin project maintains its own port of GNU make.  That port may have
+    The Cygwin project maintains its own port of GNU Make.  That port may have
     patches which are not present in this version.  If you are using Cygwin
-    you should use their version of GNU make, and if you have questions about
+    you should use their version of GNU Make, and if you have questions about
     it you should start by asking on those mailing lists and forums.
 
-Please note there are two _separate_ ports of GNU make for Microsoft
+Please note there are two _separate_ ports of GNU Make for Microsoft
 systems: a native Windows tool built with (for example) MSVC or Cygwin,
 and a DOS-based tool built with DJGPP.  Please be sure you are looking
 at the right README!

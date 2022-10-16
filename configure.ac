@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT([GNU make],[4.3.91],[bug-make@gnu.org])
+AC_INIT([GNU Make],[4.3.91],[bug-make@gnu.org])
 
 AC_PREREQ([2.69])
 
@@ -509,8 +509,8 @@ AM_CONDITIONAL([KNOWN_PREFIX],
                      -o "x$prefix" = x/usr/gnu -o "x$prefix" = x/usr])
 
 # Specify what files are to be created.
-AC_CONFIG_FILES([Makefile build.cfg lib/Makefile po/Makefile.in doc/Makefile \
-                 tests/config-flags.pm])
+AC_CONFIG_FILES([build.cfg tests/config-flags.pm \
+                 Makefile lib/Makefile doc/Makefile po/Makefile.in])
 # We don't need this: the standard automake output suffices for POSIX systems.
 #mk/Posix.mk
 

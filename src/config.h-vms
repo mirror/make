@@ -15,8 +15,7 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* config.h.  Generated automatically by configure.  */
-/* config.h.in.  Generated automatically from configure.ac by autoheader.  */
+#include "mkconfig.h"
 
 /* Pull in types.h here to get __CRTL_VER defined for old versions of the
    compiler which don't define it. */
@@ -205,24 +204,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define for Encore UMAX 4.3 that has <inq_status/cpustats.h>
    instead of <sys/cpustats.h>.  */
 /* #undef UMAX4_3 */
-
-/* Name of this package (needed by automake) */
-#define PACKAGE "%PACKAGE%"
-
-/* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "bug-make@gnu.org"
-
-/* Define to the full name of this package. */
-#define PACKAGE_NAME "GNU make"
-
-/* Define to the home page for this package. */
-#define PACKAGE_URL "https://www.gnu.org/software/make/"
-
-/* Define to the version of this package. */
-#define PACKAGE_VERSION "%VERSION%"
-
-/* Version of this package (needed by automake) */
-#define VERSION "%VERSION%"
 
 /* Define to the name of the SCCS 'get' command.  */
 /* #undef SCCS_GET */

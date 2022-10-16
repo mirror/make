@@ -163,17 +163,16 @@ NOTE! This method builds GNU make in "maintainer mode".  Make programs built
 Building From Git for Windows
 -----------------------------
 
-If you have a UNIX emulation like CYGWIN you can opt to run the general
-build procedure above; it will work.  Consult README.W32.template for
-information on options you might want to use when running ./configure.
+If you have a UNIX emulation like CYGWIN you can opt to run the general build
+procedure above; it will work.  Consult README.W32 for information on options
+you might want to use when running ./configure.
 
 If you can't or don't want to do that, then first run the .\bootstrap.bat
-script to prime your Git workspace:
+script to "prime" your Git workspace:
 
   > .\bootstrap.bat
 
-Next, rename the file README.W32.template to README.W32 and follow those
-instructions.
+Next, follow the instructions in the README.W32 file.
 
 Note, neither of these methods are tested regularly by the GNU make
 maintainers.  Building for Windows from a distribution tarball IS tested

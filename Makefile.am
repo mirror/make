@@ -112,7 +112,7 @@ test_FILES =	tests/run_make_tests tests/run_make_tests.bat \
 # test/scripts are added via dist-hook below.
 
 EXTRA_DIST =	ChangeLog INSTALL README build.sh build.cfg.in $(man_MANS) \
-		README.customs README.OS2 \
+		src/mkconfig.h README.customs README.OS2 \
 		README.Amiga SCOPTIONS src/config.ami \
 		README.DOS builddos.bat src/configh.dos \
 		README.W32 build_w32.bat src/config.h.W32 \
@@ -144,7 +144,7 @@ dist-hook:
 # --------------- Local CHECK Section
 
 check-local: check-regression
-	@banner=" Regression PASSED: GNU Make $(VERSION) ($(MAKE_HOST)) built with $(CC) "; \
+	@banner=" Regression PASSED: $(PACKAGE_STRING) ($(MAKE_HOST)) built with $(CC) "; \
 	dashes=`echo "$$banner" | sed s/./=/g`; \
 	echo; \
 	echo "$$dashes"; \
@@ -182,7 +182,7 @@ check-regression: tests/config-flags.pm
 	    echo "Can't find a working Perl ($(PERL)); the test suite requires Perl."; \
 	  fi; \
 	else \
-	  echo "Can't find the GNU Make test suite ($(top_srcdir)/tests)."; \
+	  echo "Can't find the $(PACKAGE_NAME) test suite ($(top_srcdir)/tests)."; \
 	fi
 
 

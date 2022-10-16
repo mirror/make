@@ -93,5 +93,5 @@ define CLEANSPACE
 endef
 
 
-$(OUTDIR)$(src)config.h: $(SRCDIR)$(src)config.h.W32
+$(OUTDIR)$(src)config.h: $(SRCDIR)$(src)config.h-vms
 	$(call CP.cmd,$<,$@)

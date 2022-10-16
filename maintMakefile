@@ -43,31 +43,28 @@ GUILE_CFLAGS := $(patsubst -I%,-isystem %,$(GUILE_CFLAGS))
 MAKE_MAINTAINER_MODE := -DMAKE_MAINTAINER_MODE
 AM_CPPFLAGS += $(MAKE_MAINTAINER_MODE)
 
-TEMPLATES = README README.DOS README.W32 README.OS2 \
-	    src/config.ami src/configh.dos src/config.h.W32 src/config.h-vms
-
-all: $(TEMPLATES)
-
 # Create preprocessor output files--GCC specific!
 %.i : %.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) -E -dD -o $@ $<
 
-# General rule for turning a .template into a regular file.
-#
-$(TEMPLATES) : % : %.template Makefile
-	rm -f $@
-	sed -e 's@%VERSION%@$(VERSION)@g' \
-	    -e 's@%PACKAGE%@$(PACKAGE)@g' \
-	  $< > $@
-	chmod a-w $@
+# Create the mkconfig.h file for non-POSIX config headers
+
+all: src/mkconfig.h
+src/mkconfig.h: src/mkconfig.h.in config.status
+	./config.status --header=$@
+
+# Build the README
+
+all: README
+README : README.in config.status
+	./config.status --file=$@
 
 # Construct Makefiles by adding on dependencies, etc.
 #
 cvt = $(patsubst $1/%,$$($1)%,$(filter %.c,$2))
 Basic.mk: Basic.mk.template .dep_segment Makefile
 	rm -f $@
-	sed -e 's@%VERSION%@$(VERSION)@g' \
-	    -e 's@%make_SOURCES%@$(call cvt,src,$(make_SRCS))@g' \
+	sed -e 's@%make_SOURCES%@$(call cvt,src,$(make_SRCS))@g' \
 	    -e 's@%w32_SOURCES%@$(call cvt,src,$(w32_SRCS))@g' \
 	    -e 's@%vms_SOURCES%@$(call cvt,src,$(vms_SRCS))@g' \
 	    -e 's@%amiga_SOURCES%@$(call cvt,src,$(amiga_SRCS))@g' \
@@ -76,6 +73,7 @@ Basic.mk: Basic.mk.template .dep_segment Makefile
 	    -e 's@%glob_SOURCES%@$(call cvt,lib,$(glob_SRCS))@g' \
 	  $< > $@
 	echo >>$@; echo '# --------------- DEPENDENCIES' >>$@; echo '#' >>$@; \
+	echo >>$@; echo '$$(OBJECTS): $$(SRCDIR)/src/mkconfig.h' >>$@; \
 	sed -e 's@^\([^ ]*\)\.o:@$$(OUTDIR)\1.$$(OBJEXT):@' \
 	    -e 's@\([^ ]*\.[ch]\)@$$(SRCDIR)/\1@g' \
 	    -e 's@$$(SRCDIR)/src/config.h@$$(OUTDIR)src/config.h@g' \
@@ -176,7 +174,7 @@ po_sync = translationproject.org::tp/latest/$(PACKAGE)/
 
 .PHONY: do-po-update po-update
 do-po-update:
-	tmppo="/tmp/po-$(PACKAGE)-$(VERSION).$$$$" \
+	tmppo="/tmp/po-$(PACKAGE)-$(PACKAGE_VERSION).$$$$" \
 	  && rm -rf "$$tmppo" \
 	  && mkdir "$$tmppo" \
 	  && $(RSYNC) $(po_sync)  "$$tmppo" \
@@ -238,7 +236,7 @@ export TAR_OPTIONS := --mode=u+w,go-w --owner=0 --group=0 --numeric-owner --sort
 # When I released 4.3 somehow the INSTALL file was missing.
 # When I tried to build it again, it was there.  I have no idea what happened
 # but add a new check to be sure it doesn't happen again.
-mk_dist_files = AUTHORS ChangeLog COPYING INSTALL README
+mk_dist_files = AUTHORS ChangeLog COPYING INSTALL README src/mkconfig.h
 
 dist: mk-distcheck
 
@@ -363,10 +361,10 @@ local-check: po-check changelog-check
 # copyright-check writable-files
 
 changelog-check:
-	if head $(top_srcdir)/ChangeLog | grep 'Version $(VERSION)' >/dev/null; then \
+	if head $(top_srcdir)/ChangeLog | grep 'Version $(PACKAGE_VERSION)' >/dev/null; then \
 	  :; \
 	else \
-	  echo "$(VERSION) not in ChangeLog" 1>&2; \
+	  echo "$(PACKAGE_VERSION) not in ChangeLog" 1>&2; \
 	  exit 1; \
 	fi
 
@@ -413,7 +411,7 @@ gendocs: update-gnuweb update-makeweb
 	cd doc \
 	  && rm -rf doc/manual \
 	  && $(GNULIBDIR)/build-aux/gendocs.sh --email '$(BUGLIST)' \
-		make 'GNU Make Manual'
+		make '$(PACKAGE_NAME) Manual'
 	find '$(MAKEWEBDIR)'/manual \( -name CVS -prune \) -o \( -name '[!.]*' -type f -exec rm -f '{}' \; \)
 	cp -r doc/manual '$(MAKEWEBDIR)'
 	@echo 'Status of $(MAKEWEBDIR) repo:' && cd '$(MAKEWEBDIR)' \
@@ -421,7 +419,7 @@ gendocs: update-gnuweb update-makeweb
 	@echo '- cvs add <new files>' \
 	    && echo '- cvs remove <deleted files>' \
 	    && echo '- cvs commit' \
-	    && echo '- cvs tag make-$(subst .,-,$(VERSION))'
+	    && echo '- cvs tag make-$(subst .,-,$(PACKAGE_VERSION))'
 
 
 ## --------------------------------------------- ##
@@ -459,15 +457,15 @@ $(COV_BUILD_FILE)-submitted: $(COV_BUILD_FILE)
 	@test -n "$(COVERITY_TOKEN)" || { echo 'COVERITY_TOKEN not set'; exit 1; }
 	@test -n "$(COVERITY_EMAIL)" || { echo 'COVERITY_EMAIL not set'; exit 1; }
 	rm -f '$@'
-	case '$(VERSION)' in \
+	case '$(PACKAGE_VERSION)' in \
 	    (*.*.9*) type="daily build"; ext=".$$(date +%Y%m%d)" ;; \
 	    (*)      type="release"; ext= ;; \
 	esac; \
 	curl --form token='$(COVERITY_TOKEN)' \
 	     --form email='$(COVERITY_EMAIL)' \
 	     --form file='@$<' \
-	     --form version="$(VERSION)$$ext" \
-	     --form description="GNU make $$type" \
+	     --form version="$(PACKAGE_VERSION)$$ext" \
+	     --form description="$(PACKAGE_NAME) $$type" \
 	     'https://scan.coverity.com/builds?project=gmake'
 	cp '$<' '$@'
 
@@ -478,11 +476,11 @@ $(COV_BUILD_FILE)-submitted: $(COV_BUILD_FILE)
 
 .PHONY: tag-release
 tag-release:
-	case '$(VERSION)' in \
+	case '$(PACKAGE_VERSION)' in \
 	    (*.*.9*) message=" candidate" ;; \
 	    (*)      message= ;; \
 	esac; \
-	$(GIT) tag -m "GNU Make release$$message $(VERSION)" -u '$(GPG_KEYID)' '$(VERSION)'
+	$(GIT) tag -m "$(PACKAGE_NAME) release$$message $(PACKAGE_VERSION)" -u '$(GPG_KEYID)' '$(PACKAGE_VERSION)'
 
 
 ## ------------------------- ##
@@ -513,7 +511,7 @@ distsign: $(DIST_ARCHIVES_SIG) $(DIST_ARCHIVES_DIRECTIVE)
 	   echo 'version: 1.2'; \
 	   echo 'directory: make'; \
 	   echo 'filename: $*'; \
-	   echo 'comment: Official upload of GNU make version $(VERSION)'; \
+	   echo 'comment: Official upload of $(PACKAGE_NAME) version $(PACKAGE_VERSION)'; \
 	 ) > "$*.directive"
 	$(GPG) $(GPGFLAGS) -o "$@" --clearsign "$*.directive"
 	@rm -f "$*.directive"

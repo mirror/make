@@ -14,6 +14,8 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#include "mkconfig.h"
+
 /* Define if on AIX 3.
    System headers sometimes define this.
    We just want to avoid a redefinition error message.  */
@@ -165,12 +167,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define for Encore UMAX 4.3 that has <inq_status/cpustats.h>
    instead of <sys/cpustats.h>.  */
 /* #undef UMAX4_3 */
-
-/* Name of this package (needed by automake) */
-#define PACKAGE "%PACKAGE%"
-
-/* Version of this package (needed by automake) */
-#define VERSION "%VERSION%"
 
 /* Define to the name of the SCCS 'get' command.  */
 #define SCCS_GET "get"

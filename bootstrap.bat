@@ -47,23 +47,30 @@ copy /Y gl\lib\*.* lib > nul
 
 :: Create a sed script to convert templates
 if exist convert.sed del /Q convert.sed
-echo s,%%PACKAGE%%,make,g > convert.sed
+echo s,@PACKAGE@,make,g > convert.sed
 if ERRORLEVEL 1 goto Failed
-sed -n "s/^AC_INIT(\[GNU.make\],\[\([0-9.]*\)\].*/s,%%VERSION%%,\1,g/p" configure.ac >> convert.sed
+echo s,@PACKAGE_BUGREPORT@,bug-make@gnu.org,g >> convert.sed
+if ERRORLEVEL 1 goto Failed
+echo s,@PACKAGE_NAME@,GNU Make,g >> convert.sed
+if ERRORLEVEL 1 goto Failed
+echo s,@PACKAGE_TARNAME@,make,g >> convert.sed
+if ERRORLEVEL 1 goto Failed
+echo s,@PACKAGE_URL@,https://www.gnu.org/software/make/,g >> convert.sed
+sed -n "s/^AC_INIT(\[GNU.Make\],\[\([0-9.]*\)\].*/s,@PACKAGE_VERSION@,\1,g/p" configure.ac >> convert.sed
 if ERRORLEVEL 1 goto Failed
 sed -z -e s/\\\n//g -e "s/[ \t][ \t]*/ /g" -e "s, [^ ]*\.h,,g" -e "s,src/,$(src),g" -e "s,lib/,$(lib),g" Makefile.am | sed -n "s/^\([A-Za-z0-9]*\)_SRCS *= *\(.*\)/s,%%\1_SOURCES%%,\2,/p" >> convert.sed
 if ERRORLEVEL 1 goto Failed
 
 echo - Creating Basic.mk
-call sed -f convert.sed Basic.mk.template > Basic.mk
+sed -f convert.sed Basic.mk.template > Basic.mk
 if ERRORLEVEL 1 goto Failed
-echo - Creating src\config.h.W32
-call sed -f convert.sed src\config.h.W32.template > src\config.h.W32
+echo - Creating src\mkconfig.h
+sed -f convert.sed src\mkconfig.h.in > src\mkconfig.h
 if ERRORLEVEL 1 goto Failed
 
 echo - Creating src\gmk-default.h
 echo static const char *const GUILE_module_defn = ^" \ > src\gmk-default.h
-call sed -e "s/;.*//" -e "/^[ \t]*$/d" -e "s/\"/\\\\\"/g" -e "s/$/ \\\/" src\gmk-default.scm >> src\gmk-default.h
+sed -e "s/;.*//" -e "/^[ \t]*$/d" -e "s/\"/\\\\\"/g" -e "s/$/ \\\/" src\gmk-default.scm >> src\gmk-default.h
 if ERRORLEVEL 1 goto Failed
 echo ^";>> src\gmk-default.h
 

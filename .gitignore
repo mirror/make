@@ -34,7 +34,7 @@ config.log
 config.status
 configure
 /mk/Posix.mk
-stamp-h1
+stamp-*
 .dirstamp
 gnulib
 convert.sed
@@ -65,14 +65,8 @@ GccRel/
 .check-git-HEAD
 ChangeLog
 README
-README.DOS
-README.OS2
-README.W32
 build.cfg
-config.ami
-config.h-vms
-config.h.W32
-configh.dos
+mkconfig.h
 make-[0-9]*/
 make-[0-9]*.tar.*
 checkcfg.*.log

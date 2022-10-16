@@ -15,6 +15,8 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#include "mkconfig.h"
+
 /* Include this header to make __DJGPP_MINOR__ available because DJGPP ports
    of GCC 4.3.0 and later no longer do it automatically.  */
 #include <sys/version.h>
@@ -81,29 +83,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `strtoll' function. */
 #define HAVE_STRTOLL 1
 
-/* Name of the package */
-#define PACKAGE "%PACKAGE%"
-
-/* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "bug-%PACKAGE%@gnu.org"
-
-/* Define to the full name of this package. */
-#define PACKAGE_NAME "GNU %PACKAGE%"
-
-/* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GNU %PACKAGE% %VERSION%"
-
-/* Define to the one symbol short name of this package. */
-#define PACKAGE_TARNAME "%PACKAGE%"
-
-/* Define to the version of this package. */
-#define PACKAGE_VERSION "%VERSION%"
-
 /* Output sync support */
 #define NO_OUTPUT_SYNC 1
-
-/* Version number of package */
-#define VERSION "%VERSION%"
 
 /* Build host information. */
 #define MAKE_HOST "i386-pc-msdosdjgpp"

@@ -39,7 +39,6 @@ w32_SOURCES = %w32_SOURCES%
 vms_SOURCES = %vms_SOURCES%
 amiga_SOURCES = %amiga_SOURCES%
 
-posix_SOURCES = $(src)posixos.c
 remote_SOURCES = $(src)remote-stub.c
 
 OUTDIR =
@@ -104,9 +103,7 @@ CP.cmd = cp $1 $2
 CLEANSPACE = $(call RM.cmd,$(OBJECTS) $(PROG) $(BUILT_SOURCES))
 
 # Load overrides for the above variables.
-include $(firstword $(wildcard $(SRCDIR)/mk/$(lastword $(subst -, ,$(MAKE_HOST)).mk) $(OUTDIR)mk/Posix.mk $(SRCDIR)/mk/Posix.mk))
-
-VERSION = %VERSION%
+include $(firstword $(wildcard $(SRCDIR)/mk/$(lastword $(subst -, ,$(MAKE_HOST)).mk)))
 
 VPATH = $(SRCDIR)
 

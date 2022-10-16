@@ -20,7 +20,7 @@
 
 # Very little is needed here since the default Basic.mk assumes POSIX
 
-prog_SOURCES += $(posix_SOURCES)
+prog_SOURCES += $(src)/posixos.c
 
 extra_CPPFLAGS += @GUILE_CFLAGS@
 extra_LDFLAGS += @AM_LDFLAGS@
