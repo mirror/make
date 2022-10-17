@@ -17,6 +17,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "mkconfig.h"
 
+#define MK_W32 1
+
+/* Build for the WINDOWS32 API. */
+#define WINDOWS32 1
+
 /* Suppress some Visual C++ warnings.
    Maybe after the code cleanup for ISO C we can remove some/all of these.  */
 #if _MSC_VER > 1000
@@ -106,7 +111,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define HAVE_DIRECT_H 1
 #endif
 
-/* Use platform specific coding */
+/* Support DOS-style pathnames. */
 #define HAVE_DOS_PATHS 1
 
 /* Define to 1 if you have the 'dup' function. */

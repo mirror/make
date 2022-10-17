@@ -3480,7 +3480,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
 
 #ifdef WINDOWS32
     /* Some shells do not work well when invoked as 'sh -c xxx' to run a
-       command line (e.g. Cygnus GNUWIN32 sh.exe on WIN32 systems).  In these
+       command line (e.g. Cygnus GNUWIN32 sh.exe on W32 systems).  In these
        cases, run commands via a script file.  */
     if (just_print_flag && !(flags & COMMANDS_RECURSE))
       {

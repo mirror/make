@@ -17,6 +17,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "mkconfig.h"
 
+#define MK_DJGPP 1
+
 /* Include this header to make __DJGPP_MINOR__ available because DJGPP ports
    of GCC 4.3.0 and later no longer do it automatically.  */
 #include <sys/version.h>

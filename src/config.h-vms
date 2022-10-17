@@ -17,6 +17,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "mkconfig.h"
 
+#define MK_VMS 1
+
 /* Pull in types.h here to get __CRTL_VER defined for old versions of the
    compiler which don't define it. */
 #ifdef __DECC

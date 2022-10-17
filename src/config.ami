@@ -16,6 +16,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "mkconfig.h"
 
+#define MK_AMIGAOS 1
+
 /* Define if on AIX 3.
    System headers sometimes define this.
    We just want to avoid a redefinition error message.  */

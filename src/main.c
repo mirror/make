@@ -989,7 +989,7 @@ handle_runtime_exceptions (struct _EXCEPTION_POINTERS *exinfo)
 }
 
 /*
- * On WIN32 systems we don't have the luxury of a /bin directory that
+ * On W32 systems we don't have the luxury of a /bin directory that
  * is mapped globally to every drive mounted to the system. Since make could
  * be invoked from any drive, and we don't want to propagate /bin/sh
  * to every single drive. Allow ourselves a chance to search for

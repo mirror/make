@@ -15,7 +15,7 @@ open(MAKEFILE,"> makefile");
 print MAKEFILE "SECOND: ; \@echo It chose makefile\n";
 close(MAKEFILE);
 
-# DOS/WIN32/MacOSX platforms are case-insensitive / case-preserving, so
+# DOS/W32/MacOSX platforms are case-insensitive / case-preserving, so
 # Makefile is the same file as makefile.  Just test what we can here.
 
 my $case_sensitive = 0;
