@@ -14,7 +14,7 @@
 # details.
 #
 # You should have received a copy of the GNU General Public License along with
-# this program.  If not, see <http://www.gnu.org/licenses/>.
+# this program.  If not, see <https://www.gnu.org/licenses/>.
 
 AC_INIT([GNU Make],[4.3.91],[bug-make@gnu.org])
 
@@ -31,7 +31,7 @@ AC_CONFIG_LIBOBJ_DIR([lib])
 # We have to enable "foreign" because ChangeLog is auto-generated
 # Automake 1.15 and gnulib don't get along: gnulib has some strange error
 # in the way it handles getloadavg.c which causes make distcheck to fail.
-# http://lists.gnu.org/archive/html/bug-gnulib/2018-06/msg00024.html
+# https://lists.gnu.org/archive/html/bug-gnulib/2018-06/msg00024.html
 AM_INIT_AUTOMAKE([1.16.1 foreign -Werror -Wall])
 
 # Checks for programs.

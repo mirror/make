@@ -18,7 +18,7 @@ $! FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
 $! details.
 $!
 $! You should have received a copy of the GNU General Public License along with
-$! this program.  If not, see <http://www.gnu.org/licenses/>.
+$! this program.  If not, see <https://www.gnu.org/licenses/>.
 $!
 $!
 $! Allow more than 8 paramters with using commas as a delimiter.
@@ -221,14 +221,14 @@ implemented, such as valgrind or specifying the make path or source path.
 
 Running the wrapper script requires:
   Perl 5.18 or later.
-  PCSI kits available from http://sourceforge.net/projects/vmsperlkit/files/
+  PCSI kits available from https://sourceforge.net/projects/vmsperlkit/files/
 
   GNV 2.1.3 or later.  GNV 3.0.1 has not tested with this script.
   Bash 4.2.47 or later.
   Coreutils 8.21 or later.
-  http://sourceforge.net/projects/gnv/files/
+  https://sourceforge.net/projects/gnv/files/
   Read before installing:
-     http://sourceforge.net/p/gnv/wiki/InstallingGNVPackages/
+     https://sourceforge.net/p/gnv/wiki/InstallingGNVPackages/
   As updates for other GNV components get posted, those updates should
   be used.
 

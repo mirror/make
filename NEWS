@@ -454,7 +454,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&se
 * New feature: "::=" simple assignment operator as defined by POSIX in 2012.
   This operator has identical functionality to ":=" in GNU make, but will be
   portable to any implementation of make conforming to a sufficiently new
-  version of POSIX (see http://austingroupbugs.net/view.php?id=330).  It is
+  version of POSIX (see https://austingroupbugs.net/view.php?id=330).  It is
   not necessary to define the .POSIX target to access this operator.
 
 * New feature: Loadable objects
@@ -1127,7 +1127,7 @@ Version 3.77 (28 Jul 1998)
     This port was done by Klaus Kämpf <kkaempf@rmi.de>
 
   * There is first-level support available from proGIS Software, Germany.
-    Visit their web-site at http://www.progis.de to get information
+    Visit their web-site at https://www.progis.de to get information
     about other vms software and forthcoming updates to gnu make.
 
   * /bin/sh style I/O redirection is supported. You can now write lines like
@@ -1830,4 +1830,4 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-this program.  If not, see <http://www.gnu.org/licenses/>.
+this program.  If not, see <https://www.gnu.org/licenses/>.

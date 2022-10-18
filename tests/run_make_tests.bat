@@ -13,7 +13,7 @@ rem FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for.
 rem more details.
 rem
 rem You should have received a copy of the GNU General Public License along
-rem with this program.  If not, see <http://www.gnu.org/licenses/>.
+rem with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 setlocal
 cd "%~dp0"

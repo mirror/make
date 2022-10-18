@@ -15,7 +15,7 @@
 # details.
 #
 # You should have received a copy of the GNU General Public License along with
-# this program.  If not, see <http://www.gnu.org/licenses/>.
+# this program.  If not, see <https://www.gnu.org/licenses/>.
 
 AC_DEFUN([pds_AC_DOS_PATHS], [
   AC_CACHE_CHECK([whether system uses MSDOS-style paths], [ac_cv_dos_paths], [

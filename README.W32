@@ -15,7 +15,7 @@ which compilation and link switches and libraries need to be mentioned
 on the compiler command lines to correctly link with Guile.  A Windows
 port of pkg-config can be found on ezwinports site:
 
-  http://sourceforge.net/projects/ezwinports/
+  https://sourceforge.net/projects/ezwinports/
 
 The libraries on which Guile depends can vary depending on your
 version and build of Guile.  At the very least, the Boehm's GC library
@@ -33,12 +33,14 @@ It is currently maintained by Eli Zaretskii.
 Do this first, regardless of the build method you choose:
 ---------------------------------------------------------
 
- 1. Edit config.h.W32 to your liking (especially the few shell-related
-    defines near the end, or HAVE_CASE_INSENSITIVE_FS which corresponds
-    to './configure --enable-case-insensitive-file-system').  (We don't
-    recommend to define HAVE_CASE_INSENSITIVE_FS, but you may wish to
-    consider that if you have a lot of files whose names are in upper
-    case, while Makefile rules are written for lower-case versions.)
+ 1. If you have special requirements, edit config.h.W32 to your liking
+    (especially the shell-related defines, or HAVE_CASE_INSENSITIVE_FS which
+    corresponds to './configure --enable-case-insensitive-file-system').  We
+    don't recommend to define HAVE_CASE_INSENSITIVE_FS, but you may wish to
+    consider that if you have a lot of files whose names are in upper case,
+    while Makefile rules are written for lower-case versions.
+
+    If you don't have special requirements no changes are needed.
 
 
 Building with (MinGW-)GCC using build_w32.bat
@@ -180,10 +182,10 @@ GNU make and sh.exe:
 
         There are very few true ports of Bourne shell for NT right now.
         There is a version of GNU bash available from Cygnus "Cygwin"
-        porting effort (http://www.cygwin.com/).
+        porting effort (https://www.cygwin.com/).
         Other possibilities are the MKS version of sh.exe, or building
         your own with a package like NutCracker (DataFocus) or Portage
-        (Consensys).  Also MinGW includes sh (http://mingw.org/).
+        (Consensys).  Also MinGW includes sh.
 
 GNU make and brain-dead shells (BATCH_MODE_ONLY_SHELL):
 
@@ -358,4 +360,4 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-this program.  If not, see <http://www.gnu.org/licenses/>.
+this program.  If not, see <https://www.gnu.org/licenses/>.

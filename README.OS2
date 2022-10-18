@@ -49,7 +49,7 @@ A standard Unix like build environment:
    release 2)
    If you use pdksh it is recommended to update to 5.2.14 release 2. Older
    versions may not work! You can get this version at
-   http://www.math.ohio-state.edu/~ilya/software/os2/pdksh-5.2.14-bin-2.zip
+   https://www.math.ohio-state.edu/~ilya/software/os2/pdksh-5.2.14-bin-2.zip
  - GNU file utilities (make sure that install.exe from the file utilities
    is in front of your PATH before X:\OS2\INSTALL\INSTALL.EXE. I recommend
    also to change the filename to ginstall.exe instead of install.exe
@@ -173,4 +173,4 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-this program.  If not, see <http://www.gnu.org/licenses/>.
+this program.  If not, see <https://www.gnu.org/licenses/>.
