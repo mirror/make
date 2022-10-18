@@ -555,17 +555,11 @@ umask (mode_t mask)
 #define MAKE_TMPDIR         "MAKE_TMPDIR"
 #ifdef VMS
 # define DEFAULT_TMPFILE    "sys$scratch:gnv$make_cmdXXXXXX.com"
-# define DEFAULT_TMPDIR     "/sys$scratch/"
 #else
-# define DEFAULT_TMPFILE     "GmXXXXXX"
-# ifdef P_tmpdir
-#  define DEFAULT_TMPDIR    P_tmpdir
-# else
-#  define DEFAULT_TMPDIR    "/tmp"
-# endif
+# define DEFAULT_TMPFILE    "GmXXXXXX"
 #endif
 
-static const char *
+const char *
 get_tmpdir ()
 {
   static const char *tmpdir = NULL;
@@ -589,44 +583,45 @@ get_tmptemplate ()
 {
   const char *tmpdir = get_tmpdir ();
   char *template;
-  size_t len;
+  char *cp;
 
-  len = strlen (tmpdir);
-  template = xmalloc (len + CSTRLEN (DEFAULT_TMPFILE) + 2);
-  strcpy (template, tmpdir);
+  template = xmalloc (strlen (tmpdir) + CSTRLEN (DEFAULT_TMPFILE) + 2);
+  cp = stpcpy (template, tmpdir);
 
-#ifdef HAVE_DOS_PATHS
-  if (template[len - 1] != '/' && template[len - 1] != '\\')
-    strcat (template, "/");
-#else
-# ifndef VMS
-  if (template[len - 1] != '/')
-    strcat (template, "/");
-# endif /* !VMS */
-#endif /* !HAVE_DOS_PATHS */
+#if !defined VMS
+  /* It's not possible for tmpdir to be empty.  */
+  if (! ISDIRSEP (cp[-1]))
+    *(cp++) = '/';
+#endif
 
-  strcat (template, DEFAULT_TMPFILE);
+  strcpy (cp, DEFAULT_TMPFILE);
 
   return template;
 }
 
-char *
+#if !HAVE_MKSTEMP || !HAVE_FDOPEN
+/* Generate a temporary filename.  This is not safe as another program could
+   snipe our filename after we've generated it: use this only on systems
+   without more secure alternatives.  */
+
+static char *
 get_tmppath ()
 {
   char *path;
 
-#ifdef HAVE_MKTEMP
-  path = get_tmptemplate();
+# ifdef HAVE_MKTEMP
+  path = get_tmptemplate ();
   if (*mktemp (path) == '\0')
     pfatal_with_name ("mktemp");
-#else
+# else
   path = xmalloc (L_tmpnam + 1);
   if (tmpnam (path) == NULL)
     pfatal_with_name ("tmpnam");
-#endif
+# endif
 
   return path;
 }
+#endif
 
 /* Generate a temporary file and return an fd for it.  If name is NULL then
    the temp file is anonymous and will be deleted when the process exits.  */
@@ -635,7 +630,6 @@ get_tmpfd (char **name)
 {
   int fd = -1;
   char *tmpnm;
-  mode_t mask;
 
   /* If there's an os-specific way to get an anoymous temp file use it.  */
   if (!name)
@@ -644,9 +638,6 @@ get_tmpfd (char **name)
       if (fd >= 0)
         return fd;
     }
-
-  /* Preserve the current umask, and set a restrictive one for temp files.  */
-  mask = umask (0077);
 
 #if defined(HAVE_MKSTEMP)
   tmpnm = get_tmptemplate ();
@@ -659,48 +650,61 @@ get_tmpfd (char **name)
   /* Can't use mkstemp(), but try to guard against a race condition.  */
   EINTRLOOP (fd, open (tmpnm, O_CREAT|O_EXCL|O_RDWR, 0600));
 #endif
-
-  umask (mask);
+  if (fd < 0)
+    OSS (fatal, NILF,
+         _("create temporary file %s: %s"), tmpnm, strerror (errno));
 
   if (name)
     *name = tmpnm;
   else
     {
-      unlink (tmpnm);
+      int r;
+      EINTRLOOP (r, unlink (tmpnm));
+      if (r < 0)
+        OSS (fatal, NILF,
+             _("unlink temporary file %s: %s"), tmpnm, strerror (errno));
       free (tmpnm);
     }
 
   return fd;
 }
 
+/* Return a FILE* for a temporary file, opened in the safest way possible.
+   Set name to point to an allocated buffer containing the name of the file.
+   Note, this cannot be NULL!  */
 FILE *
 get_tmpfile (char **name)
 {
+  /* Be consistent with tmpfile, which opens as if by "wb+".  */
+  const char *tmpfile_mode = "wb+";
+  FILE *file;
+
 #if defined(HAVE_FDOPEN)
   int fd = get_tmpfd (name);
 
-  return fd < 0 ? NULL : fdopen (fd, "w");
+  ENULLLOOP (file, fdopen (fd, tmpfile_mode));
+  if (file == NULL)
+    OSS (fatal, NILF,
+         _("fdopen: temporary file %s: %s"), *name, strerror (errno));
 #else
   /* Preserve the current umask, and set a restrictive one for temp files.  */
   mode_t mask = umask (0077);
+  int err;
 
-  char *tmpnm = get_tmppath ();
+  *name = get_tmppath ();
 
-  /* Not secure, but...?  If name is NULL we could use tmpfile()...  */
-  FILE *file = fopen (tmpnm, "w");
+  /* Although this fopen is insecure, it is executed only on non-fdopen
+     platforms, which should be a rarity nowadays.  */
+
+  ENULLLOOP (file, fopen (*name, tmpfile_mode));
+  if (file == NULL)
+    OSS (fatal, NILF,
+         _("fopen: temporary file %s: %s"), *name, strerror (errno));
 
   umask (mask);
-
-  if (name)
-    *name = tmpnm;
-  else
-    {
-      unlink (tmpnm);
-      free (tmpnm);
-    }
+#endif
 
   return file;
-#endif
 }
 
 

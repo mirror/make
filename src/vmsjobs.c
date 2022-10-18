@@ -1242,8 +1242,7 @@ child_execute_job (struct childbase *child, int good_stdin UNUSED, char *argv)
       int cmd_len;
 
       outfile = get_tmpfile (&child->comname);
-      if (outfile == 0)
-        pfatal_with_name (_("fopen (temporary file)"));
+
       comnamelen = strlen (child->comname);
 
       /* The whole DCL "script" is executed as one action, and it behaves as

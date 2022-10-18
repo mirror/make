@@ -14,7 +14,6 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
 #define IO_UNKNOWN              0x0001
 #define IO_COMBINED_OUTERR      0x0002
 #define IO_STDIN_OK             0x0004
@@ -26,6 +25,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define fd_inherit(_i)    (0)
 # define fd_noinherit(_i)  (0)
 # define fd_set_append(_i) (void)(0)
+# define os_anontmp()      (-1)
 #else
 
 /* Determine the state of stdin/stdout/stderr.  */
@@ -37,13 +37,9 @@ void fd_noinherit (int);
 
 /* If the file descriptor is for a file put it into append mode.  */
 void fd_set_append (int);
-#endif
 
 /* Return a file descriptor for a new anonymous temp file, or -1.  */
-#if defined(WINDOWS32)
 int os_anontmp (void);
-#else
-# define os_anontmp() (-1)
 #endif
 
 /* This section provides OS-specific functions to support the jobserver.  */

@@ -143,7 +143,16 @@ jobserver_setup (int slots, const char *style)
 #if HAVE_MKFIFO
   if (style == NULL || strcmp (style, "fifo") == 0)
     {
-      fifo_name = get_tmppath ();
+  /* Unfortunately glibc warns about uses of mktemp even though we aren't
+     using it in dangerous way here.  So avoid this by generating our own
+     temporary file name.  */
+# define  FNAME_PREFIX "GMfifo"
+      const char *tmpdir = get_tmpdir ();
+
+      fifo_name = xmalloc (strlen (tmpdir) + CSTRLEN (FNAME_PREFIX)
+                           + INTSTR_LENGTH + 2);
+      sprintf (fifo_name, "%s/" FNAME_PREFIX "%" MK_PRI64_PREFIX "d",
+               tmpdir, (long long)make_pid ());
 
       EINTRLOOP (r, mkfifo (fifo_name, 0600));
       if (r < 0)
@@ -636,11 +645,8 @@ void
 osync_setup ()
 {
   osync_handle = get_tmpfd (&osync_tmpfile);
-  if (osync_handle >= 0)
-    {
-      fd_noinherit (osync_handle);
-      sync_root = 1;
-    }
+  fd_noinherit (osync_handle);
+  sync_root = 1;
 }
 
 char *
@@ -826,4 +832,37 @@ fd_set_append (int fd)
         }
     }
 #endif
+}
+
+/* Return a file descriptor for a new anonymous temp file, or -1.  */
+int
+os_anontmp ()
+{
+  int fd = -1;
+
+#ifdef O_TMPFILE
+  EINTRLOOP (fd, open (get_tmpdir (), O_RDWR | O_TMPFILE | O_EXCL, 0600));
+  if (fd < 0)
+    pfatal_with_name ("open(O_TMPFILE)");
+#elif HAVE_DUP
+  /* We don't have O_TMPFILE but we can dup: if we are creating temp files in
+     the default location then try tmpfile() + dup() + fclose() to avoid ever
+     having a name for a file.  */
+  if (streq (get_tmpdir (), DEFAULT_TMPDIR))
+    {
+      mode_t mask = umask (0077);
+      FILE *tfile;
+      ENULLLOOP (tfile, tmpfile ());
+      if (!tfile)
+        pfatal_with_name ("tmpfile");
+      umask (mask);
+
+      EINTRLOOP (fd, dup (fileno (tfile)));
+      if (fd < 0)
+        pfatal_with_name ("dup");
+      fclose (tfile);
+    }
+#endif
+
+  return fd;
 }

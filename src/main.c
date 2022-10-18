@@ -1921,9 +1921,7 @@ main (int argc, char **argv, char **envp)
                  _("Makefile from standard input specified twice"));
 
             outfile = get_tmpfile (&newnm);
-            if (outfile == 0)
-              OSS (fatal, NILF,
-                   _("fopen: temporary file %s: %s"), newnm, strerror (errno));
+
             while (!feof (stdin) && ! ferror (stdin))
               {
                 char buf[2048];
@@ -1934,8 +1932,8 @@ main (int argc, char **argv, char **envp)
               }
             fclose (outfile);
 
-            /* Replace the name that read_all_makefiles will
-               see with the name of the temporary file.  */
+            /* Replace the name that read_all_makefiles will see with the name
+               of the temporary file.  */
             makefiles->list[i] = strcache_add (newnm);
             stdin_offset = i;
 
