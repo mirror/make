@@ -468,6 +468,8 @@ extern int unixy_shell;
 
 #define STOP_SET(_v,_m) ANY_SET(stopchar_map[(unsigned char)(_v)],(_m))
 
+/* True if C is a directory separator on the current system.  */
+#define ISDIRSEP(c)     STOP_SET((c),MAP_DIRSEP)
 /* True if C is whitespace but not newline.  */
 #define ISBLANK(c)      STOP_SET((c),MAP_BLANK)
 /* True if C is whitespace including newlines.  */

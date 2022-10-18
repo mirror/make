@@ -530,9 +530,7 @@ find_directory (const char *name)
     tstart = tem;
     if (tstart[1] == ':')
       tstart += 2;
-    for (tend = tem + (len - 1);
-         tend > tstart && (*tend == '/' || *tend == '\\');
-         tend--)
+    for (tend = tem + (len - 1); tend > tstart && ISDIRSEP (*tend); tend--)
       *tend = '\0';
 
     r = stat (tem, &st);
@@ -867,7 +865,7 @@ file_exists_p (const char *name)
 #ifdef HAVE_DOS_PATHS
   /* d:/ and d: are *very* different...  */
       if (dirend < name + 3 && name[1] == ':' &&
-          (*dirend == '/' || *dirend == '\\' || *dirend == ':'))
+          (ISDIRSEP (*dirend) || *dirend == ':'))
         dirend++;
 #endif
       p = alloca (dirend - name + 1);
@@ -943,7 +941,7 @@ file_impossible (const char *filename)
 #ifdef HAVE_DOS_PATHS
           /* d:/ and d: are *very* different...  */
           if (dirend < p + 3 && p[1] == ':' &&
-              (*dirend == '/' || *dirend == '\\' || *dirend == ':'))
+              (ISDIRSEP (*dirend) || *dirend == ':'))
             dirend++;
 #endif
           cp = alloca (dirend - p + 1);
@@ -1041,7 +1039,7 @@ file_impossible_p (const char *filename)
 #ifdef HAVE_DOS_PATHS
           /* d:/ and d: are *very* different...  */
           if (dirend < filename + 3 && filename[1] == ':' &&
-              (*dirend == '/' || *dirend == '\\' || *dirend == ':'))
+              (ISDIRSEP (*dirend) || *dirend == ':'))
             dirend++;
 #endif
           cp = alloca (dirend - filename + 1);
@@ -1314,8 +1312,7 @@ local_stat (const char *path, struct stat *buf)
   /* Make sure the parent of "." exists and is a directory, not a
      file.  This is because 'stat' on Windows normalizes the argument
      foo/. => foo without checking first that foo is a directory.  */
-  if (plen > 2 && path[plen - 1] == '.'
-      && (path[plen - 2] == '/' || path[plen - 2] == '\\'))
+  if (plen > 2 && path[plen - 1] == '.' && ISDIRSEP (path[plen - 2]))
     {
       char parent[MAXPATHLEN+1];
 

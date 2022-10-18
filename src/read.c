@@ -1108,7 +1108,7 @@ eval (struct ebuffer *ebuf, int set_default)
                  Note that the only separators of targets in this context are
                  whitespace and a left paren.  If others are possible, add them
                  to the string in the call to strchr.  */
-              while (colonp && (colonp[1] == '/' || colonp[1] == '\\') &&
+              while (colonp && ISDIRSEP (colonp[1]) &&
                      isalpha ((unsigned char) colonp[-1]) &&
                      (colonp == p2 + 1 || strchr (" \t(", colonp[-2]) != 0))
                 colonp = find_char_unquote (colonp + 1, ':');
@@ -1279,8 +1279,7 @@ eval (struct ebuffer *ebuf, int set_default)
           do {
             check_again = 0;
             /* For DOS-style paths, skip a "C:\..." or a "C:/..." */
-            if (p != 0 && (p[1] == '\\' || p[1] == '/') &&
-                isalpha ((unsigned char)p[-1]) &&
+            if (p != 0 && ISDIRSEP (p[1]) && isalpha ((unsigned char)p[-1]) &&
                 (p == p2 + 1 || strchr (" \t:(", p[-2]) != 0)) {
               p = strchr (p + 1, ':');
               check_again = 1;
@@ -3270,7 +3269,7 @@ parse_file_seq (char **stringp, size_t size, int stopmap,
          Tokens separated by spaces are treated as separate paths since make
          doesn't allow path names with spaces.  */
       if (p && p == s+1 && p[0] == ':'
-          && isalpha ((unsigned char)s[0]) && STOP_SET (p[1], MAP_DIRSEP))
+          && isalpha ((unsigned char)s[0]) && ISDIRSEP (p[1]))
         p = find_map_unquote (p+1, findmap);
 #endif
 

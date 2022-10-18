@@ -1564,7 +1564,7 @@ name_mtime (const char *name)
           tend--;
         if (*tend == '.' && tend > tstart)
           tend--;
-        for ( ; tend > tstart && (*tend == '/' || *tend == '\\'); tend--)
+        for ( ; tend > tstart && ISDIRSEP (*tend); tend--)
           *tend = '\0';
       }
     else

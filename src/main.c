@@ -1016,12 +1016,10 @@ find_and_set_default_shell (const char *token)
      "cmd.exe" case-insensitive.  */
   tokend = search_token + strlen (search_token) - 3;
   if (((tokend == search_token
-        || (tokend > search_token
-            && (tokend[-1] == '/' || tokend[-1] == '\\')))
+        || (tokend > search_token && ISDIRSEP (tokend[-1])))
        && !strcasecmp (tokend, "cmd"))
       || ((tokend - 4 == search_token
-           || (tokend - 4 > search_token
-               && (tokend[-5] == '/' || tokend[-5] == '\\')))
+           || (tokend - 4 > search_token && ISDIRSEP (tokend[-5])))
           && !strcasecmp (tokend - 4, "cmd.exe")))
     {
       batch_mode_shell = 1;
@@ -1320,7 +1318,7 @@ main (int argc, char **argv, char **envp)
       else
         {
           program = start + strlen (start);
-          while (program > start && ! STOP_SET (program[-1], MAP_DIRSEP))
+          while (program > start && ! ISDIRSEP (program[-1]))
             --program;
 
           /* Remove the .exe extension if present.  */
@@ -1762,7 +1760,7 @@ main (int argc, char **argv, char **envp)
              But allow -C/ just in case someone wants that.  */
           {
             char *p = (char *)dir + strlen (dir) - 1;
-            while (p > dir && (p[0] == '/' || p[0] == '\\'))
+            while (p > dir && ISDIRSEP (p[0]))
               --p;
             p[1] = '\0';
           }

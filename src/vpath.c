@@ -239,8 +239,7 @@ construct_vpath_list (char *pattern, char *dirpath)
                 also define HAVE_DOS_PATHS would like us to recognize
                 colons after the drive letter in the likes of
                 "D:/foo/bar:C:/xyzzy".  */
-             && (*p != PATH_SEPARATOR_CHAR
-                 || (p == v + 1 && (p[1] == '/' || p[1] == '\\')))
+             && (*p != PATH_SEPARATOR_CHAR || (p == v + 1 && ISDIRSEP (p[1])))
 #else
              && *p != PATH_SEPARATOR_CHAR
 #endif

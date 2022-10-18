@@ -416,7 +416,8 @@ _is_unixy_shell (const char *path)
   else if (!name)   /* name and p must be 0 */
     name = path;
 
-  if (*name == '/' || *name == '\\') name++;
+  if (ISDIRSEP (*name))
+    name++;
 
   i = 0;
   while (known_os2shells[i] != NULL)
@@ -439,38 +440,30 @@ is_bourne_compatible_shell (const char *path)
   static const char *unix_shells[] = {
     "sh",
     "bash",
+    "dash",
     "ksh",
     "rksh",
     "zsh",
     "ash",
-    "dash",
     NULL
   };
   const char **s;
 
-  /* find the rightmost '/' or '\\' */
-  const char *name = strrchr (path, '/');
-  char *p = strrchr (path, '\\');
+  /* find the last directory separator, or the beginning of the string.  */
+  const char *cp = path + strlen (path);
 
-  if (name && p)    /* take the max */
-    name = (name > p) ? name : p;
-  else if (p)       /* name must be 0 */
-    name = p;
-  else if (!name)   /* name and p must be 0 */
-    name = path;
-
-  if (*name == '/' || *name == '\\')
-    ++name;
+  while (cp > path && !ISDIRSEP (cp[-1]))
+    --cp;
 
   /* this should be able to deal with extensions on Windows-like systems */
   for (s = unix_shells; *s != NULL; ++s)
     {
 #if defined(WINDOWS32) || defined(__MSDOS__)
       size_t len = strlen (*s);
-      if ((strlen (name) >= len && STOP_SET (name[len], MAP_DOT|MAP_NUL))
-          && strncasecmp (name, *s, len) == 0)
+      if ((strlen (cp) >= len && STOP_SET (cp[len], MAP_DOT|MAP_NUL))
+          && strncasecmp (cp, *s, len) == 0)
 #else
-      if (strcmp (name, *s) == 0)
+      if (strcmp (cp, *s) == 0)
 #endif
         return 1; /* a known unix-style shell */
     }
@@ -3053,8 +3046,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
                   }
                 else
 #endif
-                  if (p[1] != '\\' && p[1] != '\''
-                      && !ISSPACE (p[1])
+                  if (p[1] != '\\' && p[1] != '\'' && !ISSPACE (p[1])
                       && strchr (sh_chars_sh, p[1]) == 0)
                     /* back up one notch, to copy the backslash */
                     --p;
@@ -3688,8 +3680,7 @@ construct_command_argv (char *line, char **restp, struct file *file,
          performed) and if shell is an absolute path without drive letter,
          try whether it exists e.g.: if "/bin/sh" does not exist use
          "$UNIXROOT/bin/sh" instead.  */
-      if (unixroot && shell && strcmp (shell, last_shell) != 0
-          && (shell[0] == '/' || shell[0] == '\\'))
+      if (unixroot && shell && ISDIRSEP (shell[0]) && !streq (shell, last_shell))
         {
           /* trying a new shell, check whether it exists */
           size_t size = strlen (shell);
