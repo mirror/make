@@ -352,10 +352,12 @@ use POSIX ();
 # Test that make removes temporary files, even when a signal is received.
 # The general test_driver postprocessing will ensure the temporary file used
 # to synchronize output and the jobserver fifo are both removed.
+# sleep is needed to let make write its "... Terminated" message to the log
+# file.
 run_make_test(q!
 pid:=$(shell echo $$PPID)
-all:; @kill -TERM $(pid)
-!, '-O -j2', "", POSIX::SIGTERM);
+all:; @kill -TERM $(pid) && sleep 16
+!, '-O -j2', '/#MAKE#: \*\*\* \[#MAKEFILE#:3: all] Terminated/', POSIX::SIGTERM);
 }
 
 unlink($fout);

@@ -62,6 +62,8 @@ use POSIX ();
 # include bye.mk and bye.mk: rule is needed to cause make to keep the temporary
 # file for re-exec. Without re-exec make will remove the file before the signal
 # arrives.
+# sleep is needed to let make write its "... Terminated" message to the log
+# file.
 &utouch(-600, 'bye.mk');
 close(STDIN);
 open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
@@ -69,9 +71,9 @@ run_make_test(q!
 include bye.mk
 pid:=$(shell echo $$PPID)
 all:;
-bye.mk: force; @kill -TERM $(pid)
+bye.mk: force; @kill -TERM $(pid) && sleep 16
 force:
-!, '-f-', "", POSIX::SIGTERM);
+!, '-f-', '/#MAKE#: \*\*\* \[#MAKEFILE#:5: bye.mk] Terminated/', POSIX::SIGTERM);
 }
 unlink($fout);
 
