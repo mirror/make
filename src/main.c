@@ -1182,6 +1182,11 @@ main (int argc, char **argv, char **envp)
   /* Useful for attaching debuggers, etc.  */
   SPIN ("main-entry");
 
+  /* Don't die if our stdout sends us SIGPIPE.  */
+#ifdef SIGPIPE
+  bsd_signal (SIGPIPE, SIG_IGN);
+#endif
+
 #ifdef HAVE_ATEXIT
   if (ANY_SET (check_io_state (), IO_STDOUT_OK))
     atexit (close_stdout);

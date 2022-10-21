@@ -699,6 +699,7 @@ osync_clear ()
       int r;
 
       EINTRLOOP (r, unlink (osync_tmpfile));
+      free (osync_tmpfile);
       osync_tmpfile = NULL;
     }
 }
