@@ -2092,6 +2092,7 @@ load_too_high (void)
     }
 
   /* Find the real system load average.  */
+  errno = 0;
   if (getloadavg (&load, 1) != 1)
     {
       static int lossage = -1;
