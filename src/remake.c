@@ -34,6 +34,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <starlet.h>
 #endif
 #ifdef WINDOWS32
+#include <windows.h>
 #include <io.h>
 #include <sys/stat.h>
 #if defined(_MSC_VER) && _MSC_VER > 1200
@@ -1551,7 +1552,7 @@ name_mtime (const char *name)
 
 #if defined(WINDOWS32)
   {
-    char tem[MAXPATHLEN], *tstart, *tend;
+    char tem[MAX_PATH+1], *tstart, *tend;
     const char *p = name + strlen (name);
 
     /* Remove any trailing slashes and "."/"..".  MS-Windows stat

@@ -521,7 +521,7 @@ find_directory (const char *name)
   /* See if the directory exists.  */
 #if defined(WINDOWS32)
   {
-    char tem[MAXPATHLEN], *tstart, *tend;
+    char tem[MAX_PATH+1], *tstart, *tend;
     size_t len = strlen (name);
 
     /* Remove any trailing slashes.  Windows32 stat fails even on
@@ -1314,10 +1314,10 @@ local_stat (const char *path, struct stat *buf)
      foo/. => foo without checking first that foo is a directory.  */
   if (plen > 2 && path[plen - 1] == '.' && ISDIRSEP (path[plen - 2]))
     {
-      char parent[MAXPATHLEN+1];
+      char parent[MAX_PATH+1];
 
-      strncpy (parent, path, MAXPATHLEN);
-      parent[MIN(plen - 2, MAXPATHLEN)] = '\0';
+      strncpy (parent, path, MAX_PATH);
+      parent[MIN(plen - 2, MAX_PATH)] = '\0';
       if (stat (parent, buf) < 0 || !_S_ISDIR (buf->st_mode))
         return -1;
     }

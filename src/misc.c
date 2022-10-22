@@ -769,11 +769,11 @@ get_path_max (void)
 
   if (value == 0)
     {
-      long int x = pathconf ("/", _PC_PATH_MAX);
+      long x = pathconf ("/", _PC_PATH_MAX);
       if (x > 0)
-        value = x;
+        value = (unsigned int) x;
       else
-        return MAXPATHLEN;
+        value = PATH_MAX;
     }
 
   return value;

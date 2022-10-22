@@ -115,7 +115,7 @@ check_io_state ()
 int
 os_anontmp ()
 {
-  char temp_path[MAXPATHLEN];
+  char temp_path[MAX_PATH+1];
   unsigned path_size = GetTempPath (sizeof (temp_path), temp_path);
   int using_cwd = 0;
 

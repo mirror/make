@@ -152,12 +152,13 @@ extern int errno;
 #endif
 
 #ifndef PATH_MAX
-# ifndef POSIX
+# ifdef MAXPATHLEN
 #  define PATH_MAX      MAXPATHLEN
+# else
+/* Some systems (HURD) have fully dynamic pathnames with no maximum.
+   Ideally we'd support this but it will take some work.  */
+#  define PATH_MAX      4096
 # endif
-#endif
-#ifndef MAXPATHLEN
-# define MAXPATHLEN 1024
 #endif
 
 #ifdef  PATH_MAX

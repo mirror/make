@@ -283,7 +283,7 @@ create_batch_file (char const *base, int unixy, int *fd)
 {
   const char *const ext = unixy ? "sh" : "bat";
   const char *error_string = NULL;
-  char temp_path[MAXPATHLEN]; /* need to know its length */
+  char temp_path[MAX_PATH+1]; /* need to know its length */
   unsigned path_size = GetTempPath (sizeof temp_path, temp_path);
   int path_is_dot = 0;
   /* The following variable is static so we won't try to reuse a name
