@@ -81,19 +81,20 @@ static const char *library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr);
 static void
 check_also_make (const struct file *file)
 {
-  /* If the target was created by an implicit rule, and it exists and was
-     updated, warn about any of its also_make targets that don't exist.  */
-  if (file->tried_implicit && is_ordinary_mtime (file->last_mtime)
-      && file->last_mtime > file->mtime_before_update)
-    {
-      struct dep *ad;
+  struct dep *ad;
+  FILE_TIMESTAMP mtime = file->last_mtime;
 
-      for (ad = file->also_make; ad; ad = ad->next)
-        if (ad->file->last_mtime == NONEXISTENT_MTIME)
-          OS (error, file->cmds ? &file->cmds->fileinfo : NILF,
-              _("warning: pattern recipe did not update peer target '%s'."),
-              ad->file->name);
-    }
+  if (mtime == UNKNOWN_MTIME)
+    mtime = name_mtime (file->name);
+
+  /* If we updated the file, check its also-make files.  */
+
+  if (is_ordinary_mtime (mtime) && mtime > file->mtime_before_update)
+    for (ad = file->also_make; ad; ad = ad->next)
+      if (ad->file->last_mtime == NONEXISTENT_MTIME)
+        OS (error, file->cmds ? &file->cmds->fileinfo : NILF,
+            _("warning: pattern recipe did not update peer target '%s'."),
+            ad->file->name);
 }
 
 /* Remake all the goals in the 'struct dep' chain GOALS.  Return update_status
@@ -204,8 +205,6 @@ update_goal_chain (struct goaldep *goaldeps)
                     {
                       FILE_TIMESTAMP mtime = MTIME (file);
                       check_renamed (file);
-
-                      check_also_make (file);
 
                       if (file->updated && mtime != file->mtime_before_update)
                         {
@@ -1039,23 +1038,30 @@ notice_finished_file (struct file *file)
     }
 
   if (ran && file->update_status != us_none)
-    /* We actually tried to update FILE, which has
-       updated its also_make's as well (if it worked).
-       If it didn't work, it wouldn't work again for them.
-       So mark them as updated with the same status.  */
-    for (d = file->also_make; d != 0; d = d->next)
-      {
-        d->file->command_state = cs_finished;
-        d->file->updated = 1;
-        d->file->update_status = file->update_status;
+    {
+      /* We actually tried to update FILE, which has
+         updated its also_make's as well (if it worked).
+         If it didn't work, it wouldn't work again for them.
+         So mark them as updated with the same status.  */
+      for (d = file->also_make; d != 0; d = d->next)
+        {
+          d->file->command_state = cs_finished;
+          d->file->updated = 1;
+          d->file->update_status = file->update_status;
 
-        if (ran && !d->file->phony)
-          /* Fetch the new modification time.
-             We do this instead of just invalidating the cached time
-             so that a vpath_search can happen.  Otherwise, it would
-             never be done because the target is already updated.  */
-          f_mtime (d->file, 0);
-      }
+          if (ran && !d->file->phony)
+            /* Fetch the new modification time.
+               We do this instead of just invalidating the cached time
+               so that a vpath_search can happen.  Otherwise, it would
+               never be done because the target is already updated.  */
+            f_mtime (d->file, 0);
+        }
+
+      /* If the target was created by an implicit rule, and it was updated,
+         warn about any of its also_make targets that don't exist.  */
+      if (file->tried_implicit && file->also_make)
+        check_also_make (file);
+    }
   else if (file->update_status == us_none)
     /* Nothing was done for FILE, but it needed nothing done.
        So mark it now as "succeeded".  */
@@ -1094,7 +1100,6 @@ check_dep (struct file *file, unsigned int depth,
       check_renamed (file);
       if (mtime == NONEXISTENT_MTIME || mtime > this_mtime)
         *must_make_ptr = 1;
-      check_also_make (file);
     }
   else
     {

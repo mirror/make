@@ -478,6 +478,20 @@ run_make_test(q!
               'gta', "touch gta\n#MAKEFILE#:2: warning: pattern recipe did not update peer target 'gtb'.\n");
 unlink(qw(gta));
 
+# We don't warn if we didn't update the file
+utouch(-10, qw(gta));
+run_make_test(q!
+%a %b : xyzzy ; $(OP)
+xyzzy: ;
+ifdef RUN
+OP = @echo no
+endif
+!,
+              '-rR gta', "#MAKE#: 'gta' is up to date.\n");
+
+run_make_test(undef, '-rR gta RUN=1', "no\n");
+unlink(qw(gta));
+
 run_make_test(q!
 all:;
 include gta
@@ -485,6 +499,14 @@ include gta
 !,
               '', "touch gta\n#MAKEFILE#:4: warning: pattern recipe did not update peer target 'gtb'.\n#MAKE#: 'all' is up to date.");
 unlink(qw(gta));
+
+run_make_test(q!
+%.c %.h : %.y; touch $*.c
+%.o: %.c; touch $@
+foo.y: ; touch $@
+!,
+              'foo.o', "touch foo.y\ntouch foo.c\n#MAKEFILE#:2: warning: pattern recipe did not update peer target 'foo.h'.\ntouch foo.o\nrm foo.c");
+unlink(qw(foo.y foo.c foo.o));
 
 if (0) {
 # SV 12078: Missing grouped pattern peer causes remake regardless of which
