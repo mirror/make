@@ -99,7 +99,7 @@ if ($ERR_nonexe_file) {
 # Try failing by "running" a directory
 
 if ($ERR_exe_dir) {
-    mkdir('sd', 0775);
+    mkdir('sd', 0775) or print "mkdir: sd: $!\n";
 
     run_make_test(q!
 PATH := .

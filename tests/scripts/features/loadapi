@@ -190,10 +190,10 @@ run_make_test("
 load testapi.so
 $extra_loads
 all:; \$(info \$(test-expand hello))
-testapi.so: force; false
+testapi.so: force; @#HELPER# fail 1
 force:;
 .PHONY: force
-", '', "testapi_gmk_setup\nfalse\n#MAKE#: *** [#MAKEFILE#:$n: testapi.so] Error 1\n", 512);
+", '', "testapi_gmk_setup\nfail 1\n#MAKE#: *** [#MAKEFILE#:$n: testapi.so] Error 1\n", 512);
 
 # sv 63045.
 # Same as above, but testapi_gmk_setup returned -1.
@@ -203,7 +203,7 @@ run_make_test("
 load testapi.so
 $extra_loads
 all:; \$(info \$(test-expand hello))
-testapi.so: force; false
+testapi.so: force; @#HELPER# fail 1
 force:;
 .PHONY: force
 ", '', "testapi_gmk_setup\nhello\n#MAKE#: 'all' is up to date.\n");

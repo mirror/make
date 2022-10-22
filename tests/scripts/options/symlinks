@@ -6,14 +6,7 @@ $details = "Verify that symlink handling with and without -L works properly.";
 
 # Only run these tests if the system sypports symlinks
 
-# Apparently the Windows port of Perl reports that it does support symlinks
-# (in that the symlink() function doesn't fail) but it really doesn't, so
-# check for it explicitly.
-
-if ($port_type eq 'W32' || !( eval { symlink("",""); 1 })) {
-  # This test is N/A
-  return -1;
-}
+exists $FEATURES{'check-symlink'} or return -1;
 
 use File::Spec;
 

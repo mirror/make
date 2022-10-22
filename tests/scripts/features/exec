@@ -13,6 +13,7 @@ my $details = "The various shells that this test uses are the default"
 
 # Only bother with this on UNIX systems
 $port_type eq 'UNIX' or return -1;
+$^O =~ /cygwin/ and return -1;
 
 my $usersh = $origENV{SHELL};
 my $answer = 'hello, world';
@@ -36,7 +37,7 @@ for my $shbang (@shbangs) {
         close(CMD);
         chmod 0700, $cmd;
 
-        run_make_test("# $shbang\n# $shell" . q!
+        run_make_test("# shbang=$shbang\n# shell=$shell" . q!
 all:; @$(CMD)
 !, "$shell CMD=$cmd", "$answer\n");
 

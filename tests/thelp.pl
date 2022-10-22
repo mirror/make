@@ -24,7 +24,7 @@
 $| = 1;
 
 my $quiet = 0;
-my $timeout = 4;
+my $timeout = 10;
 
 sub op {
     my ($op, $nm) = @_;

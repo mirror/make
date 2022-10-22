@@ -148,11 +148,16 @@ $ERR_command_not_found = undef;
       $ERR_nonexe_file = "$!";
   }
 
-  $_ = `./. 2>&1`;
-  if ($? == 0) {
-      print "Executed directory!  Skipping related tests.\n";
+  if ($^O =~ /cygwin/i) {
+      # For some reason the execute here gives a different answer than make's
+      print "Skipping directory execution on $^O\n";
   } else {
-      $ERR_exe_dir = "$!";
+      $_ = `./. 2>&1`;
+      if ($? == 0) {
+          print "Executed directory!  Skipping related tests.\n";
+      } else {
+          $ERR_exe_dir = "$!";
+      }
   }
 
   chmod(0000, 'file.out');

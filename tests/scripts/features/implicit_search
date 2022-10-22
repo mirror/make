@@ -55,8 +55,8 @@ run_make_test("
 all: hello$s
 %$s:$r %.c; \$(info hello.c)
 %$s:$r %.f; \$(info hello.f)
-hello.c:; false
-", '-r', "false\n#MAKE#: *** [#MAKEFILE#:5: hello.c] Error 1\n", 512);
+hello.c:; @#HELPER# fail 1
+", '-r', "fail 1\n#MAKE#: *** [#MAKEFILE#:5: hello.c] Error 1\n", 512);
 
 # Test that make finds the intended implicit rule based on existence of a
 # prerequisite in the filesystem, even when the prerequisite of another
@@ -115,9 +115,9 @@ run_make_test("
 all: hello$s
 %$s:$r %.c; \$(info \$<)
 %$s:$r %.f; \$(info \$<)
-.DEFAULT:; \$(info \$\@) false
+.DEFAULT:; \@\$(info \$\@) #HELPER# fail 1
 unrelated: hello.c
-", '-r', "hello.c\nfalse\n#MAKE#: *** [#MAKEFILE#:5: hello.c] Error 1\n", 512);
+", '-r', "hello.c\nfail 1\n#MAKE#: *** [#MAKEFILE#:5: hello.c] Error 1\n", 512);
 
 # hello.f is missing.
 # No rule is found, because hello.c is not mentioned explicitly.
@@ -125,8 +125,8 @@ run_make_test("
 all: hello$s
 %$s:$r %.c; \$(info \$<)
 %$s:$r %.f; \$(info \$<)
-.DEFAULT:; \@\$(info \$\@) false
-", '-r', "hello$s\n#MAKE#: *** [#MAKEFILE#:5: hello$s] Error 1\n", 512);
+.DEFAULT:; \@\$(info \$\@) #HELPER# fail 1
+", '-r', "hello$s\nfail 1\n#MAKE#: *** [#MAKEFILE#:5: hello$s] Error 1\n", 512);
 
 }
 }
@@ -202,7 +202,7 @@ for my $r (@rules) {
 
 my $result = "#MAKE#: *** No rule to make target 'hello.tsk', needed by 'all'.  Stop.\n";
 if ($s or $r) {
-    $result = "false\n#MAKE#: *** [#MAKEFILE#:6: hello.c] Error 1\n";
+    $result = "fail 1\n#MAKE#: *** [#MAKEFILE#:6: hello.c] Error 1\n";
 }
 
 run_make_test("
@@ -210,7 +210,7 @@ all: hello.tsk
 %.tsk: %$s; \$(info hello.tsk)
 %$s:$r %.c; \$(info hello.c)
 %$s:$r %.f; \$(info hello.f)
-hello.c:; false
+hello.c:; @#HELPER# fail 1
 ", '-r', $result, 512);
 }
 }

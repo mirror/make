@@ -2,6 +2,10 @@
 
 $description = "Make sure make exits with an error if fopen fails.";
 
+# For some reason on Cygwin, make exits with no error message after
+# it recurses for a while.
+$^O =~ /cygwin/ and return -1;
+
 # Recurse infinitely until we run out of open files, and ensure we
 # fail with a non-zero exit code.  Don't bother to test the output
 # since it's hard to know what it will be, exactly.

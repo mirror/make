@@ -116,20 +116,24 @@ EOF
 close(MAKEFILE);
 
 # Test per-make synchronization.
+# Note we have to sleep again here after starting the foo makefile before
+# starting the bar makefile, otherwise the "entering/leaving" messages for the
+# submakes might be ordered differently than we expect.
+
 unlink(@syncfiles);
 run_make_test(qq!
 all: make-foo make-bar
 
 make-foo: ; \$(MAKE) -C foo
 
-make-bar: ; \$(MAKE) -C bar!,
+make-bar: ; #HELPER# -q sleep 1 ; \$(MAKE) -C bar!,
               '-j -Orecurse',
 "#MAKEPATH# -C foo
 #MAKE#[1]: Entering directory '#PWD#/foo'
 foo: start
 foo: end
 #MAKE#[1]: Leaving directory '#PWD#/foo'
-#MAKEPATH# -C bar
+#HELPER# -q sleep 1 ; #MAKEPATH# -C bar
 #MAKE#[1]: Entering directory '#PWD#/bar'
 bar: start
 bar: end
