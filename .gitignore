@@ -60,6 +60,10 @@ WinRel/
 GccDebug/
 GccRel/
 
+# Test artifacts
+makeerror-*.tar.gz
+test-suite.log
+
 # Distribution artifacts
 .dep_segment
 .check-git-HEAD

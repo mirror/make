@@ -66,6 +66,19 @@ You can find most information concerning the development of GNU Make at
 this site.
 
 
+Regression Tests
+----------------
+
+GNU Make contains a suite of regression tests.  To run them use "make check"
+after building GNU Make.  If they fail a tar package will be created
+containing useful information, which can be emailed (as an attachment) to
+the <bug-make@gnu.org> mailing list.
+
+Please note that since these tests rely on known-good-output comparisons,
+they can show spurious failures on some systems (particularly non-POSIX systems
+such as Windows).
+
+
 Bug Reporting
 -------------
 

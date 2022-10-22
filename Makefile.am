@@ -137,8 +137,8 @@ src/gmk-default.h: $(top_srcdir)/src/gmk-default.scm
 dist-hook:
 	(cd $(top_srcdir); \
 	 sub=`find tests/scripts -follow \( -name .git -o -name .deps -o -name work -o -name .gitignore -o -name \*.orig -o -name \*.rej -o -name \*~ -o -name \*.out -o -name Makefile \) -prune -o -type f -print`; \
-	 tar chf - $$sub) \
-	| (cd $(distdir); tar xfBp -)
+	 $(AMTAR) chf - $$sub) \
+	| (cd $(distdir); $(AMTAR) xfBp -)
 
 
 # --------------- Local CHECK Section
@@ -162,9 +162,19 @@ MAKETESTFLAGS =
 
 .PHONY: check-regression
 
-GMK_OUTDIR=..
+GMK_OUTDIR = ..
+
+testlog = test-suite.log
+testresult = tests/.test-result
+errorfile = makeerror-$(host_triplet).tar.gz
+
+testfiles = $(testlog) $(testresult) $(errorfile)
+MOSTLYCLEANFILES = $(testfiles)
+
+errordetails = config.status config.log src/config.h $(testlog) tests/work
 
 check-regression: tests/config-flags.pm
+	@rm -f $(testfiles)
 	@if test -f '$(top_srcdir)/tests/run_make_tests'; then \
 	  ulimit -n 128; \
 	  if $(PERL) -v >/dev/null 2>&1; then \
@@ -177,7 +187,13 @@ check-regression: tests/config-flags.pm
 		   done; fi ;; \
 	    esac; \
 	    echo "cd tests && $(PERL) $(PERLFLAGS) ./run_make_tests.pl -srcdir $(abs_top_srcdir) -make $(GMK_OUTDIR)/make$(EXEEXT) $(MAKETESTFLAGS)"; \
-	    cd tests && $(PERL) $(PERLFLAGS) ./run_make_tests.pl -srcdir '$(abs_top_srcdir)' -make '$(GMK_OUTDIR)/make$(EXEEXT)' $(MAKETESTFLAGS); \
+	    (cd tests && $(PERL) $(PERLFLAGS) ./run_make_tests.pl -srcdir '$(abs_top_srcdir)' -make '$(GMK_OUTDIR)/make$(EXEEXT)' $(MAKETESTFLAGS); echo $$? >.test-result) 2>&1 | tee $(testlog); \
+	    er=$$(cat $(testresult)); if test "$$er" -ne 0; then \
+	      $(AMTAR) chf - $(errordetails) | eval GZIP= gzip $(GZIP_ENV) -c >$(errorfile); \
+	      echo '*** Testing failed!  Details saved in: $(errorfile)'; \
+	      echo '*** Please report to <$(PACKAGE_BUGREPORT)>'; echo; \
+	      exit $$er; \
+	    fi; \
 	  else \
 	    echo "Can't find a working Perl ($(PERL)); the test suite requires Perl."; \
 	  fi; \
