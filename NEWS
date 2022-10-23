@@ -1,6 +1,6 @@
 GNU Make NEWS                                               -*-indented-text-*-
   History of user-visible changes.
-  18 October 2022
+  24 October 2022
 
 See the end of this file for copyrights and conditions.
 
@@ -9,7 +9,7 @@ which is contained in this distribution as the file doc/make.texi.
 See the README file and the GNU Make manual for instructions for
 reporting bugs.
 
-Version 4.3.91 (18 Oct 2022)
+Version 4.3.92 (24 Oct 2022)
 
 A complete list of bugs fixed in this version is available here:
 
@@ -100,7 +100,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
   each prerequisite).
 
 * New feature: The .NOTINTERMEDIATE special target
-  .NOTINTERMEDIATE Disables intermediate behavior for specific files, for all
+  .NOTINTERMEDIATE disables intermediate behavior for specific files, for all
   files built using a pattern, or for the entire makefile.
   Implementation provided by Dmitry Goncharov <dgoncharov@users.sf.net>
 
@@ -186,9 +186,9 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=109&se
 * Special targets like .POSIX are detected upon definition, ensuring that any
   change in behavior takes effect immediately, before the next line is parsed.
 
-* When the jobserver is enabled and GNU Make decides it is invoking a non-make
-  sub-process and closes the jobserver pipes, it will now add a new option to
-  the MAKEFLAGS environment variable that disables the jobserver.
+* When the pipe-based jobserver is enabled and GNU Make decides it is invoking
+  a non-make sub-process and closes the jobserver pipes, it will now add a new
+  option to the MAKEFLAGS environment variable that disables the jobserver.
   This prevents sub-processes that invoke make from accidentally using other
   open file descriptors as jobserver pipes.  For more information see
   https://savannah.gnu.org/bugs/?57242 and https://savannah.gnu.org/bugs/?62397
