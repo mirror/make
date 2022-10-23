@@ -658,8 +658,12 @@ int unload_file (const char *name);
 #ifdef MAKE_MAINTAINER_MODE
 # define SPIN(_s) spin (_s)
 void spin (const char* suffix);
+# define DBG(_f) dbg _f
+void dbg (const char *fmt, ...);
 #else
 # define SPIN(_s)
+/* Never put this code into Git or a release.  */
+# define DBG(_f) compile-error
 #endif
 
 /* We omit these declarations on non-POSIX systems which define _POSIX_VERSION,

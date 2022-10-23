@@ -530,6 +530,22 @@ spin (const char* type)
     }
 }
 
+void
+dbg (const char *fmt, ...)
+{
+  FILE *fp = fopen ("/tmp/gmkdebug.log", "a+");
+  va_list args;
+  char buf[4096];
+
+  va_start (args, fmt);
+  vsprintf (buf, fmt, args);
+  va_end (args);
+
+  fprintf(fp, "%u: %s\n", (unsigned) make_pid (), buf);
+  fflush (fp);
+  fclose (fp);
+}
+
 #endif
 
 
