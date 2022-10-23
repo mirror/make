@@ -495,6 +495,8 @@ extern struct rlimit stack_limit;
 
 /* Number of characters in a string constant.  Does NOT include the \0 byte.  */
 #define CSTRLEN(_s)           (sizeof (_s)-1)
+
+/* Only usable when NOT calling a macro: only use it for local functions.  */
 #define STRING_SIZE_TUPLE(_s) (_s), CSTRLEN(_s)
 
 /* The number of bytes needed to represent the largest signed and unsigned

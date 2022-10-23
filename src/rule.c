@@ -94,7 +94,7 @@ get_rule_defn (struct rule *r)
         if (dep->ignore_mtime == 0)
           {
             if (dep->wait_here)
-              p = mempcpy (p, STRING_SIZE_TUPLE (" .WAIT"));
+              p = mempcpy (p, " .WAIT", CSTRLEN (" .WAIT"));
             p = mempcpy (mempcpy (p, " ", 1), dep_name (dep),
                          strlen (dep_name (dep)));
           }
@@ -107,7 +107,7 @@ get_rule_defn (struct rule *r)
           {
             p = mempcpy (p, sep, strlen (sep));
             if (ood->wait_here)
-              p = mempcpy (p, STRING_SIZE_TUPLE (".WAIT "));
+              p = mempcpy (p, ".WAIT ", CSTRLEN (".WAIT "));
             p = mempcpy (p, dep_name (ood), strlen (dep_name (ood)));
           }
       *p = '\0';
