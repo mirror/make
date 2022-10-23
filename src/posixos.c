@@ -839,17 +839,22 @@ fd_set_append (int fd)
 int
 os_anontmp ()
 {
+  const char *tdir = get_tmpdir ();
   int fd = -1;
 
 #ifdef O_TMPFILE
-  EINTRLOOP (fd, open (get_tmpdir (), O_RDWR | O_TMPFILE | O_EXCL, 0600));
-  if (fd < 0)
-    pfatal_with_name ("open(O_TMPFILE)");
-#elif HAVE_DUP
-  /* We don't have O_TMPFILE but we can dup: if we are creating temp files in
-     the default location then try tmpfile() + dup() + fclose() to avoid ever
-     having a name for a file.  */
-  if (streq (get_tmpdir (), DEFAULT_TMPDIR))
+  EINTRLOOP (fd, open (tdir, O_RDWR | O_TMPFILE | O_EXCL, 0600));
+  if (fd >= 0)
+    return fd;
+
+  DB (DB_BASIC, (_("Cannot open '%s' with O_TMPFILE: %s.\n"),
+                 tdir, strerror (errno)));
+#endif
+
+#if HAVE_DUP
+  /* If we can dup and we are creating temp files in the default location then
+     try tmpfile() + dup() + fclose() to avoid ever having a named file.  */
+  if (streq (tdir, DEFAULT_TMPDIR))
     {
       mode_t mask = umask (0077);
       FILE *tfile;
