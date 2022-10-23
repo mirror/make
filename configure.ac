@@ -175,15 +175,35 @@ AS_IF([test "x$with_guile" != xno],
   AC_MSG_RESULT([$guile_version])
   AS_IF([test "$have_guile" = yes],
   [ PKG_CHECK_MODULES(GUILE, [guile-$guile_version])
-    # Unfortunately Guile requires a C99 compiler but GNU make doesn't, so
-    # verify we can actually compile the header.
+    # Unfortunately pkg doesn't help in multi-arch environments where the
+    # package is installed for some architectures but not others; we need
+    # to try to link.
     keep_CPPFLAGS="$CPPFLAGS"
-    CPPFLAGS="$CPPFLAGS $pkg_cv_GUILE_CFLAGS"
+    keep_LIBS="$LIBS"
+    CPPFLAGS="$CPPFLAGS $GUILE_CFLAGS"
+    LIBS="$LIBS $GUILE_LIBS"
     AC_CHECK_HEADER([libguile.h],
                     [AC_DEFINE([HAVE_GUILE], [1], [Embed GNU Guile support])],
                     [have_guile=no],
                     [/* Avoid configuration error warnings. */])
+    AS_IF([test "$have_guile" = yes],
+    [ AC_MSG_CHECKING([whether we can link GNU Guile])
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#include <libguile.h>
+static void *
+guile_init (void *arg)
+{
+   (void) arg;
+   return 0;
+}
+]], [[
+    scm_with_guile (guile_init, 0);
+]])],
+        [have_guile=yes],
+        [have_guile=no])
+      AC_MSG_RESULT([$have_guile])])
     CPPFLAGS="$keep_CPPFLAGS"
+    LIBS="$keep_LIBS"
   ])
 ])
 
