@@ -568,7 +568,6 @@ umask (mode_t mask)
 }
 #endif
 
-#define MAKE_TMPDIR         "MAKE_TMPDIR"
 #ifdef VMS
 # define DEFAULT_TMPFILE    "sys$scratch:gnv$make_cmdXXXXXX.com"
 #else
@@ -582,13 +581,36 @@ get_tmpdir ()
 
   if (!tmpdir)
     {
-      if (((tmpdir = getenv (MAKE_TMPDIR)) == NULL || *tmpdir == '\0')
 #if defined (__MSDOS__) || defined (WINDOWS32) || defined (__EMX__)
-          && ((tmpdir = getenv ("TMP")) == NULL || *tmpdir == '\0')
-          && ((tmpdir = getenv ("TEMP")) == NULL || *tmpdir == '\0')
+# define TMP_EXTRAS   "TMP", "TEMP",
+#else
+# define TMP_EXTRAS
 #endif
-          && ((tmpdir = getenv ("TMPDIR")) == NULL || *tmpdir == '\0'))
-        tmpdir = DEFAULT_TMPDIR;
+      const char *tlist[] = { "MAKE_TMPDIR", "TMPDIR", TMP_EXTRAS NULL };
+      const char **tp;
+      unsigned int found = 0;
+
+      for (tp = tlist; *tp; ++tp)
+        if ((tmpdir = getenv (*tp)) && *tmpdir != '\0')
+          {
+            struct stat st;
+            int r;
+            found = 1;
+            EINTRLOOP(r, stat (tmpdir, &st));
+            if (r < 0)
+              OSSS (error, NILF,
+                    _("%s value %s: %s"), *tp, tmpdir, strerror (errno));
+            else if (! S_ISDIR (st.st_mode))
+              OSS (error, NILF,
+                   _("%s value %s: not a directory"), *tp, tmpdir);
+            else
+              return tmpdir;
+          }
+
+      tmpdir = DEFAULT_TMPDIR;
+
+      if (found)
+        OS (error, NILF, _("using default temporary directory '%s'"), tmpdir);
     }
 
   return tmpdir;

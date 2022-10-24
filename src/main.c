@@ -1390,6 +1390,10 @@ main (int argc, char **argv, char **envp)
 
   initialize_global_hash_tables ();
 
+  /* Ensure the temp directory is set up: we don't want the first time we use
+     it to be in a forked process.  */
+  get_tmpdir ();
+
   /* Figure out where we are.  */
 
 #ifdef WINDOWS32
