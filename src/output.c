@@ -51,20 +51,24 @@ unsigned int stdio_traced = 0;
 static void
 _outputs (struct output *out, int is_err, const char *msg)
 {
-  if (! out || ! out->syncout)
-    {
-      FILE *f = is_err ? stderr : stdout;
-      fputs (msg, f);
-      fflush (f);
-    }
-  else
+  FILE *f;
+
+  if (out && out->syncout)
     {
       int fd = is_err ? out->err : out->out;
-      size_t len = strlen (msg);
-      int r;
-      EINTRLOOP (r, lseek (fd, 0, SEEK_END));
-      writebuf (fd, msg, len);
+      if (fd != OUTPUT_NONE)
+        {
+          size_t len = strlen (msg);
+          int r;
+          EINTRLOOP (r, lseek (fd, 0, SEEK_END));
+          writebuf (fd, msg, len);
+          return;
+        }
     }
+
+  f = is_err ? stderr : stdout;
+  fputs (msg, f);
+  fflush (f);
 }
 
 /* Write a message indicating that we've just entered or
