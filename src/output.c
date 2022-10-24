@@ -202,7 +202,16 @@ output_tmpfd (void)
 static void
 setup_tmpfile (struct output *out)
 {
-  unsigned int io_state = check_io_state ();
+  static unsigned int in_setup = 0;
+  unsigned int io_state;
+
+  /* If something fails during setup we might recurse back into this function
+     while writing errors.  Make sure we don't do so infinitely.  */
+  if (in_setup)
+    return;
+  in_setup = 1;
+
+  io_state = check_io_state ();
 
   if (NONE_SET (io_state, IO_STDOUT_OK|IO_STDERR_OK))
     {
@@ -234,6 +243,7 @@ setup_tmpfile (struct output *out)
         }
     }
 
+  in_setup = 0;
   return;
 
   /* If we failed to create a temp file, disable output sync going forward.  */
@@ -241,6 +251,7 @@ setup_tmpfile (struct output *out)
   output_close (out);
   output_sync = OUTPUT_SYNC_NONE;
   osync_clear ();
+  in_setup = 0;
 }
 
 /* Synchronize the output of jobs in -j mode to keep the results of
@@ -398,10 +409,11 @@ void
 message (int prefix, size_t len, const char *fmt, ...)
 {
   va_list args;
+  char *start;
   char *p;
 
   len += strlen (fmt) + strlen (program) + INTSTR_LENGTH + 4 + 1 + 1;
-  p = get_buffer (len);
+  start = p = get_buffer (len);
 
   if (prefix)
     {
@@ -418,8 +430,8 @@ message (int prefix, size_t len, const char *fmt, ...)
 
   strcat (p, "\n");
 
-  assert (fmtbuf.buffer[len-1] == '\0');
-  outputs (0, fmtbuf.buffer);
+  assert (start[len-1] == '\0');
+  outputs (0, start);
 }
 
 /* Print an error message.  */
@@ -428,12 +440,13 @@ void
 error (const floc *flocp, size_t len, const char *fmt, ...)
 {
   va_list args;
+  char *start;
   char *p;
 
   len += (strlen (fmt) + strlen (program)
           + (flocp && flocp->filenm ? strlen (flocp->filenm) : 0)
           + INTSTR_LENGTH + 4 + 1 + 1);
-  p = get_buffer (len);
+  start = p = get_buffer (len);
 
   if (flocp && flocp->filenm)
     sprintf (p, "%s:%lu: ", flocp->filenm, flocp->lineno + flocp->offset);
@@ -449,8 +462,8 @@ error (const floc *flocp, size_t len, const char *fmt, ...)
 
   strcat (p, "\n");
 
-  assert (fmtbuf.buffer[len-1] == '\0');
-  outputs (1, fmtbuf.buffer);
+  assert (start[len-1] == '\0');
+  outputs (1, start);
 }
 
 /* Print an error message and exit.  */
@@ -460,12 +473,13 @@ fatal (const floc *flocp, size_t len, const char *fmt, ...)
 {
   va_list args;
   const char *stop = _(".  Stop.\n");
+  char *start;
   char *p;
 
   len += (strlen (fmt) + strlen (program)
           + (flocp && flocp->filenm ? strlen (flocp->filenm) : 0)
           + INTSTR_LENGTH + 8 + strlen (stop) + 1);
-  p = get_buffer (len);
+  start = p = get_buffer (len);
 
   if (flocp && flocp->filenm)
     sprintf (p, "%s:%lu: *** ", flocp->filenm, flocp->lineno + flocp->offset);
@@ -481,8 +495,8 @@ fatal (const floc *flocp, size_t len, const char *fmt, ...)
 
   strcat (p, stop);
 
-  assert (fmtbuf.buffer[len-1] == '\0');
-  outputs (1, fmtbuf.buffer);
+  assert (start[len-1] == '\0');
+  outputs (1, start);
 
   die (MAKE_FAILURE);
 }
