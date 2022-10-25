@@ -166,12 +166,17 @@ GMK_OUTDIR = ..
 
 testlog = test-suite.log
 testresult = tests/.test-result
-errorfile = makeerror-$(host_triplet).tar.gz
+errorpre = makeerror-$(PACKAGE_VERSION)-$(host_triplet)
 
 testfiles = $(testlog) $(testresult) $(errorfile)
 MOSTLYCLEANFILES = $(testfiles)
 
 errordetails = config.status config.log src/config.h $(testlog) tests/work
+
+# Create a 4-letter random sequence
+rand_value = c = "abcdefghijklmnopqrstuvwxyz0123456789"
+rand_char  = substr(c,int(rand()*36),1)
+rand_string = $(AWK) 'BEGIN{srand(); $(rand_value); print $(rand_char) "" $(rand_char) "" $(rand_char) "" $(rand_char);}'
 
 check-regression: tests/config-flags.pm
 	@rm -f $(testfiles)
@@ -189,8 +194,11 @@ check-regression: tests/config-flags.pm
 	    echo "cd tests && $(PERL) $(PERLFLAGS) ./run_make_tests.pl -srcdir $(abs_top_srcdir) -make $(GMK_OUTDIR)/make$(EXEEXT) $(MAKETESTFLAGS)"; \
 	    (cd tests && $(PERL) $(PERLFLAGS) ./run_make_tests.pl -srcdir '$(abs_top_srcdir)' -make '$(GMK_OUTDIR)/make$(EXEEXT)' $(MAKETESTFLAGS); echo $$? >.test-result) 2>&1 | tee $(testlog); \
 	    er=$$(cat $(testresult)); if test "$$er" -ne 0; then \
-	      $(AMTAR) chf - $(errordetails) | eval GZIP= gzip $(GZIP_ENV) -c >$(errorfile); \
-	      echo '*** Testing failed!  Details saved in: $(errorfile)'; \
+	      dirnm="$(errorpre)-$$($(rand_string))"; fnm="$$dirnm.tar.gz"; \
+	      rm -rf "$$dirnm"; mkdir "$$dirnm"; \
+	      $(AMTAR) chf - $(errordetails) | (cd "$$dirnm"; $(AMTAR) xf -); \
+	      $(AMTAR) chf - "$$dirnm" | eval GZIP= gzip $(GZIP_ENV) -c >"$$fnm"; \
+	      echo "*** Testing FAILED!  Details: $$fnm"; \
 	      echo '*** Please report to <$(PACKAGE_BUGREPORT)>'; echo; \
 	      exit $$er; \
 	    fi; \
