@@ -57,8 +57,8 @@ $pathsep = undef;
 $test_passed = 1;
 
 # Timeout in seconds.  If the test takes longer than this we'll fail it.
-$test_timeout = 5;
-$test_timeout = 10 if $^O eq 'VMS';
+# This is to prevent hung tests.
+$test_timeout = 60;
 
 $diff_name = undef;
 
@@ -859,7 +859,8 @@ sub compare_output
       $slurp_mod =~ s,\r\n,\n,gs;
 
       $answer_matched = ($slurp_mod eq $answer_mod);
-      if ($^O eq 'VMS') {
+
+      if (!$answer_matched && $^O eq 'VMS') {
 
         # VMS has extra blank lines in output sometimes.
         # Ticket #41760

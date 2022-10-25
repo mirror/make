@@ -75,7 +75,6 @@ rmfiles(qw(ONE.inc TWO.inc THREE.inc ONE TWO THREE 1.inc 2.inc));
 # function in an exported recursive variable.  I added some code to check
 # for this situation and print a message if it occurred.  This test used
 # to trigger this code when I added it but no longer does after the fix.
-# We have to increase the timeout from the default (5s) on this test.
 
 run_make_test(q!
 export HI = $(shell $($@.CMD))
@@ -86,7 +85,7 @@ second.CMD = #HELPER# sleep 4
 all: first second
 
 first second: ; @#HELPER# out $@ sleep 1 out $@!,
-              '-j2', "first\nsleep 1\nfirst\nsecond\nsleep 1\nsecond", 0, 7);
+              '-j2', "first\nsleep 1\nfirst\nsecond\nsleep 1\nsecond", 0);
 
 # Michael Matz <matz@suse.de> reported a bug where if make is running in
 # parallel without -k and two jobs die in a row, but not too close to each

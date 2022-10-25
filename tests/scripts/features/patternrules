@@ -196,7 +196,7 @@ all: foo.x foo-mt.x
               '', "one\ntwo");
 
 # Test pattern rules building the same targets
-# See SV 54233.  Rely on our standard test timeout to break the loop
+# See SV 54233.
 
 touch('a.c');
 
