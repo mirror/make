@@ -205,11 +205,10 @@ int getgid ();
 #endif
 
 #if HAVE_SYS_LOADAVG_H
-# include <sys/time.h>
 # include <sys/loadavg.h>
 #endif
 
-#ifndef HAVE_DECL_GETLOADAVG
+#if HAVE_DECL_GETLOADAVG == 0
 int getloadavg (double loadavg[], int nelem);
 #endif
 
