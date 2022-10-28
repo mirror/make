@@ -375,23 +375,26 @@ eval_makefile (const char *filename, unsigned short flags)
      makefile search path for this makefile.  */
   if (ebuf.fp == NULL && deps->error == ENOENT && (flags & RM_INCLUDED)
       && *filename != '/' && include_directories)
-    for (const char **dir = include_directories; *dir != NULL; ++dir)
-      {
-        const char *included = concat (3, *dir, "/", filename);
+    {
+      const char **dir;
+      for (dir = include_directories; *dir != NULL; ++dir)
+        {
+          const char *included = concat (3, *dir, "/", filename);
 
-        ENULLLOOP(ebuf.fp, fopen (included, "r"));
-        if (ebuf.fp)
-          {
-            filename = included;
-            break;
-          }
-        if (errno != ENOENT)
-          {
-            filename = included;
-            deps->error = errno;
-            break;
-          }
-      }
+          ENULLLOOP(ebuf.fp, fopen (included, "r"));
+          if (ebuf.fp)
+            {
+              filename = included;
+              break;
+            }
+          if (errno != ENOENT)
+            {
+              filename = included;
+              deps->error = errno;
+              break;
+            }
+        }
+    }
 
   /* Enter the final name for this makefile as a goaldep.  */
   filename = strcache_add (filename);

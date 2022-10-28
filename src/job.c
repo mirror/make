@@ -3376,12 +3376,12 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
             {
               /* Parse shellflags using construct_command_argv_internal to
                  handle quotes. */
-              char **argv;
+              char **argv, **a;
               char *f;
-              f = alloca (sflags_len + 1); // +1 for null terminator.
+              f = alloca (sflags_len + 1); /* +1 for null terminator.  */
               memcpy (f, shellflags, sflags_len + 1);
               argv = construct_command_argv_internal (f, 0, 0, 0, 0, flags, 0);
-              for (char **a = argv; a && *a; ++a)
+              for (a = argv; a && *a; ++a)
                 new_argv[n++] = *a;
               free (argv);
             }

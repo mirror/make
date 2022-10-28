@@ -259,7 +259,8 @@ CFGCHECK_BUILDFLAGS  =
 # as well, and that will fail.
 CFGCHECK_MAKEFLAGS   = # CFLAGS='$(AM_CFLAGS)'
 
-# This test can no longer be run: now that we rely on gnulib we must use C99+
+# We don't support C90 anymore, strictly, but this test still works (with lots
+# of warnings) and it helps us avoid egregious incompatibilities.
 checkcfg.strict-c90:  CFGCHECK_CONFIGFLAGS = CFLAGS='-std=c90 -pedantic'
 checkcfg.strict-c90:  CFGCHECK_MAKEFLAGS   =
 
@@ -277,6 +278,7 @@ checkcfg.no-sync:     CFGCHECK_CONFIGFLAGS = CPPFLAGS=-DNO_OUTPUT_SYNC
 checkcfg.no-archives: CFGCHECK_CONFIGFLAGS = CPPFLAGS=-DNO_ARCHIVES
 
 CONFIG_CHECKS := \
+	checkcfg.strict-c90 \
 	checkcfg.no-jobserver \
 	checkcfg.no-load \
 	checkcfg.no-guile \
