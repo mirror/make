@@ -84,7 +84,9 @@ unlink($fout);
 use File::Spec;
 use File::Copy;
 
-my $makecopy = File::Spec->catfile($TEMPDIR, "make");
+my $tmakedir = File::Spec->catfile($cwdpath, 'tmakedir');
+mkdir($tmakedir, 0770);
+my $makecopy = File::Spec->catfile($tmakedir, 'make');
 copy("$mkpath", $makecopy);
 # Set file mode bits, because perl copy won't.
 chmod 0700, $makecopy;
@@ -106,6 +108,7 @@ force:
 
 @make_command = @make_orig;
 unlink($makecopy);
+rmdir($tmakedir);
 }
 
 close(STDIN);

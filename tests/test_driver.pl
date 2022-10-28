@@ -62,10 +62,6 @@ $test_timeout = 60;
 
 $diff_name = undef;
 
-# Create a temporary directory that tests can use, outside the temp
-# directory that make is using.
-$TEMPDIR = File::Temp->newdir();
-
 # Path to Perl
 $perl_name = $^X;
 if ($^O ne 'VMS') {
