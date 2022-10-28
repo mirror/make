@@ -110,78 +110,6 @@ $ERR_nonexe_file = undef;
 $ERR_exe_dir = undef;
 $ERR_command_not_found = undef;
 
-{
-  use locale;
-
-  my $loc = undef;
-  if ($has_POSIX) {
-      POSIX->import(qw(locale_h));
-      # Windows has POSIX locale, but only LC_ALL not LC_MESSAGES
-      $loc = POSIX::setlocale(&POSIX::LC_ALL);
-      POSIX::setlocale(&POSIX::LC_ALL, 'C');
-
-      # See set_defaults() as this doesn't work right on Windows :(
-      $! = &POSIX::ERANGE;
-  }
-
-  if (open(my $F, '<', 'file.none')) {
-      print "Opened non-existent file! Skipping related tests.\n";
-  } else {
-      $ERR_no_such_file = "$!";
-  }
-
-  unlink('file.out');
-  touch('file.out');
-
-  chmod(0444, 'file.out');
-  if (open(my $F, '>', 'file.out')) {
-      print "Opened read-only file! Skipping related tests.\n";
-      close($F);
-  } else {
-      $ERR_read_only_file = "$!";
-  }
-
-  $_ = `./file.out 2>&1`;
-  if ($? == 0) {
-      print "Executed non-executable file!  Skipping related tests.\n";
-  } else {
-      $ERR_nonexe_file = "$!";
-  }
-
-  if ($^O =~ /cygwin/i) {
-      # For some reason the execute here gives a different answer than make's
-      print "Skipping directory execution on $^O\n";
-  } else {
-      $_ = `./. 2>&1`;
-      if ($? == 0) {
-          print "Executed directory!  Skipping related tests.\n";
-      } else {
-          $ERR_exe_dir = "$!";
-      }
-  }
-
-  chmod(0000, 'file.out');
-  if (open(my $F, '<', 'file.out')) {
-      print "Opened unreadable file!  Skipping related tests.\n";
-      close($F);
-  } else {
-      $ERR_unreadable_file = "$!";
-  }
-
-  unlink('file.out') or die "Failed to delete file.out: $!\n";
-
-  $_ = `/bin/sh -c 'bad-command 2>&1'`;
-  if ($? == 0) {
-      print "Invoked invalid file!  Skipping related tests.\n";
-  } else {
-      chomp($_);
-      s/bad-command/#CMDNAME#/g;
-      $ERR_command_not_found = $_;
-  }
-
-  $loc and POSIX::setlocale(&POSIX::LC_ALL, $loc);
-}
-
 #$SIG{INT} = sub { print STDERR "Caught a signal!\n"; die @_; };
 
 sub valid_option
@@ -477,6 +405,81 @@ sub set_defaults
   } else {
     $scriptsuffix = '.bat';
   }
+
+  $ENV{LC_ALL} = $makeENV{LC_ALL};
+  $ENV{LANG} = $makeENV{LANG};
+  $ENV{LANGUAGE} = $makeENV{LANGUAGE};
+
+  use locale;
+
+  my $loc = undef;
+  if ($has_POSIX) {
+      POSIX->import(qw(locale_h));
+      # Windows has POSIX locale, but only LC_ALL not LC_MESSAGES
+      $loc = POSIX::setlocale(&POSIX::LC_ALL);
+      POSIX::setlocale(&POSIX::LC_ALL, 'C');
+  }
+
+  if (open(my $F, '<', 'file.none')) {
+      print "Opened non-existent file! Skipping related tests.\n";
+  } else {
+      $ERR_no_such_file = "$!";
+  }
+
+  unlink('file.out');
+  touch('file.out');
+
+  chmod(0444, 'file.out');
+  if (open(my $F, '>', 'file.out')) {
+      print "Opened read-only file! Skipping related tests.\n";
+      close($F);
+  } else {
+      $ERR_read_only_file = "$!";
+  }
+
+  $_ = `./file.out 2>&1`;
+  if ($? == 0) {
+      print "Executed non-executable file!  Skipping related tests.\n";
+  } else {
+      $ERR_nonexe_file = "$!";
+  }
+
+  if ($^O =~ /cygwin/i) {
+      # For some reason the execute here gives a different answer than make's
+      print "Skipping directory execution on $^O\n";
+  } else {
+      $_ = `./. 2>&1`;
+      if ($? == 0) {
+          print "Executed directory!  Skipping related tests.\n";
+      } else {
+          $ERR_exe_dir = "$!";
+      }
+  }
+
+  chmod(0000, 'file.out');
+  if (open(my $F, '<', 'file.out')) {
+      print "Opened unreadable file!  Skipping related tests.\n";
+      close($F);
+  } else {
+      $ERR_unreadable_file = "$!";
+  }
+
+  unlink('file.out') or die "Failed to delete file.out: $!\n";
+
+  $_ = `/bin/sh -c 'bad-command 2>&1'`;
+  if ($? == 0) {
+      print "Invoked invalid file!  Skipping related tests.\n";
+  } else {
+      chomp($_);
+      s/bad-command/#CMDNAME#/g;
+      $ERR_command_not_found = $_;
+  }
+
+  $loc and POSIX::setlocale(&POSIX::LC_ALL, $loc);
+
+  $ENV{LC_ALL} = $origENV{LC_ALL};
+  $ENV{LANG} = $origENV{LANG};
+  $ENV{LANGUAGE} = $origENV{LANGUAGE};
 }
 
 # This is no longer used: we import config-flags.pm instead
