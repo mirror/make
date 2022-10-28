@@ -295,7 +295,7 @@ NR_MAKE = $(MAKE)
 # Check builds both with build.sh and with make
 build.sh_SCRIPT = exec >>'checkcfg.$*.log' 2>&1; set -x; \
 		cd $(distdir)/_build \
-		&& OUTDIR=_bld ../build.sh $(CFGCHECK_BUILD_FLAGS) \
+		&& OUTDIR=_bld ../build.sh -k $(CFGCHECK_BUILD_FLAGS) \
 		&& _bld/make GMK_OUTDIR=../_bld $(AM_MAKEFLAGS) check-local \
 		&& _bld/make GMK_OUTDIR=../_bld $(AM_MAKEFLAGS) clean
 
