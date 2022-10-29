@@ -843,12 +843,18 @@ os_anontmp ()
   int fd = -1;
 
 #ifdef O_TMPFILE
-  EINTRLOOP (fd, open (tdir, O_RDWR | O_TMPFILE | O_EXCL, 0600));
-  if (fd >= 0)
-    return fd;
+  static unsigned int tmpfile_works = 1;
 
-  DB (DB_BASIC, (_("Cannot open '%s' with O_TMPFILE: %s.\n"),
-                 tdir, strerror (errno)));
+  if (tmpfile_works)
+    {
+      EINTRLOOP (fd, open (tdir, O_RDWR | O_TMPFILE | O_EXCL, 0600));
+      if (fd >= 0)
+        return fd;
+
+      DB (DB_BASIC, (_("Cannot open '%s' with O_TMPFILE: %s.\n"),
+                     tdir, strerror (errno)));
+      tmpfile_works = 0;
+    }
 #endif
 
 #if HAVE_DUP
