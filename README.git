@@ -48,8 +48,8 @@ your commit messages (sans the leading TAB of course).
 
 Rule #1: Don't rewrite pushed history on master (no "git push --force").
 Rule #2: Feel free to rewrite pushed history on personal branches.
-Rule #3: Prefer to squash-merge or rebase + merge --ff-only, rather than
-         merging from personal branches into master.
+Rule #3: Squash-merge or rebase + merge --ff-only, rather than merging from
+         personal branches into master.
 
 Typical simple workflow might be:
 
@@ -178,6 +178,9 @@ Note, neither of these methods are tested regularly by the GNU Make
 maintainers.  Building for Windows from a distribution tarball IS tested
 regularly.
 
+NOTE! "Maintainer mode" (see above) IS ENABLED when building from Git using
+      the build_w32.bat file.
+
 
 Debugging and Testing
 ---------------------
@@ -203,7 +206,7 @@ work on non-GNU systems (Windows, MacOS, etc.)
 
     make clean
     make -j8 CFLAGS='-ggdb3 -fsanitize=address' LDFLAGS='-ggdb3 -fsanitize=address'
-    (cd tests && ./run_make_tests -make ../make)
+    make check
 
   Note that ASAN is reporting many more errors than valgrind.  I don't know
   which one is wrong: I haven't looked at them closely.
@@ -250,99 +253,123 @@ consistent (that's why we don't finalize the Git tag, etc. until the end).
     "Fixed Release" ID number.
   * Run "make distcheck" to be sure it all works.
   * Run "make check-alt-config" to be sure alternative configurations work
-  * Run "make update-makeweb" to get a copy of the GNU Make web pages
-  * Run "make update-gnuweb" to get a copy of the GNU website boilerplate pages
-  * Update the web page boilerplate if necessary:
-      ../gnu-www/www/server/standards/patch-from-parent ../make-web/make.html \
-            ../gnu-www/www/server/standards/boilerplate.html
-  * Run "make gendocs" (requires gnulib) to generate the manual files for
-    the GNU Make web pages.
-  * Follow the directions from gendocs for the web page repository
   * run "make tag-release" to create a Git tag for the release
   * Push everything:
     git push --tags origin master
 
-Manage the Savannah project for GNU Make:
+The safest thing is to create an entirely new repository and build the final
+package from there:
 
-  >>> This is only for real releases, not release candidate builds <<<
+  git clone git://git.savannah.gnu.org/make.git make-release
+  cd make-release
+
+If you don't want to create a new repository then run "git clean -fdx".
+Then:
+
+  ./bootstrap.sh
+  ./configure
+  make distcheck
+
+Perform test builds on whichever systems you have access to.
+
+Use a previous announcement as a template to create an announcement in a text
+file then sign it with GPG:
+
+  gpg --clearsign <announcement.txt>
+
+Or, use your mail client's PGP/GPG signing capabilities.
+
+NOTE! In order to publish a package on the FSF FTP site you need to have my
+      GPG private key, and my passphrase to unlock it.
+
+      Depending on your distribution (whether GnuPG is integrated with your
+      keyring etc.) the upload operation will either pop up a window asking
+      for the GPG key passphrase one time, or else it will use the CLI to ask
+      for the GPG passphrase _THREE_ times.  Sigh.
+
+
+Publishing a Release Candidate
+------------------------------
+
+Usually I publish one or two release candidates for people to test before
+making an official release.  Release candidates use a GNU numbering scheme,
+which add a ".9x" release number to the PREVIOUS major release.  So the first
+release candidate for GNU Make 4.4 would be GNU Make 4.3.90, the second
+release candidate would be 4.3.91, etc.
+
+Upload a release candidate using:
+
+  make upload-alpha
+
+Announce a release candidate to these mailing lists:
+
+    To:  bug-make@gnu.org
+    BCC: help-make@gnu.org, make-w32@gnu.org, make-alpha@gnu.org
+
+You will have to approve the BCC's on the mailing list admin sites.  Send
+separate copies to (don't use CC as replies will go to these lists):
+
+  * coordinator@translationproject.org
+  * platform-testers@gnu.org
+
+
+Publishing a Release
+--------------------
+
+When publishing a final release there are extra steps that need to be taken:
+
+  * Run "make update-makeweb" to get a copy of the GNU Make web pages
+  * Run "make update-gnuweb" to get a copy of the GNU website boilerplate pages
+  * Update the web page boilerplate if necessary:
+      ( cd ~/src/make/make-web \
+         && ~/src/gnu-www/www/server/standards/patch-from-parent \
+                make.html \
+                ~/src/gnu-www/www/server/standards/boilerplate.html )
+  * Run "make gendocs" (requires gnulib) to generate the manual files for
+    the GNU Make web pages.
+  * Follow the directions from gendocs for the web page repository
+
+Manage the Savannah project for GNU Make:
 
   * In Savannah modify the "Value", "Rank", and "Description" values for the
     current "SCM" entry in both "Component Version" and "Fix Release" fields
     to refer to the new release.  The "Rank" field should be 10 less than the
     previous release so it orders properly.
-  * In Savannah create a new entry for the "Component Version" and "Fix
-    Release" fields:
+
+  * In Savannah create a new entry for the "Component Version" field:
       - Value: SCM
       - Rank:  20
       - Descr: Issues found in code retrieved from Source Code Management (Git), rather than a distributed version. Please include the SHA you are working with.
 
+  * In Savannah create a new entry for the "Fix Release" field:
+      - Value: SCM
+      - Rank:  20
       - Descr: Fixed in Source Code Management (Git). The fix will be included in the next release of GNU Make.
+
+Upload a release using:
+
+  make upload-ftp
+
+Announce a release to these mailing lists:
+
+    To:  info-gnu@gnu.org, bug-make@gnu.org
+    BCC: help-make@gnu.org, make-w32@gnu.org, make-alpha@gnu.org
+
+You will have to approve the BCC's on the mailing list admin sites.  Send
+separate copies to (don't use CC as replies will go to these lists):
+
+  * coordinator@translationproject.org
+  * platform-testers@gnu.org
+
+Announce on Savannah:
+
+  * Add a news item to the Savannah project site.
 
 Start the next release:
 
   * Update configure.ac and add a ".90" to the release number.
   * Update the NEWS file with a new section for the release / date.
   * Update the Savannah URL for the bugs fixed in the NEWS section.
-
-
-Publishing a Package
---------------------
-
-In order to publish a package on the FSF FTP site, either the release
-site ftp://ftp.gnu.org, or the prerelease site ftp://alpha.gnu.org, you
-first need to have my GPG private key and my passphrase to unlock it.
-And, you can't have them!  So there!  But, just so I remember here's
-what to do:
-
-  Make sure the "Steps to Release" are complete and committed and tagged.
-
-  git clone git://git.savannah.gnu.org/make.git make-release
-
-  cd make-release
-
-  <run the commands above to build the release>
-
-  make upload-alpha             # for alpha.gnu.org (pre-releases)
-       -OR-
-  make upload-ftp               # for ftp.gnu.org (official releases)
-
-Depending on your distribution (whether GnuPG is integrated with your keyring
-etc.) it will either pop up a window asking for your GPG key passphrase one
-time, or else it will use the CLI to ask for the GPG passphrase _THREE_ times.
-Sigh.
-
-
-For both final releases and pre-releases, send an email with the URL of
-the package to the GNU translation robot to allow the translators to
-work on it:
-
-     <coordinator@translationproject.org>
-
-
-Where to Announce
------------------
-
-Create the announcement in a text file, using 'git shortlog',
-then sign it with GPG:
-
-  gpg --clearsign <announcement.txt>
-
-Or, use your mail client's PGP/GPG signing capabilities.
-
-Announce the release:
-
-  * For release candidate builds:
-    To:  bug-make@gnu.org
-    CC:  coordinator@translationproject.org, platform-testers@gnu.org
-    BCC: help-make@gnu.org, make-w32@gnu.org, make-alpha@gnu.org
-
-  * For release builds
-    To:  info-gnu@gnu.org, bug-make@gnu.org
-    CC:  coordinator@translationproject.org
-    BCC: help-make@gnu.org, make-w32@gnu.org, make-alpha@gnu.org
-
-    * Add a news item to the Savannah project site.
-    * Add an update to freecode.com (nee freshmeat.net)
 
 
 Appendix A - For The Brave
@@ -360,6 +387,6 @@ For a debugging version:
 
 ./bootstrap && ./configure CFLAGS=-g && make check
 
-For a release version
+For an optimized version
 
 ./bootstrap && ./configure && make check
