@@ -668,6 +668,7 @@ get_tmpfd (char **name)
 {
   int fd = -1;
   char *tmpnm;
+  mode_t mask;
 
   /* If there's an os-specific way to get an anoymous temp file use it.  */
   if (!name)
@@ -676,6 +677,10 @@ get_tmpfd (char **name)
       if (fd >= 0)
         return fd;
     }
+
+  /* Preserve the current umask, and set a restrictive one for temp files.
+     Only really needed for mkstemp() but won't hurt for the open method.  */
+  mask = umask (0077);
 
 #if defined(HAVE_MKSTEMP)
   tmpnm = get_tmptemplate ();
@@ -703,6 +708,8 @@ get_tmpfd (char **name)
              _("unlink temporary file %s: %s"), tmpnm, strerror (errno));
       free (tmpnm);
     }
+
+  umask (mask);
 
   return fd;
 }

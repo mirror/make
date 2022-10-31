@@ -601,7 +601,7 @@ find_directory (const char *name)
   /* Point the name-hashed entry for DIR at its contents data.  */
   dir->contents = dc;
 
-  /* If the contents have changed, we need to reseet.  */
+  /* If the contents have changed, we need to reseed.  */
   if (dc->counter != command_count)
     {
       if (dc->counter)

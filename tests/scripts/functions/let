@@ -39,11 +39,12 @@ all:;@echo 'a=,$a,' 'b=,$b,' 'x=,$x,' 'y=,$y,' 'z=,$z,'
 # We still expand the list and body.
 run_make_test('
 null =
+v = $(let    ,$(info blankvar),abc)
 x = $(let $(null),$(info side-effect),abc)
 y = $(let y,,$ydef)
 
-all: ; @echo $x$y',
-              '', "side-effect\nabcdef\n");
+all: ; @echo $v/$x/$y',
+              '', "blankvar\nside-effect\nabc/abc/def\n");
 
 # The example macro from the manual.
 run_make_test('

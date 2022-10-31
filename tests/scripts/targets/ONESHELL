@@ -10,7 +10,7 @@ if ($port_type ne 'W32') {
     # Some shells (*shakes fist at Solaris*) cannot handle multiple flags in
     # separate arguments.
     my $t = `$sh_name -e -c true 2>/dev/null`;
-    my $multi_ok = $? == 0;
+    $multi_ok = $? == 0;
 }
 
 # Simple

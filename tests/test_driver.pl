@@ -197,7 +197,7 @@ sub toplevel
            'TZ', 'TMPDIR', 'HOME', 'USER', 'LOGNAME', 'PATH',
            'LD_LIBRARY_PATH',
            # *SAN things
-           'ASAN_OPTIONS', 'UBSAN_OPTIONS',
+           'ASAN_OPTIONS', 'UBSAN_OPTIONS', 'LSAN_OPTIONS',
            # Purify things
            'PURIFYOPTIONS',
            # Windows-specific things

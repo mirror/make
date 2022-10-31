@@ -9,8 +9,7 @@ variable2 := Hello
 y = $(subst 1,2,$(x))
 z = y
 a := $($($(z)))
-all: 
-	@echo $(a)
+all: ; @echo $(a)
 ',
               '', "Hello\n");
 
@@ -21,15 +20,8 @@ all:
 
 run_make_test('
 VARIABLE = $(eval VARIABLE := echo hi)$(VARIABLE)
-wololo:
-	@$(VARIABLE)
+wololo: ; @$(VARIABLE)
 ',
               '', "hi\n");
 
 1;
-
-
-
-
-
-

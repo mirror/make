@@ -2811,7 +2811,8 @@ define_new_function (const floc *flocp, const char *name,
   ent->adds_command = 1;
   ent->fptr.alloc_func_ptr = func;
 
-  hash_insert (&function_table, ent);
+  ent = hash_insert (&function_table, ent);
+  free (ent);
 }
 
 void

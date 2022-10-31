@@ -36,7 +36,7 @@ ar_name (const char *name)
   const char *p = strchr (name, '(');
   const char *end;
 
-  if (p == 0 || p == name)
+  if (p == NULL || p == name)
     return 0;
 
   end = p + strlen (p) - 1;
@@ -61,6 +61,9 @@ ar_parse_name (const char *name, char **arname_p, char **memname_p)
 
   *arname_p = xstrdup (name);
   p = strchr (*arname_p, '(');
+  /* This is never called unless ar_name() is true so p cannot be NULL.  */
+  if (!p)
+    OS (fatal, NILF, "Internal: ar_parse_name: bad name '%s'", *arname_p);
   *(p++) = '\0';
   p[strlen (p) - 1] = '\0';
   *memname_p = p;

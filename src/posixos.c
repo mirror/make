@@ -673,6 +673,7 @@ osync_parse_mutex (const char *mutex)
       return 0;
     }
 
+  free (osync_tmpfile);
   osync_tmpfile = xstrdup (mutex + CSTRLEN (MUTEX_PREFIX));
 
   EINTRLOOP (osync_handle, open (osync_tmpfile, O_WRONLY));

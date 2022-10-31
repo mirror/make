@@ -2271,7 +2271,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
   const int fdin = good_stdin ? FD_STDIN : get_bad_stdin ();
   int fdout = FD_STDOUT;
   int fderr = FD_STDERR;
-  pid_t pid;
+  pid_t pid = -1;
   int r;
 #if defined(USE_POSIX_SPAWN)
   char *cmd;
@@ -3364,30 +3364,44 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
 #endif /* WINDOWS32 */
         /* Create an argv list for the shell command line.  */
         {
-          int n = 0;
+          int n = 1;
+          char *nextp;
 
           new_argv = xmalloc ((4 + sflags_len/2) * sizeof (char *));
-          new_argv[n++] = xstrdup (shell);
+
+          nextp = new_argv[0] = xmalloc (shell_len + sflags_len + line_len + 3);
+          nextp = mempcpy (nextp, shell, shell_len + 1);
 
           /* Chop up the shellflags (if any) and assign them.  */
           if (! shellflags)
-            new_argv[n++] = xstrdup ("");
+            {
+              new_argv[n++] = nextp;
+              *(nextp++) = '\0';
+            }
           else
             {
               /* Parse shellflags using construct_command_argv_internal to
                  handle quotes. */
-              char **argv, **a;
-              char *f;
-              f = alloca (sflags_len + 1); /* +1 for null terminator.  */
+              char **argv;
+              char *f = alloca (sflags_len + 1);
               memcpy (f, shellflags, sflags_len + 1);
               argv = construct_command_argv_internal (f, 0, 0, 0, 0, flags, 0);
-              for (a = argv; a && *a; ++a)
-                new_argv[n++] = *a;
-              free (argv);
+              if (argv)
+                {
+                  char **a;
+                  for (a = argv; *a; ++a)
+                    {
+                      new_argv[n++] = nextp;
+                      nextp = stpcpy (nextp, *a) + 1;
+                    }
+                  free (argv[0]);
+                  free (argv);
+                }
             }
 
           /* Set the command to invoke.  */
-          new_argv[n++] = line;
+          new_argv[n++] = nextp;
+          memcpy(nextp, line, line_len + 1);
           new_argv[n++] = NULL;
         }
         return new_argv;
