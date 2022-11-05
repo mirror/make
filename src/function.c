@@ -2801,7 +2801,7 @@ define_new_function (const floc *flocp, const char *name,
          _("Invalid maximum argument count (%u) for function %s"), max, name);
 
   ent = xmalloc (sizeof (struct function_table_entry));
-  ent->name = name;
+  ent->name = strcache_add (name);
   ent->len = (unsigned char) len;
   ent->minimum_args = (unsigned char) min;
   ent->maximum_args = (unsigned char) max;
