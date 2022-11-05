@@ -343,6 +343,10 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 /* #undef HAVE_STRSIGNAL */
 
 /* Define to 1 if you have the `strtoll' function. */
++#ifdef __TINYC__
++#define strtoll _strtoi64
++#define strtoull _strtoui64
++#endif
 #define HAVE_STRTOLL 1
 
 /* Define to 1 if `d_type' is a member of `struct dirent'. */
