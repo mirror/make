@@ -806,12 +806,135 @@ sub error
   die "$caller: $message";
 }
 
+sub compare_answer_vms
+{
+  my ($kgo, $log) = @_;
+
+  # VMS has extra blank lines in output sometimes.
+  # Ticket #41760
+  $log =~ s/\n\n+/\n/gm;
+  $log =~ s/\A\n+//g;
+  return 1 if ($kgo eq $log);
+
+  # VMS adding a "Waiting for unfinished jobs..."
+  # Remove it for now to see what else is going on.
+  $log =~ s/^.+\*\*\* Waiting for unfinished jobs.+$//m;
+  $log =~ s/\n\n/\n/gm;
+  $log =~ s/^\n+//gm;
+  return 1 if ($log eq $kgo);
+
+  # VMS wants target device to exist or generates an error,
+  # Some test tagets look like VMS devices and trip this.
+  $log =~ s/^.+\: no such device or address.*$//gim;
+  $log =~ s/\n\n/\n/gm;
+  $log =~ s/^\n+//gm;
+  return 1 if ($log eq $kgo);
+
+  # VMS error message has a different case
+  $log =~ s/no such file /No such file /gm;
+  return 1 if ($log eq $kgo);
+
+  # VMS is putting comas instead of spaces in output
+  $log =~ s/,/ /gm;
+  return 1 if ($log eq $kgo);
+
+  # VMS Is sometimes adding extra leading spaces to output?
+  {
+     (my $mlog = $log) =~ s/^ +//gm;
+     return 1 if ($mlog eq $kgo);
+  }
+
+  # VMS port not handling POSIX encoded child status
+  # Translate error case it for now.
+  $log =~ s/0x1035a00a/1/gim;
+  return 1 if ($log =~ /\Q$kgo\E/i);
+
+  $log =~ s/0x1035a012/2/gim;
+  return 1 if ($log eq $kgo);
+
+  # Tests are using a UNIX null command, temp hack
+  # until this can be handled by the VMS port.
+  # ticket # 41761
+  $log =~ s/^.+DCL-W-NOCOMD.*$//gim;
+  $log =~ s/\n\n+/\n/gm;
+  $log =~ s/^\n+//gm;
+  return 1 if ($log eq $kgo);
+
+  # Tests are using exit 0;
+  # this generates a warning that should stop the make, but does not
+  $log =~ s/^.+NONAME-W-NOMSG.*$//gim;
+  $log =~ s/\n\n+/\n/gm;
+  $log =~ s/^\n+//gm;
+  return 1 if ($log eq $kgo);
+
+  # VMS is sometimes adding single quotes to output?
+  $log =~ s/\'//gm;
+  return 1 if ($log eq $kgo);
+
+  # And missing an extra space in output
+  $kgo =~ s/\h\h+/ /gm;
+  return 1 if ($log eq $kgo);
+
+  # VMS adding ; to end of some lines.
+  $log =~ s/;\n/\n/gm;
+  return 1 if ($log eq $kgo);
+
+  # VMS adding trailing space to end of some quoted lines.
+  $log =~ s/\h+\n/\n/gm;
+  return 1 if ($log eq $kgo);
+
+  # And VMS missing leading blank line
+  $kgo =~ s/\A\n//g;
+  return 1 if ($log eq $kgo);
+
+  # Unix double quotes showing up as single quotes on VMS.
+  $kgo =~ s/\"//g;
+  return 1 if ($log eq $kgo);
+
+  return 0;
+}
+
+sub compare_answer
+{
+  my ($kgo, $log) = @_;
+  my ($mkgo, $mlog);
+
+  # For make, get rid of any time skew error before comparing--too bad this
+  # has to go into the "generic" driver code :-/
+  $log =~ s/^.*modification time .*in the future.*\n//gm;
+  $log =~ s/^.*Clock skew detected.*\n//gm;
+  return 1 if ($log eq $kgo);
+
+  # Get rid of newline differences, forever
+  $kgo =~ s,\r\n,\n,gs;
+  $log =~ s,\r\n,\n,gs;
+  return 1 if ($log eq $kgo);
+
+  # See if it is a backslash problem (only on W32?)
+  ($mkgo = $kgo) =~ tr,\\,/,;
+  ($mlog = $log) =~ tr,\\,/,;
+  return 1 if ($log eq $kgo);
+
+  # VMS is a whole thing...
+  return 1 if ($^O eq 'VMS' && compare_answer_vms($mkgo, $mlog));
+
+  # See if the answer might be a regex.
+  if ($kgo =~ m,^/(.+)/$,) {
+    return 1 if ($log =~ /$1/);
+
+    # We can't test with backslashes converted to forward slashes, because
+    # backslashes could be escaping RE special characters!
+  }
+
+  return 0;
+}
+
 my %old_tempfiles = ();
 
 sub compare_output
 {
   my ($answer, $logfile) = @_;
-  my ($slurp, $answer_matched, $extra) = ('', 0, 0);
+  my ($slurp, $matched, $extra) = ('', 0, 0);
 
   ++$tests_run;
 
@@ -831,169 +954,25 @@ sub compare_output
 
   if (! defined $answer) {
     print "Ignoring output ........ " if $debug;
-    $answer_matched = 1;
+    $matched = 1;
   } else {
     print "Comparing output ........ " if $debug;
 
-    $slurp = &read_file_into_string ($logfile);
-
-    # For make, get rid of any time skew error before comparing--too bad this
-    # has to go into the "generic" driver code :-/
-    $slurp =~ s/^.*modification time .*in the future.*\n//gm;
-    $slurp =~ s/^.*Clock skew detected.*\n//gm;
-
-    if ($slurp eq $answer) {
-        $answer_matched = 1;
-    } else {
-      # See if it is a slash or CRLF problem
-      my ($answer_mod, $slurp_mod) = ($answer, $slurp);
-
-      $answer_mod =~ tr,\\,/,;
-      $answer_mod =~ s,\r\n,\n,gs;
-
-      $slurp_mod =~ tr,\\,/,;
-      $slurp_mod =~ s,\r\n,\n,gs;
-
-      $answer_matched = ($slurp_mod eq $answer_mod);
-
-      if (!$answer_matched && $^O eq 'VMS') {
-
-        # VMS has extra blank lines in output sometimes.
-        # Ticket #41760
-        if (!$answer_matched) {
-          $slurp_mod =~ s/\n\n+/\n/gm;
-          $slurp_mod =~ s/\A\n+//g;
-          $answer_matched = ($slurp_mod eq $answer_mod);
-        }
-
-        # VMS adding a "Waiting for unfinished jobs..."
-        # Remove it for now to see what else is going on.
-        if (!$answer_matched) {
-          $slurp_mod =~ s/^.+\*\*\* Waiting for unfinished jobs.+$//m;
-          $slurp_mod =~ s/\n\n/\n/gm;
-          $slurp_mod =~ s/^\n+//gm;
-          $answer_matched = ($slurp_mod eq $answer_mod);
-        }
-
-        # VMS wants target device to exist or generates an error,
-        # Some test tagets look like VMS devices and trip this.
-        if (!$answer_matched) {
-          $slurp_mod =~ s/^.+\: no such device or address.*$//gim;
-          $slurp_mod =~ s/\n\n/\n/gm;
-          $slurp_mod =~ s/^\n+//gm;
-          $answer_matched = ($slurp_mod eq $answer_mod);
-        }
-
-        # VMS error message has a different case
-        if (!$answer_matched) {
-          $slurp_mod =~ s/no such file /No such file /gm;
-          $answer_matched = ($slurp_mod eq $answer_mod);
-        }
-
-        # VMS is putting comas instead of spaces in output
-        if (!$answer_matched) {
-          $slurp_mod =~ s/,/ /gm;
-          $answer_matched = ($slurp_mod eq $answer_mod);
-        }
-
-        # VMS Is sometimes adding extra leading spaces to output?
-        if (!$answer_matched) {
-           my $slurp_mod = $slurp_mod;
-           $slurp_mod =~ s/^ +//gm;
-           $answer_matched = ($slurp_mod eq $answer_mod);
-        }
-
-        # VMS port not handling POSIX encoded child status
-        # Translate error case it for now.
-        if (!$answer_matched) {
-          $slurp_mod =~ s/0x1035a00a/1/gim;
-          $answer_matched = 1 if $slurp_mod =~ /\Q$answer_mod\E/i;
-
-        }
-        if (!$answer_matched) {
-          $slurp_mod =~ s/0x1035a012/2/gim;
-          $answer_matched = ($slurp_mod eq $answer_mod);
-        }
-
-        # Tests are using a UNIX null command, temp hack
-        # until this can be handled by the VMS port.
-        # ticket # 41761
-        if (!$answer_matched) {
-          $slurp_mod =~ s/^.+DCL-W-NOCOMD.*$//gim;
-          $slurp_mod =~ s/\n\n+/\n/gm;
-          $slurp_mod =~ s/^\n+//gm;
-          $answer_matched = ($slurp_mod eq $answer_mod);
-        }
-        # Tests are using exit 0;
-        # this generates a warning that should stop the make, but does not
-        if (!$answer_matched) {
-          $slurp_mod =~ s/^.+NONAME-W-NOMSG.*$//gim;
-          $slurp_mod =~ s/\n\n+/\n/gm;
-          $slurp_mod =~ s/^\n+//gm;
-          $answer_matched = ($slurp_mod eq $answer_mod);
-        }
-
-        # VMS is sometimes adding single quotes to output?
-        if (!$answer_matched) {
-          my $noq_slurp_mod = $slurp_mod;
-          $noq_slurp_mod =~ s/\'//gm;
-          $answer_matched = ($noq_slurp_mod eq $answer_mod);
-
-          # And missing an extra space in output
-          if (!$answer_matched) {
-            $noq_answer_mod = $answer_mod;
-            $noq_answer_mod =~ s/\h\h+/ /gm;
-            $answer_matched = ($noq_slurp_mod eq $noq_answer_mod);
-          }
-
-          # VMS adding ; to end of some lines.
-          if (!$answer_matched) {
-            $noq_slurp_mod =~ s/;\n/\n/gm;
-            $answer_matched = ($noq_slurp_mod eq $noq_answer_mod);
-          }
-
-          # VMS adding trailing space to end of some quoted lines.
-          if (!$answer_matched) {
-            $noq_slurp_mod =~ s/\h+\n/\n/gm;
-            $answer_matched = ($noq_slurp_mod eq $noq_answer_mod);
-          }
-
-          # And VMS missing leading blank line
-          if (!$answer_matched) {
-            $noq_answer_mod =~ s/\A\n//g;
-            $answer_matched = ($noq_slurp_mod eq $noq_answer_mod);
-          }
-
-          # Unix double quotes showing up as single quotes on VMS.
-          if (!$answer_matched) {
-            $noq_answer_mod =~ s/\"//g;
-            $answer_matched = ($noq_slurp_mod eq $noq_answer_mod);
-          }
-        }
-      }
-
-      # If it still doesn't match, see if the answer might be a regex.
-      if (!$answer_matched && $answer =~ m,^/(.+)/$,) {
-        $answer_matched = ($slurp =~ /$1/);
-        if (!$answer_matched && $answer_mod =~ m,^/(.+)/$,) {
-            $answer_matched = ($slurp_mod =~ /$1/);
-        }
-      }
-    }
+    $matched = compare_answer($answer, &read_file_into_string ($logfile));
   }
 
-  if ($keep || ! $answer_matched) {
+  if ($keep || ! $matched) {
     &create_file(&get_basefile, $answer);
     &create_file(&get_runfile, $command_string);
   }
 
-  if ($answer_matched && $test_passed && !$extra) {
+  if ($matched && $test_passed && !$extra) {
     print "ok\n" if $debug;
     ++$tests_passed;
     return 1;
   }
 
-  if (! $answer_matched) {
+  if (! $matched) {
     print "DIFFERENT OUTPUT\n" if $debug;
 
     print "\nCreating Difference File ...\n" if $debug;
@@ -1001,10 +980,11 @@ sub compare_output
     # Create the difference file
     my $base = get_basefile();
     if ($diff_name) {
-        my $command = "$diff_name -c $base $logfile";
-        &run_command_with_output(get_difffile(), $command);
+        &run_command_with_output(get_difffile(),
+                                 "$diff_name -c $base $logfile");
     } else {
-        create_file(get_difffile(), "Log file $logfile differs from base file $base\n");
+        create_file(get_difffile(),
+                    "Log file $logfile differs from base file $base\n");
     }
   }
 
