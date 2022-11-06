@@ -71,7 +71,7 @@ run_make_test(q!
 include bye.mk
 pid:=$(shell echo $$PPID)
 all:;
-bye.mk: force; @kill -TERM $(pid) && sleep 16
+bye.mk: force; @#HELPER# term $(pid) sleep 10
 force:
 !, '-f-', '/#MAKE#: \*\*\* \[#MAKEFILE#:5: bye.mk] Terminated/', POSIX::SIGTERM);
 }

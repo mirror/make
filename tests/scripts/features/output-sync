@@ -360,7 +360,7 @@ use POSIX ();
 # file.
 run_make_test(q!
 pid:=$(shell echo $$PPID)
-all:; @kill -TERM $(pid) && sleep 16
+all:; @#HELPER# term $(pid) sleep 10
 !, '-O -j2', '/#MAKE#: \*\*\* \[#MAKEFILE#:3: all] Terminated/', POSIX::SIGTERM);
 }
 
