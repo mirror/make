@@ -361,7 +361,7 @@ round_up_2 (unsigned long n)
 #define sum_get_unaligned_32(r, p)              \
   do {                                          \
     unsigned int val;                           \
-    memcpy(&val, (p), 4);                       \
+    memcpy (&val, (p), 4);                      \
     r += val;                                   \
   } while(0);
 
@@ -413,13 +413,16 @@ jhash(unsigned const char *k, int length)
 #define UINTSZ sizeof (unsigned int)
 
 #ifdef WORDS_BIGENDIAN
-/* The ifs are ordered from the first byte in memory to the last.  */
+/* The ifs are ordered from the first byte in memory to the last.
+   Help the compiler optimize by using static memcpy length.  */
 #define sum_up_to_nul(r, p, plen, flag)   \
   do {                                    \
     unsigned int val = 0;                 \
     size_t pn = (plen);                   \
-    size_t n = pn < UINTSZ ? pn : UINTSZ; \
-    memcpy (&val, (p), n);                \
+    if (pn >= UINTSZ)                     \
+      memcpy (&val, (p), UINTSZ);         \
+    else                                  \
+      memcpy (&val, (p), pn);             \
     if ((val & 0xFF000000) == 0)          \
       flag = 1;                           \
     else if ((val & 0xFF0000) == 0)       \
@@ -432,13 +435,16 @@ jhash(unsigned const char *k, int length)
 #else
 /* First detect the presence of zeroes.  If there is none, we can
    sum the 4 bytes directly.  Otherwise, the ifs are ordered as in the
-   big endian case, from the first byte in memory to the last.  */
+   big endian case, from the first byte in memory to the last.
+   Help the compiler optimize by using static memcpy length.  */
 #define sum_up_to_nul(r, p, plen, flag)              \
   do {                                               \
     unsigned int val = 0;                            \
     size_t pn = (plen);                              \
-    size_t n = pn < UINTSZ ? pn : UINTSZ;            \
-    memcpy (&val, (p), n);                           \
+    if (pn >= UINTSZ)                                \
+      memcpy (&val, (p), UINTSZ);                    \
+    else                                             \
+      memcpy (&val, (p), pn);                        \
     flag = ((val - 0x01010101) & ~val) & 0x80808080; \
     if (!flag)                                       \
       r += val;                                      \
