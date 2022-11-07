@@ -216,12 +216,12 @@ jobserver_setup (int slots, const char *style)
   /* sub_proc.c is limited in the number of objects it can wait for. */
 
   if (style && strcmp (style, "sem") != 0)
-    OS (fatal, NILF, _("Unknown jobserver auth style '%s'"), style);
+    OS (fatal, NILF, _("unknown jobserver auth style '%s'"), style);
 
   if (slots > process_table_usable_size())
     {
       slots = process_table_usable_size();
-      DB (DB_JOBS, (_("Jobserver slots limited to %d\n"), slots));
+      DB (DB_JOBS, (_("jobserver slots limited to %d\n"), slots));
     }
 
   sprintf (jobserver_semaphore_name, "gmake_semaphore_%d", _getpid ());
@@ -255,10 +255,12 @@ jobserver_parse_auth (const char *auth)
     {
       DWORD err = GetLastError ();
       const char *estr = map_windows32_error_to_string (err);
-      fatal (NILF, strlen (auth) + INTSTR_LENGTH + strlen (estr),
-             _("internal error: unable to open jobserver semaphore '%s': (Error %ld: %s)"),
+      error (NILF, strlen (auth) + INTSTR_LENGTH + strlen (estr),
+             _("unable to open jobserver semaphore '%s': (Error %ld: %s)"),
              auth, err, estr);
+      return 0;
     }
+
   DB (DB_JOBS, (_("Jobserver client (semaphore %s)\n"), auth));
 
   return 1;

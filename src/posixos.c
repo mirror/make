@@ -167,12 +167,12 @@ jobserver_setup (int slots, const char *style)
              hang until the write side is open.  */
           EINTRLOOP (job_fds[0], open (fifo_name, O_RDONLY|O_NONBLOCK));
           if (job_fds[0] < 0)
-            OSS (fatal, NILF, _("Cannot open jobserver %s: %s"),
+            OSS (fatal, NILF, _("cannot open jobserver %s: %s"),
                  fifo_name, strerror (errno));
 
           EINTRLOOP (job_fds[1], open (fifo_name, O_WRONLY));
           if (job_fds[0] < 0)
-            OSS (fatal, NILF, _("Cannot open jobserver %s: %s"),
+            OSS (fatal, NILF, _("cannot open jobserver %s: %s"),
                  fifo_name, strerror (errno));
 
           js_type = js_fifo;
@@ -183,7 +183,7 @@ jobserver_setup (int slots, const char *style)
   if (js_type == js_none)
     {
       if (style && strcmp (style, "pipe") != 0)
-        OS (fatal, NILF, _("Unknown jobserver auth style '%s'"), style);
+        OS (fatal, NILF, _("unknown jobserver auth style '%s'"), style);
 
       EINTRLOOP (r, pipe (job_fds));
       if (r < 0)
@@ -229,14 +229,19 @@ jobserver_parse_auth (const char *auth)
 
       EINTRLOOP (job_fds[0], open (fifo_name, O_RDONLY));
       if (job_fds[0] < 0)
-        OSS (fatal, NILF,
-             _("Cannot open jobserver %s: %s"), fifo_name, strerror (errno));
+        {
+          OSS (error, NILF,
+               _("cannot open jobserver %s: %s"), fifo_name, strerror (errno));
+          return 0;
+        }
 
       EINTRLOOP (job_fds[1], open (fifo_name, O_WRONLY));
-      if (job_fds[0] < 0)
-        OSS (fatal, NILF,
-             _("Cannot open jobserver %s: %s"), fifo_name, strerror (errno));
-
+      if (job_fds[1] < 0)
+        {
+          OSS (error, NILF,
+               _("cannot open jobserver %s: %s"), fifo_name, strerror (errno));
+          return 0;
+        }
       js_type = js_fifo;
     }
   /* If not, it must be a simple pipe.  */
