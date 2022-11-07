@@ -456,7 +456,7 @@ dirfile_hash_cmp (const void *xv, const void *yv)
 #define DIRFILE_BUCKETS 107
 #endif
 
-static int dir_contents_file_exists_p (struct directory_contents *dir,
+static int dir_contents_file_exists_p (struct directory *dir,
                                        const char *filename);
 static struct directory *find_directory (const char *name);
 
@@ -623,7 +623,7 @@ find_directory (const char *name)
           if (open_directories == MAX_OPEN_DIRECTORIES)
             /* We have too many directories open already.
                Read the entire directory and then close it.  */
-            dir_contents_file_exists_p (dc, 0);
+            dir_contents_file_exists_p (dir, 0);
         }
     }
 
@@ -634,17 +634,18 @@ find_directory (const char *name)
    FILENAME must contain no slashes.  */
 
 static int
-dir_contents_file_exists_p (struct directory_contents *dir,
+dir_contents_file_exists_p (struct directory *dir,
                             const char *filename)
 {
   struct dirfile *df;
   struct dirent *d;
+  struct directory_contents *dc = dir->contents;
 #ifdef WINDOWS32
   struct stat st;
   int rehash = 0;
 #endif
 
-  if (dir == 0 || dir->dirfiles.ht_vec == 0)
+  if (dc == 0 || dc->dirfiles.ht_vec == 0)
     /* The directory could not be stat'd or opened.  */
     return 0;
 
@@ -671,7 +672,7 @@ dir_contents_file_exists_p (struct directory_contents *dir,
         }
       dirfile_key.name = filename;
       dirfile_key.length = strlen (filename);
-      df = hash_find_item (&dir->dirfiles, &dirfile_key);
+      df = hash_find_item (&dc->dirfiles, &dirfile_key);
       if (df)
         return !df->impossible;
     }
@@ -679,7 +680,7 @@ dir_contents_file_exists_p (struct directory_contents *dir,
   /* The file was not found in the hashed list.
      Try to read the directory further.  */
 
-  if (dir->dirstream == 0)
+  if (dc->dirstream == 0)
     {
 #ifdef WINDOWS32
       /*
@@ -687,17 +688,17 @@ dir_contents_file_exists_p (struct directory_contents *dir,
        * filesystems force a rehash always as mtime does not change
        * on directories (ugh!).
        */
-      if (dir->path_key)
+      if (dc->path_key)
         {
-          if ((dir->fs_flags & FS_FAT) != 0)
+          if ((dc->fs_flags & FS_FAT) != 0)
             {
-              dir->mtime = time ((time_t *) 0);
+              dc->mtime = time ((time_t *) 0);
               rehash = 1;
             }
-          else if (stat (dir->path_key, &st) == 0 && st.st_mtime > dir->mtime)
+          else if (stat (dc->path_key, &st) == 0 && st.st_mtime > dc->mtime)
             {
               /* reset date stamp to show most recent re-process.  */
-              dir->mtime = st.st_mtime;
+              dc->mtime = st.st_mtime;
               rehash = 1;
             }
 
@@ -706,8 +707,8 @@ dir_contents_file_exists_p (struct directory_contents *dir,
             return 0;
 
           /* make sure directory can still be opened; if not return.  */
-          dir->dirstream = opendir (dir->path_key);
-          if (!dir->dirstream)
+          dc->dirstream = opendir (dc->path_key);
+          if (!dc->dirstream)
             return 0;
         }
       else
@@ -723,11 +724,11 @@ dir_contents_file_exists_p (struct directory_contents *dir,
       struct dirfile dirfile_key;
       struct dirfile **dirfile_slot;
 
-      ENULLLOOP (d, readdir (dir->dirstream));
+      ENULLLOOP (d, readdir (dc->dirstream));
       if (d == 0)
         {
           if (errno)
-            pfatal_with_name ("INTERNAL: readdir");
+            OSS (fatal, NILF, "readdir %s: %s", dir->name, strerror (errno));
           break;
         }
 
@@ -747,7 +748,7 @@ dir_contents_file_exists_p (struct directory_contents *dir,
       len = NAMLEN (d);
       dirfile_key.name = d->d_name;
       dirfile_key.length = len;
-      dirfile_slot = (struct dirfile **) hash_find_slot (&dir->dirfiles, &dirfile_key);
+      dirfile_slot = (struct dirfile **) hash_find_slot (&dc->dirfiles, &dirfile_key);
 #ifdef WINDOWS32
       /*
        * If re-reading a directory, don't cache files that have
@@ -768,7 +769,7 @@ dir_contents_file_exists_p (struct directory_contents *dir,
 #endif
           df->length = len;
           df->impossible = 0;
-          hash_insert_at (&dir->dirfiles, df, dirfile_slot);
+          hash_insert_at (&dc->dirfiles, df, dirfile_slot);
         }
       /* Check if the name matches the one we're searching for.  */
       if (filename != 0 && patheq (d->d_name, filename))
@@ -777,12 +778,13 @@ dir_contents_file_exists_p (struct directory_contents *dir,
 
   /* If the directory has been completely read in,
      close the stream and reset the pointer to nil.  */
-  if (d == 0)
+  if (d == NULL)
     {
       --open_directories;
-      closedir (dir->dirstream);
-      dir->dirstream = 0;
+      closedir (dc->dirstream);
+      dc->dirstream = NULL;
     }
+
   return 0;
 }
 
@@ -794,15 +796,10 @@ int
 dir_file_exists_p (const char *dirname, const char *filename)
 {
 #ifdef VMS
-  if ((filename != NULL) && (dirname != NULL))
-    {
-      int want_vmsify;
-      want_vmsify = (strpbrk (dirname, ":<[") != NULL);
-      if (want_vmsify)
-        filename = vmsify (filename, 0);
-    }
+  if (filename && dirname && strpbrk (dirname, ":<[") != NULL)
+    filename = vmsify (filename, 0);
 #endif
-  return dir_contents_file_exists_p (find_directory (dirname)->contents,
+  return dir_contents_file_exists_p (find_directory (dirname),
                                      filename);
 }
 
@@ -1225,7 +1222,7 @@ open_dirstream (const char *directory)
   /* Read all the contents of the directory now.  There is no benefit
      in being lazy, since glob will want to see every file anyway.  */
 
-  dir_contents_file_exists_p (dir->contents, 0);
+  dir_contents_file_exists_p (dir, 0);
 
   new = xmalloc (sizeof (struct dirstream));
   new->contents = dir->contents;
