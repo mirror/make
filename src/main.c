@@ -1928,6 +1928,9 @@ main (int argc, char **argv, char **envp)
                  _("Makefile from standard input specified twice"));
 
             outfile = get_tmpfile (&newnm);
+            if (!outfile)
+              O (fatal, NILF,
+                 _("cannot store makefile from stdin to a temporary file"));
 
             while (!feof (stdin) && ! ferror (stdin))
               {

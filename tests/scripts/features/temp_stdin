@@ -109,6 +109,21 @@ force:
 @make_command = @make_orig;
 unlink($makecopy);
 rmdir($tmakedir);
+
+# SV 63333. Test that make exits with an error message if we cannot store a
+# makefile from stdin to a temporary file.
+# Create a non-writable temporary directory.
+
+my $tdir = 'test_tmp_dir';
+mkdir($tdir, 0500);
+$ENV{'TMPDIR'} = $tdir;
+close(STDIN);
+open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
+
+run_make_test(q!
+all:; $(info hello, world)
+!, '-f-', '/cannot store makefile from stdin to a temporary file.  Stop./', 512);
+rmdir($tdir);
 }
 
 close(STDIN);

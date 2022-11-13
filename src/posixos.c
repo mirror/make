@@ -872,12 +872,15 @@ os_anontmp ()
       FILE *tfile;
       ENULLLOOP (tfile, tmpfile ());
       if (!tfile)
-        pfatal_with_name ("tmpfile");
+        {
+          OS (error, NILF, "tmpfile: %s", strerror (errno));
+          return -1;
+        }
       umask (mask);
 
       EINTRLOOP (fd, dup (fileno (tfile)));
       if (fd < 0)
-        pfatal_with_name ("dup");
+        OS (error, NILF, "dup: %s", strerror (errno));
       fclose (tfile);
     }
 #endif

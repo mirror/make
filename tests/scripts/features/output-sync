@@ -363,8 +363,24 @@ pid:=$(shell echo $$PPID)
 all:; @#HELPER# term $(pid) sleep 10
 !, '-O -j2', '/#MAKE#: \*\*\* \[#MAKEFILE#:3: all] Terminated/', POSIX::SIGTERM);
 }
-
 unlink($fout);
+
+# SV 63333. Test that make continues to run without output sync when we
+# cannot create a temporary file.
+# Create a non-writable temporary directory.
+# Run the test twice, because run_make_test cannot match a regex againt a
+# multiline input.
+my $tdir = 'test_tmp_dir';
+mkdir($tdir, 0500);
+$ENV{'TMPDIR'} = $tdir;
+
+run_make_test(q!
+all:; $(info hello, world)
+!, '-Orecurse', "/suppressing output-sync/");
+
+run_make_test(undef, '-Orecurse', "/#MAKE#: 'all' is up to date./");
+
+rmdir($tdir);
 }
 
 # This tells the test driver that the perl test script executed properly.

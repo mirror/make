@@ -20,8 +20,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "os.h"
 #include "debug.h"
 
-/* GNU make no longer supports pre-ANSI89 environments.  */
-
+#include <assert.h>
 #include <stdarg.h>
 
 #ifdef WINDOWS32
@@ -650,11 +649,19 @@ get_tmppath ()
 # ifdef HAVE_MKTEMP
   path = get_tmptemplate ();
   if (*mktemp (path) == '\0')
-    pfatal_with_name ("mktemp");
+    {
+      OSS (error, NILF,
+           _("cannot generate temp path from %s: %s"), path, strerror (errno));
+      return NULL;
+    }
 # else
   path = xmalloc (L_tmpnam + 1);
   if (tmpnam (path) == NULL)
-    pfatal_with_name ("tmpnam");
+    {
+      OS (error, NILF,
+        _("cannot generate temp name: %s"), strerror (errno));
+      return NULL;
+    }
 # endif
 
   return path;
@@ -662,7 +669,9 @@ get_tmppath ()
 #endif
 
 /* Generate a temporary file and return an fd for it.  If name is NULL then
-   the temp file is anonymous and will be deleted when the process exits.  */
+   the temp file is anonymous and will be deleted when the process exits.  If
+   name is not null then *name will point to an allocated buffer, or set to
+   NULL on failure.  */
 int
 get_tmpfd (char **name)
 {
@@ -670,9 +679,11 @@ get_tmpfd (char **name)
   char *tmpnm;
   mode_t mask;
 
-  /* If there's an os-specific way to get an anoymous temp file use it.  */
-  if (!name)
+  if (name)
+    *name = NULL;
+  else
     {
+      /* If there's an os-specific way to get an anoymous temp file use it.  */
       fd = os_anontmp ();
       if (fd >= 0)
         return fd;
@@ -689,13 +700,19 @@ get_tmpfd (char **name)
   EINTRLOOP (fd, mkstemp (tmpnm));
 #else
   tmpnm = get_tmppath ();
+  if (!tmpnm)
+    return -1;
 
   /* Can't use mkstemp(), but try to guard against a race condition.  */
   EINTRLOOP (fd, open (tmpnm, O_CREAT|O_EXCL|O_RDWR, 0600));
 #endif
   if (fd < 0)
-    OSS (fatal, NILF,
-         _("create temporary file %s: %s"), tmpnm, strerror (errno));
+    {
+      OSS (error, NILF,
+           _("cannot create temporary file %s: %s"), tmpnm, strerror (errno));
+      free (tmpnm);
+      return -1;
+    }
 
   if (name)
     *name = tmpnm;
@@ -704,8 +721,8 @@ get_tmpfd (char **name)
       int r;
       EINTRLOOP (r, unlink (tmpnm));
       if (r < 0)
-        OSS (fatal, NILF,
-             _("unlink temporary file %s: %s"), tmpnm, strerror (errno));
+        OSS (error, NILF,
+             _("cannot unlink temporary file %s: %s"), tmpnm, strerror (errno));
       free (tmpnm);
     }
 
@@ -715,8 +732,8 @@ get_tmpfd (char **name)
 }
 
 /* Return a FILE* for a temporary file, opened in the safest way possible.
-   Set name to point to an allocated buffer containing the name of the file.
-   Note, this cannot be NULL!  */
+   Set name to point to an allocated buffer containing the name of the file,
+   or NULL on failure.  Note, name cannot be NULL!  */
 FILE *
 get_tmpfile (char **name)
 {
@@ -725,26 +742,37 @@ get_tmpfile (char **name)
   FILE *file;
 
 #if defined(HAVE_FDOPEN)
-  int fd = get_tmpfd (name);
+  int fd;
+  assert (name);
+  fd = get_tmpfd (name);
+  if (fd < 0)
+    return NULL;
+  assert (*name);
 
   ENULLLOOP (file, fdopen (fd, tmpfile_mode));
   if (file == NULL)
-    OSS (fatal, NILF,
+    OSS (error, NILF,
          _("fdopen: temporary file %s: %s"), *name, strerror (errno));
 #else
   /* Preserve the current umask, and set a restrictive one for temp files.  */
   mode_t mask = umask (0077);
-  int err;
 
+  assert (name);
   *name = get_tmppath ();
+  if (!*name)
+    return NULL;
 
   /* Although this fopen is insecure, it is executed only on non-fdopen
      platforms, which should be a rarity nowadays.  */
 
   ENULLLOOP (file, fopen (*name, tmpfile_mode));
   if (file == NULL)
-    OSS (fatal, NILF,
-         _("fopen: temporary file %s: %s"), *name, strerror (errno));
+    {
+      OSS (error, NILF,
+           _("fopen: temporary file %s: %s"), *name, strerror (errno));
+      free (*name);
+      *name = NULL;
+    }
 
   umask (mask);
 #endif
