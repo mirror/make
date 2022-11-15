@@ -1140,20 +1140,29 @@ eval (struct ebuffer *ebuf, int set_default)
 
         p2 = next_token (variable_buffer);
 
-        /* If the word we're looking at is EOL, see if there's _anything_
-           on the line.  If not, a variable expanded to nothing, so ignore
-           it.  If so, we can't parse this line so punt.  */
+        /* If we're at EOL we didn't find a separator so we don't know what
+           kind of line this is.  */
         if (wtype == w_eol)
           {
+            /* Ignore an empty line.  */
             if (*p2 == '\0')
               continue;
 
-            /* There's no need to be ivory-tower about this: check for
-               one of the most common bugs found in makefiles...  */
+            /* Check for spaces instead of TAB.  */
             if (cmd_prefix == '\t' && strneq (line, "        ", 8))
               O (fatal, fstart, _("missing separator (did you mean TAB instead of 8 spaces?)"));
-            else
-              O (fatal, fstart, _("missing separator"));
+
+            /* Check for conditionals without whitespace afterward.
+               We don't check ifdef/ifndef because there's no real way to miss
+               whitespace there.  */
+            p2 = next_token (line);
+            if (strneq (p2, "if", 2) &&
+                ((strneq (&p2[2], "neq", 3) && !STOP_SET (p2[5], MAP_BLANK))
+                 || (strneq (&p2[2], "eq", 2) && !STOP_SET (p2[4], MAP_BLANK))))
+              O (fatal, fstart, _("missing separator (ifeq/ifneq must be followed by whitespace)"));
+
+            /* No idea...  */
+            O (fatal, fstart, _("missing separator"));
           }
 
         {

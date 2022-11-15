@@ -122,26 +122,6 @@ reset-four \
 : foo-three
 : foo-four');
 
-# Test that the "did you mean TAB" message is printed properly
-
-run_make_test(q!
-$x.
-!,
-              '', '#MAKEFILE#:2: *** missing separator.  Stop.', 512);
-
-run_make_test(q!
-foo:
-        bar
-!,
-              '', '#MAKEFILE#:3: *** missing separator (did you mean TAB instead of 8 spaces?).  Stop.', 512);
-
-run_make_test(q!
-.RECIPEPREFIX = :
-foo:
-        bar
-!,
-              '', '#MAKEFILE#:4: *** missing separator.  Stop.', 512);
-
 1;
 
 ### Local Variables:
