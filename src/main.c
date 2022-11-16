@@ -1503,7 +1503,7 @@ main (int argc, char **argv, char **envp)
 
         /* If this is MAKE_RESTARTS, check to see if the "already printed
            the enter statement" flag is set.  */
-        if (len == 13 && memcmp (envp[i], STRING_SIZE_TUPLE ("MAKE_RESTARTS")) == 0)
+        if (len == 13 && memcmp (envp[i], "MAKE_RESTARTS", CSTRLEN ("MAKE_RESTARTS")) == 0)
           {
             if (*ep == '-')
               {
