@@ -7352,7 +7352,7 @@ marking an archive file up to date:
 
 @example
 archive.a: @dots{}
-ifneq (,$(findstring t,$(word 1,-$(MAKEFLAGS))))
+ifneq (,$(findstring t,$(firstword -$(MAKEFLAGS))))
         +touch archive.a
         +ranlib -t archive.a
 else
