@@ -105,8 +105,8 @@ double atof ();
 static void clean_jobserver (int status);
 static void print_data_base (void);
 static void print_version (void);
-static void decode_switches (int argc, const char **argv, int env);
-static struct variable *define_makeflags (int all, int makefile);
+static void decode_switches (int argc, const char **argv,
+                             enum variable_origin origin);
 static char *quote_for_env (char *out, const char *in);
 static void initialize_global_hash_tables (void);
 
@@ -1572,13 +1572,13 @@ main (int argc, char **argv, char **envp)
   /* Decode the switches.  */
   if (lookup_variable (STRING_SIZE_TUPLE (GNUMAKEFLAGS_NAME)))
     {
-      decode_env_switches (STRING_SIZE_TUPLE (GNUMAKEFLAGS_NAME));
+      decode_env_switches (STRING_SIZE_TUPLE (GNUMAKEFLAGS_NAME), o_command);
 
       /* Clear GNUMAKEFLAGS to avoid duplication.  */
       define_variable_cname (GNUMAKEFLAGS_NAME, "", o_env, 0);
     }
 
-  decode_env_switches (STRING_SIZE_TUPLE (MAKEFLAGS_NAME));
+  decode_env_switches (STRING_SIZE_TUPLE (MAKEFLAGS_NAME), o_command);
 
 #if 0
   /* People write things like:
@@ -1599,7 +1599,7 @@ main (int argc, char **argv, char **envp)
     int env_slots = arg_job_slots;
     arg_job_slots = INVALID_JOB_SLOTS;
 
-    decode_switches (argc, (const char **)argv, 0);
+    decode_switches (argc, (const char **)argv, o_command);
     argv_slots = arg_job_slots;
 
     if (arg_job_slots == INVALID_JOB_SLOTS)
@@ -2022,7 +2022,7 @@ main (int argc, char **argv, char **envp)
 
   /* Set up the MAKEFLAGS and MFLAGS variables for makefiles to see.
      Initialize it to be exported but allow the makefile to reset it.  */
-  define_makeflags (0, 0)->export = v_export;
+  define_makeflags (0)->export = v_export;
 
   /* Define the default variables.  */
   define_default_variables ();
@@ -2072,12 +2072,12 @@ main (int argc, char **argv, char **envp)
     arg_job_slots = INVALID_JOB_SLOTS;
 
     /* Decode switches again, for variables set by the makefile.  */
-    decode_env_switches (STRING_SIZE_TUPLE (GNUMAKEFLAGS_NAME));
+    decode_env_switches (STRING_SIZE_TUPLE (GNUMAKEFLAGS_NAME), o_env);
 
     /* Clear GNUMAKEFLAGS to avoid duplication.  */
     define_variable_cname (GNUMAKEFLAGS_NAME, "", o_override, 0);
 
-    decode_env_switches (STRING_SIZE_TUPLE (MAKEFLAGS_NAME));
+    decode_env_switches (STRING_SIZE_TUPLE (MAKEFLAGS_NAME), o_env);
 #if 0
     decode_env_switches (STRING_SIZE_TUPLE ("MFLAGS"));
 #endif
@@ -2260,7 +2260,7 @@ main (int argc, char **argv, char **envp)
 
   /* Set up MAKEFLAGS and MFLAGS again, so they will be right.  */
 
-  define_makeflags (1, 0);
+  define_makeflags (0);
 
   /* Make each 'struct goaldep' point at the 'struct file' for the file
      depended on.  Also do magic for special targets.  */
@@ -2420,7 +2420,7 @@ main (int argc, char **argv, char **envp)
       }
 
       /* Set up 'MAKEFLAGS' specially while remaking makefiles.  */
-      define_makeflags (1, 1);
+      define_makeflags (1);
 
       {
         int orig_db_level = db_level;
@@ -2812,7 +2812,7 @@ main (int argc, char **argv, char **envp)
     }
 
   /* Set up 'MAKEFLAGS' again for the normal targets.  */
-  define_makeflags (1, 0);
+  define_makeflags (0);
 
   /* Set always_make_flag if -B was given.  */
   always_make_flag = always_make_set;
@@ -3000,7 +3000,7 @@ init_switches (void)
 
 /* Non-option argument.  It might be a variable definition.  */
 static void
-handle_non_switch_argument (const char *arg, int env)
+handle_non_switch_argument (const char *arg, enum variable_origin origin)
 {
   struct variable *v;
 
@@ -3033,7 +3033,7 @@ handle_non_switch_argument (const char *arg, int env)
       }
   }
 #endif
-  v = try_variable_definition (0, arg, o_command, 0);
+  v = try_variable_definition (0, arg, origin, 0);
   if (v != 0)
     {
       /* It is indeed a variable definition.  If we don't already have this
@@ -3053,11 +3053,12 @@ handle_non_switch_argument (const char *arg, int env)
           command_variables = cv;
         }
     }
-  else if (! env)
+  else if (arg[0] != '\0' && origin == o_command)
     {
-      /* Not an option or variable definition; it must be a goal
-         target!  Enter it as a file and add it to the dep chain of
-         goals.  */
+      /* Not an option or variable definition; it must be a goal target.
+         Enter it as a file and add it to the dep chain of goals.
+         Check ARG[0] because if the top makefile resets MAKEOVERRIDES
+         then ARG points to an empty string in the submake.  */
       struct file *f = enter_file (strcache_add (expand_command_line_file (arg)));
       f->cmd_target = 1;
 
@@ -3105,7 +3106,7 @@ handle_non_switch_argument (const char *arg, int env)
    They came from the environment if ENV is nonzero.  */
 
 static void
-decode_switches (int argc, const char **argv, int env)
+decode_switches (int argc, const char **argv, enum variable_origin origin)
 {
   int bad = 0;
   const struct command_switch *cs;
@@ -3119,7 +3120,7 @@ decode_switches (int argc, const char **argv, int env)
 
   /* Let getopt produce error messages for the command line,
      but not for options from the environment.  */
-  opterr = !env;
+  opterr = origin == o_command;
   /* Reset getopt's state.  */
   optind = 0;
 
@@ -3135,7 +3136,7 @@ decode_switches (int argc, const char **argv, int env)
         break;
       else if (c == 1)
         /* An argument not starting with a dash.  */
-        handle_non_switch_argument (coptarg, env);
+        handle_non_switch_argument (coptarg, origin);
       else if (c == '?')
         /* Bad option.  We will print a usage message and die later.
            But continue to parse the other options so the user can
@@ -3149,7 +3150,7 @@ decode_switches (int argc, const char **argv, int env)
                  this switch.  We test this individually inside the
                  switch below rather than just once outside it, so that
                  options which are to be ignored still consume args.  */
-              int doit = !env || cs->env;
+              int doit = origin == o_command || cs->env;
 
               switch (cs->type)
                 {
@@ -3299,9 +3300,9 @@ decode_switches (int argc, const char **argv, int env)
      to be returned in order, this only happens when there is a "--"
      argument to prevent later arguments from being options.  */
   while (optind < argc)
-    handle_non_switch_argument (argv[optind++], env);
+    handle_non_switch_argument (argv[optind++], origin);
 
-  if (bad && !env)
+  if (bad && origin == o_command)
     print_usage (bad);
 
   /* If there are any options that need to be decoded do it now.  */
@@ -3321,7 +3322,7 @@ decode_switches (int argc, const char **argv, int env)
    decode_switches.  */
 
 void
-decode_env_switches (const char *envar, size_t len)
+decode_env_switches (const char *envar, size_t len, enum variable_origin origin)
 {
   char *varref = alloca (2 + len + 2);
   char *value, *p, *buf;
@@ -3383,7 +3384,7 @@ decode_env_switches (const char *envar, size_t len)
     argv[1] = buf;
 
   /* Parse those words.  */
-  decode_switches (argc, argv, 1);
+  decode_switches (argc, argv, origin);
 }
 
 /* Quote the string IN so that it will be interpreted as a single word with
@@ -3408,11 +3409,11 @@ quote_for_env (char *out, const char *in)
 }
 
 /* Define the MAKEFLAGS and MFLAGS variables to reflect the settings of the
-   command switches.  Include options with args if ALL is nonzero.
+   command switches. Always include options with args.
    Don't include options with the 'no_makefile' flag set if MAKEFILE.  */
 
-static struct variable *
-define_makeflags (int all, int makefile)
+struct variable *
+define_makeflags (int makefile)
 {
   const char ref[] = "MAKEOVERRIDES";
   const char posixref[] = "-*-command-variables-*-";
@@ -3597,25 +3598,24 @@ define_makeflags (int all, int makefile)
       p = mempcpy (p, evalref, CSTRLEN (evalref));
     }
 
-  if (all)
-    {
-      /* If there are any overrides to add, write a reference to
-         $(MAKEOVERRIDES), which contains command-line variable definitions.
-         Separate the variables from the switches with a "--" arg.  */
+  {
+    /* If there are any overrides to add, write a reference to
+       $(MAKEOVERRIDES), which contains command-line variable definitions.
+       Separate the variables from the switches with a "--" arg.  */
 
-      const char *r = posix_pedantic ? posixref : ref;
-      size_t l = strlen (r);
-      v = lookup_variable (r, l);
+    const char *r = posix_pedantic ? posixref : ref;
+    size_t l = strlen (r);
+    v = lookup_variable (r, l);
 
-      if (v && v->value && v->value[0] != '\0')
-        {
-          p = stpcpy (p, " -- ");
-          *(p++) = '$';
-          *(p++) = '(';
-          p = mempcpy (p, r, l);
-          *(p++) = ')';
-        }
-    }
+    if (v && v->value && v->value[0] != '\0')
+      {
+        p = stpcpy (p, " -- ");
+        *(p++) = '$';
+        *(p++) = '(';
+        p = mempcpy (p, r, l);
+        *(p++) = ')';
+      }
+  }
 
   /* If there is a leading dash, omit it.  */
   if (flagstring[0] == '-')

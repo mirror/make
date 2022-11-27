@@ -1215,7 +1215,7 @@ target_environment (struct file *file, int recursive)
 }
 
 static struct variable *
-set_special_var (struct variable *var)
+set_special_var (struct variable *var, enum variable_origin origin)
 {
   if (streq (var->name, RECIPEPREFIX_NAME))
     {
@@ -1225,7 +1225,10 @@ set_special_var (struct variable *var)
       cmd_prefix = var->value[0]=='\0' ? RECIPEPREFIX_DEFAULT : var->value[0];
     }
   else if (streq (var->name, MAKEFLAGS_NAME))
-    decode_env_switches (STRING_SIZE_TUPLE(MAKEFLAGS_NAME));
+    {
+      decode_env_switches (STRING_SIZE_TUPLE(MAKEFLAGS_NAME), origin);
+      define_makeflags (rebuilding_makefiles);
+    }
 
   return var;
 }
@@ -1261,7 +1264,7 @@ do_variable_definition (const floc *flocp, const char *varname,
                         const char *value, enum variable_origin origin,
                         enum variable_flavor flavor, int target_var)
 {
-  const char *p;
+  const char *newval;
   char *alloc_value = NULL;
   struct variable *v;
   int append = 0;
@@ -1276,7 +1279,7 @@ do_variable_definition (const floc *flocp, const char *varname,
          We have to allocate memory since otherwise it'll clobber the
          variable buffer, and we may still need that if we're looking at a
          target-specific variable.  */
-      p = alloc_value = allocated_variable_expand (value);
+      newval = alloc_value = allocated_variable_expand (value);
       break;
     case f_expand:
       {
@@ -1285,16 +1288,16 @@ do_variable_definition (const floc *flocp, const char *varname,
            tokens to '$$' to resolve to '$' when recursively expanded.  */
         char *t = allocated_variable_expand (value);
         char *np = alloc_value = xmalloc (strlen (t) * 2 + 1);
-        p = t;
-        while (p[0] != '\0')
+        char *op = t;
+        while (op[0] != '\0')
           {
-            if (p[0] == '$')
+            if (op[0] == '$')
               *(np++) = '$';
-            *(np++) = *(p++);
+            *(np++) = *(op++);
           }
         *np = '\0';
-        p = alloc_value;
         free (t);
+        newval = alloc_value;
         break;
       }
     case f_shell:
@@ -1302,9 +1305,10 @@ do_variable_definition (const floc *flocp, const char *varname,
         /* A shell definition "var != value".  Expand value, pass it to
            the shell, and store the result in recursively-expanded var. */
         char *q = allocated_variable_expand (value);
-        p = alloc_value = shell_result (q);
+        alloc_value = shell_result (q);
         free (q);
         flavor = f_recursive;
+        newval = alloc_value;
         break;
       }
     case f_conditional:
@@ -1320,7 +1324,7 @@ do_variable_definition (const floc *flocp, const char *varname,
     case f_recursive:
       /* A recursive variable definition "var = value".
          The value is used verbatim.  */
-      p = value;
+      newval = value;
       break;
     case f_append:
     case f_append_value:
@@ -1345,15 +1349,16 @@ do_variable_definition (const floc *flocp, const char *varname,
           {
             /* There was no old value.
                This becomes a normal recursive definition.  */
-            p = value;
+            newval = value;
             flavor = f_recursive;
           }
         else
           {
             /* Paste the old and new values together in VALUE.  */
 
-            size_t oldlen, vallen;
+            size_t oldlen, vallen, alloclen;
             const char *val;
+            char *cp;
             char *tp = NULL;
 
             val = value;
@@ -1378,18 +1383,25 @@ do_variable_definition (const floc *flocp, const char *varname,
               }
 
             oldlen = strlen (v->value);
-            p = alloc_value = xmalloc (oldlen + 1 + vallen + 1);
+            alloclen = oldlen + 1 + vallen + 1;
+            cp = alloc_value = xmalloc (alloclen);
 
             if (oldlen)
               {
-                memcpy (alloc_value, v->value, oldlen);
-                alloc_value[oldlen] = ' ';
-                ++oldlen;
+                char *s;
+                if (streq (varname, MAKEFLAGS_NAME)
+                    && (s = strstr (v->value, " -- ")))
+                  /* We found a separator in MAKEFLAGS.  Ignore variable
+                     assignments: set_special_var() will reconstruct things.  */
+                  cp = mempcpy (cp, v->value, s - v->value);
+                else
+                  cp = mempcpy (cp, v->value, oldlen);
+                *(cp++) = ' ';
               }
 
-            memcpy (&alloc_value[oldlen], val, vallen + 1);
-
+            memcpy (cp, val, vallen + 1);
             free (tp);
+            newval = alloc_value;
           }
       }
       break;
@@ -1398,6 +1410,8 @@ do_variable_definition (const floc *flocp, const char *varname,
       /* Should not be possible.  */
       abort ();
     }
+
+  assert (newval);
 
 #ifdef __MSDOS__
   /* Many Unix Makefiles include a line saying "SHELL=/bin/sh", but
@@ -1440,16 +1454,16 @@ do_variable_definition (const floc *flocp, const char *varname,
           char *fake_env[2];
           size_t pathlen = 0;
 
-          shellbase = strrchr (p, '/');
-          bslash = strrchr (p, '\\');
+          shellbase = strrchr (newval, '/');
+          bslash = strrchr (newval, '\\');
           if (!shellbase || bslash > shellbase)
             shellbase = bslash;
-          if (!shellbase && p[1] == ':')
-            shellbase = p + 1;
+          if (!shellbase && newval[1] == ':')
+            shellbase = newval + 1;
           if (shellbase)
             shellbase++;
           else
-            shellbase = p;
+            shellbase = newval;
 
           /* Search for the basename of the shell (with standard
              executable extensions) along the $PATH.  */
@@ -1490,7 +1504,7 @@ do_variable_definition (const floc *flocp, const char *varname,
          set no_default_sh_exe to indicate sh was found and
          set new value for SHELL variable.  */
 
-      if (find_and_set_default_shell (p))
+      if (find_and_set_default_shell (newval))
         {
           v = define_variable_in_set (varname, strlen (varname), default_shell,
                                       origin, flavor == f_recursive,
@@ -1504,11 +1518,11 @@ do_variable_definition (const floc *flocp, const char *varname,
         {
           char *tp = alloc_value;
 
-          alloc_value = allocated_variable_expand (p);
+          alloc_value = allocated_variable_expand (newval);
 
           if (find_and_set_default_shell (alloc_value))
             {
-              v = define_variable_in_set (varname, strlen (varname), p,
+              v = define_variable_in_set (varname, strlen (varname), newval,
                                           origin, flavor == f_recursive,
                                           (target_var
                                            ? current_variable_set_list->set
@@ -1536,7 +1550,7 @@ do_variable_definition (const floc *flocp, const char *varname,
      invoked in places where we want to define globally visible variables,
      make sure we define this variable in the global set.  */
 
-  v = define_variable_in_set (varname, strlen (varname), p, origin,
+  v = define_variable_in_set (varname, strlen (varname), newval, origin,
                               flavor == f_recursive || flavor == f_expand,
                               (target_var
                                ? current_variable_set_list->set : NULL),
@@ -1546,7 +1560,7 @@ do_variable_definition (const floc *flocp, const char *varname,
 
  done:
   free (alloc_value);
-  return v->special ? set_special_var (v) : v;
+  return v->special ? set_special_var (v, origin) : v;
 }
 
 /* Parse P (a null-terminated string) as a variable definition.

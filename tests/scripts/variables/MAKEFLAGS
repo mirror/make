@@ -65,79 +65,113 @@ rmdir('bar');
 # Test that command line switches are all present in MAKEFLAGS.
 # sv 62514.
 my @opts;
+my @flavors;
 
 # Simple flags.
 @opts = ('i', 'k', 'n', 'q', 'r', 's', 'w', 'd');
 exists $FEATURES{'check-symlink'} and push @opts, 'L';
+@flavors = ('=', ':=', ':::=', '+=-');
 
+for my $fl (@flavors) {
 for my $opt (@opts) {
-  run_make_test(q!
-MAKEFLAGS:=B
-all:; $(info makeflags='$(MAKEFLAGS)')
-!, "-$opt", "/makeflags='B$opt'/");
+  run_make_test("
+MAKEFLAGS${fl}B
+all:; \$(info makeflags='\$(MAKEFLAGS)')
+", "-$opt", "/makeflags='B$opt'/");
+}
 }
 
 # Switches which carry arguments.
 @opts = (' -I/tmp', ' -Onone', ' --debug=b', ' -l2.5');
+for my $fl (@flavors) {
 for my $opt (@opts) {
-  run_make_test(q!
-MAKEFLAGS:=B
-all:; $(info makeflags='$(MAKEFLAGS)')
-!, "$opt", "/makeflags='B$opt'/");
+  run_make_test("
+MAKEFLAGS${fl}B
+all:; \$(info makeflags='\$(MAKEFLAGS)')
+", "$opt", "/makeflags='B$opt'/");
+}
 }
 
 # Long options which take no arguments.
 # sv 62514.
 @opts = (' --no-print-directory', ' --warn-undefined-variables', ' --trace');
+for my $fl (@flavors) {
 for my $opt (@opts) {
-run_make_test(q!
-MAKEFLAGS:=B
-all:; $(info makeflags='$(MAKEFLAGS)')
-!, "$opt", "/makeflags='B$opt'/");
+run_make_test("
+MAKEFLAGS${fl}B
+all:; \$(info makeflags='\$(MAKEFLAGS)')
+", "$opt", "/makeflags='B$opt'/");
+}
 }
 
 # Test that make filters out duplicates.
 # Each option is specified in the makefile, env and on the command line.
 @opts = (' -I/tmp', ' -Onone', ' --debug=b', ' -l2.5');
-$ENV{'MAKEFLAGS'} = $opt;
+for my $fl (@flavors) {
 for my $opt (@opts) {
+$ENV{'MAKEFLAGS'} = $opt;
   run_make_test("
-MAKEFLAGS:=B $opt
+MAKEFLAGS${fl}B $opt
 all:; \$(info makeflags='\$(MAKEFLAGS)')
 ", "$opt", "/makeflags='B$opt'/");
+}
 }
 
 # Test that make filters out duplicates.
 # Each option is specified in the makefile, env and on the command line.
 # decode_switches reallocates when the number of parameters in sl->list exceeds 5.
 # This test exercises the realloc branch.
+for my $fl (@flavors) {
 $ENV{'MAKEFLAGS'} = '-I1 -Onone --debug=b -l2.5 -I2 -I3 -I4 -I5 -I6 -I2 -I2';
-run_make_test(q!
-MAKEFLAGS:=B -I1 -Onone --debug=b -l2.5 -I2 -I3 -I4 -I5 -I6 -I2 -I2
-all:; $(info makeflags='$(MAKEFLAGS)')
-!,
+run_make_test("
+MAKEFLAGS${fl}B -I1 -Onone --debug=b -l2.5 -I2 -I3 -I4 -I5 -I6 -I2 -I2
+all:; \$(info makeflags='\$(MAKEFLAGS)')
+",
 '-I1 -Onone --debug=b -l2.5 -I2 -I3 -I4 -I5 -I6',
 "/makeflags='B -I1 -I2 -I3 -I4 -I5 -I6 -l2.5 -Onone --debug=b'/");
+}
 
 # A mix of multiple flags from env, the makefile and command line.
 # Skip -L since it's not available everywhere
+for my $fl (@flavors) {
 $ENV{'MAKEFLAGS'} = 'ikB --no-print-directory --warn-undefined-variables --trace';
-run_make_test(q!
-MAKEFLAGS:=iknqrswd -I/tmp -I/tmp -Onone -Onone -l2.5 -l2.5
-all:; $(info makeflags='$(MAKEFLAGS)')
-!,
+run_make_test("
+MAKEFLAGS${fl}iknqrswd -I/tmp -I/tmp -Onone -Onone -l2.5 -l2.5
+all:; \$(info makeflags='\$(MAKEFLAGS)')
+",
 '-Onone -l2.5 -l2.5 -Onone -I/tmp -iknqrswd -i -n -s -k -I/tmp',
 "/makeflags='Bdiknqrsw -I/tmp -l2.5 -Onone --trace --warn-undefined-variables'/");
+}
 
-# Verify MAKEFLAGS are all available to shell functions
+# Verify MAKEFLAGS are all available to shell function at parse time.
+for my $fl (@flavors) {
+my $answer = 'Biknqrs -I/tmp -l2.5 -Onone --no-print-directory --warn-undefined-variables';
 $ENV{'MAKEFLAGS'} = 'ikB --no-print-directory --warn-undefined-variables';
-run_make_test(q!
-MAKEFLAGS := iknqrsw -I/tmp -I/tmp -Onone -Onone -l2.5 -l2.5 --no-print-directory
-XX := $(shell echo "$$MAKEFLAGS")
-all:; $(info makeflags='$(XX)')
-!,
-    '-Onone -l2.5 -l2.5 -Onone -I/tmp -iknqrs -i -n -s -k -I/tmp',
-    "makeflags='iknqrsw -I/tmp -I/tmp -Onone -Onone -l2.5 -l2.5 --no-print-directory'");
+run_make_test("
+MAKEFLAGS${fl}iknqrsw -I/tmp -I/tmp -Onone -Onone -l2.5 -l2.5 --no-print-directory
+\$(info at parse time '\$(MAKEFLAGS)')
+XX := \$(shell echo \"\$\$MAKEFLAGS\")
+all:; \$(info at build time makeflags='\$(XX)')
+",
+'-Onone -l2.5 -l2.5 -Onone -I/tmp -iknqrs -i -n -s -k -I/tmp',
+"at parse time '$answer'
+at build time makeflags='$answer'");
+}
+
+# Verify MAKEFLAGS and command line definitions are all available to shell function at parse time.
+for my $fl (@flavors) {
+$ENV{'MAKEFLAGS'} = 'ikB --no-print-directory --warn-undefined-variables';
+my $answer = 'Biknqrs -I/tmp -l2.5 -Onone --no-print-directory --warn-undefined-variables -- hello=world';
+run_make_test("
+MAKEFLAGS${fl}iknqrsw -I/tmp -I/tmp -Onone -Onone -l2.5 -l2.5 --no-print-directory
+\$(info at parse time '\$(MAKEFLAGS)')
+XX := \$(shell echo \"\$\$MAKEFLAGS\")
+all:; \$(info at build time makeflags='\$(XX)')
+",
+'-Onone -l2.5 -l2.5 -Onone -I/tmp -iknqrs -i -n -s -k -I/tmp hello=world',
+"at parse time '$answer'
+at build time makeflags='$answer'");
+}
 
 # Verify that command line arguments are included in MAKEFLAGS
 run_make_test(q!
@@ -153,6 +187,185 @@ all: ; @echo /$(MAKEFLAGS)/
               "#MAKEFILE#:2: update target 'all' due to: target does not exist
 echo /erR --trace --no-print-directory -- FOO=bar/
 /erR --trace --no-print-directory -- FOO=bar/");
+
+
+# sv 63347.
+# Verify that command line arguments are included in MAKEFLAGS
+# when makefiles are parsed.
+my $answer = 'erR -- hello:=world FOO=bar';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+all:; $(info $(MAKEFLAGS))
+!, '-e FOO=bar -r -R hello:=world',
+"$answer
+$answer
+#MAKE#: 'all' is up to date.\n");
+
+# sv 63347.
+# Same as above, with makefile setting the value of the same variables as
+# defined on the cli.
+my $answer = 'erR -- hello:=world FOO=bar';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+FOO=moon
+hello:=moon
+$(info $(MAKEFLAGS))
+all:; $(info $(MAKEFLAGS))
+!, '-e FOO=bar -r -R hello:=world',
+"$answer
+$answer
+$answer
+#MAKE#: 'all' is up to date.\n");
+
+# sv 63347.
+# Same as above, with makefile overriding the value of cli definition.
+my $answer = 'erR -- hello:=world FOO=bar';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+override FOO=moon
+override hello:=moon
+export hello
+$(info $(MAKEFLAGS))
+all:; $(info $(MAKEFLAGS))
+!, '-e FOO=bar -r -R hello:=world',
+"$answer
+$answer
+$answer
+#MAKE#: 'all' is up to date.\n");
+
+# Same as above, and makefile overrides the value of cli definition.
+# resets MAKEOVERRIDES.
+my $answer = 'rR -- hello:=world FOO=bar';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+override FOO=moon
+override hello:=moon
+export hello
+$(info $(MAKEFLAGS))
+MAKEOVERRIDES=
+$(info $(MAKEFLAGS))
+all:; $(info $(MAKEFLAGS))
+!, 'FOO=bar -r -R hello:=world',
+"$answer
+$answer
+rR -- \nrR
+#MAKE#: 'all' is up to date.\n");
+
+# sv 63347.
+# MAKEFLAGS set is env and makefile sets MAKEFLAGS and there is a command
+# line definition.
+my $answer = ' -- bye=moon hello=world';
+$ENV{'MAKEFLAGS'} = 'hello=world';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+all:; $(info $(MAKEFLAGS))
+!, 'bye=moon',
+" -- bye=moon hello=world
+ -- bye=moon hello=world
+#MAKE#: 'all' is up to date.\n");
+
+# sv 63347.
+# Conditional assignment and MAKEFLAGS.
+my $answer = 'B -- bye=moon hello=world';
+$ENV{'MAKEFLAGS'} = 'hello=world';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+MAKEFLAGS?=-k
+$(info $(MAKEFLAGS))
+all:; $(info $(MAKEFLAGS))
+!, '-B bye=moon',
+"$answer
+$answer
+$answer
+#MAKE#: 'all' is up to date.\n");
+
+# sv 63347.
+# MAKEFLAGS set is env and makefile sets MAKEFLAGS and there is a command
+# line definition.
+for my $fl (@flavors) {
+my $answer = ' -- bye=moon hello=world';
+$ENV{'MAKEFLAGS'} = 'hello=world';
+run_make_test("
+\$(info \$(MAKEFLAGS))
+MAKEFLAGS${fl}R
+\$(info \$(MAKEFLAGS))
+all:; \$(info \$(MAKEFLAGS))
+", 'bye=moon',
+"$answer
+R$answer
+rR$answer
+#MAKE#: 'all' is up to date.\n");
+}
+
+# sv 63347.
+# Test changes introduced by makefiles to MAKEFLAGS.
+for my $fl (@flavors) {
+my $answer = 'rR --no-print-directory -- hello:=world FOO=bar';
+run_make_test(q!
+MAKEFLAGS+=--no-print-directory
+$(info $(MAKEFLAGS))
+MAKEFLAGS+=-k
+$(info $(MAKEFLAGS))
+all:; $(info $(MAKEFLAGS))
+!, 'FOO=bar -r -R hello:=world',
+"$answer
+k$answer
+k$answer
+#MAKE#: 'all' is up to date.\n");
+}
+
+# sv 63347.
+# Test changes introduced by makefiles to MAKEFLAGS.
+# Same as above, but with -e.
+for my $fl (@flavors) {
+my $answer = 'erR -- hello:=world FOO=bar';
+run_make_test(q!
+MAKEFLAGS+=--no-print-directory
+$(info $(MAKEFLAGS))
+MAKEFLAGS+=-k
+$(info $(MAKEFLAGS))
+all:; $(info $(MAKEFLAGS))
+!, '-e FOO=bar -r -R hello:=world',
+"$answer
+$answer
+$answer
+#MAKE#: 'all' is up to date.\n");
+}
+
+mkdir('bye', 0777);
+
+create_file('bye/makefile',
+'hello=moon
+all:; $(info $(hello))');
+
+# sv 63347.
+# Test that a cli definition takes precendence over a definition set in
+# submake.
+run_make_test(q!
+v:=$(shell $(MAKE) -C bye --no-print-directory)
+all: ; $(info $(v))
+!, 'hello=world', "world #MAKE#[1]: 'all' is up to date.\n#MAKE#: 'all' is up to date.");
+
+# Same as above with the shell assignment operator.
+run_make_test(q!
+v \!= $(MAKE) -C bye --no-print-directory
+all: ; $(info $(v))
+!, 'hello=world', "world #MAKE#[1]: 'all' is up to date.\n#MAKE#: 'all' is up to date.");
+
+unlink('bye/makefile');
+rmdir('bye');
+
+# sv 63347
+# Invalid command line variable definition.
+run_make_test(q!
+all:; $(info $(hello))
+!, 'hello=\'$(world\'', "#MAKEFILE#:2: *** unterminated variable reference.  Stop.\n", 512);
+
+# sv 63347
+# An unused invalid command line variable definition is ignored.
+run_make_test(q!
+all:; $(info good)
+!, 'hello=\'$(world\'', "good\n#MAKE#: 'all' is up to date.\n");
 
 
 1;
