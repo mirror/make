@@ -759,6 +759,8 @@ extern int batch_mode_shell;
 #define RECIPEPREFIX_DEFAULT    '\t'
 extern char cmd_prefix;
 
+extern unsigned int no_intermediates;
+
 #define JOBSERVER_AUTH_OPT      "jobserver-auth"
 
 extern char *jobserver_auth;

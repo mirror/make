@@ -63,9 +63,6 @@ static struct hash_table files;
 /* Whether or not .SECONDARY with no prerequisites was given.  */
 static int all_secondary = 0;
 
-/* Whether or not .NOTINTERMEDIATE with no prerequisites was given.  */
-static int no_intermediates = 0;
-
 /* Access the hash table of all file records.
    lookup_file  given a name, return the struct file * for that name,
                 or nil if there is none.
@@ -368,7 +365,7 @@ remove_intermediates (int sig)
   int doneany = 0;
 
   /* If there's no way we will ever remove anything anyway, punt early.  */
-  if (question_flag || touch_flag || all_secondary)
+  if (question_flag || touch_flag || all_secondary || no_intermediates)
     return;
 
   if (sig && just_print_flag)
@@ -731,7 +728,7 @@ snap_file (const void *item, void *arg)
   /* If .NOTINTERMEDIATE is set with no deps, mark all targets as
      notintermediate, unless the target is a prereq of .INTERMEDIATE.  */
   if (no_intermediates && !f->intermediate && !f->secondary)
-      f->notintermediate = 1;
+    f->notintermediate = 1;
 
   /* If .EXTRA_PREREQS is set, add them as ignored by automatic variables.  */
   if (f->variables)

@@ -871,7 +871,8 @@ update_file_1 (struct file *file, unsigned int depth)
 
       /* Since make has not created this file, make should not remove it,
          even if the file is intermediate. */
-      file->secondary = 1;
+      if (!file->notintermediate && no_intermediates == 0)
+        file->secondary = 1;
 
       notice_finished_file (file);
 

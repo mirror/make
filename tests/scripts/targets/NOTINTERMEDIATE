@@ -36,7 +36,6 @@ hello.z:
 
 # Test 4. .NOTINTERMEDIATE without prerequisites makes everything
 # notintermediate.
-unlink('hello.z');
 run_make_test(q!
 hello.z:
 %.z: %.x; touch $@
@@ -111,8 +110,6 @@ hello.z:
 .NOTINTERMEDIATE: %.q %.x
 .SECONDARY:
 !, '', "touch hello.z\n");
-
-
 
 unlink('hello.z');
 # This tells the test driver that the perl test script executed properly.

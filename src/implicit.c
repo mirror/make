@@ -1008,7 +1008,7 @@ pattern_search (struct file *file, int archive,
           f->also_make = imf->also_make;
           f->is_target = 1;
           f->is_explicit |= imf->is_explicit || pat->is_explicit;
-          f->notintermediate |= imf->notintermediate;
+          f->notintermediate |= imf->notintermediate || no_intermediates;
           f->intermediate |= !f->is_explicit && !f->notintermediate;
           f->tried_implicit = 1;
 
@@ -1090,7 +1090,7 @@ pattern_search (struct file *file, int archive,
       {
         if (f->precious)
           file->precious = 1;
-        if (f->notintermediate)
+        if (f->notintermediate || no_intermediates)
           file->notintermediate = 1;
       }
   }
@@ -1123,7 +1123,7 @@ pattern_search (struct file *file, int archive,
             {
               if (f->precious)
                 new->file->precious = 1;
-              if (f->notintermediate)
+              if (f->notintermediate || no_intermediates)
                 new->file->notintermediate = 1;
             }
 
