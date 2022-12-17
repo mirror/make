@@ -1455,6 +1455,9 @@ main (int argc, char **argv, char **envp)
 #ifdef MAKE_LOAD
                            " load"
 #endif
+#ifdef HAVE_DOS_PATHS
+                           " dospaths"
+#endif
 #ifdef MAKE_MAINTAINER_MODE
                            " maintainer"
 #endif

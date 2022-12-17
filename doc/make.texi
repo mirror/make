@@ -1279,19 +1279,16 @@ makefile as has been traditionally done with other versions of
 @findex /usr/gnu/include
 @findex /usr/local/include
 @findex /usr/include
-If the specified name does not start with a slash, and the file is not
-found in the current directory, several other directories are searched.
+If the specified name does not start with a slash (or a drive letter and colon
+when GNU Make is compiled with MS-DOS / MS-Windows path support), and the file
+is not found in the current directory, several other directories are searched.
 First, any directories you have specified with the @samp{-I} or
-@samp{--include-dir} options are searched
-(@pxref{Options Summary, ,Summary of Options}).
-Then the following directories (if they exist)
-are searched, in this order:
-@file{@var{prefix}/include} (normally @file{/usr/local/include}
+@samp{--include-dir} options are searched (@pxref{Options Summary, ,Summary of
+Options}).  Then the following directories (if they exist) are searched, in
+this order: @file{@var{prefix}/include} (normally @file{/usr/local/include}
 @footnote{GNU Make compiled for MS-DOS and MS-Windows behaves as if
-@var{prefix} has been defined to be the root of the DJGPP tree
-hierarchy.})
-@file{/usr/gnu/include},
-@file{/usr/local/include}, @file{/usr/include}.
+@var{prefix} has been defined to be the root of the DJGPP tree hierarchy.})
+@file{/usr/gnu/include}, @file{/usr/local/include}, @file{/usr/include}.
 
 The @code{.INCLUDE_DIRS} variable will contain the current list of
 directories that make will search for included files.  @xref{Special

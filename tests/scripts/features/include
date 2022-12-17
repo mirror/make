@@ -1,4 +1,4 @@
-#                                     -*-mode: perl; rm-trailing-spaces: nil-*-
+#                                                              -*-mode: perl-*-
 
 $description = "Test various forms of the GNU make 'include' command.";
 
@@ -461,5 +461,15 @@ $ENV{MAKEFILES} = 'foobar barfoo';
 run_make_with_options(undef, ['-E', '%:;@echo $@', '-E', 'all:;', '-E', '-include bizbaz', '-E', '-include bazbiz'], get_logfile(0));
 $answer = "bizbaz\nbazbiz\nfoobar\nbarfoo\n$defaults\n#MAKE#: 'all' is up to date.\n";
 &compare_output(subst_make_string($answer), &get_logfile(1));
+
+# SV 63516
+if (exists $FEATURES{'dospaths'}) {
+    run_make_test(q!
+include C:__foobar
+%bar: ; @echo $@
+all: ;
+!,
+                  '', "C:__foobar\n#MAKE#: 'all' is up to date.");
+}
 
 1;
