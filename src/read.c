@@ -404,6 +404,7 @@ eval_makefile (const char *filename, unsigned short flags)
     deps->file = enter_file (filename);
   filename = deps->file->name;
   deps->flags = flags;
+  deps->file->is_explicit = 1;
 
   free (expanded);
 
