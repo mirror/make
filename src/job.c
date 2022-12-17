@@ -1893,7 +1893,6 @@ new_job (struct file *file)
      Use message here so that changes to working directories are logged.  */
   if (ISDB (DB_WHY))
     {
-      char *newer = allocated_variable_expand_for_file ("$?", c->file);
       const char *nm;
 
       if (! cmds->fileinfo.filenm)
@@ -1905,11 +1904,51 @@ new_job (struct file *file)
           nm = n;
         }
 
-      OSSS (message, 0,
-            _("%s: update target '%s' due to: %s"), nm, c->file->name,
-              newer[0] == '\0' ? _("target does not exist") : newer);
+      if (c->file->phony)
+        OSS (message, 0, _("%s: update target '%s' due to: target is .PHONY"),
+             nm, c->file->name);
+      else if (c->file->last_mtime == NONEXISTENT_MTIME)
+        OSS (message, 0,
+             _("%s: update target '%s' due to: target does not exist"),
+             nm, c->file->name);
+      else
+        {
+          char *newer = allocated_variable_expand_for_file ("$?", c->file);
+          if (newer[0] != '\0')
+            {
+              OSSS (message, 0, _("%s: update target '%s' due to: %s"),
+                    nm, c->file->name, newer);
+              free (newer);
+            }
+          else
+            {
+              /* One or more files didn't exist, and didn't get created.  */
+              size_t len = 0;
+              struct dep *d;
 
-      free (newer);
+              for (d = c->file->deps; d != NULL; d = d->next)
+                if (d->file->last_mtime == NONEXISTENT_MTIME)
+                  len += strlen (d->file->name) + 1;
+
+              if (!len)
+                OSS (message, 0,
+                     _("%s: update target '%s' due to: unknown reasons"),
+                     nm, c->file->name);
+              else
+                {
+                  char *cp = newer = alloca (len);
+                  for (d = c->file->deps; d != NULL; d = d->next)
+                    if (d->file->last_mtime == NONEXISTENT_MTIME)
+                      {
+                        if (cp > newer)
+                          *(cp++) = ' ';
+                        cp = stpcpy (cp, d->file->name);
+                      }
+                  OSSS (message, 0, _("%s: update target '%s' due to: %s"),
+                        nm, c->file->name, newer);
+                }
+            }
+        }
     }
 
   /* The job is now primed.  Start it running.
