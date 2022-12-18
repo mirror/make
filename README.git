@@ -88,10 +88,10 @@ need to install the following extra software:
 
 * autoconf >= 2.69
 * automake >= 1.16.1
-* gettext
 * autopoint
-* pkg-config
 * texinfo (for makeinfo)
+* gettext
+* pkg-config
 * GCC
 * GNU Make (POSIX make is not sufficient)
 
@@ -99,7 +99,10 @@ And any tools that those utilities require (GNU m4, etc.)
 
 To run the tests you must install Perl.
 
-To build a release you'll need to install lzip.
+To create dist files you will additionally need:
+
+* lzip (to create tar.lz dist files)
+* texlive (or some other TeX package)
 
 GNU Make requires Gnulib to provide some facilities.  If you want to maintain
 a local installation of gnulib you can set GNULIB_SRCDIR to point to it.
