@@ -368,4 +368,528 @@ all:; $(info good)
 !, 'hello=\'$(world\'', "good\n#MAKE#: 'all' is up to date.\n");
 
 
+
+# sv 63537
+# Certain switches can be flipped on and off.
+# -k/-S, -w/--no-print-directory and -s/--no-silent.
+# Test the following aspects of behavior of these switches
+# 1. A switch can be enabled or disabled in makefile.
+# 2. A switch can be enabled or disabled in env.
+# 3. A switch can be enabled or disabled on the command line.
+# 4. Command line beats makefile.
+# 5. Env beats makefile.
+# 6. Command line beats env.
+# 7. MAKEFLAGS contains each specified switch at parse and build time.
+# 8. If contradicting switches are specified in multiple origins, MAKEFLAGS
+#    contains the winning switch at parse and build time.
+# 9. MAKEFLAGS does not contain the beaten switch.
+
+my @flavors = ('=', ':=', ':::=', '+=');
+
+# sv 63537
+# -w vs --no-print-directory
+
+# -w on the command line.
+run_make_test(q!
+$(info $(MAKEFLAGS))
+all:; $(info $(MAKEFLAGS))
+!, '-w',
+"#MAKE#: Entering directory '#PWD#'
+w
+w
+#MAKE#: 'all' is up to date.
+#MAKE#: Leaving directory '#PWD#'\n");
+
+# -w in the env.
+$ENV{'MAKEFLAGS'} = '-w';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+all:; $(info $(MAKEFLAGS))
+!, '',
+"#MAKE#: Entering directory '#PWD#'
+w
+w
+#MAKE#: 'all' is up to date.
+#MAKE#: Leaving directory '#PWD#'\n");
+
+# -w in env, --no-print-directory on the command line.
+$ENV{'MAKEFLAGS'} = '-w';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+all:; $(info $(MAKEFLAGS))
+!, '--no-print-directory',
+" --no-print-directory
+ --no-print-directory
+#MAKE#: 'all' is up to date.\n");
+
+# --no-print-directory in env, -w on the command line.
+$ENV{'MAKEFLAGS'} = '--no-print-directory';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+all:; $(info $(MAKEFLAGS))
+!, '-w',
+"#MAKE#: Entering directory '#PWD#'
+w
+w
+#MAKE#: 'all' is up to date.
+#MAKE#: Leaving directory '#PWD#'\n");
+
+delete $ENV{'MAKEFLAGS'};
+
+# -w in makefile.
+for my $fl (@flavors) {
+run_make_test("
+MAKEFLAGS${fl}-w
+\$(info \$(MAKEFLAGS))
+all:; \$(info \$(MAKEFLAGS))
+", '',
+"#MAKE#: Entering directory '#PWD#'
+w
+w
+#MAKE#: 'all' is up to date.
+#MAKE#: Leaving directory '#PWD#'\n");
+}
+
+# sv 63537
+# -w in makefile, --no-print-directory on the command line.
+for my $fl (@flavors) {
+run_make_test("
+MAKEFLAGS${fl}-w
+\$(info \$(MAKEFLAGS))
+all:; \$(info \$(MAKEFLAGS))
+", '--no-print-directory',
+" --no-print-directory
+ --no-print-directory
+#MAKE#: 'all' is up to date.\n");
+}
+
+mkdir('lib2', 0777);
+create_file('lib2/makefile', 'all:; $(info $(MAKEFLAGS))');
+
+# sv 63537
+# Default, no -w or --no-print-directory is specified.
+run_make_test(q!
+all:; $(MAKE) -C lib2
+!, '',
+"#MAKEPATH# -C lib2
+#MAKE#[1]: Entering directory '#PWD#/lib2'
+
+#MAKE#[1]: 'all' is up to date.
+#MAKE#[1]: Leaving directory '#PWD#/lib2'\n");
+
+# sv 63537
+# --no-print-directory in makefile, -w on the command line.
+for my $fl (@flavors) {
+run_make_test("
+MAKEFLAGS${fl}--no-print-directory
+\$(info \$(MAKEFLAGS))
+all:
+	\$(info \$(MAKEFLAGS))
+	\$(MAKE) -C lib2
+", '-w',
+"#MAKE#: Entering directory '#PWD#'
+w
+w
+#MAKEPATH# -C lib2
+#MAKE#[1]: Entering directory '#PWD#/lib2'
+w
+#MAKE#[1]: 'all' is up to date.
+#MAKE#[1]: Leaving directory '#PWD#/lib2'
+#MAKE#: Leaving directory '#PWD#'\n");
+}
+
+# sv 63537
+# --no-print-directory in makefile, -w in the env.
+for my $fl (@flavors) {
+$ENV{'MAKEFLAGS'} = '-w';
+run_make_test("
+MAKEFLAGS${fl}--no-print-directory
+\$(info \$(MAKEFLAGS))
+all:
+	\$(info \$(MAKEFLAGS))
+	\$(MAKE) -C lib2
+", '',
+"#MAKE#: Entering directory '#PWD#'
+w
+w
+#MAKEPATH# -C lib2
+#MAKE#[1]: Entering directory '#PWD#/lib2'
+w
+#MAKE#[1]: 'all' is up to date.
+#MAKE#[1]: Leaving directory '#PWD#/lib2'
+#MAKE#: Leaving directory '#PWD#'\n");
+}
+
+unlink('lib2/makefile');
+rmdir('lib2');
+
+# sv 63537
+# -k vs -S.
+
+
+# -S in env.
+$ENV{'MAKEFLAGS'} = '-S';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+all: one two
+one:
+	$(info $(MAKEFLAGS))
+	false
+two:; $(info $@)
+!, '',
+"S
+S
+false
+#MAKE#: *** [#MAKEFILE#:6: one] Error 1", 512);
+
+# -S in env, -k on the command line.
+$ENV{'MAKEFLAGS'} = '-S';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+all: one two
+one:
+	$(info $(MAKEFLAGS))
+	false
+two:; $(info $@)
+!, '-k',
+"k
+k
+false
+#MAKE#: *** [#MAKEFILE#:6: one] Error 1
+two
+#MAKE#: Target 'all' not remade because of errors.", 512);
+
+# -k in env.
+$ENV{'MAKEFLAGS'} = '-k';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+all: one two
+one:
+	$(info $(MAKEFLAGS))
+	false
+two:; $(info $@)
+!, '',
+"k
+k
+false
+#MAKE#: *** [#MAKEFILE#:6: one] Error 1
+two
+#MAKE#: Target 'all' not remade because of errors.", 512);
+
+# -k in env, -S on the command line.
+$ENV{'MAKEFLAGS'} = '-k';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+all: one two
+one:
+	$(info $(MAKEFLAGS))
+	false
+two:; $(info $@)
+!, '-S',
+"S
+S
+false
+#MAKE#: *** [#MAKEFILE#:6: one] Error 1", 512);
+
+delete $ENV{'MAKEFLAGS'};
+
+# -k in makefile.
+for my $fl (@flavors) {
+run_make_test("
+MAKEFLAGS${fl}-k
+\$(info \$(MAKEFLAGS))
+all: one two
+one:
+	\$(info \$(MAKEFLAGS))
+	false
+two:; \$(info \$@)
+", '',
+"k
+k
+false
+#MAKE#: *** [#MAKEFILE#:7: one] Error 1
+two
+#MAKE#: Target 'all' not remade because of errors.", 512);
+}
+
+# sv 63537
+# -k in makefile and -S on the command line.
+for my $fl (@flavors) {
+run_make_test("
+MAKEFLAGS${fl}-k
+\$(info \$(MAKEFLAGS))
+all: one two
+one:
+	\$(info \$(MAKEFLAGS))
+	false
+two:; \$(info \$@)
+", '-S',
+"S
+S
+false
+#MAKE#: *** [#MAKEFILE#:7: one] Error 1", 512);
+}
+
+# sv 63537
+# -k in makefile and -S in the env.
+for my $fl (@flavors) {
+$ENV{'MAKEFLAGS'} = '-S';
+run_make_test("
+MAKEFLAGS${fl}-k
+\$(info \$(MAKEFLAGS))
+all: one two
+one:
+	\$(info \$(MAKEFLAGS))
+	false
+two:; \$(info \$@)
+", '',
+"S
+S
+false
+#MAKE#: *** [#MAKEFILE#:7: one] Error 1", 512);
+}
+
+delete $ENV{'MAKEFLAGS'};
+
+# sv 63537
+# -S in makefile.
+for my $fl (@flavors) {
+run_make_test("
+MAKEFLAGS${fl}-S
+\$(info \$(MAKEFLAGS))
+all: one two
+one:
+	\$(info \$(MAKEFLAGS))
+	false
+two:; \$(info \$@)
+", '',
+"S
+S
+false
+#MAKE#: *** [#MAKEFILE#:7: one] Error 1", 512);
+}
+
+# -S in makefile and -k on the command line.
+for my $fl (@flavors) {
+run_make_test("
+MAKEFLAGS${fl}-S
+\$(info \$(MAKEFLAGS))
+all: one two
+one:
+	\$(info \$(MAKEFLAGS))
+	false
+two:; \$(info \$@)
+", '-k',
+"k
+k
+false
+#MAKE#: *** [#MAKEFILE#:7: one] Error 1
+two
+#MAKE#: Target 'all' not remade because of errors.", 512);
+}
+
+# sv 63537
+# -S in makefile and -k in the env.
+for my $fl (@flavors) {
+$ENV{'MAKEFLAGS'} = '-k';
+run_make_test("
+MAKEFLAGS${fl}-S
+\$(info \$(MAKEFLAGS))
+all: one two
+one:
+	\$(info \$(MAKEFLAGS))
+	false
+two:; \$(info \$@)
+", '',
+"k
+k
+false
+#MAKE#: *** [#MAKEFILE#:7: one] Error 1
+two
+#MAKE#: Target 'all' not remade because of errors.", 512);
+}
+
+
+# sv 63537
+# -s vs --no-silent.
+
+# -s in env.
+$ENV{'MAKEFLAGS'} = '-s';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+all:; $(info $(MAKEFLAGS))
+!, '', "s\ns");
+
+# -s in env, --no-silent on the command line.
+$ENV{'MAKEFLAGS'} = '-s';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+all:; $(info $(MAKEFLAGS))
+!, '--no-silent',
+" --no-silent
+ --no-silent
+#MAKE#: 'all' is up to date.\n");
+
+# --no-silent in env.
+$ENV{'MAKEFLAGS'} = '--no-silent';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+all:; $(info $(MAKEFLAGS))
+!, '',
+" --no-silent
+ --no-silent
+#MAKE#: 'all' is up to date.\n");
+
+# --no-silent in env, -s on the command line.
+$ENV{'MAKEFLAGS'} = '--no-silent';
+run_make_test(q!
+$(info $(MAKEFLAGS))
+all:; $(info $(MAKEFLAGS))
+!, '-s', "s\ns");
+
+delete $ENV{'MAKEFLAGS'};
+
+# -s in the makefile.
+for my $fl (@flavors) {
+run_make_test("
+MAKEFLAGS${fl}-s
+\$(info \$(MAKEFLAGS))
+all:; \$(info \$(MAKEFLAGS))
+", '', "s\ns");
+}
+
+# sv 63537
+# -s in makefile and --no-silent on the command line.
+for my $fl (@flavors) {
+run_make_test("
+MAKEFLAGS${fl}-s
+\$(info \$(MAKEFLAGS))
+all:; \$(info \$(MAKEFLAGS))
+", '--no-silent',
+" --no-silent
+ --no-silent
+#MAKE#: 'all' is up to date.\n");
+}
+
+# sv 63537
+# -s in makefile and --no-silent in the env.
+for my $fl (@flavors) {
+$ENV{'MAKEFLAGS'} = '--no-silent';
+run_make_test("
+MAKEFLAGS${fl}-s
+\$(info \$(MAKEFLAGS))
+all:; \$(info \$(MAKEFLAGS))
+", '',
+" --no-silent
+ --no-silent
+#MAKE#: 'all' is up to date.\n");
+}
+
+delete $ENV{'MAKEFLAGS'};
+
+# sv 63537
+# --no-silent in makefile.
+for my $fl (@flavors) {
+run_make_test("
+MAKEFLAGS${fl}--no-silent
+\$(info \$(MAKEFLAGS))
+all:; \$(info \$(MAKEFLAGS))
+", '',
+" --no-silent
+ --no-silent
+#MAKE#: 'all' is up to date.\n");
+}
+
+# sv 63537
+# --no-silent in makefile and -s on the command line.
+for my $fl (@flavors) {
+run_make_test("
+MAKEFLAGS${fl}--no-silent
+\$(info \$(MAKEFLAGS))
+all:; \$(info \$(MAKEFLAGS))
+", '-s', "s\ns");
+}
+
+# sv 63537
+# --no-silent in makefile and -s in the env.
+for my $fl (@flavors) {
+$ENV{'MAKEFLAGS'} = '-s';
+run_make_test("
+MAKEFLAGS${fl}--no-silent
+\$(info \$(MAKEFLAGS))
+all:; \$(info \$(MAKEFLAGS))
+", '', "s\ns");
+}
+
+delete $ENV{'MAKEFLAGS'};
+
+# sv 63537
+# Multiple --debug switches from various origins are all combined.
+# Because run_make_test regex matching facility does not allow to match against
+# multiple lines, run the test twice. During the first run match the output of
+# --debug=b, during the second run match the output of --debug=-j.
+#
+# --debug=b in makefile.
+for my $fl (@flavors) {
+run_make_test("
+MAKEFLAGS${fl}--debug=b
+hello:; touch \$@
+.PHONY: hello
+", '', "/Updating makefiles/");
+}
+
+# --debug=b in makefile, --debug=j on the command line.
+# Test for --debug=j output.
+for my $fl (@flavors) {
+run_make_test("
+MAKEFLAGS${fl}--debug=b
+hello:; touch \$@
+.PHONY: hello
+", '--debug=j', "/Putting child/");
+}
+
+# --debug=b in makefile, --debug=j on the command line.
+# Test for --debug=b output.
+for my $fl (@flavors) {
+run_make_test("
+MAKEFLAGS${fl}--debug=b
+hello:; touch \$@
+.PHONY: hello
+", '--debug=j', "/Updating makefiles/");
+}
+
+# --debug=j in makefile, --debug=b on the command line.
+# Test that MAKEFLAGS contains --debug=b.
+run_make_test(q!
+MAKEFLAGS=--debug=j
+$(info makeflags=$(MAKEFLAGS))
+hello:; touch $@
+.PHONY: hello
+!, '--debug=b', "/makeflags= --debug=b/");
+
+# --debug=b in makefile, --debug=j in the env.
+# Test for --debug=j output.
+for my $fl (@flavors) {
+$ENV{'MAKEFLAGS'} = '--debug=j';
+run_make_test("
+MAKEFLAGS${fl}--debug=b
+hello:; touch \$@
+.PHONY: hello
+", '', "/Putting child/");
+}
+
+# --debug=b in makefile, --debug=j in the env.
+# Test for --debug=b output.
+for my $fl (@flavors) {
+$ENV{'MAKEFLAGS'} = '--debug=j';
+run_make_test("
+MAKEFLAGS${fl}--debug=b
+hello:; touch \$@
+.PHONY: hello
+", '', "/Updating makefiles/");
+}
+
+unlink('hello');
+
+# This tells the test driver that the perl test script executed properly.
 1;

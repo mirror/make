@@ -5070,10 +5070,12 @@ set up automatically by @code{make} to contain the flag letters that
 @code{make} received.  Thus, if you do @w{@samp{make -ks}} then
 @code{MAKEFLAGS} gets the value @samp{ks}.
 
-As a consequence, every sub-@code{make} gets a value for @code{MAKEFLAGS}
-in its environment.  In response, it takes the flags from that value and
-processes them as if they had been given as arguments.
-@xref{Options Summary, ,Summary of Options}.
+As a consequence, every sub-@code{make} gets a value for @code{MAKEFLAGS} in
+its environment.  In response, it takes the flags from that value and
+processes them as if they had been given as arguments.  @xref{Options Summary,
+,Summary of Options}.  This means that, unlike other environment variables,
+@code{MAKEFLAGS} specified in the environment take precedence over
+@code{MAKEFLAGS} specified in the makefile.
 
 The value of @code{MAKEFLAGS} is a possibly empty group of characters
 representing single-letter options that take no argument, followed by a space
