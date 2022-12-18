@@ -285,7 +285,8 @@ output_dump (struct output *out)
         }
 
       /* Log the working directory for this dump.  */
-      if (print_directory && output_sync != OUTPUT_SYNC_RECURSE)
+
+      if (output_sync != OUTPUT_SYNC_RECURSE && should_print_dir ())
         traced = log_working_directory (1);
 
       if (outfd_not_empty)
@@ -369,7 +370,7 @@ output_start (void)
   /* If we're not syncing this output per-line or per-target, make sure we emit
      the "Entering..." message where appropriate.  */
   if (output_sync == OUTPUT_SYNC_NONE || output_sync == OUTPUT_SYNC_RECURSE)
-    if (! stdio_traced && print_directory)
+    if (! stdio_traced && should_print_dir ())
       stdio_traced = log_working_directory (1);
 }
 

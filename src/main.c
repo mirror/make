@@ -195,9 +195,6 @@ static const int default_keep_going_flag = 0;
 
 int check_symlink_flag = 0;
 
-/* Nonzero means print directory before starting and when done (-w).  */
-
-int print_directory;
 static int print_directory_flag = -1;
 static const int default_print_directory_flag = -1;
 
@@ -1584,6 +1581,9 @@ main (int argc, char **argv, char **envp)
       define_variable_cname (GNUMAKEFLAGS_NAME, "", o_env, 0);
     }
 
+   /* Set MAKEFLAGS's origin to command line: in submakes MAKEFLAGS will carry
+      command line switches.  This causes env variable MAKEFLAGS to beat
+      makefile modifications to MAKEFLAGS.  */
   decode_env_switches (STRING_SIZE_TUPLE (MAKEFLAGS_NAME), o_command);
 
 #if 0
@@ -1684,14 +1684,6 @@ main (int argc, char **argv, char **envp)
 
   /* Set always_make_flag if -B was given and we've not restarted already.  */
   always_make_flag = always_make_set && (restarts == 0);
-
-  /* If the user didn't specify any print-directory options, compute the
-     default setting: disable under -s / print in sub-makes and under -C.  */
-
-  if (print_directory_flag == -1)
-    print_directory = !silent_flag && (directories != 0 || makelevel > 0);
-  else
-    print_directory = print_directory_flag;
 
   /* If -R was given, set -r too (doesn't make sense otherwise!)  */
   if (no_builtin_variables_flag)
@@ -3109,7 +3101,7 @@ handle_non_switch_argument (const char *arg, enum variable_origin origin)
 }
 
 /* Decode switches from ARGC and ARGV.
-   They came from the environment if ENV is nonzero.  */
+   They came from the environment if ORIGIN is o_env.  */
 
 static void
 decode_switches (int argc, const char **argv, enum variable_origin origin)
@@ -3638,6 +3630,19 @@ define_makeflags (int makefile)
   v->special = 1;
 
   return v;
+}
+
+/* Return 1 if the working directory change message should be printed.
+   Otherwise, return 0.  */
+int
+should_print_dir (void)
+{
+    if (print_directory_flag >= 0)
+        return print_directory_flag;
+
+    /* If the user didn't specify any print-directory options, compute the
+       default setting: disable under -s / print in sub-makes and under -C.  */
+    return !silent_flag && (makelevel > 0 || directories != NULL);
 }
 
 /* Print version information.  */
