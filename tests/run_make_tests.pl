@@ -469,7 +469,7 @@ sub set_defaults
   if ($? == 0) {
       print "Invoked invalid file!  Skipping related tests.\n";
   } else {
-      chomp($_);
+      s/\r?\n//g;
       s/bad-command/#CMDNAME#/g;
       $ERR_command_not_found = $_;
   }

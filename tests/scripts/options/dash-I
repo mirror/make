@@ -86,7 +86,7 @@ create_file('defaultdirs.mk', "\$(info \$(.INCLUDE_DIRS))\nall:;\@:\n");
 my $cmd = subst_make_string("#MAKEPATH# -f defaultdirs.mk");
 my @dirs = `$cmd`;
 my $dirs = $dirs[0];
-chomp $dirs;
+$dirs =~ s/\r?\n//g;
 unlink('defaultdirs.mk');
 
 my $fn = undef;

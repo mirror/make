@@ -52,7 +52,7 @@ add_options($cmd, '-f', '/dev/null', '-E', q!all:;@echo $$PPID!);
 my $fout = 'ppidtest.out';
 run_command_with_output($fout, @$cmd);
 $_ = read_file_into_string($fout);
-chomp($_);
+s/\r?\n//g;
 if (/^[0-9]+$/) {
 use POSIX ();
 

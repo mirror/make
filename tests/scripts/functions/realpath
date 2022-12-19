@@ -26,7 +26,7 @@ all: ; @:
 create_file('root.mk', 'all:;$(info $(realpath /))');
 my $root = `$make_path -sf root.mk`;
 unlink('root.mk');
-chomp $root;
+$root =~ s/\r?\n//g;
 
 my $tst = '
 ifneq ($(realpath /.),#ROOT#)

@@ -394,7 +394,7 @@ sub get_osname
   #
   # This is probably not specific enough.
   #
-  if ($osname =~ /MSWin32/i || $osname =~ /Windows/i
+  if ($osname =~ /MSWin32/i || $osname =~ /Windows/i || $osname =~ /msys/i
       || $osname =~ /MINGW32/i || $osname =~ /CYGWIN_NT/i) {
     $port_type = 'W32';
   }
@@ -922,20 +922,28 @@ sub compare_answer
   $log =~ s,\r\n,\n,gs;
   return 1 if ($log eq $kgo);
 
+  # Keep these in case it's a regex
+  $mkgo = $kgo;
+  $mlog = $log;
+
+  # Some versions of Perl on Windows use /c instead of C:
+  $mkgo =~ s,\b([A-Z]):,/\L$1,g;
+  $mlog =~ s,\b([A-Z]):,/\L$1,g;
+  return 1 if ($mlog eq $mkgo);
+
   # See if it is a backslash problem (only on W32?)
-  ($mkgo = $kgo) =~ tr,\\,/,;
-  ($mlog = $log) =~ tr,\\,/,;
-  return 1 if ($log eq $kgo);
+  $mkgo =~ tr,\\,/,;
+  $mlog =~ tr,\\,/,;
+  return 1 if ($mlog eq $mkgo);
 
   # VMS is a whole thing...
-  return 1 if ($^O eq 'VMS' && compare_answer_vms($mkgo, $mlog));
+  return 1 if ($^O eq 'VMS' && compare_answer_vms($kgo, $log));
 
   # See if the answer might be a regex.
   if ($kgo =~ m,^/(.+)/$,) {
+    # Check the regex against both the original and modified strings
     return 1 if ($log =~ /$1/);
-
-    # We can't test with backslashes converted to forward slashes, because
-    # backslashes could be escaping RE special characters!
+    return 1 if ($mlog =~ /$1/);
   }
 
   return 0;
@@ -1095,9 +1103,10 @@ sub _run_with_timeout
       $code = (($vms_code & 0xFFF) >> 3) * 256;
     }
 
-  } elsif ($port_type eq 'W32') {
+  } elsif ($port_type eq 'W32' && $^O ne 'msys') {
+    # Using ActiveState Perl (?)
     my $pid = system(1, @_);
-    $pid > 0 or die "Cannot execute $_[0]\n";
+    $pid > 0 or die "Cannot execute $_[0]: $!\n";
     local $SIG{ALRM} = sub {
       my $e = $ERRSTACK[0];
       print $e "\nTest timed out after $test_timeout seconds\n";

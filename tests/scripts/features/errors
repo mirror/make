@@ -35,12 +35,13 @@ all:
 
 sub errors_getinfo
 {
-    my ($cmd, $args) = @_;
+    my ($cmd, $args, $err) = @_;
     if ($port_type eq 'W32') {
-        return (2, "process_begin: CreateProcess(NULL, $cmd $args, ...) failed.\nmake (e=2): The system cannot find the file specified.");
+        return (2, "process_begin: CreateProcess(NULL, $cmd$args, ...) failed.\nmake (e=2): The system cannot find the file specified.");
     }
 
-    return (127, "#MAKE#: $cmd: $ERR_no_such_file");
+    if (!$err) { $err = $ERR_no_such_file; }
+    return (127, "#MAKE#: $cmd: $err");
 }
 
 # TEST #3
@@ -50,7 +51,7 @@ sub errors_getinfo
 my $unk = './foobarbazbozblat';
 unlink($unk);
 
-my ($ernum, $erstr) = errors_getinfo($unk, "xx yy");
+my ($ernum, $erstr) = errors_getinfo($unk, " xx yy");
 run_make_test(qq!
 one: ; -$unk xx yy
 !, 'one',
@@ -59,7 +60,7 @@ one: ; -$unk xx yy
 # TEST #4
 # -------
 
-($ernum, $erstr) = errors_getinfo($unk, "aa bb");
+($ernum, $erstr) = errors_getinfo($unk, " aa bb");
 run_make_test(qq!
 two: ; $unk aa bb
 !, 'two -i',
@@ -73,7 +74,7 @@ run_make_test(undef, 'two',
 
 # SV #56918 : Test the unknown command as the second recipe line
 
-($ernum, $erstr) = errors_getinfo($unk, "qq rr");
+($ernum, $erstr) = errors_getinfo($unk, " qq rr");
 run_make_test(qq!
 three:
 \t\@echo one
@@ -101,16 +102,26 @@ if ($ERR_nonexe_file) {
 if ($ERR_exe_dir) {
     mkdir('sd', 0775) or print "mkdir: sd: $!\n";
 
+    ($ernum, $erstr) = errors_getinfo('sd', '', $ERR_exe_dir);
+
     run_make_test(q!
 PATH := .
 all: ; sd
 !,
-              '', "sd\n#MAKE#: sd: $ERR_exe_dir\n#MAKE#: *** [#MAKEFILE#:3: all] Error 127", 512);
+              '', "sd\n$erstr\n#MAKE#: *** [#MAKEFILE#:3: all] Error $ernum", 512);
+
+    if ($port_type eq 'W32') {
+        $ernum = 5;
+        $erstr = "process_begin: CreateProcess(NULL, ./sd, ...) failed.\nmake (e=5): Access is denied.";
+    } else {
+        $ernum = 127;
+        $erstr = "#MAKE#: ./sd: $ERR_exe_dir";
+    }
 
     run_make_test(q!
 all: ; ./sd
 !,
-              '', "./sd\n#MAKE#: ./sd: $ERR_exe_dir\n#MAKE#: *** [#MAKEFILE#:2: all] Error 127", 512);
+              '', "./sd\n$erstr\n#MAKE#: *** [#MAKEFILE#:2: all] Error $ernum", 512);
 
     rmdir('sd');
 }

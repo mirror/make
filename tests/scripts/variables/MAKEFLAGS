@@ -81,8 +81,13 @@ all:; \$(info makeflags='\$(MAKEFLAGS)')
 }
 }
 
+# Strawberry Perl's exec()--or someting!--appears to replace all /tmp with the
+# user's %TEMP% value so we can't use that for -I testing.  Make a directory.
+
+mkdir('localtmp', 0777);
+
 # Switches which carry arguments.
-@opts = (' -I/tmp', ' -Onone', ' --debug=b', ' -l2.5');
+@opts = (' -Ilocaltmp', ' -Onone', ' --debug=b', ' -l2.5');
 for my $fl (@flavors) {
 for my $opt (@opts) {
   run_make_test("
@@ -106,7 +111,7 @@ all:; \$(info makeflags='\$(MAKEFLAGS)')
 
 # Test that make filters out duplicates.
 # Each option is specified in the makefile, env and on the command line.
-@opts = (' -I/tmp', ' -Onone', ' --debug=b', ' -l2.5');
+@opts = (' -Ilocaltmp', ' -Onone', ' --debug=b', ' -l2.5');
 for my $fl (@flavors) {
 for my $opt (@opts) {
 $ENV{'MAKEFLAGS'} = $opt;
@@ -136,24 +141,24 @@ all:; \$(info makeflags='\$(MAKEFLAGS)')
 for my $fl (@flavors) {
 $ENV{'MAKEFLAGS'} = 'ikB --no-print-directory --warn-undefined-variables --trace';
 run_make_test("
-MAKEFLAGS${fl}iknqrswd -I/tmp -I/tmp -Onone -Onone -l2.5 -l2.5
+MAKEFLAGS${fl}iknqrswd -Ilocaltmp -Ilocaltmp -Onone -Onone -l2.5 -l2.5
 all:; \$(info makeflags='\$(MAKEFLAGS)')
 ",
-'-Onone -l2.5 -l2.5 -Onone -I/tmp -iknqrswd -i -n -s -k -I/tmp',
-"/makeflags='Bdiknqrsw -I/tmp -l2.5 -Onone --trace --warn-undefined-variables'/");
+'-Onone -l2.5 -l2.5 -Onone -Ilocaltmp -iknqrswd -i -n -s -k -Ilocaltmp',
+"/makeflags='Bdiknqrsw -Ilocaltmp -l2.5 -Onone --trace --warn-undefined-variables'/");
 }
 
 # Verify MAKEFLAGS are all available to shell function at parse time.
 for my $fl (@flavors) {
-my $answer = 'Biknqrs -I/tmp -l2.5 -Onone --no-print-directory --warn-undefined-variables';
+my $answer = 'Biknqrs -Ilocaltmp -l2.5 -Onone --no-print-directory --warn-undefined-variables';
 $ENV{'MAKEFLAGS'} = 'ikB --no-print-directory --warn-undefined-variables';
 run_make_test("
-MAKEFLAGS${fl}iknqrsw -I/tmp -I/tmp -Onone -Onone -l2.5 -l2.5 --no-print-directory
+MAKEFLAGS${fl}iknqrsw -Ilocaltmp -Ilocaltmp -Onone -Onone -l2.5 -l2.5 --no-print-directory
 \$(info at parse time '\$(MAKEFLAGS)')
 XX := \$(shell echo \"\$\$MAKEFLAGS\")
 all:; \$(info at build time makeflags='\$(XX)')
 ",
-'-Onone -l2.5 -l2.5 -Onone -I/tmp -iknqrs -i -n -s -k -I/tmp',
+'-Onone -l2.5 -l2.5 -Onone -Ilocaltmp -iknqrs -i -n -s -k -Ilocaltmp',
 "at parse time '$answer'
 at build time makeflags='$answer'");
 }
@@ -161,14 +166,14 @@ at build time makeflags='$answer'");
 # Verify MAKEFLAGS and command line definitions are all available to shell function at parse time.
 for my $fl (@flavors) {
 $ENV{'MAKEFLAGS'} = 'ikB --no-print-directory --warn-undefined-variables';
-my $answer = 'Biknqrs -I/tmp -l2.5 -Onone --no-print-directory --warn-undefined-variables -- hello=world';
+my $answer = 'Biknqrs -Ilocaltmp -l2.5 -Onone --no-print-directory --warn-undefined-variables -- hello=world';
 run_make_test("
-MAKEFLAGS${fl}iknqrsw -I/tmp -I/tmp -Onone -Onone -l2.5 -l2.5 --no-print-directory
+MAKEFLAGS${fl}iknqrsw -Ilocaltmp -Ilocaltmp -Onone -Onone -l2.5 -l2.5 --no-print-directory
 \$(info at parse time '\$(MAKEFLAGS)')
 XX := \$(shell echo \"\$\$MAKEFLAGS\")
 all:; \$(info at build time makeflags='\$(XX)')
 ",
-'-Onone -l2.5 -l2.5 -Onone -I/tmp -iknqrs -i -n -s -k -I/tmp hello=world',
+'-Onone -l2.5 -l2.5 -Onone -Ilocaltmp -iknqrs -i -n -s -k -Ilocaltmp hello=world',
 "at parse time '$answer'
 at build time makeflags='$answer'");
 }
@@ -890,6 +895,8 @@ hello:; touch \$@
 }
 
 unlink('hello');
+
+rmdir('localtmp');
 
 # This tells the test driver that the perl test script executed properly.
 1;
