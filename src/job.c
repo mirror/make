@@ -861,7 +861,7 @@ reap_children (int block, int err)
                    map_windows32_error_to_string from calling 'fatal',
                    which will then call reap_children again */
                 if (werr && exit_code > 0 && exit_code < WSABASEERR)
-                  fprintf (stderr, "make (e=%d): %s", exit_code,
+                  fprintf (stderr, "make (e=%d): %s\n", exit_code,
                            map_windows32_error_to_string (exit_code));
 
                 /* signal */
@@ -2552,7 +2552,7 @@ exec_command (char **argv, char **envp)
       exit_code = process_exit_code (hWaitPID);
 
       if (err)
-          fprintf (stderr, "make (e=%d, rc=%d): %s",
+          fprintf (stderr, "make (e=%d, rc=%d): %s\n",
                    err, exit_code, map_windows32_error_to_string (err));
 
       /* cleanup process */

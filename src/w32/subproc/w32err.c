@@ -44,42 +44,42 @@ map_windows32_error_to_string (DWORD ercode) {
  * static.  (If and when we do need it to be in thread-local storage,
  * the corresponding GCC qualifier is '__thread'.)
  */
-    static char szMessageBuffer[128];
-        /* Fill message buffer with a default message in
-         * case FormatMessage fails
-         */
-    wsprintf (szMessageBuffer, "Error %ld\n", ercode);
+  static char szMessageBuffer[128];
+  DWORD ret;
 
-        /*
-         *  Special code for winsock error handling.
-         */
-        if (ercode > WSABASEERR) {
-#if 0
-                HMODULE hModule = GetModuleHandle("wsock32");
-                if (hModule != NULL) {
-                        FormatMessage(FORMAT_MESSAGE_FROM_HMODULE,
-                                hModule,
-                                ercode,
-                                LANG_NEUTRAL,
-                                szMessageBuffer,
-                                sizeof(szMessageBuffer),
-                                NULL);
-                        FreeLibrary(hModule);
-                }
-#else
-                O (fatal, NILF, szMessageBuffer);
-#endif
-        } else {
-                /*
-                 *  Default system message handling
-                 */
-                FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,
-                        NULL,
-                        ercode,
-                        LANG_NEUTRAL,
-                        szMessageBuffer,
-                        sizeof(szMessageBuffer),
-                        NULL);
+  /* Fill message buffer with a default message in
+   * case FormatMessage fails
+   */
+  wsprintf (szMessageBuffer, "Error %ld", ercode);
+
+  /*
+   *  Special code for winsock error handling.
+   */
+  if (ercode > WSABASEERR) {
+    O (fatal, NILF, szMessageBuffer);
+  }
+
+  /*
+   *  Default system message handling
+   */
+  ret = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,
+                      NULL,
+                      ercode,
+                      LANG_NEUTRAL,
+                      szMessageBuffer,
+                      sizeof(szMessageBuffer),
+                      NULL);
+
+  if (ret)
+    {
+      char *cp;
+      for (cp = szMessageBuffer + ret - 1; cp >= szMessageBuffer; --cp)
+        {
+          if (*cp != '\r' && *cp != '\n')
+            break;
+          *cp = '\0';
         }
-    return szMessageBuffer;
+    }
+
+  return szMessageBuffer;
 }

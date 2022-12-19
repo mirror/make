@@ -887,7 +887,7 @@ proc_stderr_thread(sub_process *pproc)
 
         for (;;) {
                 if (ReadFile( (HANDLE)pproc->sv_stderr[0], &c, 1, &nread, NULL) == FALSE) {
-                        map_windows32_error_to_string(GetLastError());
+/*                      map_windows32_error_to_string(GetLastError());*/
                         _endthreadex(0);
                 }
                 if (nread == 0)
