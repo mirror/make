@@ -43,6 +43,9 @@ $categories_passed = 0;
 $total_tests_run = 0;
 # The total number of individual tests that have passed
 $total_tests_passed = 0;
+# Set to true if something failed.  It could be that tests_run == tests_passed
+# even with failures, if we don't run tests for some reason.
+$some_test_failed = 0;
 # The number of tests in this category that have been run
 $tests_run = 0;
 # The number of tests in this category that have passed
@@ -364,6 +367,11 @@ sub toplevel
     print ($categories_failed == 1 ? "y" : "ies");
     print " Failed (See .$diffext* files in $workdir dir for details) :-(\n\n";
     return 0;
+  } elsif ($some_test_failed) {
+      # Something failed but no tests were marked failed... probably a syntax
+      # error in a test script
+    print "\nSome tests failed (See output for details) :-(\n\n";
+    return 0;
   }
 
   print "\n$total_tests_passed Test";
@@ -646,6 +654,7 @@ sub run_all_tests
         warn "\n*** Couldn't parse $perl_testname\n";
       }
       $status = "FAILED ($tests_passed/$tests_run passed)";
+      $some_test_failed = 1;
 
     } elsif ($code == -1) {
       # Skipped... not supported
@@ -657,14 +666,17 @@ sub run_all_tests
       # the suite forgot to end with "1;".
       warn "\n*** Test returned $code\n";
       $status = "FAILED ($tests_passed/$tests_run passed)";
+      $some_test_failed = 1;
 
     } elsif ($tests_run == 0) {
       # Nothing was done!!
       $status = "FAILED (no tests found!)";
+      $some_test_failed = 1;
 
     } elsif ($tests_run > $tests_passed) {
       # Lose!
       $status = "FAILED ($tests_passed/$tests_run passed)";
+      $some_test_failed = 1;
 
     } else {
       # Win!
