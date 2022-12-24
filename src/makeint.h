@@ -571,9 +571,9 @@ void out_of_memory (void) NORETURN;
                                  (_f), (_n), (_s))
 
 enum variable_origin;
-void decode_env_switches (const char*, size_t line,
-                          enum variable_origin origin);
 struct variable;
+
+void reset_makeflags (enum variable_origin origin);
 struct variable *define_makeflags (int makefile);
 int should_print_dir (void);
 void temp_stdin_unlink (void);

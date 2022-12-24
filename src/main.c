@@ -107,6 +107,8 @@ static void print_data_base (void);
 static void print_version (void);
 static void decode_switches (int argc, const char **argv,
                              enum variable_origin origin);
+static void decode_env_switches (const char *envar, size_t len,
+                                 enum variable_origin origin);
 static char *quote_for_env (char *out, const char *in);
 static void initialize_global_hash_tables (void);
 
@@ -1818,6 +1820,10 @@ main (int argc, char **argv, char **envp)
 
   define_variable_cname ("CURDIR", current_directory, o_file, 0);
 
+  /* Construct the list of include directories to search.
+     This will check for existence so it must be done after chdir.  */
+  construct_include_path (include_dirs ? include_dirs->list : NULL);
+
   /* Validate the arg_job_slots configuration before we define MAKEFLAGS so
      users get an accurate value in their makefiles.
      At this point arg_job_slots is the argv setting, if there is one, else
@@ -3108,6 +3114,15 @@ handle_non_switch_argument (const char *arg, enum variable_origin origin)
     }
 }
 
+/* Called if the makefile resets the MAKEFLAGS variable.  */
+void
+reset_makeflags (enum variable_origin origin)
+{
+  decode_env_switches (STRING_SIZE_TUPLE(MAKEFLAGS_NAME), origin);
+  construct_include_path (include_dirs ? include_dirs->list : NULL);
+  define_makeflags (rebuilding_makefiles);
+}
+
 /* Decode switches from ARGC and ARGV.
    They came from the environment if ORIGIN is o_env.  */
 
@@ -3350,9 +3365,6 @@ decode_switches (int argc, const char **argv, enum variable_origin origin)
 
   /* Perform any special switch handling.  */
   run_silent = silent_flag;
-
-  /* Construct the list of include directories to search.  */
-  construct_include_path (include_dirs ? include_dirs->list : NULL);
 }
 
 /* Decode switches from environment variable ENVAR (which is LEN chars long).
@@ -3360,7 +3372,7 @@ decode_switches (int argc, const char **argv, enum variable_origin origin)
    dash to the first word if it lacks one, and passing the vector to
    decode_switches.  */
 
-void
+static void
 decode_env_switches (const char *envar, size_t len, enum variable_origin origin)
 {
   char *varref = alloca (2 + len + 2);

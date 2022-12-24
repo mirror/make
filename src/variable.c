@@ -1217,17 +1217,15 @@ target_environment (struct file *file, int recursive)
 static struct variable *
 set_special_var (struct variable *var, enum variable_origin origin)
 {
-  if (streq (var->name, RECIPEPREFIX_NAME))
+  if (streq (var->name, MAKEFLAGS_NAME))
+    reset_makeflags (origin);
+
+  else if (streq (var->name, RECIPEPREFIX_NAME))
     {
       /* The user is resetting the command introduction prefix.  This has to
          happen immediately, so that subsequent rules are interpreted
          properly.  */
       cmd_prefix = var->value[0]=='\0' ? RECIPEPREFIX_DEFAULT : var->value[0];
-    }
-  else if (streq (var->name, MAKEFLAGS_NAME))
-    {
-      decode_env_switches (STRING_SIZE_TUPLE(MAKEFLAGS_NAME), origin);
-      define_makeflags (rebuilding_makefiles);
     }
 
   return var;

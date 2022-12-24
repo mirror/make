@@ -2,65 +2,51 @@
 
 $description = "Test the -C option to GNU make.";
 
-$details = "\
-This test is similar to the clean test except that this test creates the file
-to delete in the work directory instead of the current directory.  Make is
-called from another directory using the -C workdir option so that it can both
-find the makefile and the file to delete in the work directory.";
+use File::Spec;
 
-$example = $workdir . $pathsep . "EXAMPLE";
+# Pre-set $makefile to be in a subdirectory
+$makefile = 'Makefile';
 
-open(MAKEFILE,"> $makefile");
-print MAKEFILE qq!
-all: ; \@echo This makefile did not clean the dir ... good
-clean: ; $CMD_rmfile EXAMPLE\$(ext)
-!;
-close(MAKEFILE);
+my $_srcdir = 'src';
+mkdir($_srcdir, 0775);
+
+my $_incdir = 'inc';
+mkdir($_incdir, 0775);
+
+my $_mkpath = File::Spec->catfile($_srcdir, $makefile);
+create_file($_mkpath, "include \$(file)\nall: ;\n");
 
 # TEST #1
 # -------
-touch($example);
-
-run_make_with_options("${testname}.mk", "-C $workdir clean", &get_logfile);
-
-use Cwd;
-
-chdir $workdir;
-$wpath = cwd();
-chdir $cwdpath;
-
-if (-f $example) {
-  $test_passed = 0;
-}
-
-# Create the answer to what should be produced by this Makefile
-$answer = "$make_name: Entering directory '$wpath'\n"
-        . "$CMD_rmfile EXAMPLE\n"
-        . "$make_name: Leaving directory '$wpath'\n";
-
-compare_output($answer,&get_logfile(1));
-
+run_make_test('', "-C $_srcdir --no-print-directory",
+              "#MAKE#: 'all' is up to date.");
 
 # TEST #2
 # -------
 # Do it again with trailing "/"; this should work the same
 
-$example .= "slash";
+run_make_test(undef, "-C $_srcdir/ --no-print-directory",
+              "#MAKE#: 'all' is up to date.");
 
-touch($example);
+# Test stringing together multiple -C options
 
-run_make_with_options("${testname}.mk", "-C $workdir/ clean ext=slash", &get_logfile);
+run_make_test(undef, "-C $_incdir -C .. -C $_srcdir --no-print-directory",
+              "#MAKE#: 'all' is up to date.");
 
-if (-f $example) {
-  $test_passed = 0;
-}
+# SV 63552 - Ensure -I is considered after -C
 
-# Create the answer to what should be produced by this Makefile
-$answer = "$make_name: Entering directory '$wpath'\n"
-        . "$CMD_rmfile EXAMPLEslash\n"
-        . "$make_name: Leaving directory '$wpath'\n";
+my $_incfile = 'test';
+my $_incpath = File::Spec->catfile($_incdir, $_incfile);
+create_file($_incpath, '$(info included)');
 
-&compare_output($answer,&get_logfile(1));
+my $_incopt = File::Spec->catfile('..', $_incdir);
 
-unlink($example);
+run_make_test(undef, "-C src -I $_incopt --no-print-directory file=$_incfile",
+              "included\n#MAKE#: 'all' is up to date.");
+
+unlink($_incpath);
+rmdir($_incdir);
+
+unlink($_mkpath);
+rmdir($_srcdir);
 1;
