@@ -1,6 +1,6 @@
 GNU Make NEWS                                               -*-indented-text-*-
   History of user-visible changes.
-  31 October 2022
+  01 January 2023
 
 See the end of this file for copyrights and conditions.
 
@@ -8,6 +8,22 @@ All user-visible changes are more fully described in the GNU Make manual,
 which is contained in this distribution as the file doc/make.texi.
 See the README file and the GNU Make manual for instructions for
 reporting bugs.
+
+Version 4.4.1 (01 Jan 2023)
+
+This release is primarily a bug-fix release.
+A complete list of bugs fixed in this version is available here:
+
+https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=110&set=custom
+
+* WARNING: Backward-incompatibility!
+  In previous releases is was not well-defined when updates to MAKEFLAGS made
+  inside a makefile would be visible.  This release ensures they are visible
+  immediately, even when invoking $(shell ...) functions.  Also, command line
+  variable assignments are now always present in MAKEFLAGS, even when parsing
+  makefiles.
+  Implementation provided by Dmitry Goncharov <dgoncharov@users.sf.net>
+
 
 Version 4.4 (31 Oct 2022)
 
