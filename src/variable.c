@@ -1782,6 +1782,30 @@ try_variable_definition (const floc *flocp, const char *line,
 
   return vp;
 }
+
+/* These variables are internal to make, and so considered "defined" for the
+   purposes of warn_undefined even if they are not really defined.  */
+
+static const char *const defined_vars[] = {
+  "MAKECMDGOALS", "MAKE_RESTARTS", "MAKE_TERMOUT", "MAKE_TERMERR",
+  "MAKEOVERRIDES", ".DEFAULT", "-*-command-variables-*-", "-*-eval-flags-*-",
+  "VPATH", "GPATH",
+  NULL };
+
+void
+warn_undefined (const char *name, size_t len)
+{
+  if (warn_undefined_variables_flag)
+    {
+      const char *const *cp;
+      for (cp = defined_vars; *cp != NULL; ++cp)
+        if (memcmp (*cp, name, len) == 0 && (*cp)[len] == '\0')
+          return;
+
+      error (reading_file, len, _("warning: undefined variable '%.*s'"),
+             (int)len, name);
+    }
+}
 
 /* Print information for variable V, prefixing it with PREFIX.  */
 

@@ -191,6 +191,7 @@ struct variable *define_variable_in_set (const char *name, size_t length,
                                          int recursive,
                                          struct variable_set *set,
                                          const floc *flocp);
+void warn_undefined (const char* name, size_t length);
 
 /* Define a variable in the current variable set.  */
 
@@ -228,15 +229,6 @@ void undefine_variable_in_set (const char *name, size_t length,
 
 #define undefine_variable_global(n,l,o) \
           undefine_variable_in_set((n),(l),(o),NULL)
-
-/* Warn that NAME is an undefined variable.  */
-
-#define warn_undefined(n,l) do{\
-                              if (warn_undefined_variables_flag)        \
-                                error (reading_file, (l),               \
-                                       _("warning: undefined variable '%.*s'"), \
-                                       (int)(l), (n));                  \
-                              }while(0)
 
 char **target_environment (struct file *file, int recursive);
 

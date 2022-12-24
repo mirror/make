@@ -68,19 +68,10 @@ build_vpath_lists (void)
 
   vpaths = new;
 
-  /* If there is a VPATH variable with a nonnull value, construct the
-     general VPATH list from it.  We use variable_expand rather than just
-     calling lookup_variable so that it will be recursively expanded.  */
+  /* If there is a VPATH variable with a nonnull expanded value, construct the
+     general VPATH list from it.  */
 
-  {
-    /* Turn off --warn-undefined-variables while we expand SHELL and IFS.  */
-    int save = warn_undefined_variables_flag;
-    warn_undefined_variables_flag = 0;
-
-    p = variable_expand ("$(strip $(VPATH))");
-
-    warn_undefined_variables_flag = save;
-  }
+  p = variable_expand ("$(strip $(VPATH))");
 
   if (*p != '\0')
     {
@@ -101,19 +92,10 @@ build_vpath_lists (void)
       vpaths = save_vpaths;
     }
 
-  /* If there is a GPATH variable with a nonnull value, construct the
-     GPATH list from it.  We use variable_expand rather than just
-     calling lookup_variable so that it will be recursively expanded.  */
+  /* If there is a GPATH variable with a nonnull expanded value, construct the
+     GPATH list from it.  */
 
-  {
-    /* Turn off --warn-undefined-variables while we expand SHELL and IFS.  */
-    int save = warn_undefined_variables_flag;
-    warn_undefined_variables_flag = 0;
-
-    p = variable_expand ("$(strip $(GPATH))");
-
-    warn_undefined_variables_flag = save;
-  }
+  p = variable_expand ("$(strip $(GPATH))");
 
   if (*p != '\0')
     {

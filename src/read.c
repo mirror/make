@@ -192,15 +192,7 @@ read_all_makefiles (const char **makefiles)
     char *name, *p;
     size_t length;
 
-    {
-      /* Turn off --warn-undefined-variables while we expand MAKEFILES.  */
-      int save = warn_undefined_variables_flag;
-      warn_undefined_variables_flag = 0;
-
-      value = allocated_variable_expand ("$(MAKEFILES)");
-
-      warn_undefined_variables_flag = save;
-    }
+    value = allocated_variable_expand ("$(MAKEFILES)");
 
     /* Set NAME to the start of next token and LENGTH to its length.
        MAKEFILES is updated for finding remaining tokens.  */
