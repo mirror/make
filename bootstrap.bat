@@ -45,6 +45,13 @@ call :Download lib intprops-internal.h
 echo -- Configuring the workspace
 copy /Y gl\lib\*.* lib > nul
 
+:: In general it's tricky to use special characters as arguments to a program
+:: in Windows batch files; the quoting rules are obscure and have changed over
+:: time which means older systems may behave differently.  However, Windows
+:: echo is a dumb program that just writes out its command line without much
+:: interpreting: all we have to be careful of is ^ quoting.  So, use echo
+:: to create script files to use with sed -f rather than using sed -e.
+
 :: Create a sed script to convert templates
 if exist convert.sed del /Q convert.sed
 echo s,@PACKAGE@,make,g > convert.sed
@@ -56,9 +63,17 @@ if ERRORLEVEL 1 goto Failed
 echo s,@PACKAGE_TARNAME@,make,g >> convert.sed
 if ERRORLEVEL 1 goto Failed
 echo s,@PACKAGE_URL@,https://www.gnu.org/software/make/,g >> convert.sed
-sed -n "s/^AC_INIT(\[GNU.Make\],\[\([0-9.]*\)\].*/s,@PACKAGE_VERSION@,\1,g/p" configure.ac >> convert.sed
+echo s/^^AC_INIT^(\[GNU.Make\],\[\^([0-9.]*\^)\].*/s,@PACKAGE_VERSION@,\1,g/p > cac.sed
+sed -n -f cac.sed configure.ac >> convert.sed
 if ERRORLEVEL 1 goto Failed
-sed -z -e s/\\\n//g -e "s/[ \t][ \t]*/ /g" -e "s, [^ ]*\.h,,g" -e "s,src/,$(src),g" -e "s,lib/,$(lib),g" Makefile.am | sed -n "s/^\([A-Za-z0-9]*\)_SRCS *= *\(.*\)/s,%%\1_SOURCES%%,\2,/p" >> convert.sed
+:: Get the list of sources from Makefile.am
+echo s,\\\n,,g > mam.sed
+echo s,[ \t][ \t]*, ,g >> mam.sed
+echo s, [^^ ]*\.h,,g >> mam.sed
+echo s,src/,$^(src^),g >> mam.sed
+echo s,lib/,$^(lib^),g >> mam.sed
+echo s/^^\^([A-Za-z0-9]*\^)_SRCS *= *\^(.*\^)/s,%%\1_SOURCES%%,\2,/p > mam2.sed
+sed -z -f mam.sed Makefile.am | sed -n -f mam2.sed >> convert.sed
 if ERRORLEVEL 1 goto Failed
 
 echo - Creating Basic.mk
@@ -70,9 +85,19 @@ if ERRORLEVEL 1 goto Failed
 
 echo - Creating src\gmk-default.h
 echo static const char *const GUILE_module_defn = ^" \ > src\gmk-default.h
-sed -e "s/;.*//" -e "/^[ \t]*$/d" -e "s/\"/\\\\\"/g" -e "s/$/ \\\/" src\gmk-default.scm >> src\gmk-default.h
+echo s/;.*// > gmk.sed
+echo /^^[ \t]*$/d >> gmk.sed
+echo s/"/\\"/g >> gmk.sed
+echo s/$/ \\/ >> gmk.sed
+sed -f gmk.sed src\gmk-default.scm >> src\gmk-default.h
 if ERRORLEVEL 1 goto Failed
 echo ^";>> src\gmk-default.h
+
+:: These files would be created by bootstrap; they are not needed on Windows
+:: but our makefile depends on them
+echo >> lib\alloca.in.h
+
+del /Q convert.sed cac.sed mam.sed mam2.sed gmk.sed
 
 echo.
 echo Done.  Run build_w32.bat to build GNU make.

@@ -37,7 +37,7 @@ configure
 stamp-*
 .dirstamp
 gnulib
-convert.sed
+*.sed
 
 # Build artifacts
 .deps/
