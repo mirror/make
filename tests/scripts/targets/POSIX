@@ -6,30 +6,22 @@ $details = "";
 
 
 # Ensure turning on .POSIX enables the -e flag for the shell
-# We can't assume the exit value of "false" because on different systems it's
-# different.
 
-my $script = 'false; true';
-my $flags = '-ec';
-my $out = `$sh_name $flags '$script' 2>&1`;
-my $err = $? >> 8;
 run_make_test(qq!
 .POSIX:
-all: ; \@$script
+all: ; \@#HELPER# -q fail 1; true
 !,
-              '', "#MAKE#: *** [#MAKEFILE#:3: all] Error $err\n", 512);
+              '', "#MAKE#: *** [#MAKEFILE#:3: all] Error 1\n", 512);
 
 # User settings must override .POSIX
 # In the standard .POSIX must be the first thing in the makefile
 # but we relax that rule in GNU make.
-$flags = '-xc';
-$out = `$sh_name $flags '$script' 2>&1`;
 run_make_test(qq!
-.SHELLFLAGS = $flags
+.SHELLFLAGS = -xc
 .POSIX:
-all: ; \@$script
+all: ; \@#HELPER# -q fail 1; true
 !,
-              '', $out);
+              '', "+ #HELPER# -q fail 1\n+ true\n");
 
 # Test the default value of various POSIX-specific variables
 my %POSIX = (AR => 'ar', ARFLAGS => '-rv',

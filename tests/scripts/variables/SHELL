@@ -94,17 +94,10 @@ all: ; \@$script
               '', $out);
 }
 
-# We can't just use "false" because on different systems it provides a
-# different exit code--once again Solaris: false exits with 255 not 1
-$script = 'true; false; true';
-$flags = '-xec';
-$out = `$sh_name $flags '$script' 2>&1`;
-my $err = $? >> 8;
-
 run_make_test(qq!
-.SHELLFLAGS = $flags
-all: ; \@$script
+.SHELLFLAGS = -xec
+all: ; \@true; #HELPER# -q fail 1; true
 !,
-              '', "$out#MAKE#: *** [#MAKEFILE#:3: all] Error $err\n", 512);
+              '', "+ true\n+ #HELPER# -q fail 1\n#MAKE#: *** [#MAKEFILE#:3: all] Error 1\n", 512);
 
 1;

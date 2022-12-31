@@ -103,7 +103,7 @@ sub op {
     }
 
     if ($op eq 'fail') {
-        print "fail $nm\n";
+        print "fail $nm\n" unless $quiet;
         exit($nm);
     }
 

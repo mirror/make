@@ -100,12 +100,12 @@ fail.2: ; @#HELPER# -q sleep 2 out $@ wait fail.1 file fail.2 fail 1
 fail.3: ; @#HELPER# -q sleep 3 out $@ wait fail.2 file fail.3 fail 1
 
 ok: ; @#HELPER# -q sleep 4 wait fail.3 out OK!,
-              '-rR -j5', "fail.1\nfail 1
+              '-rR -j5', "fail.1
 #MAKE#: *** [#MAKEFILE#:5: fail.1] Error 1
 #MAKE#: *** Waiting for unfinished jobs....
-fail.2\nfail 1
+fail.2
 #MAKE#: *** [#MAKEFILE#:6: fail.2] Error 1
-fail.3\nfail 1
+fail.3
 #MAKE#: *** [#MAKEFILE#:7: fail.3] Error 1
 OK",
              512);
