@@ -251,7 +251,7 @@ all: hello.tsk
 # One of the implicit rules has two prerequisites, hello.c and hello.x
 # hello.c does not qualify as ought to exit.
 # hello.x can be made from hello.z.
-# This test exersizes the break, which prevents making hello.x as an
+# This test exercises the break, which prevents making hello.x as an
 # intermediate from hello.z during compatibility search.
 unlink('hello.f');
 touch('hello.z');
@@ -468,7 +468,7 @@ hello.x: flags+=good
 !, '-r', "true good\nhello.tsk\n");
 
 # Intermediate prerequisite 'hello.x' has a target specific variable, a pattern
-# specfic variable, matches on both rules '%.tsk: %.x' and 'big_%.tsk: %.x'.
+# specific variable, matches on both rules '%.tsk: %.x' and 'big_%.tsk: %.x'.
 run_make_test(q!
 all: hello.tsk big_hello.tsk
 %.tsk: %.x; $(info $@)

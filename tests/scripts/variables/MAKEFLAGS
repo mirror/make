@@ -81,7 +81,7 @@ all:; \$(info makeflags='\$(MAKEFLAGS)')
 }
 }
 
-# Strawberry Perl's exec()--or someting!--appears to replace all /tmp with the
+# Strawberry Perl's exec()--or something!--appears to replace all /tmp with the
 # user's %TEMP% value so we can't use that for -I testing.  Make a directory.
 
 mkdir('localtmp', 0777);
@@ -344,7 +344,7 @@ create_file('bye/makefile',
 all:; $(info $(hello))');
 
 # sv 63347.
-# Test that a cli definition takes precendence over a definition set in
+# Test that a cli definition takes precedence over a definition set in
 # submake.
 run_make_test(q!
 v:=$(shell $(MAKE) -C bye --no-print-directory)

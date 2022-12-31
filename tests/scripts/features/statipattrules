@@ -182,7 +182,7 @@ for my $r (@dir) { # The directory of the prerequisite in the rule definition.
 my $dollar = $se ? '$' : '';
 
 # The prerequisite should only have directory if the prerequisite of 'all' has
-# it and if the prequisite pattern in the rule definition does not have it.
+# it and if the prerequisite pattern in the rule definition does not have it.
 # That is combination 2.
 my $pdir = $d && !$r ? $d : '';
 
@@ -239,7 +239,7 @@ ${d}bye.x: $r%.x: $dollar\$(wordlist 1, 99, $dollar\$(wordlist 1, 99, %.1 %.2)) 
 
 # Multiple funcs, each has multiple words, each word has multiple %, sole %,
 # various corner cases.
-# Make should substitude the first % and only the first % in each word with the
+# Make should substitute the first % and only the first % in each word with the
 # stem.
 $prereqs = "${pdir}bye1%2% ${pdir}bye 3${pdir}bye4%5 6${pdir}bye ${pdir}bye7%8 ${pdir}bye9 ${pdir}bye10% 11${pdir}bye12 13";
 run_make_test("

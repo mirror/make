@@ -836,7 +836,7 @@ sub compare_answer_vms
   return 1 if ($log eq $kgo);
 
   # VMS wants target device to exist or generates an error,
-  # Some test tagets look like VMS devices and trip this.
+  # Some test targets look like VMS devices and trip this.
   $log =~ s/^.+\: no such device or address.*$//gim;
   $log =~ s/\n\n/\n/gm;
   $log =~ s/^\n+//gm;

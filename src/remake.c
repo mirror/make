@@ -38,7 +38,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <io.h>
 #include <sys/stat.h>
 #if defined(_MSC_VER) && _MSC_VER > 1200
-/* VC7 or later supprots _stat64 to access 64-bit file size. */
+/* VC7 or later supports _stat64 to access 64-bit file size. */
 #define STAT _stat64
 #else
 #define STAT stat

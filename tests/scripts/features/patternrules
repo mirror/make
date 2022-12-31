@@ -596,7 +596,7 @@ for my $r (@dir) { # The directory of the target in the rule definition.
 my $dollar = $se ? '$' : '';
 
 # The prerequisite should only have directory if the prerequisite of 'all' has
-# it and if the prequisite pattern in the rule definition does not have it.
+# it and if the prerequisite pattern in the rule definition does not have it.
 # That is combination 2.
 my $pdir = $d && !$r ? $d : '';
 

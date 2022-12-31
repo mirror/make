@@ -683,7 +683,7 @@ get_tmpfd (char **name)
     *name = NULL;
   else
     {
-      /* If there's an os-specific way to get an anoymous temp file use it.  */
+      /* If there's an os-specific way to get an anonymous temp file use it.  */
       fd = os_anontmp ();
       if (fd >= 0)
         return fd;

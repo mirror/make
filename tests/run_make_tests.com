@@ -21,7 +21,7 @@ $! You should have received a copy of the GNU General Public License along with
 $! this program.  If not, see <https://www.gnu.org/licenses/>.
 $!
 $!
-$! Allow more than 8 paramters with using commas as a delimiter.
+$! Allow more than 8 parameters with using commas as a delimiter.
 $!
 $ params = "''p1',''p2',''p3',''p4',''p5',''p6',''p7',''p8'"
 $!

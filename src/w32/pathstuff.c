@@ -220,7 +220,7 @@ convert_path_to_nutc(char *path)
 #endif
 
             pathp += strlen(pathp);
-            *pathp++ = ':';     /* use Unix style path separtor for new path */
+            *pathp++ = ':';     /* use Unix style path separator for new path */
             *pathp   = '\0'; /* make sure we are null terminaed */
 
             /* restore path separator */

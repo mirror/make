@@ -1233,7 +1233,7 @@ child_execute_job (struct childbase *child, int good_stdin UNUSED, char *argv)
 
      Create a *.com file if either the command is too long for
      lib$spawn, or if a redirect appending to a file is desired, or
-     symbol substitition.
+     symbol substitution.
   */
 
   if (vms_always_use_cmd_file || token.use_cmd_file)

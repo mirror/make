@@ -320,7 +320,7 @@ hello.tsk from hello.o
 #MAKE#: 'hello.tsk' is up to date.\n");
 
 # sv 62706.
-# Multipe rules per target.
+# Multiple rules per target.
 run_make_test(q!
 .SECONDEXPANSION:
 

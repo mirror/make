@@ -531,7 +531,7 @@ $(UPLOADS): $(DIST_ARCHIVES) $(DIST_ARCHIVES_SIG) $(DIST_ARCHIVES_DIRECTIVE)
 	$(FTPPUT) "$(gnu-upload-host)" "$(gnu-upload-dir)/$(@:upload-%=%)" $^
 
 
-# Rebuild Makefile.in if this file is modifed.
+# Rebuild Makefile.in if this file is modified.
 Makefile.in: maintMakefile
 
 # Copyright (C) 1997-2022 Free Software Foundation, Inc.

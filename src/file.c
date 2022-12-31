@@ -807,7 +807,7 @@ snap_deps (void)
     else
       no_intermediates = 1;
 
-  /* The same file connot be both .INTERMEDIATE and .NOTINTERMEDIATE.
+  /* The same file cannot be both .INTERMEDIATE and .NOTINTERMEDIATE.
      However, it is possible for a file to be .INTERMEDIATE and also match a
      .NOTINTERMEDIATE pattern.  In that case, the intermediate file has
      priority over the notintermediate pattern.  This priority is enforced by
