@@ -346,7 +346,7 @@ convert_to_pattern (void)
 
           /* POSIX says that suffix rules can't have prerequisites.
              In POSIX mode, don't make this a suffix rule.  Previous versions
-             of GNU make did treat this as a suffix rule and ignored the
+             of GNU Make did treat this as a suffix rule and ignored the
              prerequisites, which is bad.  In the future we'll do the same as
              POSIX, but for now preserve the old behavior and warn about it.  */
           if (f->deps != 0)

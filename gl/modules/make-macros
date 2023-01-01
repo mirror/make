@@ -1,5 +1,5 @@
 Description:
-Install m4 macros for GNU make.
+Install m4 macros for GNU Make.
 
 Files:
 m4/acinclude.m4

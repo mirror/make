@@ -1,4 +1,4 @@
-dnl acinclude.m4 -- Extra macros needed for GNU make.
+dnl acinclude.m4 -- Extra macros needed for GNU Make.
 dnl
 dnl Automake will incorporate this into its generated aclocal.m4.
 dnl Copyright (C) 1998-2023 Free Software Foundation, Inc.
@@ -43,8 +43,8 @@ AC_MSG_RESULT(working...)
 cf_cv_netlibs=""
 cf_test_netlibs=yes
 AC_CHECK_FUNCS(gethostname,,[
-	CF_RECHECK_FUNC(gethostname,nsl,cf_cv_netlibs,[
-		CF_RECHECK_FUNC(gethostname,socket,cf_cv_netlibs)])])
+        CF_RECHECK_FUNC(gethostname,nsl,cf_cv_netlibs,[
+                CF_RECHECK_FUNC(gethostname,socket,cf_cv_netlibs)])])
 #
 # FIXME:  sequent needs this library (i.e., -lsocket -linet -lnsl), but
 # I don't know the entrypoints - 97/7/22 TD
@@ -52,12 +52,12 @@ AC_CHECK_LIB(inet,main,cf_cv_netlibs="-linet $cf_cv_netlibs")
 #
 if test "$ac_cv_func_lsocket" != no ; then
 AC_CHECK_FUNCS(socket,,[
-	CF_RECHECK_FUNC(socket,socket,cf_cv_netlibs,[
-		CF_RECHECK_FUNC(socket,bsd,cf_cv_netlibs)])])
+        CF_RECHECK_FUNC(socket,socket,cf_cv_netlibs,[
+                CF_RECHECK_FUNC(socket,bsd,cf_cv_netlibs)])])
 fi
 #
 AC_CHECK_FUNCS(gethostbyname,,[
-	CF_RECHECK_FUNC(gethostbyname,nsl,cf_cv_netlibs)])
+        CF_RECHECK_FUNC(gethostbyname,nsl,cf_cv_netlibs)])
 ])
 LIBS="$LIBS $cf_cv_netlibs"
 test $cf_test_netlibs = no && echo "$cf_cv_netlibs" >&AC_FD_MSG
@@ -77,14 +77,14 @@ dnl used (autoconf does not distinguish between a null token and one that is
 dnl set to 'no').
 AC_DEFUN([CF_RECHECK_FUNC],[
 AC_CHECK_LIB($2,$1,[
-	CF_UPPER(cf_tr_func,$1)
-	AC_DEFINE_UNQUOTED(HAVE_$cf_tr_func,1,[Define if you have function $1])
-	ac_cv_func_$1=yes
-	$3="-l$2 [$]$3"],[
-	ac_cv_func_$1=unknown
-	unset ac_cv_func_$1 2>/dev/null
-	$4],
-	[[$]$3])
+        CF_UPPER(cf_tr_func,$1)
+        AC_DEFINE_UNQUOTED(HAVE_$cf_tr_func,1,[Define if you have function $1])
+        ac_cv_func_$1=yes
+        $3="-l$2 [$]$3"],[
+        ac_cv_func_$1=unknown
+        unset ac_cv_func_$1 2>/dev/null
+        $4],
+        [[$]$3])
 ])dnl
 dnl ---------------------------------------------------------------------------
 dnl Make an uppercase version of a variable
@@ -118,7 +118,7 @@ AC_DEFUN([AC_STRUCT_ST_MTIM_NSEC],
       CPPFLAGS="$ac_save_CPPFLAGS -DST_MTIM_NSEC=$ac_val"
       AC_TRY_COMPILE([#include <sys/types.h>
 #include <sys/stat.h>
-	], [struct stat s; s.ST_MTIM_NSEC;],
+        ], [struct stat s; s.ST_MTIM_NSEC;],
         [ac_cv_struct_st_mtim_nsec=$ac_val; break])
     done
     CPPFLAGS="$ac_save_CPPFLAGS"
@@ -126,7 +126,7 @@ AC_DEFUN([AC_STRUCT_ST_MTIM_NSEC],
 
   if test $ac_cv_struct_st_mtim_nsec != no; then
     AC_DEFINE_UNQUOTED([ST_MTIM_NSEC], [$ac_cv_struct_st_mtim_nsec],
-	[Define if struct stat contains a nanoseconds field])
+        [Define if struct stat contains a nanoseconds field])
   fi
  ]
 )

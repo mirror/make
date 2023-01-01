@@ -2,7 +2,7 @@
 
 $description = "Test the eval function.";
 
-$details = "This is a test of the eval function in GNU make.
+$details = "This is a test of the eval function in GNU Make.
 This function will evaluate inline makefile syntax and incorporate the
 results into its internal database.\n";
 

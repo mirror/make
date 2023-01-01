@@ -318,7 +318,7 @@ AS_CASE([$host_os], [os2*|mingw*], [make_cv_job_server=yes])
 AS_CASE([/$make_cv_job_server/$user_job_server/],
   [*/no/*], [: no jobserver],
   [AC_DEFINE(MAKE_JOBSERVER, 1,
-             [Define to 1 to enable job server support in GNU make.])
+             [Define to 1 to enable job server support in GNU Make.])
   ])
 
 # If dl*() functions are supported we can enable the load operation
@@ -341,7 +341,7 @@ AS_IF([test "$make_cv_load" = yes], [
 AS_CASE([/$make_cv_load/$user_load/],
   [*/no/*], [make_cv_load=no],
   [AC_DEFINE(MAKE_LOAD, 1,
-             [Define to 1 to enable 'load' support in GNU make.])
+             [Define to 1 to enable 'load' support in GNU Make.])
   ])
 
 # If we want load support, we might need to link with export-dynamic.
@@ -490,7 +490,7 @@ AS_CASE([$with_customs],
 [ echo
   echo "WARNING: '$with_customs/lib' does not appear to contain the"
   echo "         Customs library.  You must build and install Customs"
-  echo "         before compiling GNU make."
+  echo "         before compiling GNU Make."
   echo
 ])])
 
@@ -498,7 +498,7 @@ AS_IF([test "x$has_wait_nohang" = xno],
 [ echo
   echo "WARNING: Your system has neither waitpid() nor wait3()."
   echo "         Without one of these, signal handling is unreliable."
-  echo "         You should be aware that running GNU make with -j"
+  echo "         You should be aware that running GNU Make with -j"
   echo "         could result in erratic behavior."
   echo
 ])

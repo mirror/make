@@ -1,6 +1,6 @@
 #                                                              -*-mode: perl-*-
 
-$description = "Test GNU make's archive management features.";
+$description = "Test GNU Make's archive management features.";
 
 $details = "\
 This only works on systems that support it.";
@@ -41,7 +41,7 @@ my $arvar = "AR=$ar";
 
 # Newer versions of binutils can be built with --enable-deterministic-archives
 # which forces all timestamps (among other things) to always be 0, defeating
-# GNU make's archive support.  See if ar supports the U option to disable it.
+# GNU Make's archive support.  See if ar supports the U option to disable it.
 unlink('libxx.a');
 $_ = `$ar ${arflags}U libxx.a a1.o $redir`;
 if ($? == 0) {

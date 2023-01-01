@@ -36,7 +36,7 @@ run_make_test("SHELL := $altshell\n".'
 all:;@echo "$(SHELL) $$SHELL"
 ', '', "$altshell $mshell");
 
-# As a GNU make extension, if make's SHELL variable is explicitly exported,
+# As a GNU Make extension, if make's SHELL variable is explicitly exported,
 # then we really _DO_ export it.
 
 $ENV{SHELL} = $mshell;

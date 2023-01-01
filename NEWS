@@ -261,7 +261,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&se
   warning about this behavior is generated:
     warning: ignoring prerequisites on suffix rule definition
   The POSIX behavior will be adopted as the only behavior in a future release
-  of GNU make so please resolve any warnings.
+  of GNU Make so please resolve any warnings.
 
 * New feature: Grouped explicit targets
   Pattern rules have always had the ability to generate multiple targets with
@@ -282,7 +282,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&se
 * Makefiles can now specify the '-j' option in their MAKEFLAGS variable and
   this will cause make to enable that parallelism mode.
 
-* GNU make will now use posix_spawn() on systems where it is available.
+* GNU Make will now use posix_spawn() on systems where it is available.
   If you prefer to use fork/exec even on systems where posix_spawn() is
   present, you can use the --disable-posix-spawn option to configure.
   Implementation contributed by Aron Barath <baratharon@caesar.elte.hu>
@@ -299,17 +299,17 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=108&se
 
 * A new option -E has been added as a short alias for --eval.
 
-* All wildcard expansion within GNU make, including $(wildcard ...), will sort
+* All wildcard expansion within GNU Make, including $(wildcard ...), will sort
   the results.  See https://savannah.gnu.org/bugs/index.php?52076
 
 * Interoperate with newer GNU libc and musl C runtime libraries.
 
 * Performance improvements provided by Paolo Bonzini <pbonzini@redhat.com>
 
-GNU make Developer News
+GNU Make Developer News
 
 * Import the GNU standard bootstrap script to replace the hand-rolled
-  "make update" method for building code from a GNU make Git repository.
+  "make update" method for building code from a GNU Make Git repository.
 
 * Rework the source distribution to move source files into the src/*
   subdirectory.  This aligns with modern best practices in GNU.
@@ -343,11 +343,11 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=106&se
   The function is expanded to the contents of the file.  The contents are
   expanded verbatim except that the final newline, if any, is stripped.
 
-* The makefile line numbers shown by GNU make now point directly to the
+* The makefile line numbers shown by GNU Make now point directly to the
   specific line in the recipe where the failure or warning occurred.
   Sample changes suggested by Brian Vandenberg <phantall@gmail.com>
 
-* The interface to GNU make's "jobserver" is stable as documented in the
+* The interface to GNU Make's "jobserver" is stable as documented in the
   manual, for tools which may want to access it.
 
   WARNING: Backward-incompatibility! The internal-only command line option
@@ -382,7 +382,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=105&se
   requested mode, then closed again.
 
 * Change the fatal error for mixed explicit and implicit rules, that was
-  introduced in GNU make 3.82, to a non-fatal error.  However, this syntax is
+  introduced in GNU Make 3.82, to a non-fatal error.  However, this syntax is
   still deprecated and may return to being illegal in a future version of GNU
   make.  Makefiles that rely on this syntax should be fixed.
   See https://savannah.gnu.org/bugs/?33034
@@ -430,7 +430,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&se
     single space
 
 * New feature: GNU Guile integration
-  This version of GNU make can be compiled with GNU Guile integration.
+  This version of GNU Make can be compiled with GNU Guile integration.
   GNU Guile serves as an embedded extension language for make.
   See the "Guile Function" section in the GNU Make manual for details.
   Currently GNU Guile 1.8 and 2.0+ are supported.  In Guile 1.8 there is no
@@ -462,20 +462,20 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&se
 * New feature: "!=" shell assignment operator as an alternative to the
   $(shell ...) function.  Implemented for compatibility with BSD makefiles.
   Note there are subtle differences between "!=" and $(shell ...).  See the
-  description in the GNU make manual.
+  description in the GNU Make manual.
   WARNING: Backward-incompatibility!
   Variables ending in "!" previously defined as "variable!= value" will now be
   interpreted as shell assignment.  Change your assignment to add whitespace
   between the "!" and "=": "variable! = value"
 
 * New feature: "::=" simple assignment operator as defined by POSIX in 2012.
-  This operator has identical functionality to ":=" in GNU make, but will be
+  This operator has identical functionality to ":=" in GNU Make, but will be
   portable to any implementation of make conforming to a sufficiently new
   version of POSIX (see https://austingroupbugs.net/view.php?id=330).  It is
   not necessary to define the .POSIX target to access this operator.
 
 * New feature: Loadable objects
-  This version of GNU make contains a "technology preview": the ability to
+  This version of GNU Make contains a "technology preview": the ability to
   load dynamic objects into the make runtime.  These objects can be created by
   the user and can add extended functionality, usable by makefiles.
 
@@ -483,8 +483,8 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=101&se
 
 * New variable: $(GNUMAKEFLAGS) will be parsed for make flags, just like
   MAKEFLAGS is.  It can be set in the environment or the makefile, containing
-  GNU make-specific flags to allow your makefile to be portable to other
-  versions of make.  Once this variable is parsed, GNU make will set it to the
+  GNU Make-specific flags to allow your makefile to be portable to other
+  versions of make.  Once this variable is parsed, GNU Make will set it to the
   empty string so that flags will not be duplicated on recursion.
 
 * New variable: `MAKE_HOST' gives the name of the host architecture
@@ -525,7 +525,7 @@ A complete list of bugs fixed in this version is available here:
 
 https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=104&set=custom
 
-* Compiling GNU make now requires a conforming ISO C 1989 compiler and
+* Compiling GNU Make now requires a conforming ISO C 1989 compiler and
   standard runtime library.
 
 * WARNING: Backward-incompatibility!
@@ -533,7 +533,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=104&se
   fundamentally incompatible way: make is required to invoke the shell as if
   the '-e' flag were provided.  Because this would break many makefiles that
   have been written to conform to the original text of the standard, the
-  default behavior of GNU make remains to invoke the shell with simply '-c'.
+  default behavior of GNU Make remains to invoke the shell with simply '-c'.
   However, any makefile specifying the .POSIX special target will follow the
   new POSIX standard and pass '-e' to the shell.  See also .SHELLFLAGS
   below.
@@ -642,9 +642,9 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=104&se
   * A note on appending the redirected output. With this change, a simple
     mechanism is implemented to make ">>" work in action lines. In VMS
     there is no simple feature like ">>" to have DCL command or program
-    output redirected and appended to a file. GNU make for VMS already
+    output redirected and appended to a file. GNU Make for VMS already
     implements the redirection of output. If such a redirection is detected,
-    an ">" on the action line, GNU make creates a DCL command procedure to
+    an ">" on the action line, GNU Make creates a DCL command procedure to
     execute the action and to redirect its output. Based on that, now ">>"
     is also recognized and a similar but different command procedure is
     created to implement the append. The main idea here is to create a
@@ -653,7 +653,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=104&se
     in the command procedure to keep changes in make small and simple. This
     obviously has some limitations but it seems good enough compared with
     the current ">" implementation. (And in my opinion, redirection is not
-    really what GNU make has to do.) With this approach, it may happen that
+    really what GNU Make has to do.) With this approach, it may happen that
     the temporary file is not yet appended and is left in SYS$SCRATCH.
     The temporary file names look like "CMDxxxxx.". Any time the created
     command procedure can not complete, this happens. Pressing Ctrl+Y to
@@ -676,9 +676,9 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=104&se
 
 Version 3.81 (01 Apr 2006)
 
-* GNU make is ported to OS/2.
+* GNU Make is ported to OS/2.
 
-* GNU make is ported to MinGW.  The MinGW build is only supported by
+* GNU Make is ported to MinGW.  The MinGW build is only supported by
   the build_w32.bat batch file; see the file README.W32 for more
   details.
 
@@ -686,12 +686,12 @@ Version 3.81 (01 Apr 2006)
   Up to and including this release, the '$?' variable does not contain
   any prerequisite that does not exist, even though that prerequisite
   might have caused the target to rebuild.  Starting with the _next_
-  release of GNU make, '$?' will contain all prerequisites that caused
+  release of GNU Make, '$?' will contain all prerequisites that caused
   the target to be considered out of date.
   See https://savannah.gnu.org/bugs/?16051
 
 * WARNING: Backward-incompatibility!
-  GNU make now implements a generic "second expansion" feature on the
+  GNU Make now implements a generic "second expansion" feature on the
   prerequisites of both explicit and implicit (pattern) rules.  In order
   to enable this feature, the special target '.SECONDEXPANSION' must be
   defined before the first target which takes advantage of it.  If this
@@ -709,23 +709,23 @@ Version 3.81 (01 Apr 2006)
   of this SysV feature you will need to update them.
 
 * WARNING: Backward-incompatibility!
-  In order to comply with POSIX, the way in which GNU make processes
+  In order to comply with POSIX, the way in which GNU Make processes
   backslash-newline sequences in recipes has changed.  If your makefiles
   use backslash-newline sequences inside of single-quoted strings in
-  recipes you will be impacted by this change.  See the GNU make manual
+  recipes you will be impacted by this change.  See the GNU Make manual
   subsection "Splitting Recipe Lines" (node "Splitting Lines"), in
   section "Recipe Syntax", chapter "Writing Recipe in Rules", for
   details.
 
 * WARNING: Backward-incompatibility!
-  Some previous versions of GNU make had a bug where "#" in a function
+  Some previous versions of GNU Make had a bug where "#" in a function
   invocation such as $(shell ...) was treated as a make comment.  A
   workaround was to escape these with backslashes.  This bug has been
   fixed: if your makefile uses "\#" in a function invocation the
   backslash is now preserved, so you'll need to remove it.
 
 * New command line option: -L (--check-symlink-times).  On systems that
-  support symbolic links, if this option is given then GNU make will
+  support symbolic links, if this option is given then GNU Make will
   use the most recent modification time of any symbolic links that are
   used to resolve target files.  The default behavior remains as it
   always has: use the modification time of the actual target file only.
@@ -745,16 +745,16 @@ Version 3.81 (01 Apr 2006)
   call are now masked in the context of the inner call.
 
 * Implemented a solution for the "thundering herd" problem with "-j -l".
-  This version of GNU make uses an algorithm suggested by Thomas Riedl
+  This version of GNU Make uses an algorithm suggested by Thomas Riedl
   <thomas.riedl@siemens.com> to track the number of jobs started in the
-  last second and artificially adjust GNU make's view of the system's
+  last second and artificially adjust GNU Make's view of the system's
   load average accordingly.
 
 * New special variables available in this release:
    - .INCLUDE_DIRS: Expands to a list of directories that make searches
      for included makefiles.
    - .FEATURES: Contains a list of special features available in this
-     version of GNU make.
+     version of GNU Make.
    - .DEFAULT_GOAL: Set the name of the default goal make will
      use if no goals are provided on the command line.
    - MAKE_RESTARTS: If set, then this is the number of times this
@@ -792,7 +792,7 @@ Version 3.81 (01 Apr 2006)
      it will be set in the environment, just as before.
 
 * On MS Windows systems, explicitly setting SHELL to a pathname ending
-  in "cmd" or "cmd.exe" (case-insensitive) will force GNU make to use
+  in "cmd" or "cmd.exe" (case-insensitive) will force GNU Make to use
   the DOS command interpreter in batch mode even if a UNIX-like shell
   could be found on the system.
 
@@ -824,7 +824,7 @@ Version 3.80 (03 Oct 2002)
   requiring that target A will always be rebuilt if target B is updated.
   Patch for this feature provided by Greg McGary <greg@mcgary.org>.
 
-* For compatibility with SysV make, GNU make now supports the peculiar
+* For compatibility with SysV make, GNU Make now supports the peculiar
   syntax $$@, $$(@D), and $$(@F) in the prerequisites list of a rule.
   This syntax is only valid within explicit and static pattern rules: it
   cannot be used in implicit (suffix or pattern) rules.  Edouard G. Parmelan
@@ -849,7 +849,7 @@ Version 3.80 (03 Oct 2002)
   useful here.
 
 * A new built-in variable is defined, $(MAKEFILE_LIST).  It contains a
-  list of each makefile GNU make has read, or started to read, in the
+  list of each makefile GNU Make has read, or started to read, in the
   order in which they were encountered.  So, the last filename in the
   list when a makefile is just being read (before any includes) is the
   name of the current makefile.
@@ -859,7 +859,7 @@ Version 3.80 (03 Oct 2002)
   makefiles at that moment.
 
 * A new command line option is defined, -B or --always-make.  If
-  specified GNU make will consider all targets out-of-date even if they
+  specified GNU Make will consider all targets out-of-date even if they
   would otherwise not be.
 
 * The arguments to $(call ...) functions were being stored in $1, $2,
@@ -884,7 +884,7 @@ Version 3.80 (03 Oct 2002)
   Turkish.
 
 * Updated internationalization support to Gettext 0.11.5.
-  GNU make now uses Gettext's "external" feature, and does not include
+  GNU Make now uses Gettext's "external" feature, and does not include
   any internationalization code itself.  Configure will search your
   system for an existing implementation of GNU Gettext (only GNU Gettext
   is acceptable) and use it if it exists.  If not, NLS will be disabled.
@@ -916,7 +916,7 @@ Version 3.80 (03 Oct 2002)
     available ECOs for VMS V7.1 and newer versions. It is fixed in versions
     shipped with newer VMS versions and all ECO kits after October 1999. It
     only shows up during the daylight saving time period (DST): stat()
-    returns a modification time 1 hour ahead. This results in GNU make
+    returns a modification time 1 hour ahead. This results in GNU Make
     warning messages. For a just created source you will see:
 
      $ gmake x.exe
@@ -944,11 +944,11 @@ Version 3.79.1 (23 Jun 2000)
 
 Version 3.79 (04 Apr 2000)
 
-* GNU make optionally supports internationalization and locales via the
+* GNU Make optionally supports internationalization and locales via the
   GNU gettext (or local gettext if suitable) package.  See the ABOUT-NLS
-  file for more information on configuring GNU make for NLS.
+  file for more information on configuring GNU Make for NLS.
 
-* Previously, GNU make quoted variables such as MAKEFLAGS and
+* Previously, GNU Make quoted variables such as MAKEFLAGS and
   MAKEOVERRIDES for proper parsing by the shell.  This allowed them to
   be used within make build scripts.  However, using them there is not
   proper behavior: they are meant to be passed to subshells via the
@@ -982,12 +982,12 @@ Version 3.79 (04 Apr 2000)
   value is greater than the "end" value.  If that's true, nothing is
   returned.
 
-* Hartmut Becker provided many updates for the VMS port of GNU make.
+* Hartmut Becker provided many updates for the VMS port of GNU Make.
   See the README.VMS file for more details.
 
 * VMS-specific changes:
 
-  * Fix a problem with automatically remaking makefiles. GNU make uses an
+  * Fix a problem with automatically remaking makefiles. GNU Make uses an
     execve to restart itself after a successful remake of the makefile. On
     UNIX systems execve replaces the running program with a new one and
     resets all signal handling to the default. On VMS execve creates a child
@@ -1065,7 +1065,7 @@ Version 3.78 (22 Sep 1999)
 
 * A "job server" feature, suggested by Howard Chu <hyc@highlandsun.com>.
 
-  On systems that support POSIX pipe(2) semantics, GNU make can now pass
+  On systems that support POSIX pipe(2) semantics, GNU Make can now pass
   -jN options to submakes rather than forcing them all to use -j1.  The
   top make and all its sub-make processes use a pipe to communicate with
   each other to ensure that no more than N jobs are started across all
@@ -1073,20 +1073,20 @@ Version 3.78 (22 Sep 1999)
   with the --disable-job-server option.
 
 * The confusing term "dependency" has been replaced by the more accurate
-  and standard term "prerequisite", both in the manual and in all GNU make
+  and standard term "prerequisite", both in the manual and in all GNU Make
   output.
 
-* GNU make supports the "big archive" library format introduced in AIX 4.3.
+* GNU Make supports the "big archive" library format introduced in AIX 4.3.
 
-* GNU make supports large files on AIX, HP-UX, and IRIX.  These changes
+* GNU Make supports large files on AIX, HP-UX, and IRIX.  These changes
   were provided by Paul Eggert <eggert@twinsun.com>.  (Large file
   support for Solaris and Linux was introduced in 3.77, but the
   configuration had issues: these have also been resolved).
 
-* The Windows 95/98/NT (W32) version of GNU make now has native support
+* The Windows 95/98/NT (W32) version of GNU Make now has native support
   for the Cygnus Cygwin release B20.1 shell (bash).
 
-* The GNU make regression test suite, long available separately "under
+* The GNU Make regression test suite, long available separately "under
   the table", has been integrated into the release.  You can invoke it
   by running "make check" in the distribution.  Note that it requires
   Perl (either Perl 4 or Perl 5) to run.
@@ -1129,10 +1129,10 @@ Version 3.77 (28 Jul 1998)
   you'll have to escape both of them: "foo : bar\\\=baz".
 
 * A new appendix listing the most common error and warning messages
-  generated by GNU make, with some explanation, has been added to the
-  GNU make User's Manual.
+  generated by GNU Make, with some explanation, has been added to the
+  GNU Make User's Manual.
 
-* Updates to the GNU make Customs library support (see README.customs).
+* Updates to the GNU Make Customs library support (see README.customs).
 
 * Updates to the Windows 95/NT port from Rob Tulloh (see README.W32),
   and to the DOS port from Eli Zaretski (see README.DOS).
@@ -1182,7 +1182,7 @@ Version 3.76.1 (19 Sep 1997)
 
 Version 3.76 (16 Sep 1997)
 
-* GNU make now uses automake to control Makefile.in generation.  This
+* GNU Make now uses automake to control Makefile.in generation.  This
   should make it more consistent with the GNU standards.
 
 * VPATH functionality has been changed to incorporate the VPATH+ patch,
@@ -1197,7 +1197,7 @@ Version 3.76 (16 Sep 1997)
   list of words from number S to number E (inclusive) of TEXT.
 
 * Instead of an error, detection of future modification times gives a
-  warning and continues.  The warning is repeated just before GNU make
+  warning and continues.  The warning is repeated just before GNU Make
   exits, so it is less likely to be lost.
 
 * Fix the $(basename) and $(suffix) functions so they only operate on
@@ -1352,9 +1352,9 @@ Version 3.71 (21 May 1994)
   There is no longer a separate distribution containing Info and DVI files.
 
 * You can now set the variables `binprefix' and/or `manprefix' in
-  Makefile.in (or on the command line when installing) to install GNU make
+  Makefile.in (or on the command line when installing) to install GNU Make
   under a name other than `make' (i.e., ``make binprefix=g install''
-  installs GNU make as `gmake').
+  installs GNU Make as `gmake').
 
 * The built-in Texinfo rules use the new variables `TEXI2DVI_FLAGS' for
   flags to the `texi2dvi' script, and `MAKEINFO_FLAGS' for flags to the

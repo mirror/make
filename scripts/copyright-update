@@ -3,7 +3,7 @@
 # Copyright (C) 2014-2023 Free Software Foundation, Inc.
 # This file is part of GNU Make.
 #
-# Update GNU make copyrights using gnulib update-copyright
+# Update GNU Make copyrights using gnulib update-copyright
 
 EXCLUDE='^\(\.[a-z].*\|.*/\.[a-z].*\|.*COPYING\|src/hash\.[ch]\|ChangeLog.*\|.*/ChangeLog.*\|INSTALL\|doc/make\.texi\|bootstrap\)$'
 
@@ -31,7 +31,7 @@ run () {
     if $force; then
         : just do it
     elif test ! -f src/makeint.h; then
-        die "Run in the root of the GNU make workspace"
+        die "Run in the root of the GNU Make workspace"
     elif test -f configure; then
         die "Run in a clean workspace (git clean -fdX)"
     fi

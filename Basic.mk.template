@@ -1,11 +1,11 @@
-# Basic GNU -*-Makefile-*- to build GNU make
+# Basic GNU -*-Makefile-*- to build GNU Make
 #
 # NOTE:
 # If you have no 'make' program at all to process this makefile:
 #   * On Windows, run ".\build_w32.bat" to bootstrap one.
 #   * On MS-DOS, run ".\builddos.bat" to bootstrap one.
 #
-# Once you have a GNU make program created, you can use it with this makefile
+# Once you have a GNU Make program created, you can use it with this makefile
 # to keep it up to date if you make changes, as:
 #
 #   make.exe -f Basic.mk

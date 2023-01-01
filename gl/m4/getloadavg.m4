@@ -160,7 +160,7 @@ AC_CHECK_HEADERS([nlist.h],
 ])dnl
 ])# gl_PREREQ_GETLOADAVG
 
-# ---- GNU make
+# ---- GNU Make
 # These macros are imported from stdlib which we don't want to include
 # Only the getloadavg content is imported.
 

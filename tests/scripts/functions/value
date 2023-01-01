@@ -2,7 +2,7 @@
 
 $description = "Test the value function.";
 
-$details = "This is a test of the value function in GNU make.
+$details = "This is a test of the value function in GNU Make.
 This function will evaluate to the value of the named variable with no
 further expansion performed on it.\n";
 

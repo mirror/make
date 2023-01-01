@@ -1709,7 +1709,7 @@ the results of the expanded macro (@pxref{Eval Function}).
 @findex .SECONDEXPANSION
 Previously we learned that GNU @code{make} works in two distinct
 phases: a read-in phase and a target-update phase (@pxref{Reading
-Makefiles, , How @code{make} Reads a Makefile}).  GNU make also has
+Makefiles, , How @code{make} Reads a Makefile}).  GNU Make also has
 the ability to enable a @emph{second expansion} of the prerequisites
 (only) for some or all targets defined in the makefile.  In order for
 this second expansion to occur, the special target
@@ -5225,7 +5225,7 @@ string to avoid duplicating flags during recursion.
 
 It's best to use @code{GNUMAKEFLAGS} only with flags which won't
 materially change the behavior of your makefiles.  If your makefiles
-require GNU make anyway then simply use @code{MAKEFLAGS}.  Flags such
+require GNU Make anyway then simply use @code{MAKEFLAGS}.  Flags such
 as @samp{--no-print-directory} or @samp{--output-sync} may be
 appropriate for @code{GNUMAKEFLAGS}.
 
@@ -11332,7 +11332,7 @@ If no pattern rule has been found then try step 5 and step 6 again with a
 modified definition of ``ought to exist'': if a filename is mentioned as a
 target or as an explicit prerequisite of @emph{any} target, then it ought to
 exist.  This check is only present for backward-compatibility with older
-versions of GNU make: we don't recommend relying on it.
+versions of GNU Make: we don't recommend relying on it.
 
 @item
 If no implicit rule applies, the rule for @code{.DEFAULT}, if any,
@@ -11753,7 +11753,7 @@ internalize it:
 @example
 @group
 define GUILEIO
-;; A simple Guile IO library for GNU make
+;; A simple Guile IO library for GNU Make
 
 (define MKPORT #f)
 
@@ -11819,10 +11819,10 @@ symbol to be stored in a @code{make} variable.
 @cartouche
 @quotation Warning
 The @code{load} directive and extension capability is considered a
-``technology preview'' in this release of GNU make.  We encourage you
+``technology preview'' in this release of GNU Make.  We encourage you
 to experiment with this feature and we appreciate any feedback on it.
 However we cannot guarantee to maintain backward-compatibility in the
-next release.  Consider using GNU Guile instead for extending GNU make
+next release.  Consider using GNU Guile instead for extending GNU Make
 (@pxref{Guile Function, ,The @code{guile} Function}).
 @end quotation
 @end cartouche
@@ -11892,7 +11892,7 @@ The initializing function will be provided the file name and line
 number of the invocation of the @code{load} operation.  It should
 return a value of type @code{int}, which must be @code{0} on failure
 and non-@code{0} on success.  If the return value is @code{-1}, then
-GNU make will @emph{not} attempt to rebuild the object file
+GNU Make will @emph{not} attempt to rebuild the object file
 (@pxref{Remaking Loaded Objects, ,How Loaded Objects Are Remade}).
 
 For example:

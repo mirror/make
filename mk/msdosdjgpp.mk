@@ -1,4 +1,4 @@
-# GNU -*-Makefile-*- to build GNU make on MS-DOS with DJGPP
+# GNU -*-Makefile-*- to build GNU Make on MS-DOS with DJGPP
 #
 # MS-DOS overrides for use with Basic.mk.
 #

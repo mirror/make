@@ -905,7 +905,7 @@ define_automatic_variables (void)
     if (!replace || !*replace->value)
       replace = lookup_variable ("OS2_SHELL", 9);
 # else
-#   warning NO_CMD_DEFAULT: GNU make will not use CMD.EXE as default shell
+#   warning NO_CMD_DEFAULT: GNU Make will not use CMD.EXE as default shell
 # endif
 
     if (replace && *replace->value)

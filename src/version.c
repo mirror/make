@@ -1,4 +1,4 @@
-/* Record version and build host architecture for GNU make.
+/* Record version and build host architecture for GNU Make.
 Copyright (C) 1988-2023 Free Software Foundation, Inc.
 This file is part of GNU Make.
 

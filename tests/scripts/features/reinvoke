@@ -1,6 +1,6 @@
 #                                                              -*-mode: perl-*-
 
-$description = "Test GNU make's auto-reinvocation feature.";
+$description = "Test GNU Make's auto-reinvocation feature.";
 
 $details = "\
 If the makefile or one it includes can be rebuilt then it is, and make

@@ -47,7 +47,7 @@ cvt_scm_to_str (SCM obj)
   return scm_to_locale_string (scm_call_1 (obj_to_str, obj));
 }
 
-/* Perform the GNU make expansion function.  */
+/* Perform the GNU Make expansion function.  */
 static SCM
 guile_expand_wrapper (SCM obj)
 {
@@ -65,7 +65,7 @@ guile_expand_wrapper (SCM obj)
   return ret;
 }
 
-/* Perform the GNU make eval function.  */
+/* Perform the GNU Make eval function.  */
 static SCM
 guile_eval_wrapper (SCM obj)
 {
@@ -77,24 +77,24 @@ guile_eval_wrapper (SCM obj)
   return SCM_BOOL_F;
 }
 
-/* Invoked by scm_c_define_module(), in the context of the GNU make module.  */
+/* Invoked by scm_c_define_module(), in the context of the GNU Make module.  */
 static void
 guile_define_module (void *data UNUSED)
 {
-/* Ingest the predefined Guile module for GNU make.  */
+/* Ingest the predefined Guile module for GNU Make.  */
 #include "gmk-default.h"
 
-  /* Register a subr for GNU make's eval capability.  */
+  /* Register a subr for GNU Make's eval capability.  */
   scm_c_define_gsubr ("gmk-expand", 1, 0, 0, (GSUBR_TYPE) guile_expand_wrapper);
 
-  /* Register a subr for GNU make's eval capability.  */
+  /* Register a subr for GNU Make's eval capability.  */
   scm_c_define_gsubr ("gmk-eval", 1, 0, 0, (GSUBR_TYPE) guile_eval_wrapper);
 
   /* Define the rest of the module.  */
   scm_c_eval_string (GUILE_module_defn);
 }
 
-/* Initialize the GNU make Guile module.  */
+/* Initialize the GNU Make Guile module.  */
 static void *
 guile_init (void *arg UNUSED)
 {
@@ -104,7 +104,7 @@ guile_init (void *arg UNUSED)
   /* Get a reference to the object-to-string translator, for later.  */
   obj_to_str = scm_variable_ref (scm_c_module_lookup (make_mod, "obj-to-str"));
 
-  /* Import the GNU make module exports into the generic space.  */
+  /* Import the GNU Make module exports into the generic space.  */
   scm_c_eval_string ("(use-modules (gnu make))");
 
   return NULL;

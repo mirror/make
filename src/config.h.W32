@@ -457,10 +457,10 @@ char *ttyname (int);
 /* Build host information. */
 #define MAKE_HOST "Windows32"
 
-/* Define to 1 to enable job server support in GNU make. */
+/* Define to 1 to enable job server support in GNU Make. */
 #define MAKE_JOBSERVER 1
 
-/* Define to 1 to enable 'load' support in GNU make. */
+/* Define to 1 to enable 'load' support in GNU Make. */
 #define MAKE_LOAD 1
 
 /* Define to 1 to enable symbolic link timestamp checking. */

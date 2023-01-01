@@ -698,7 +698,7 @@ initialize_stopchar_map (void)
 
 /* This code is stolen from gnulib.
    If/when we abandon the requirement to work with K&R compilers, we can
-   remove this (and perhaps other parts of GNU make!) and migrate to using
+   remove this (and perhaps other parts of GNU Make!) and migrate to using
    gnulib directly.
 
    This is called only through atexit(), which means die() has already been

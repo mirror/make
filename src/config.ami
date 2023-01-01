@@ -176,7 +176,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Define this if the SCCS 'get' command understands the '-G<file>' option.  */
 /* #undef SCCS_GET_MINUS_G */
 
-/* Define this to enable job server support in GNU make.  */
+/* Define this to enable job server support in GNU Make.  */
 /* #undef MAKE_JOBSERVER */
 
 /* Define to be the nanoseconds member of struct stat's st_mtim,

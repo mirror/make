@@ -158,7 +158,7 @@ collapse_continuations (char *line)
       if (i & 1)
         {
           /* Backslash/newline handling:
-             In traditional GNU make all trailing whitespace, consecutive
+             In traditional GNU Make all trailing whitespace, consecutive
              backslash/newlines, and any leading non-newline whitespace on the
              next line is reduced to a single space.
              In POSIX, each backslash/newline and is replaced by a space.  */

@@ -1,4 +1,4 @@
-# GNU -*-Makefile-*- to build GNU make on VMS
+# GNU -*-Makefile-*- to build GNU Make on VMS
 #
 # VMS overrides for use with Basic.mk.
 #

@@ -100,7 +100,7 @@ echo >> lib\alloca.in.h
 del /Q convert.sed cac.sed mam.sed mam2.sed gmk.sed
 
 echo.
-echo Done.  Run build_w32.bat to build GNU make.
+echo Done.  Run build_w32.bat to build GNU Make.
 goto :EOF
 
 :Download

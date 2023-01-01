@@ -1,4 +1,4 @@
-# GNU -*-Makefile-*- to build GNU make on Windows
+# GNU -*-Makefile-*- to build GNU Make on Windows
 #
 # Windows overrides for use with Basic.mk.
 #

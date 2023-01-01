@@ -53,7 +53,7 @@ static unsigned long total_size = 0;
 
 /* Add a new buffer to the cache.  Add it at the front to reduce search time.
    This can also increase the overhead, since it's less likely that older
-   buffers will be filled in.  However, GNU make has so many smaller strings
+   buffers will be filled in.  However, GNU Make has so many smaller strings
    that this doesn't seem to be much of an issue in practice.
  */
 static struct strcache *

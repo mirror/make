@@ -1,6 +1,6 @@
 $! Test_make.com
 $!
-$! This is a wrapper for the GNU make perl test programs on VMS.
+$! This is a wrapper for the GNU Make perl test programs on VMS.
 $!
 $! Parameter "-help" for description on how to use described below.
 $!

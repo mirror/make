@@ -1,6 +1,6 @@
 #                                                                    -*-perl-*-
 
-$description = "Test the -w option to GNU make.";
+$description = "Test the -w option to GNU Make.";
 
 my $enter = "#MAKE#: Entering directory '#PWD#'";
 my $leave = "#MAKE#: Leaving directory '#PWD#'";

@@ -1,4 +1,4 @@
-# GNU -*-Makefile-*- to build GNU make on POSIX systems
+# GNU -*-Makefile-*- to build GNU Make on POSIX systems
 #
 # POSIX overrides for use with Basic.mk.
 #

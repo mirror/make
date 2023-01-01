@@ -1,6 +1,6 @@
 #                                                              -*-mode: perl-*-
 
-$description = "Test GNU make's VMS Library management features.";
+$description = "Test GNU Make's VMS Library management features.";
 
 $details = "\
 This only works on VMS systems.";

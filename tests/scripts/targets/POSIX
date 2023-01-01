@@ -15,7 +15,7 @@ all: ; \@#HELPER# -q fail 1; true
 
 # User settings must override .POSIX
 # In the standard .POSIX must be the first thing in the makefile
-# but we relax that rule in GNU make.
+# but we relax that rule in GNU Make.
 run_make_test(qq!
 .SHELLFLAGS = -xc
 .POSIX:

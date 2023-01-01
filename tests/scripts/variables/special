@@ -1,6 +1,6 @@
 #                                                                    -*-perl-*-
 
-$description = "Test special GNU make variables.";
+$description = "Test special GNU Make variables.";
 
 $details = "";
 

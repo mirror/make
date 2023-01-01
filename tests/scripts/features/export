@@ -1,5 +1,5 @@
 #                                                                    -*-perl-*-
-$description = "Check GNU make export/unexport commands.";
+$description = "Check GNU Make export/unexport commands.";
 
 $details = "";
 

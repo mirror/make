@@ -1,6 +1,6 @@
 #                                                                    -*-perl-*-
 
-$description = "Test the -C option to GNU make.";
+$description = "Test the -C option to GNU Make.";
 
 use File::Spec;
 

@@ -1,4 +1,4 @@
-/* Output to stdout / stderr for GNU make
+/* Output to stdout / stderr for GNU Make
 Copyright (C) 2013-2023 Free Software Foundation, Inc.
 This file is part of GNU Make.
 

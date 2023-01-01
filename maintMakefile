@@ -1,5 +1,5 @@
 # Maintainer-only makefile segment.  This contains things that are relevant
-# only if you have the full copy of the GNU make sources from the Git
+# only if you have the full copy of the GNU Make sources from the Git
 # tree, not a dist copy.
 
 # --------------------- #
@@ -20,7 +20,7 @@ SRCROOTDIR ?= $(HOME)/src
 # Where to put the CVS checkout of the GNU web repository
 GNUWEBDIR ?= $(SRCROOTDIR)/gnu-www
 
-# Where to put the CVS checkout of the GNU make web repository
+# Where to put the CVS checkout of the GNU Make web repository
 MAKEWEBDIR ?= $(SRCROOTDIR)/make/make-web
 
 # Enable Perl warnings for the test suite
@@ -291,7 +291,7 @@ CONFIG_CHECKS := \
 .PHONY: check-alt-config
 check-alt-config: $(CONFIG_CHECKS)
 
-# Trick GNU make so it doesn't run the submake as a recursive make.
+# Trick GNU Make so it doesn't run the submake as a recursive make.
 NR_MAKE = $(MAKE)
 
 # Check builds both with build.sh and with make
@@ -393,7 +393,7 @@ makeweb-repo = $(USER)@cvs.sv.gnu.org:/web/make
 gnuweb-repo = :pserver:anonymous@cvs.sv.gnu.org:/web/www
 gnuweb-dir = www/server/standards
 
-# Get the GNU make web page boilerplate etc.
+# Get the GNU Make web page boilerplate etc.
 update-makeweb:
 	test -d '$(MAKEWEBDIR)' || mkdir -p '$(MAKEWEBDIR)'
 	test -d '$(MAKEWEBDIR)'/CVS \

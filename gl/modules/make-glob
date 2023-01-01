@@ -1,5 +1,5 @@
 Description:
-GNU make version of fnmatch()/glob() functions.  This is a holdover from
+GNU Make version of fnmatch()/glob() functions.  This is a holdover from
 a very old version of the globbing library.
 
 Files:

@@ -1,6 +1,6 @@
 Changes from 0.4.9 to 3.78 (Sep 6, 1999):
 
-    Lots of new tests.  Renamed to follow the GNU make scheme.  Also
+    Lots of new tests.  Renamed to follow the GNU Make scheme.  Also
     added some support for using Purify with make.
 
     Rob Tulloh contributed some changes to get the test suite running on
@@ -22,7 +22,7 @@ Changes from 0.4.8 to 0.4.9 (May 14, 1998):
     Release by Paul D. Smith <psmith@baynetworks.com>; I'm the one to
     blame for problems in this version :).
 
-    Add some perl to test_driver.pl to strip out GNU make clock skew
+    Add some perl to test_driver.pl to strip out GNU Make clock skew
     warning messages from the output before comparing it to the
     known-good output.
 
@@ -34,7 +34,7 @@ Changes from 0.4.7 to 0.4.8 (May 14, 1998):
     Release by Paul D. Smith <psmith@baynetworks.com>; I'm the one to
     blame for problems in this version :).
 
-    New tests for features to be included in GNU make 3.77.
+    New tests for features to be included in GNU Make 3.77.
 
 Changes from 0.4.6 to 0.4.7 (August 18, 1997):
 
@@ -55,7 +55,7 @@ Changes from 0.4.5 to 0.4.6 (April 07, 1997):
     Release by Paul D. Smith <psmith@baynetworks.com>; I'm the one to
     blame for problems in this version :).
 
-    Updated to work with GNU make 3.76 (and pretests).
+    Updated to work with GNU Make 3.76 (and pretests).
 
     Added new tests and updated existing ones.  Note that the new tests
     weren't tested with perl 4, however I think they should work.

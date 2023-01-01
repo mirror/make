@@ -28,7 +28,7 @@ void
 decc$exit (int status);
 
 /* Lowest legal non-success VMS exit code is 8 */
-/* GNU make only defines codes 0, 1, 2 */
+/* GNU Make only defines codes 0, 1, 2 */
 /* So assume any exit code > 8 is a VMS exit code */
 
 #ifndef MAX_EXPECTED_EXIT_CODE

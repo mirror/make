@@ -1,7 +1,7 @@
 #                                                                    -*-perl-*-
-$description = "Check GNU make conditionals.";
+$description = "Check GNU Make conditionals.";
 
-$details = "Attempt various different flavors of GNU make conditionals.";
+$details = "Attempt various different flavors of GNU Make conditionals.";
 
 run_make_test('
 arg1 = first

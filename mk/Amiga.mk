@@ -1,4 +1,4 @@
-# GNU -*-Makefile-*- to build GNU make on Amiga
+# GNU -*-Makefile-*- to build GNU Make on Amiga
 #
 # Amiga overrides for use with Basic.mk.
 #
