@@ -128,11 +128,11 @@ After checking out the code, you will need to run the bootstrap script:
 
 Alternatively you can just pull content from remote locations with:
 
- $ ./autopull.sh
+ $ ./bootstrap --pull
 
 And/or just re-generate auto-generatable files with:
 
- $ ./autogen.sh
+ $ ./bootstrap --gen
 
 (Running ./bootstrap does both in one step.)
 
