@@ -1,5 +1,5 @@
 /* Definitions for Windows process invocation.
-Copyright (C) 1996-2022 Free Software Foundation, Inc.
+Copyright (C) 1996-2023 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the

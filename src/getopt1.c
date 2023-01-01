@@ -1,5 +1,5 @@
 /* getopt_long and getopt_long_only entry points for GNU getopt.
-Copyright (C) 1987-1994, 1996-2022 Free Software Foundation, Inc.
+Copyright (C) 1987-1994, 1996-2023 Free Software Foundation, Inc.
 
 NOTE: The canonical source of this file is maintained with the GNU C Library.
 Bugs can be reported to bug-glibc@gnu.org.

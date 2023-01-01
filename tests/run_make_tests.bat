@@ -1,5 +1,5 @@
 @echo off
-rem Copyright (C) 2017-2022 Free Software Foundation, Inc.
+rem Copyright (C) 2017-2023 Free Software Foundation, Inc.
 rem This file is part of GNU Make.
 rem
 rem GNU Make is free software; you can redistribute it and/or modify it under

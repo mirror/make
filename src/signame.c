@@ -1,5 +1,5 @@
 /* Convert between signal names and numbers.
-Copyright (C) 1990-2022 Free Software Foundation, Inc.
+Copyright (C) 1990-2023 Free Software Foundation, Inc.
 This file is part of GNU Make.
 
 GNU Make is free software; you can redistribute it and/or modify it under the
