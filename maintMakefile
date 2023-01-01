@@ -342,7 +342,7 @@ checkcfg.basicmk: checkcfg.% : distdir
 	&& cd $(distdir) \
 	&& ./configure \
 	       $(AM_DISTCHECK_CONFIGURE_FLAGS) $(DISTCHECK_CONFIGURE_FLAGS) \
-	&& $(NR_MAKE) $(AM_MAKEFLAGS) -f Basic.mk $(CFGCHECK_MAKEFLAGS)' \
+	&& $(NR_MAKE) $(AM_MAKEFLAGS) -f Basic.mk '$(CFGCHECK_MAKEFLAGS)' \
 	&& ./make $(AM_MAKEFLAGS) -f Basic.mk check \
 	&& ./make $(AM_MAKEFLAGS) -f Basic.mk clean
 
