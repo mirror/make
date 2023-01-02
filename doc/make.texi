@@ -3074,7 +3074,7 @@ Suppose @file{hello.bin} is up to date in regards to the source files,
 @code{.SECONDARY} make would rebuild @file{hello.o} then rebuild
 @file{hello.bin} even though the source files had not changed.  By declaring
 @file{hello.o} as @code{.SECONDARY} @code{make} will not need to rebuild it
-and won't need to rebuild @file{hello.bin} either.  Of course, of one of the
+and won't need to rebuild @file{hello.bin} either.  Of course, if one of the
 source files @emph{were} updated then all object files would be rebuilt so
 that the creation of @file{hello.bin} could succeed.
 
