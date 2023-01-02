@@ -10,6 +10,7 @@
 # It supports the following operators:
 #  out <word>   : echo <word> to stdout with a newline
 #  raw <word>   : echo <word> to stdout without adding anything
+#  env <word>   : echo the value of the env.var. <word>, or "<unset>"
 #  file <word>  : echo <word> to stdout AND create the file <word>
 #  dir <word>   : echo <word> to stdout AND create the directory <word>
 #  rm <word>    : echo <word> to stdout AND delete the file/directory <word>
@@ -19,7 +20,7 @@
 #  term <pid>   : send SIGTERM to PID <pid>
 #  fail <err>   : echo <err> to stdout then exit with error code err
 #
-# If given -q only the "out" command generates output.
+# If given -q only the "out", "raw", and "env" commands generate output.
 
 # Force flush
 $| = 1;
@@ -38,6 +39,16 @@ sub op {
     }
     if ($op eq 'raw') {
         print "$nm";
+        return 1;
+    }
+
+    if ($op eq 'env') {
+        print "$nm=" unless $quiet;
+        if (exists $ENV{$nm}) {
+            print "$ENV{$nm}\n";
+        } else {
+            print "<unset>\n";
+        }
         return 1;
     }
 

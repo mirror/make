@@ -47,6 +47,17 @@ a: b
 ',
                '', "b: F=b / G=g\na: F= / G=g\n");
 
+# Exported private global variables
+run_make_test('
+private export F = global
+$(info $(shell #HELPER# env F))
+a: b
+b: export F=b
+a b: ; @#HELPER# raw $@ env F
+',
+               '', "F=global\nbF=b\naF=<unset>");
+
+
 # 5: Multiple conditions on the same variable.  Test export.
 delete $ENV{'_X'};
 &run_make_test('
@@ -118,5 +129,49 @@ all: PS=all
 bar: IA=global b% bar
 bar: PA=global b% bar
 bar: PS=bar\n");
+
+# SV 61463: Private parent variables should not be exported
+
+run_make_test(q!
+a: private export FOO := a
+a: b
+b: ; @#HELPER# env FOO
+!,
+              '', 'FOO=<unset>');
+
+run_make_test(q!
+a: private export FOO := a
+a: b
+b: FOO := b
+b: ; @#HELPER# env FOO
+!,
+              '', 'FOO=<unset>');
+
+run_make_test(q!
+export FOO := g
+a: private export FOO := a
+a: b
+b:
+b: ; @#HELPER# env FOO
+!,
+              '', 'FOO=g');
+
+run_make_test(q!
+export FOO := g
+a: private export FOO := a
+a: b
+b: FOO := b
+b: ; @#HELPER# env FOO
+!,
+              '', 'FOO=b');
+
+run_make_test(q!
+private export FOO := g
+a: private export FOO := a
+a: b
+b: FOO := b
+b: ; @#HELPER# env FOO
+!,
+              '', 'FOO=<unset>');
 
 1;

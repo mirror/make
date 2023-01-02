@@ -472,7 +472,7 @@ lookup_variable (const char *name, size_t length)
       const struct variable_set *set = setlist->set;
       struct variable *v;
 
-      v = (struct variable *) hash_find_item ((struct hash_table *) &set->table, &var_key);
+      v = hash_find_item ((struct hash_table *) &set->table, &var_key);
       if (v && (!is_parent || !v->private_var))
         return v->special ? lookup_special_var (v) : v;
 
@@ -553,7 +553,7 @@ lookup_variable_in_set (const char *name, size_t length,
   var_key.name = (char *) name;
   var_key.length = (unsigned int) length;
 
-  return (struct variable *) hash_find_item ((struct hash_table *) &set->table, &var_key);
+  return hash_find_item ((struct hash_table *) &set->table, &var_key);
 }
 
 /* Initialize FILE's variable set list.  If FILE already has a variable set
@@ -1065,7 +1065,8 @@ target_environment (struct file *file, int recursive)
   for (s = set_list; s != 0; s = s->next)
     {
       struct variable_set *set = s->set;
-      int isglobal = set == &global_variable_set;
+      const int islocal = s == set_list;
+      const int isglobal = set == &global_variable_set;
 
       v_slot = (struct variable **) set->table.ht_vec;
       v_end = v_slot + set->table.ht_size;
@@ -1075,11 +1076,17 @@ target_environment (struct file *file, int recursive)
             struct variable **evslot;
             struct variable *v = *v_slot;
 
+            if (!islocal && v->private_var)
+              continue;
+
             evslot = (struct variable **) hash_find_slot (&table, v);
 
             if (HASH_VACANT (*evslot))
               {
-                /* If we're not global, or we are and should export, add it.  */
+                /* We'll always add target-specific variables, since we may
+                   discover that they should be exported later: we'll check
+                   again below.  For global variables only add them if they're
+                   exportable.  */
                 if (!isglobal || should_export (v))
                   hash_insert_at (&table, v, evslot);
               }

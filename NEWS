@@ -17,12 +17,17 @@ A complete list of bugs fixed in this version is available here:
 https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=110&set=custom
 
 * WARNING: Backward-incompatibility!
-  In previous releases is was not well-defined when updates to MAKEFLAGS made
+  In previous releases it was not well-defined when updates to MAKEFLAGS made
   inside a makefile would be visible.  This release ensures they are visible
   immediately, even when invoking $(shell ...) functions.  Also, command line
   variable assignments are now always present in MAKEFLAGS, even when parsing
   makefiles.
   Implementation provided by Dmitry Goncharov <dgoncharov@users.sf.net>
+
+* Previously target-specific variables would inherit their "export" capability
+  from parent target-specific variables even if they were marked private.  Now
+  private parent target-specific variables have no affect.  For more details
+  see https://savannah.gnu.org/bugs/index.php?61463
 
 
 Version 4.4 (31 Oct 2022)
