@@ -1203,10 +1203,10 @@ struct dirstream
   };
 
 /* Forward declarations.  */
-static __ptr_t open_dirstream (const char *);
-static struct dirent *read_dirstream (__ptr_t);
+static void *open_dirstream (const char *);
+static struct dirent *read_dirstream (void *);
 
-static __ptr_t
+static void *
 open_dirstream (const char *directory)
 {
   struct dirstream *new;
@@ -1226,11 +1226,11 @@ open_dirstream (const char *directory)
   new->contents = dir->contents;
   new->dirfile_slot = (struct dirfile **) new->contents->dirfiles.ht_vec;
 
-  return (__ptr_t) new;
+  return new;
 }
 
 static struct dirent *
-read_dirstream (__ptr_t stream)
+read_dirstream (void *stream)
 {
   static char *buf;
   static size_t bufsz;

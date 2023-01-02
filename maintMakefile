@@ -238,16 +238,26 @@ export TAR_OPTIONS := --mode=u+w,go-w --owner=0 --group=0 --numeric-owner --sort
 # but add a new check to be sure it doesn't happen again.
 mk_dist_files = AUTHORS ChangeLog COPYING INSTALL README src/mkconfig.h
 
-dist: mk-distcheck
+dist: mk-dist mk-distcheck
 
 .PHONY: mk-distcheck
 mk-distcheck: distdir
 	@echo "Checking for extra installed files..."
-	for fn in $(mk_dist_files); do \
+	@for fn in $(mk_dist_files); do \
 	    test -f '$(distdir)'/"$$fn" \
 		|| { echo "Missing dist file: $$fn"; exit 1; }; \
 	done; true
 
+# Make sure that the files in lib/ have been updated from the files in gl/lib/
+
+GL_LIB_FILES := $(wildcard gl/lib/*)
+
+mk-dist:
+	@echo "Checking gl/lib files..."
+	@for fn in $(GL_LIB_FILES); do \
+	    cmp $$fn $${fn##gl/} \
+		|| { echo "Run ./bootstrap --gen ?"; exit 1; }; \
+	done; true
 
 # ---------------------------------- #
 # Alternative configuration checks.  #

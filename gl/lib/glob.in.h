@@ -1,5 +1,5 @@
-/* Copyright (C) 1991, 1992, 1995, 1996, 1997, 1998 Free Software Foundation,
-Inc.
+/* Copyright (C) 1991, 1992, 1995, 1996, 1997, 1998, 2023 Free Software
+Foundation, Inc.
 
 The GNU C Library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public License as
@@ -19,58 +19,10 @@ USA.  */
 #ifndef	_GLOB_H
 #define	_GLOB_H	1
 
+#include <stddef.h>
+
 #ifdef	__cplusplus
 extern "C" {
-#endif
-
-#undef	__ptr_t
-#if defined __cplusplus || (defined __STDC__ && __STDC__) || defined WINDOWS32
-# if !defined __GLIBC__
-#  undef __P
-#  undef __PMT
-#  define __P(protos)	protos
-#  define __PMT(protos)	protos
-#  if !defined __GNUC__ || __GNUC__ < 2
-#   undef __const
-#   define __const const
-#  endif
-# endif
-# define __ptr_t	void *
-#else /* Not C++ or ANSI C.  */
-# undef	__P
-# undef __PMT
-# define __P(protos)	()
-# define __PMT(protos)	()
-# undef	__const
-# define __const
-# define __ptr_t	char *
-#endif /* C++ or ANSI C.  */
-
-/* We need `size_t' for the following definitions.  */
-#ifndef __size_t
-# if defined __FreeBSD__
-#  define __size_t size_t
-# else
-#  if defined __GNUC__ && __GNUC__ >= 2
-typedef __SIZE_TYPE__ __size_t;
-#  else
-/* This is a guess.  */
-/*hb
- *	Conflicts with DECCs already defined type __size_t.
- *	Defining an own type with a name beginning with '__' is no good.
- *	Anyway if DECC is used and __SIZE_T is defined then __size_t is
- *	already defined (and I hope it's exactly the one we need here).
- */
-#   if !(defined __DECC && defined __SIZE_T)
-typedef unsigned long int __size_t;
-#   endif
-#  endif
-# endif
-#else
-/* The GNU CC stddef.h version defines __size_t as empty.  We need a real
-   definition.  */
-# undef __size_t
-# define __size_t size_t
 #endif
 
 /* Bits set in the FLAGS argument to `glob'.  */
@@ -120,21 +72,21 @@ struct stat;
 #endif
 typedef struct
   {
-    __size_t gl_pathc;		/* Count of paths matched by the pattern.  */
+    size_t gl_pathc;		/* Count of paths matched by the pattern.  */
     char **gl_pathv;		/* List of matched pathnames.  */
-    __size_t gl_offs;		/* Slots to reserve in `gl_pathv'.  */
+    size_t gl_offs;		/* Slots to reserve in `gl_pathv'.  */
     int gl_flags;		/* Set to FLAGS, maybe | GLOB_MAGCHAR.  */
 
     /* If the GLOB_ALTDIRFUNC flag is set, the following functions
        are used instead of the normal file access functions.  */
-    void (*gl_closedir) __PMT ((void *));
-    struct dirent *(*gl_readdir) __PMT ((void *));
-    __ptr_t (*gl_opendir) __PMT ((__const char *));
-    int (*gl_lstat) __PMT ((__const char *, struct stat *));
+    void (*gl_closedir) (void *);
+    struct dirent *(*gl_readdir) (void *);
+    void * (*gl_opendir) (const char *);
+    int (*gl_lstat) (const char *, struct stat *);
 #if defined(VMS) && defined(__DECC) && !defined(_POSIX_C_SOURCE)
-    int (*gl_stat) __PMT ((__const char *, struct stat *, ...));
+    int (*gl_stat) (const char *, struct stat *, ...);
 #else
-    int (*gl_stat) __PMT ((__const char *, struct stat *));
+    int (*gl_stat) (const char *, struct stat *);
 #endif
   } glob_t;
 
@@ -142,18 +94,18 @@ typedef struct
 struct stat64;
 typedef struct
   {
-    __size_t gl_pathc;
+    size_t gl_pathc;
     char **gl_pathv;
-    __size_t gl_offs;
+    size_t gl_offs;
     int gl_flags;
 
     /* If the GLOB_ALTDIRFUNC flag is set, the following functions
        are used instead of the normal file access functions.  */
-    void (*gl_closedir) __PMT ((void *));
-    struct dirent64 *(*gl_readdir) __PMT ((void *));
-    __ptr_t (*gl_opendir) __PMT ((__const char *));
-    int (*gl_lstat) __PMT ((__const char *, struct stat64 *));
-    int (*gl_stat) __PMT ((__const char *, struct stat64 *));
+    void (*gl_closedir) (void *);
+    struct dirent64 *(*gl_readdir) (void *);
+    void * (*gl_opendir) (const char *);
+    int (*gl_lstat) (const char *, struct stat64 *);
+    int (*gl_stat) (const char *, struct stat64 *);
   } glob64_t;
 #endif
 
@@ -162,11 +114,11 @@ typedef struct
 # define globfree globfree64
 #else
 # ifdef _LARGEFILE64_SOURCE
-extern int glob64 __P ((__const char *__pattern, int __flags,
-			int (*__errfunc) (__const char *, int),
-			glob64_t *__pglob));
+extern int glob64 (const char *pattern, int flags,
+		   int (*errfunc) (const char *, int),
+		   glob64_t *pglob);
 
-extern void globfree64 __P ((glob64_t *__pglob));
+extern void globfree64 (glob64_t *pglob);
 # endif
 #endif
 
@@ -179,18 +131,18 @@ extern void globfree64 __P ((glob64_t *__pglob));
    If memory cannot be allocated for PGLOB, GLOB_NOSPACE is returned.
    Otherwise, `glob' returns zero.  */
 #if _FILE_OFFSET_BITS != 64 || __GNUC__ < 2
-extern int glob __P ((__const char *__pattern, int __flags,
-		      int (*__errfunc) (__const char *, int),
-		      glob_t *__pglob));
+extern int glob (const char *pattern, int flags,
+		 int (*errfunc) (const char *, int),
+		 glob_t *pglob);
 
 /* Free storage allocated in PGLOB by a previous `glob' call.  */
-extern void globfree __P ((glob_t *__pglob));
+extern void globfree (glob_t *pglob);
 #else
-extern int glob __P ((__const char *__pattern, int __flags,
-		      int (*__errfunc) (__const char *, int),
-		      glob_t *__pglob)) __asm__ ("glob64");
+extern int glob (const char *pattern, int flags,
+		 int (*errfunc) (const char *, int),
+		 glob_t *pglob) __asm__ ("glob64");
 
-extern void globfree __P ((glob_t *__pglob)) __asm__ ("globfree64");
+extern void globfree (glob_t *pglob) __asm__ ("globfree64");
 #endif
 
 
@@ -200,7 +152,7 @@ extern void globfree __P ((glob_t *__pglob)) __asm__ ("globfree64");
 
    This function is not part of the interface specified by POSIX.2
    but several programs want to use it.  */
-extern int glob_pattern_p __P ((__const char *__pattern, int __quote));
+extern int glob_pattern_p (const char *pattern, int quote);
 #endif
 
 #ifdef	__cplusplus

@@ -1,5 +1,5 @@
-/* Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999 Free
-Software Foundation, Inc.
+/* Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+2023 Free Software Foundation, Inc.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public License as
@@ -37,9 +37,6 @@ USA.  */
 /* Outcomment the following line for production quality code.  */
 /* #define NDEBUG 1 */
 #include <assert.h>
-
-#include <stdio.h>		/* Needed on stupid SunOS for assert.  */
-
 
 /* Comment out all this code if we are using the GNU C Library, and are not
    actually compiling the library itself.  This code is part of the GNU C
@@ -83,11 +80,6 @@ extern int errno;
 # define __set_errno(val) errno = (val)
 #endif
 
-#ifndef	NULL
-# define NULL	0
-#endif
-
-
 #if defined HAVE_DIRENT_H || defined __GNU_LIBRARY__
 # include <dirent.h>
 # define NAMLEN(dirent) strlen((dirent)->d_name)
@@ -107,7 +99,6 @@ extern int errno;
 #  include "vmsdir.h"
 # endif /* HAVE_VMSDIR_H */
 #endif
-
 
 /* In GNU systems, <dirent.h> defines this macro for us.  */
 #ifdef _D_NAMLEN
@@ -130,47 +121,8 @@ extern int errno;
 # define REAL_DIR_ENTRY(dp) (dp->d_ino != 0)
 #endif /* POSIX */
 
-#if defined STDC_HEADERS || defined __GNU_LIBRARY__
-# include <stdlib.h>
-# include <string.h>
-# define	ANSI_STRING
-#else	/* No standard headers.  */
-
-extern char *getenv ();
-
-# ifdef HAVE_STRING_H
-#  include <string.h>
-#  define ANSI_STRING
-# else
-#  include <strings.h>
-# endif
-# ifdef	HAVE_MEMORY_H
-#  include <memory.h>
-# endif
-
-extern char *malloc (), *realloc ();
-extern void free ();
-
-extern void qsort ();
-extern void abort (), exit ();
-
-#endif	/* Standard headers.  */
-
-#ifndef	ANSI_STRING
-
-# ifndef bzero
-extern void bzero ();
-# endif
-# ifndef bcopy
-extern void bcopy ();
-# endif
-
-# define memcpy(d, s, n)	bcopy ((s), (d), (n))
-# define strrchr	rindex
-/* memset is only used for zero here, but let's be paranoid.  */
-# define memset(s, better_be_zero, n) \
-  ((void) ((better_be_zero) == 0 ? (bzero((s), (n)), 0) : (abort(), 0)))
-#endif	/* Not ANSI_STRING.  */
+#include <stdlib.h>
+#include <string.h>
 
 #if !defined HAVE_STRCOLL && !defined _LIBC
 # define strcoll	strcmp
@@ -181,32 +133,6 @@ extern void bcopy ();
 # undef  mempcpy
 # define mempcpy(Dest, Src, Len) __mempcpy (Dest, Src, Len)
 #endif
-
-#if !defined __GNU_LIBRARY__ && !defined __DJGPP__
-# ifdef	__GNUC__
-__inline
-# endif
-# ifndef __SASC
-#  ifdef WINDOWS32
-static void *
-my_realloc (void *p, unsigned int n)
-#  else
-static char *
-my_realloc (p, n)
-     char *p;
-     unsigned int n;
-#  endif
-{
-  /* These casts are the for sake of the broken Ultrix compiler,
-     which warns of illegal pointer combinations otherwise.  */
-  if (p == NULL)
-    return (char *) malloc (n);
-  return (char *) realloc (p, n);
-}
-# define	realloc	my_realloc
-# endif /* __SASC */
-#endif /* __GNU_LIBRARY__ || __DJGPP__ */
-
 
 #if !defined __alloca && !defined __GNU_LIBRARY__
 
@@ -252,11 +178,6 @@ extern char *alloca ();
 # endif
 #endif
 
-#if !(defined STDC_HEADERS || defined __GNU_LIBRARY__)
-# undef	size_t
-# define size_t	unsigned int
-#endif
-
 /* Some system header files erroneously define these.
    We want our own definitions from <fnmatch.h> to take precedence.  */
 #ifndef __GNU_LIBRARY__
@@ -289,25 +210,25 @@ extern char *alloca ();
 #endif
 
 #ifdef HAVE_GETLOGIN_R
-extern int getlogin_r __P ((char *, size_t));
+extern int getlogin_r (char *, size_t);
 #else
-extern char *getlogin __P ((void));
+extern char *getlogin (void);
 #endif
 
 static
 #if __GNUC__ - 0 >= 2
 inline
 #endif
-const char *next_brace_sub __P ((const char *begin));
-static int glob_in_dir __P ((const char *pattern, const char *directory,
-			     int flags,
-			     int (*errfunc) (const char *, int),
-			     glob_t *pglob));
-static int prefix_array __P ((const char *prefix, char **array, size_t n));
-static int collated_compare __P ((const __ptr_t, const __ptr_t));
+const char *next_brace_sub (const char *begin);
+static int glob_in_dir (const char *pattern, const char *directory,
+			int flags,
+			int (*errfunc) (const char *, int),
+			glob_t *pglob);
+static int prefix_array (const char *prefix, char **array, size_t n);
+static int collated_compare (const void *, const void *);
 
 #if !defined _LIBC || !defined NO_GLOB_PATTERN_P
-int __glob_pattern_p __P ((const char *pattern, int quote));
+int __glob_pattern_p (const char *pattern, int quote);
 #endif
 
 /* Find the end of the sub-pattern in a brace expression.  We define
@@ -317,8 +238,7 @@ static
 inline
 #endif
 const char *
-next_brace_sub (begin)
-     const char *begin;
+next_brace_sub (const char *begin)
 {
   unsigned int depth = 0;
   const char *cp = begin;
@@ -364,11 +284,8 @@ next_brace_sub (begin)
    If memory cannot be allocated for PGLOB, GLOB_NOSPACE is returned.
    Otherwise, `glob' returns zero.  */
 int
-glob (pattern, flags, errfunc, pglob)
-     const char *pattern;
-     int flags;
-     int (*errfunc) __P ((const char *, int));
-     glob_t *pglob;
+glob (const char *pattern, int flags,
+      int (*errfunc) (const char *, int), glob_t *pglob)
 {
   const char *filename;
   const char *dirname;
@@ -865,7 +782,7 @@ glob (pattern, flags, errfunc, pglob)
 	 have to glob for the directory, and then glob for
 	 the pattern in each directory found.  */
       glob_t dirs;
-      register size_t i;
+      size_t i;
 
       status = glob (dirname,
 		     ((flags & (GLOB_ERR | GLOB_NOCHECK | GLOB_NOESCAPE))
@@ -879,7 +796,7 @@ glob (pattern, flags, errfunc, pglob)
 	 appending the results to PGLOB.  */
       for (i = 0; i < dirs.gl_pathc; ++i)
 	{
-	  int old_pathc;
+	  size_t old_pathc;
 
 #ifdef	SHELL
 	  {
@@ -1056,12 +973,12 @@ glob (pattern, flags, errfunc, pglob)
   if (!(flags & GLOB_NOSORT))
     {
       /* Sort the vector.  */
-      int non_sort = oldcount;
+      size_t non_sort = oldcount;
 
       if ((flags & GLOB_DOOFFS) && pglob->gl_offs > oldcount)
 	non_sort = pglob->gl_offs;
 
-      qsort ((__ptr_t) &pglob->gl_pathv[non_sort],
+      qsort ((void *) &pglob->gl_pathv[non_sort],
 	     pglob->gl_pathc - non_sort,
 	     sizeof (char *), collated_compare);
     }
@@ -1072,25 +989,22 @@ glob (pattern, flags, errfunc, pglob)
 
 /* Free storage allocated in PGLOB by a previous `glob' call.  */
 void
-globfree (pglob)
-     register glob_t *pglob;
+globfree (glob_t *pglob)
 {
   if (pglob->gl_pathv != NULL)
     {
-      register size_t i;
+      size_t i;
       for (i = 0; i < pglob->gl_pathc; ++i)
 	if (pglob->gl_pathv[i] != NULL)
-	  free ((__ptr_t) pglob->gl_pathv[i]);
-      free ((__ptr_t) pglob->gl_pathv);
+	  free (pglob->gl_pathv[i]);
+      free (pglob->gl_pathv);
     }
 }
 
 
 /* Do a collated comparison of A and B.  */
 static int
-collated_compare (a, b)
-     const __ptr_t a;
-     const __ptr_t b;
+collated_compare (const void *a, const void *b)
 {
   const char *const s1 = *(const char *const * const) a;
   const char *const s2 = *(const char *const * const) b;
@@ -1110,15 +1024,12 @@ collated_compare (a, b)
    A slash is inserted between DIRNAME and each elt of ARRAY,
    unless DIRNAME is just "/".  Each old element of ARRAY is freed.  */
 static int
-prefix_array (dirname, array, n)
-     const char *dirname;
-     char **array;
-     size_t n;
+prefix_array (const char *dirname, char **array, size_t n)
 {
-  register size_t i;
+  size_t i;
   size_t dirlen = strlen (dirname);
 #if defined __MSDOS__ || defined WINDOWS32
-  int sep_char = '/';
+  char sep_char = '/';
 # define DIRSEP_CHAR sep_char
 #else
 # define DIRSEP_CHAR '/'
@@ -1150,7 +1061,7 @@ prefix_array (dirname, array, n)
       if (new == NULL)
 	{
 	  while (i > 0)
-	    free ((__ptr_t) array[--i]);
+	    free (array[--i]);
 	  return 1;
 	}
 
@@ -1165,7 +1076,7 @@ prefix_array (dirname, array, n)
       new[dirlen] = DIRSEP_CHAR;
       memcpy (&new[dirlen + 1], array[i], eltlen);
 #endif
-      free ((__ptr_t) array[i]);
+      free (array[i]);
       array[i] = new;
     }
 
@@ -1178,11 +1089,9 @@ prefix_array (dirname, array, n)
 /* Return nonzero if PATTERN contains any metacharacters.
    Metacharacters can be quoted with backslashes if QUOTE is nonzero.  */
 int
-__glob_pattern_p (pattern, quote)
-     const char *pattern;
-     int quote;
+__glob_pattern_p (const char *pattern, int quote)
 {
-  register const char *p;
+  const char *p;
   int open = 0;
 
   for (p = pattern; *p != '\0'; ++p)
@@ -1220,14 +1129,10 @@ weak_alias (__glob_pattern_p, glob_pattern_p)
    The GLOB_NOSORT bit in FLAGS is ignored.  No sorting is ever done.
    The GLOB_APPEND flag is assumed to be set (always appends).  */
 static int
-glob_in_dir (pattern, directory, flags, errfunc, pglob)
-     const char *pattern;
-     const char *directory;
-     int flags;
-     int (*errfunc) __P ((const char *, int));
-     glob_t *pglob;
+glob_in_dir (const char *pattern, const char *directory, int flags,
+	     int (*errfunc) (const char *, int), glob_t *pglob)
 {
-  __ptr_t stream = NULL;
+  void *stream = NULL;
 
   struct globlink
     {
@@ -1298,7 +1203,7 @@ glob_in_dir (pattern, directory, flags, errfunc, pglob)
 	{
 	  stream = ((flags & GLOB_ALTDIRFUNC)
 		    ? (*pglob->gl_opendir) (directory)
-		    : (__ptr_t) opendir (directory));
+		    : (void *) opendir (directory));
 	  if (stream == NULL)
 	    {
 	      if (errno != ENOTDIR
@@ -1350,10 +1255,9 @@ glob_in_dir (pattern, directory, flags, errfunc, pglob)
 		      if (new->name == NULL)
 			goto memory_error;
 #ifdef HAVE_MEMPCPY
-		      *((char *) mempcpy ((__ptr_t) new->name, name, len))
-			= '\0';
+		      *((char *) mempcpy (new->name, name, len)) = '\0';
 #else
-		      memcpy ((__ptr_t) new->name, name, len);
+		      memcpy (new->name, name, len);
 		      new->name[len] = '\0';
 #endif
 		      new->next = names;
@@ -1428,7 +1332,7 @@ glob_in_dir (pattern, directory, flags, errfunc, pglob)
   while (names != NULL)
     {
       if (names->name != NULL)
-	free ((__ptr_t) names->name);
+	free (names->name);
       names = names->next;
     }
   return GLOB_NOSPACE;

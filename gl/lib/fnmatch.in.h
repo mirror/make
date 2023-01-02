@@ -1,4 +1,4 @@
-/* Copyright (C) 1991, 1992, 1993, 1996, 1997, 1998, 1999 Free Software
+/* Copyright (C) 1991, 1992, 1993, 1996, 1997, 1998, 1999, 2023 Free Software
 Foundation, Inc.
 This file is part of the GNU C Library.
 
@@ -22,27 +22,6 @@ USA.  */
 
 #ifdef	__cplusplus
 extern "C" {
-#endif
-
-#if defined __cplusplus || (defined __STDC__ && __STDC__) || defined WINDOWS32
-# if !defined __GLIBC__
-#  undef	__P
-#  define __P(protos)	protos
-# endif
-#else /* Not C++ or ANSI C.  */
-# undef	__P
-# define __P(protos)	()
-/* We can get away without defining `const' here only because in this file
-   it is used only inside the prototype for `fnmatch', which is elided in
-   non-ANSI C where `const' is problematical.  */
-#endif /* C++ or ANSI C.  */
-
-#ifndef const
-# if (defined __STDC__ && __STDC__) || defined __cplusplus || defined WINDOWS32
-#  define __const	const
-# else
-#  define __const
-# endif
 #endif
 
 /* We #undef these before defining them because some losing systems
@@ -75,8 +54,7 @@ extern "C" {
 
 /* Match NAME against the filename pattern PATTERN,
    returning zero if it matches, FNM_NOMATCH if not.  */
-extern int fnmatch __P ((__const char *__pattern, __const char *__name,
-			 int __flags));
+extern int fnmatch (const char *pattern, const char *name, int flags);
 
 #ifdef	__cplusplus
 }

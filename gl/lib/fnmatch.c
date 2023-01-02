@@ -1,4 +1,4 @@
-/* Copyright (C) 1991, 1992, 1993, 1996, 1997, 1998, 1999 Free Software
+/* Copyright (C) 1991, 1992, 1993, 1996, 1997, 1998, 1999, 2023 Free Software
 Foundation, Inc.
 This file is part of the GNU C Library.
 
@@ -128,48 +128,20 @@ extern char *getenv ();
 extern int errno;
 # endif
 
-/* This function doesn't exist on most systems.  */
-
-# if !defined HAVE___STRCHRNUL && !defined _LIBC
-static char *
-__strchrnul (s, c)
-     const char *s;
-     int c;
-{
-  char *result = strchr (s, c);
-  if (result == NULL)
-    result = strchr (s, '\0');
-  return result;
-}
-# endif
-
-# ifndef internal_function
-/* Inside GNU libc we mark some function in a special way.  In other
-   environments simply ignore the marking.  */
-#  define internal_function
-# endif
-
 /* Match STRING against the filename pattern PATTERN, returning zero if
    it matches, nonzero if not.  */
-static int internal_fnmatch __P ((const char *pattern, const char *string,
-				  int no_leading_period, int flags))
-     internal_function;
 static int
-internal_function
-internal_fnmatch (pattern, string, no_leading_period, flags)
-     const char *pattern;
-     const char *string;
-     int no_leading_period;
-     int flags;
+internal_fnmatch (const char *pattern, const char *string,
+		  int no_leading_period, int flags)
 {
-  register const char *p = pattern, *n = string;
-  register unsigned char c;
+  const char *p = pattern, *n = string;
+  unsigned char c;
 
 /* Note that this evaluates C many times.  */
 # ifdef _LIBC
-#  define FOLD(c) ((flags & FNM_CASEFOLD) ? tolower (c) : (c))
+#  define FOLD(c) (unsigned char)((flags & FNM_CASEFOLD) ? tolower (c) : (c))
 # else
-#  define FOLD(c) ((flags & FNM_CASEFOLD) && ISUPPER (c) ? tolower (c) : (c))
+#  define FOLD(c) (unsigned char)((flags & FNM_CASEFOLD) && ISUPPER (c) ? tolower (c) : (c))
 # endif
 
   while ((c = *p++) != '\0')
@@ -237,7 +209,9 @@ internal_fnmatch (pattern, string, no_leading_period, flags)
 	    {
 	      const char *endp;
 
-	      endp = __strchrnul (n, (flags & FNM_FILE_NAME) ? '/' : '\0');
+	      endp = strchr (n, (flags & FNM_FILE_NAME) ? '/' : '\0');
+	      if (endp == NULL)
+		endp = n + strlen (n);
 
 	      if (c == '[')
 		{
@@ -292,7 +266,7 @@ internal_fnmatch (pattern, string, no_leading_period, flags)
 	  {
 	    /* Nonzero if the sense of the character class is inverted.  */
 	    static int posixly_correct;
-	    register int not;
+	    int not;
 	    char cold;
 
 	    if (posixly_correct == 0)
@@ -478,10 +452,7 @@ internal_fnmatch (pattern, string, no_leading_period, flags)
 
 
 int
-fnmatch (pattern, string, flags)
-     const char *pattern;
-     const char *string;
-     int flags;
+fnmatch (const char *pattern, const char *string, int flags)
 {
   return internal_fnmatch (pattern, string, flags & FNM_PERIOD, flags);
 }
