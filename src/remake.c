@@ -1341,13 +1341,16 @@ f_mtime (struct file *file, int search)
   if (ar_name (file->name))
     {
       /* This file is an archive-member reference.  */
-
+      FILE_TIMESTAMP memmtime;
       char *arname, *memname;
       struct file *arfile;
       time_t member_date;
 
       /* Find the archive's name.  */
       ar_parse_name (file->name, &arname, &memname);
+
+      /* Find the mtime of the member file (it might not exist).  */
+      memmtime = name_mtime (memname);
 
       /* Find the modification time of the archive itself.
          Also allow for its name to be changed via VPATH search.  */
@@ -1392,9 +1395,16 @@ f_mtime (struct file *file, int search)
         return NONEXISTENT_MTIME;
 
       member_date = ar_member_date (file->hname);
-      mtime = (member_date == (time_t) -1
-               ? NONEXISTENT_MTIME
-               : file_timestamp_cons (file->hname, member_date, 0));
+
+      if (member_date == (time_t) -1
+          || (memmtime != NONEXISTENT_MTIME
+              && (time_t) FILE_TIMESTAMP_S (memmtime) > member_date))
+        /* If the member file exists and is newer than the member in the
+           archive, pretend it's nonexistent.  This means the member file was
+           updated but not added to the archive yet.  */
+        mtime = NONEXISTENT_MTIME;
+      else
+        mtime = file_timestamp_cons (file->hname, member_date, 0);
     }
   else
 #endif

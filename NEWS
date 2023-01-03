@@ -24,6 +24,13 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=110&se
   makefiles.
   Implementation provided by Dmitry Goncharov <dgoncharov@users.sf.net>
 
+* New feature: Parallel builds of archives
+  Previously it was not possible to use parallel builds with archives.  It is
+  still not possible using the built-in rules, however you can now override
+  the built-in rules with a slightly different set of rules and use parallel
+  builds with archive creation.  See the "Dangers When Using Archives" section
+  of the GNU Make manual, and https://savannah.gnu.org/bugs/index.php?14927
+
 * Previously target-specific variables would inherit their "export" capability
   from parent target-specific variables even if they were marked private.  Now
   private parent target-specific variables have no affect.  For more details

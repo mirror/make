@@ -20,9 +20,7 @@ if ($osname eq 'VMS') {
     # objects when the test tampers with the timestamp.
     1 while unlink "$afile.c1";
     1 while unlink "$afile.o";
-    open (MYFILE, ">$afile.c1");
-    print MYFILE "int $afile(void) {return 1;}\n";
-    close MYFILE;
+    create_file("$afile.c1", "int $afile(void) {return 1;}\n");
     system("cc $afile.c1 /object=$afile.o");
   }
 } else {
@@ -237,6 +235,38 @@ $pre%: ; touch \$\@
 
     unlink($lib);
 }
+
+# SV 61436 : Allow redefining archive rules to propagate timestamps
+
+# Find the output when creating an archive from multiple files
+
+utouch(-10, 'a.o', 'b.o');
+my $create2 = `$ar $arflags mylib.a a.o b.o $redir`;
+touch('b.o');
+my $add2 = `$ar $arflags mylib.a b.o $redir`;
+unlink('a.o', 'b.o', 'mylib.a');
+
+utouch(-20, 'a.c', 'b.c');
+
+run_make_test(q!
+mylib.a: mylib.a(a.o b.o)
+(%): % ;
+%.a: ; $(AR) $(ARFLAGS) $@ $?
+%.o : %.c ; @echo Compile $<; $(COMPILE.c) -o $@ $<
+!, $arvar, "Compile a.c\nCompile b.c\n$ar $arflags mylib.a a.o b.o\n${create2}rm b.o a.o");
+
+run_make_test(undef, $arvar, "#MAKE#: 'mylib.a' is up to date.");
+
+# Now update one of the source files and it should be compiled and archived
+
+sleep(2);
+touch('b.c');
+
+run_make_test(undef, $arvar, "Compile b.c\n$ar $arflags mylib.a b.o\n${add2}rm b.o");
+
+run_make_test(undef, $arvar, "#MAKE#: 'mylib.a' is up to date.");
+
+unlink('a.c', 'b.c', 'a.o', 'b.o', 'mylib.a');
 
 # This tells the test driver that the perl test script executed properly.
 1;

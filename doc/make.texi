@@ -11497,7 +11497,7 @@ and make all the members of the archive file prerequisites of that rule.
 For example,
 
 @example
-libfoo.a: libfoo.a(x.o) libfoo.a(y.o) @dots{}
+libfoo.a: libfoo.a(x.o y.o @dots{})
         ranlib libfoo.a
 @end example
 
@@ -11518,15 +11518,38 @@ updates the @file{__.SYMDEF} member automatically.
 @cindex archive, and @code{-j}
 @cindex @code{-j}, and archive update
 
-It is important to be careful when using parallel execution (the
-@code{-j} switch; @pxref{Parallel, ,Parallel Execution}) and archives.
-If multiple @code{ar} commands run at the same time on the same archive
-file, they will not know about each other and can corrupt the file.
+The built-in rules for updating archives are incompatible with parallel
+builds.  These rules (required by the POSIX standard) add each object file
+into the archive as it's compiled.  When parallel builds are enabled this
+allows multiple @code{ar} commands to be updating the same archive
+simultaneously, which is not supported.
 
-Possibly a future version of @code{make} will provide a mechanism to
-circumvent this problem by serializing all recipes that operate on the
-same archive file.  But for the time being, you must either write your
-makefiles to avoid this problem in some other way, or not use @code{-j}.
+If you want to use parallel builds with archives you can override the default
+rules by adding these lines to your makefile:
+
+@example
+(%) : % ;
+%.a : ; $(AR) $(ARFLAGS) $@ $?
+@end example
+
+The first line changes the rule that updates an individual object in the
+archive to do nothing, and the second line changes the default rule for
+building an archive to update all the outdated objects (@code{$?}) in one
+command.
+
+Of course you will still need to declare the prerequisites of your library
+using the archive syntax:
+
+@example
+libfoo.a: libfoo.a(x.o y.o @dots{})
+@end example
+
+If you prefer to write an explicit rule you can use:
+
+@example
+libfoo.a: libfoo.a(x.o y.o @dots{})
+        $(AR) $(ARFLAGS) $@ $?
+@end example
 
 @node Archive Suffix Rules,  , Archive Pitfalls, Archives
 @section Suffix Rules for Archive Files
