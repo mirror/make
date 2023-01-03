@@ -35,4 +35,15 @@ run_make_test(undef, '--warn-undefined-variables',
 #MAKEFILE#:9: warning: undefined variable 'UNDEFINED'
 ref");
 
+# sv 63609.
+# Test for buffer overrun in warn_undefined.
+run_make_test(q!
+all:;
+X := $(averyveryverylongvariablename)
+!,
+              '--warn-undefined-variables',
+              "#MAKEFILE#:3: warning: undefined variable 'averyveryverylongvariablename'
+#MAKE#: 'all' is up to date.\n"
+);
+
 1;

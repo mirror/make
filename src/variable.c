@@ -1793,20 +1793,34 @@ try_variable_definition (const floc *flocp, const char *line,
 /* These variables are internal to make, and so considered "defined" for the
    purposes of warn_undefined even if they are not really defined.  */
 
-static const char *const defined_vars[] = {
-  "MAKECMDGOALS", "MAKE_RESTARTS", "MAKE_TERMOUT", "MAKE_TERMERR",
-  "MAKEOVERRIDES", ".DEFAULT", "-*-command-variables-*-", "-*-eval-flags-*-",
-  "VPATH", "GPATH",
-  NULL };
+struct defined_vars
+  {
+    const char *name;
+    size_t len;
+  };
+
+static const struct defined_vars defined_vars[] = {
+  { STRING_SIZE_TUPLE ("MAKECMDGOALS") },
+  { STRING_SIZE_TUPLE ("MAKE_RESTARTS") },
+  { STRING_SIZE_TUPLE ("MAKE_TERMOUT") },
+  { STRING_SIZE_TUPLE ("MAKE_TERMERR") },
+  { STRING_SIZE_TUPLE ("MAKEOVERRIDES") },
+  { STRING_SIZE_TUPLE (".DEFAULT") },
+  { STRING_SIZE_TUPLE ("-*-command-variables-*-") },
+  { STRING_SIZE_TUPLE ("-*-eval-flags-*-") },
+  { STRING_SIZE_TUPLE ("VPATH") },
+  { STRING_SIZE_TUPLE ("GPATH") },
+  { NULL, 0 }
+};
 
 void
 warn_undefined (const char *name, size_t len)
 {
   if (warn_undefined_variables_flag)
     {
-      const char *const *cp;
-      for (cp = defined_vars; *cp != NULL; ++cp)
-        if (memcmp (*cp, name, len) == 0 && (*cp)[len] == '\0')
+      const struct defined_vars *dp;
+      for (dp = defined_vars; dp->name != NULL; ++dp)
+        if (dp->len == len && memcmp (dp->name, name, len) == 0)
           return;
 
       error (reading_file, len, _("warning: undefined variable '%.*s'"),
