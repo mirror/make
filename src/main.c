@@ -1920,7 +1920,7 @@ main (int argc, char **argv, char **envp)
          allow the user's setting of MAKEOVERRIDES to affect MAKEFLAGS, so
          a reference to this hidden variable is written instead. */
       define_variable_cname ("MAKEOVERRIDES", "${-*-command-variables-*-}",
-                             o_env, 1);
+                             o_default, 1);
 #ifdef VMS
       vms_export_dcl_symbol ("MAKEOVERRIDES", "${-*-command-variables-*-}");
 #endif

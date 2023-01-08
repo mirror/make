@@ -1114,8 +1114,9 @@ target_environment (struct file *file, int recursive)
 
         /* If V is recursively expanded and didn't come from the environment,
            expand its value.  If it came from the environment, it should
-           go back into the environment unchanged.  */
-        if (v->recursive && v->origin != o_env && v->origin != o_env_override)
+           go back into the environment unchanged... except MAKEFLAGS.  */
+        if (v->recursive && ((v->origin != o_env && v->origin != o_env_override)
+                             || streq (v->name, MAKEFLAGS_NAME)))
           value = cp = recursively_expand_for_file (v, file);
 
         /* If this is the SHELL variable remember we already added it.  */
