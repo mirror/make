@@ -471,6 +471,10 @@ AC_SUBST_FILE([MAINT_MAKEFILE])
 # Allow building with dmalloc
 AM_WITH_DMALLOC
 
+# Add custom header to config.h
+AH_BOTTOM([/* Include customized declarations.  */
+#include "../src/mkcustom.h"])
+
 # Forcibly disable SET_MAKE.  If it's set it breaks things like the test
 # scripts, etc.
 SET_MAKE=

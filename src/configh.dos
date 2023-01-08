@@ -109,3 +109,6 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Define to 'unsigned long' or 'unsigned long long'
    if <inttypes.h> doesn't define.  */
 #define uintmax_t unsigned long long
+
+/* Include customized declarations.  */
+#include "../src/mkcustom.h"

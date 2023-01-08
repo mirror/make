@@ -629,3 +629,6 @@ char *ttyname (int);
 #ifdef HAVE_CYGWIN_SHELL
 #undef BATCH_MODE_ONLY_SHELL
 #endif
+
+/* Include customized declarations.  */
+#include "../src/mkcustom.h"

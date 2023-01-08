@@ -428,3 +428,6 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Build host information. */
 #define MAKE_HOST "VMS"
+
+/* Include customized declarations.  */
+#include "../src/mkcustom.h"

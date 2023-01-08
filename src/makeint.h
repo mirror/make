@@ -18,28 +18,6 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
    using -I. -I$srcdir will use ./config.h rather than $srcdir/config.h
    (which it would do because makeint.h was found in $srcdir).  */
 #include <config.h>
-#undef  HAVE_CONFIG_H
-#define HAVE_CONFIG_H 1
-
-/* Specify we want GNU source code.  This must be defined before any
-   system headers are included.  */
-
-#define _GNU_SOURCE 1
-
-/* AIX requires this to be the first thing in the file.  */
-#if HAVE_ALLOCA_H
-# include <alloca.h>
-#else
-# ifdef _AIX
- #pragma alloca
-# else
-#  if !defined(__GNUC__) && !defined(WINDOWS32)
-#   ifndef alloca /* predefined by HP cc +Olibcalls */
-char *alloca ();
-#   endif
-#  endif
-# endif
-#endif
 
 /* Some versions of GCC (e.g., 10.x) set the warn_unused_result attribute on
    __builtin_alloca.  This causes alloca(0) to fail and is not easily worked
@@ -82,7 +60,6 @@ char *alloca ();
 # define __NO_STRING_INLINES
 #endif
 
-#include <stddef.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <signal.h>
@@ -712,9 +689,6 @@ char *getwd (void);
 #  define strcasecmp stricmp
 # elif HAVE_STRCMPI
 #  define strcasecmp strcmpi
-# else
-/* Create our own, in misc.c */
-int strcasecmp (const char *s1, const char *s2);
 # endif
 #endif
 
@@ -723,20 +697,7 @@ int strcasecmp (const char *s1, const char *s2);
 #  define strncasecmp strnicmp
 # elif HAVE_STRNCMPI
 #  define strncasecmp strncmpi
-# else
-/* Create our own, in misc.c */
-int strncasecmp (const char *s1, const char *s2, size_t n);
 # endif
-#endif
-
-#if !HAVE_MEMPCPY
-/* Create our own, in misc.c */
-void *mempcpy (void *dest, const void *src, size_t n);
-#endif
-
-#if !HAVE_STPCPY
-/* Create our own, in misc.c */
-char *stpcpy (char *dest, const char *src);
 #endif
 
 #define OUTPUT_SYNC_NONE    0
