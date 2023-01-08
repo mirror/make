@@ -2586,6 +2586,11 @@ exec_command (char **argv, char **envp)
   if (errno == ENOENT)
     errno = ENOEXEC;
 
+# elif MK_OS_ZOS
+  /* In z/OS we can't set environ in ASCII mode. */
+  environ = envp;
+  execvpe(argv[0], argv, envp);
+
 # else
 
   /* Run the program.  Don't use execvpe() as we want the search for argv[0]
@@ -2653,6 +2658,9 @@ exec_command (char **argv, char **envp)
         pid = spawnvpe (P_NOWAIT, shell, new_argv, envp);
         if (pid >= 0)
           break;
+# elif MK_OS_ZOS
+        /* In z/OS we can't set environ in ASCII mode. */
+        execvpe(shell, new_argv, envp);
 # else
         execvp (shell, new_argv);
 # endif

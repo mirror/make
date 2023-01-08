@@ -82,6 +82,11 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 extern int errno;
 #endif
 
+/* Define macros specifying which OS we are building for.  */
+#if defined(__MVS__)
+# define MK_OS_ZOS 1
+#endif
+
 #ifdef __VMS
 /* In strict ANSI mode, VMS compilers should not be defining the
    VMS macro.  Define it here instead of a bulk edit for the correct code.

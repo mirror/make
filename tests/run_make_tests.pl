@@ -104,6 +104,7 @@ if ($^O eq 'VMS')
 # We want them from the C locale regardless of our current locale.
 
 $ERR_no_such_file = undef;
+$ERR_no_such_file_code = "2";
 $ERR_read_only_file = undef;
 $ERR_unreadable_file = undef;
 $ERR_nonexe_file = undef;
@@ -423,6 +424,9 @@ sub set_defaults
       print "Opened non-existent file! Skipping related tests.\n";
   } else {
       $ERR_no_such_file = "$!";
+      if ($osname eq 'os390') {
+          $ERR_no_such_file_code = "129";
+      }
   }
 
   unlink('file.out');

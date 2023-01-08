@@ -67,13 +67,15 @@ use POSIX ();
 &utouch(-600, 'bye.mk');
 close(STDIN);
 open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
+
 run_make_test(q!
 include bye.mk
-pid:=$(shell echo $$PPID)
+pid := $(shell echo $$PPID)
 all:;
-bye.mk: force; @#HELPER# term $(pid) sleep 10
+bye.mk: force; @#HELPER# -q term $(pid) sleep 10
 force:
-!, '-f-', '/#MAKE#: \*\*\* \[#MAKEFILE#:5: bye.mk] Terminated/', POSIX::SIGTERM);
+!,
+              '-f-', '#MAKE#: *** [#MAKEFILE#:5: bye.mk] Terminated', POSIX::SIGTERM);
 }
 unlink($fout);
 

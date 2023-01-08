@@ -112,7 +112,7 @@ test_FILES =	tests/run_make_tests tests/run_make_tests.bat \
 # test/scripts are added via dist-hook below.
 
 EXTRA_DIST =	ChangeLog INSTALL README build.sh build.cfg.in $(man_MANS) \
-		src/mkconfig.h README.customs README.OS2 \
+		src/mkconfig.h README.customs README.OS2 README.zOS \
 		README.Amiga SCOPTIONS src/config.ami \
 		README.DOS builddos.bat src/configh.dos \
 		README.W32 build_w32.bat src/config.h.W32 \

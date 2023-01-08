@@ -148,7 +148,7 @@ sub resetENV
   # through Perl 5.004.  It was fixed in Perl 5.004_01, but we don't
   # want to require that here, so just delete each one individually.
 
-  if ($^O ne 'VMS') {
+  if ($osname ne 'VMS') {
     foreach $v (keys %ENV) {
       delete $ENV{$v};
     }
@@ -205,6 +205,9 @@ sub toplevel
            'PURIFYOPTIONS',
            # Windows-specific things
            'Path', 'SystemRoot', 'TEMP', 'TMP', 'USERPROFILE', 'PATHEXT',
+           # z/OS specific things
+           'LIBPATH', '_BPXK_AUTOCVT',
+           '_TAG_REDIR_IN',  '_TAG_REDIR_OUT',
            # DJGPP-specific things
            'DJDIR', 'DJGPP', 'SHELL', 'COMSPEC', 'HOSTNAME', 'LFN',
            'FNCASE', '387', 'EMU387', 'GROUP'
@@ -417,8 +420,7 @@ sub get_osname
     $port_type = 'VMS-DCL';
   }
   # Everything else, right now, is UNIX.  Note that we should integrate
-  # the VOS support into this as well and get rid of $vos; we'll do
-  # that next time.
+  # the VOS support into this as well and get rid of $vos
   else {
     $port_type = 'UNIX';
   }
@@ -615,7 +617,7 @@ sub run_all_tests
     $perl_testname = "$scriptpath$pathsep$testname";
     $testname =~ s/(\.pl|\.perl)$//;
     $testpath = "$workpath$pathsep$testname";
-    $extext = '_' if $^O eq 'VMS';
+    $extext = '_' if $osname eq 'VMS';
     $log_filename = "$testpath.$logext";
     $diff_filename = "$testpath.$diffext";
     $base_filename = "$testpath.$baseext";
@@ -906,6 +908,21 @@ sub compare_answer_vms
   return 0;
 }
 
+sub compare_answer_zos
+{
+  my ($kgo, $log) = @_;
+
+  # z/OS emits "Error 143" or "SIGTERM" instead of terminated
+  $log =~ s/Error 143/Terminated/gm;
+  $log =~ s/SIGTERM/Terminated/gm;
+
+  # z/OS error messages have a prefix
+  $log =~ s/EDC5129I No such file or directory\./No such file or directory/gm;
+  $log =~ s/FSUM7351 not found/not found/gm;
+
+  return $log eq $kgo;
+}
+
 sub compare_answer
 {
   my ($kgo, $log) = @_;
@@ -937,7 +954,10 @@ sub compare_answer
   return 1 if ($mlog eq $mkgo);
 
   # VMS is a whole thing...
-  return 1 if ($^O eq 'VMS' && compare_answer_vms($kgo, $log));
+  return 1 if ($osname eq 'VMS' && compare_answer_vms($kgo, $log));
+
+  # z/OS has its own quirks
+  return 1 if ($osname eq 'os390' && compare_answer_zos($kgo, $log));
 
   # See if the answer might be a regex.
   if ($kgo =~ m,^/(.+)/$,) {
@@ -1067,7 +1087,7 @@ sub detach_default_output
   @OUTSTACK or error("default output stack has flown under!\n", 1);
 
   close(STDOUT);
-  close(STDERR) unless $^O eq 'VMS';
+  close(STDERR) unless $osname eq 'VMS';
 
 
   open (STDOUT, '>&', pop @OUTSTACK) or error("ddo: $! duping STDOUT\n", 1);
@@ -1077,7 +1097,7 @@ sub detach_default_output
 sub _run_with_timeout
 {
   my $code;
-  if ($^O eq 'VMS') {
+  if ($osname eq 'VMS') {
     #local $SIG{ALRM} = sub {
     #    my $e = $ERRSTACK[0];
     #    print $e "\nTest timed out after $test_timeout seconds\n";
@@ -1173,7 +1193,7 @@ sub run_command
   print "\nrun_command: @_\n" if $debug;
   my $code = _run_command(@_);
   print "run_command returned $code.\n" if $debug;
-  print "vms status = ${^CHILD_ERROR_NATIVE}\n" if $debug and $^O eq 'VMS';
+  print "vms status = ${^CHILD_ERROR_NATIVE}\n" if $debug and $osname eq 'VMS';
   return $code;
 }
 
@@ -1195,7 +1215,7 @@ sub run_command_with_output
   $err and die $err;
 
   print "run_command_with_output returned $code.\n" if $debug;
-  print "vms status = ${^CHILD_ERROR_NATIVE}\n" if $debug and $^O eq 'VMS';
+  print "vms status = ${^CHILD_ERROR_NATIVE}\n" if $debug and $osname eq 'VMS';
   return $code;
 }
 
@@ -1243,7 +1263,7 @@ sub remove_directory_tree_inner
         return 0;
       }
     } else {
-      if ($^O ne 'VMS') {
+      if ($osname ne 'VMS') {
         if (!unlink $object) {
           print "Cannot unlink $object: $!\n";
           return 0;

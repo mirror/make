@@ -115,7 +115,7 @@ all:; @print "it works\n"
 SHELL = #PERL#
 .SHELLFLAGS =
 all:; @print "it works"
-!, '', "Can't open perl script \"print \"it works\"\": $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:5: all] Error 2", 512);
+!, '', "Can't open perl script \"print \"it works\"\": $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:5: all] Error $ERR_no_such_file_code", 512);
 
     # No .SHELLFLAGS.
     # sv 61805.
@@ -123,7 +123,7 @@ all:; @print "it works"
 .ONESHELL:
 SHELL = #PERL#
 all:; @print "it works"
-!, '', "Can't open perl script \"print \"it works\"\": $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:4: all] Error 2", 512);
+!, '', "Can't open perl script \"print \"it works\"\": $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:4: all] Error $ERR_no_such_file_code", 512);
 
     # Pass a quoted string with spaces to oneshell.
     # sv 61805.

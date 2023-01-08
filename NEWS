@@ -31,6 +31,10 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=110&se
   builds with archive creation.  See the "Dangers When Using Archives" section
   of the GNU Make manual, and https://savannah.gnu.org/bugs/index.php?14927
 
+* New platform: GNU Make is supported on z/OS
+  Thanks to Igor Todorovski <itodorov@ca.ibm.com> for the patches and testing
+  assistance.
+
 * Previously target-specific variables would inherit their "export" capability
   from parent target-specific variables even if they were marked private.  Now
   private parent target-specific variables have no affect.  For more details

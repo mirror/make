@@ -66,8 +66,8 @@ one two:;@echo "$@: $(SHELL) $$SHELL"
 
 # Test .SHELLFLAGS
 
-# We don't know the output here: on Solaris for example, every line printed
-# by the shell in -x mode has a trailing space (!!)
+# We don't know the output here: on some systems, for example, every line
+# printed by the shell in -x mode has a trailing space!
 my $script = 'true; true';
 my $flags = '-xc';
 my $out = `$sh_name $flags '$script' 2>&1`;
@@ -94,10 +94,14 @@ all: ; \@$script
               '', $out);
 }
 
+$script = subst_make_string('true; #HELPER# -q fail 1; true');
+$flags = '-xec';
+$out = `$sh_name $flags '$script' 2>&1`;
+
 run_make_test(qq!
-.SHELLFLAGS = -xec
-all: ; \@true; #HELPER# -q fail 1; true
+.SHELLFLAGS = $flags
+all: ; \@$script
 !,
-              '', "+ true\n+ #HELPER# -q fail 1\n#MAKE#: *** [#MAKEFILE#:3: all] Error 1\n", 512);
+              '', "${out}#MAKE#: *** [#MAKEFILE#:3: all] Error 1", 512);
 
 1;

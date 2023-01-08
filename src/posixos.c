@@ -24,6 +24,10 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #elif defined(HAVE_SYS_FILE_H)
 # include <sys/file.h>
 #endif
+#if MK_OS_ZOS
+/* FIXME: HAVE_PSELECT path hangs on z/OS */
+#undef HAVE_PSELECT
+#endif
 
 #if !defined(FD_OK)
 # define FD_OK(_f) 1
@@ -617,7 +621,7 @@ jobserver_acquire (int timeout)
      go back and reap_children(), and try again.  */
   errno = saved_errno;
 
-  if (errno != EINTR && errno != EBADF)
+  if (errno != EINTR && errno != EBADF && errno != EAGAIN)
     pfatal_with_name (_("read jobs pipe"));
 
   if (errno == EBADF)

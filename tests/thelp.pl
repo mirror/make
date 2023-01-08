@@ -108,7 +108,7 @@ sub op {
     }
 
     if ($op eq 'term') {
-        print "term $nm\n";
+        print "term $nm\n" unless $quiet;
         kill('TERM', $nm);
         return 1;
     }

@@ -42,19 +42,13 @@ defines="-DLOCALEDIR=\"$localedir\" -DLIBDIR=\"$libdir\" -DINCLUDEDIR=\"$include
 # Print the value to stdout.
 get_mk_var ()
 {
-  file=$1
-  var=$2
-
-  val=
-  v=$(sed -e :a -e '/\\$/N; s/\\\n//; ta' "$file" | sed -n "s=^ *$var *\= *==p")
+  v=$(sed -e :a -e '/\\$/N; s/\\\n//; ta' "$1" | sed -n "s=^ *$2 *\= *==p")
   for w in $v; do
     case $w in
-      (\$[\(\{]*[\)\}]) w=${w#\$[\(\{]}; w=$(get_mk_var "$file" "${w%[\)\}]}") ;;
+      (\$[\(\{]*[\)\}]) w=${w#\$[\(\{]}; (get_mk_var "$1" "${w%[\)\}]}") ;;
+      (*) echo "$w" ;;
     esac
-    val="${val:+$val }$w"
   done
-
-  printf '%s\n' "$val"
 }
 
 # Compile source files.  Object files are put into $objs.

@@ -19,10 +19,14 @@ all: ; @echo "<$(demo1)> <$(demo2)> <$(demo3)> <$(demo4)> <${demo5}>"
               '', "<  1   2 3 4  5     6   > <7 8  > <7 8  > < 2 3 > < 2 3  >\n");
 
 # TEST 1: Handle '#' the same way as BSD make
+$hashOctal = "\\043";
+if ($osname eq 'os390') {
+  $hashOctal = "\\173";
+}
 
 run_make_test('
 foo1!=echo bar#baz
-hash != printf \'\043\'
+hash != printf \'' . $hashOctal . '\'
 foo2!= echo "bar$(hash)baz"
 
 all: ; @echo "<$(foo1)> <$(hash)> <$(foo2)>"

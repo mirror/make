@@ -1159,7 +1159,11 @@ temp_stdin_unlink ()
     }
 }
 
-#ifdef _AMIGA
+#ifdef MK_OS_ZOS
+extern char **environ;
+#endif
+
+#if defined(_AMIGA) || defined(MK_OS_ZOS)
 int
 main (int argc, char **argv)
 #else
@@ -1476,6 +1480,10 @@ main (int argc, char **argv, char **envp)
   /* Read in variables from the environment.  It is important that this be
      done before $(MAKE) is figured out so its definitions will not be
      from the environment.  */
+
+#ifdef MK_OS_ZOS
+  char **envp = environ;
+#endif
 
 #ifndef _AMIGA
   {
@@ -1997,7 +2005,7 @@ main (int argc, char **argv, char **envp)
 # endif
   }
 
-#ifdef HAVE_PSELECT
+#if defined(HAVE_PSELECT) && !defined(MK_OS_ZOS)
   /* If we have pselect() then we need to block SIGCHLD so it's deferred.  */
   {
     sigset_t block;

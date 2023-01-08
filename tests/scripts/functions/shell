@@ -148,7 +148,9 @@ all: ; @echo $(.SHELLSTATUS)
        # Solaris 10 perl 5.8.4 puts signal number + 128 into the high 8 bits.
        $ret >>= 8;
     }
-    $ret |= 128;
+    if ($osname ne 'os390') {
+      $ret |= 128;
+    }
 
     run_make_test('.PHONY: all
 $(shell kill -2 $$$$)

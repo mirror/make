@@ -16,12 +16,18 @@ all: ; \@#HELPER# -q fail 1; true
 # User settings must override .POSIX
 # In the standard .POSIX must be the first thing in the makefile
 # but we relax that rule in GNU Make.
+
+# Different versions of sh generate different output for -x so check it
+my $script = subst_make_string('#HELPER# -q fail 1; true');
+my $flags = '-xc';
+my $out = `$sh_name $flags '$script' 2>&1`;
+
 run_make_test(qq!
-.SHELLFLAGS = -xc
+.SHELLFLAGS = $flags
 .POSIX:
-all: ; \@#HELPER# -q fail 1; true
+all: ; \@$script
 !,
-              '', "+ #HELPER# -q fail 1\n+ true\n");
+              '', $out);
 
 # Test the default value of various POSIX-specific variables
 my %POSIX = (AR => 'ar', ARFLAGS => '-rv',

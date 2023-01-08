@@ -360,8 +360,8 @@ use POSIX ();
 # file.
 run_make_test(q!
 pid:=$(shell echo $$PPID)
-all:; @#HELPER# term $(pid) sleep 10
-!, '-O -j2', '/#MAKE#: \*\*\* \[#MAKEFILE#:3: all] Terminated/', POSIX::SIGTERM);
+all:; @#HELPER# -q term $(pid) sleep 10
+!, '-O -j2', '#MAKE#: *** [#MAKEFILE#:3: all] Terminated', POSIX::SIGTERM);
 }
 unlink($fout);
 

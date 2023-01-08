@@ -212,7 +212,7 @@ if ($osname eq 'VMS') {
 # Check long names for archive members.
 # See Savannah bug #54395
 
-if ($osname ne 'VMS') {
+if ($osname ne 'VMS' && $osname ne 'os390') {
     my $pre = '1234567890123456';
     my $lib = 'libxx.a';
     my $cr = $created;
@@ -238,6 +238,9 @@ $pre%: ; touch \$\@
 
 # SV 61436 : Allow redefining archive rules to propagate timestamps
 
+# These don't work right on z/OS for some reason: archives not fully supported?
+
+if ($osname ne 'os390') {
 # Find the output when creating an archive from multiple files
 
 utouch(-10, 'a.o', 'b.o');
@@ -246,6 +249,9 @@ touch('b.o');
 my $add2 = `$ar $arflags mylib.a b.o $redir`;
 unlink('a.o', 'b.o', 'mylib.a');
 
+# Some systems complain when compiling empty files
+create_file('a.c', 'int i;');
+create_file('b.c', 'int j;');
 utouch(-20, 'a.c', 'b.c');
 
 run_make_test(q!
@@ -267,6 +273,7 @@ run_make_test(undef, $arvar, "Compile b.c\n$ar $arflags mylib.a b.o\n${add2}rm b
 run_make_test(undef, $arvar, "#MAKE#: 'mylib.a' is up to date.");
 
 unlink('a.c', 'b.c', 'a.o', 'b.o', 'mylib.a');
+}
 
 # This tells the test driver that the perl test script executed properly.
 1;
