@@ -73,7 +73,7 @@ III. ***** COMPILATION AND INSTALLATION *****
     To recreate the configuration files use:
 
       export EMXSHELL=ksh
-      aclocal -I config
+      aclocal -I m4
       automake
       autoconf
       autoheader
@@ -93,7 +93,7 @@ Recommended environment variables and installation options:
     export CFLAGS="-O2 -Zomf -Zmt"
     export LDFLAGS="-Zcrtdll -Zlinker /exepack:2 -Zlinker /pm:vio -Zstack 0x6000"
     export RANLIB="echo"
-    ./configure --prefix=x:/usr --infodir=x:/usr/share/info --mandir=x:/usr/share/man --without-included-gettext
+    ./configure --prefix=x:/usr --infodir=x:/usr/share/info --mandir=x:/usr/share/man
     make AR=emxomfar
     make install
 
@@ -101,6 +101,9 @@ Note: If you use gcc 2.9.x I recommend to set also LIBS="-lgcc"
 
 Note: You can add -DNO_CMD_DEFAULT and -DNO_CHDIR2 to CPPFLAGS.
       See section I. for details.
+
+Note: If you use Open Watcom Linker instead of IBM Linker, remove
+      '-Zlinker /exepack:2' from LDFLAGS.
 
 
 IV. ***** NLS support *****

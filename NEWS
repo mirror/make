@@ -40,6 +40,9 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=110&se
   private parent target-specific variables have no affect.  For more details
   see https://savannah.gnu.org/bugs/index.php?61463
 
+* Updates to allow building on OS/2
+  Provided by KO Myung-Hun <komh78@gmail.com>
+
 
 Version 4.4 (31 Oct 2022)
 

@@ -2641,7 +2641,7 @@ exec_command (char **argv, char **envp)
 # ifdef __EMX__
         if (!unixy_shell)
           {
-            new_argv[1] = "/c";
+            new_argv[1] = (char *)"/c";
             ++i;
             --argc;
           }
@@ -3270,7 +3270,13 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
 
 # ifdef __EMX__ /* is this necessary? */
     if (!unixy_shell && shellflags)
-      shellflags[0] = '/'; /* "/c" */
+      {
+        size_t len = strlen (shellflags);
+        char *shflags = alloca (len + 1);
+        memcpy (shflags, shellflags, len + 1);
+        shflags[0] = '/'; /* "/c" */
+        shellflags = shflags;
+      }
 # endif
 
     /* In .ONESHELL mode we are allowed to throw the entire current
@@ -3593,9 +3599,9 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
         /* new_line is local, must not be freed therefore
            We use line here instead of new_line because we run the shell
            manually.  */
-        size_t line_len = strlen (line);
-        char *p = new_line;
         char *q = new_line;
+        line_len = strlen (line);
+        p = new_line;
         memcpy (new_line, line, line_len + 1);
         /* Replace all backslash-newline combination and also following tabs.
            Important: stop at the first '\n' because that's what the loop above

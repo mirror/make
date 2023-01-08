@@ -2800,7 +2800,7 @@ main (int argc, char **argv, char **envp)
             child.output.syncout = 0;
             child.environment = environ;
 
-            pid = child_execute_job (&child, 1, nargv);
+            pid = child_execute_job (&child, 1, (char **)nargv);
 
             /* is this loop really necessary? */
             do {

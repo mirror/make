@@ -659,7 +659,13 @@ dir_contents_file_exists_p (struct directory *dir,
 
 #ifdef __EMX__
   if (filename != NULL)
-    _fnlwr (filename); /* lower case for FAT drives */
+    {
+      size_t len = strlen (filename);
+      char *fname = alloca (len + 1);
+      memcpy (fname, filename, len + 1);
+      _fnlwr (fname); /* lower case for FAT drives */
+      filename = fname;
+    }
 #endif
   if (filename != NULL)
     {

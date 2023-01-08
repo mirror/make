@@ -136,6 +136,9 @@ set_blocking (int fd, int blocking)
       if (r < 0)
         pfatal_with_name ("fcntl(O_NONBLOCK)");
     }
+#else
+  (void) fd;
+  (void) blocking;
 #endif
 }
 
