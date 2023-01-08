@@ -47,7 +47,9 @@ USA.  */
    it is simpler to just do this in the source for each such file.  */
 
 #define GLOB_INTERFACE_VERSION 1
-#if !defined _LIBC && defined __GNU_LIBRARY__ && __GNU_LIBRARY__ > 1
+#if defined _LIBC
+# define ELIDE_CODE
+#elif defined __GNU_LIBRARY__ && __GNU_LIBRARY__ > 1
 # include <gnu-versions.h>
 # if _GNU_GLOB_INTERFACE_VERSION == GLOB_INTERFACE_VERSION
 #  define ELIDE_CODE
@@ -60,7 +62,7 @@ USA.  */
 # include <stddef.h>
 #endif
 
-#if defined HAVE_UNISTD_H || defined _LIBC
+#if defined HAVE_UNISTD_H
 # include <unistd.h>
 # ifndef POSIX
 #  ifdef _POSIX_VERSION
@@ -124,7 +126,7 @@ extern int errno;
 #include <stdlib.h>
 #include <string.h>
 
-#if !defined HAVE_STRCOLL && !defined _LIBC
+#if !defined HAVE_STRCOLL
 # define strcoll	strcmp
 #endif
 
@@ -155,26 +157,11 @@ extern char *alloca ();
 #endif
 
 #ifndef __GNU_LIBRARY__
-# define __stat stat
 # ifdef STAT_MACROS_BROKEN
 #  undef S_ISDIR
 # endif
 # ifndef S_ISDIR
 #  define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
-# endif
-#endif
-
-#ifdef _LIBC
-# undef strdup
-# define strdup(str) __strdup (str)
-# define sysconf(id) __sysconf (id)
-# define closedir(dir) __closedir (dir)
-# define opendir(name) __opendir (name)
-# define readdir(str) __readdir (str)
-# define getpwnam_r(name, bufp, buf, len, res) \
-   __getpwnam_r (name, bufp, buf, len, res)
-# ifndef __stat
-#  define __stat(fname, buf) __xstat (_STAT_VER, fname, buf)
 # endif
 #endif
 
@@ -205,10 +192,6 @@ extern char *alloca ();
 # define __alloca alloca
 #endif
 
-#if !defined __stat
-# define __stat stat
-#endif
-
 #ifdef HAVE_GETLOGIN_R
 extern int getlogin_r (char *, size_t);
 #else
@@ -227,7 +210,7 @@ static int glob_in_dir (const char *pattern, const char *directory,
 static int prefix_array (const char *prefix, char **array, size_t n);
 static int collated_compare (const void *, const void *);
 
-#if !defined _LIBC || !defined NO_GLOB_PATTERN_P
+#if !defined NO_GLOB_PATTERN_P
 int __glob_pattern_p (const char *pattern, int quote);
 #endif
 
@@ -564,7 +547,7 @@ glob (const char *pattern, int flags,
 	    {
 	      int success;
 	      char *name;
-#   if defined HAVE_GETLOGIN_R || defined _LIBC
+#   if defined HAVE_GETLOGIN_R
 	      size_t buflen = sysconf (_SC_LOGIN_NAME_MAX) + 1;
 
 	      if (buflen == 0)
@@ -580,7 +563,7 @@ glob (const char *pattern, int flags,
 	      if (success)
 		{
 		  struct passwd *p;
-#   if defined HAVE_GETPWNAM_R || defined _LIBC
+#   if defined HAVE_GETPWNAM_R
 		  size_t pwbuflen = sysconf (_SC_GETPW_R_SIZE_MAX);
 		  char *pwtmpbuf;
 		  struct passwd pwbuf;
@@ -665,7 +648,7 @@ glob (const char *pattern, int flags,
 	  /* Look up specific user's home directory.  */
 	  {
 	    struct passwd *p;
-#  if defined HAVE_GETPWNAM_R || defined _LIBC
+#  if defined HAVE_GETPWNAM_R
 	    size_t buflen = sysconf (_SC_GETPW_R_SIZE_MAX);
 	    char *pwtmpbuf;
 	    struct passwd pwbuf;
@@ -733,7 +716,7 @@ glob (const char *pattern, int flags,
       if ((flags & GLOB_NOCHECK)
 	  || (((flags & GLOB_ALTDIRFUNC)
 	       ? (*pglob->gl_stat) (dirname, &st)
-	       : __stat (dirname, &st)) == 0
+	       : stat (dirname, &st)) == 0
 	      && S_ISDIR (st.st_mode)))
 	{
 	  pglob->gl_pathv
@@ -750,7 +733,7 @@ glob (const char *pattern, int flags,
 	    while (pglob->gl_pathc < pglob->gl_offs)
 	      pglob->gl_pathv[pglob->gl_pathc++] = NULL;
 
-#if defined HAVE_STRDUP || defined _LIBC
+#if defined HAVE_STRDUP
 	  pglob->gl_pathv[pglob->gl_pathc] = strdup (dirname);
 #else
 	  {
@@ -879,7 +862,7 @@ glob (const char *pattern, int flags,
 
 		  /* First check whether this really is a directory.  */
 		  if (((flags & GLOB_ALTDIRFUNC)
-		       ? (*pglob->gl_stat) (dir, &st) : __stat (dir, &st)) != 0
+		       ? (*pglob->gl_stat) (dir, &st) : stat (dir, &st)) != 0
 		      || !S_ISDIR (st.st_mode))
 		    /* No directory, ignore this entry.  */
 		    continue;
@@ -955,7 +938,7 @@ glob (const char *pattern, int flags,
       for (i = oldcount; i < pglob->gl_pathc; ++i)
 	if (((flags & GLOB_ALTDIRFUNC)
 	     ? (*pglob->gl_stat) (pglob->gl_pathv[i], &st)
-	     : __stat (pglob->gl_pathv[i], &st)) == 0
+	     : stat (pglob->gl_pathv[i], &st)) == 0
 	    && S_ISDIR (st.st_mode))
 	  {
  	    size_t len = strlen (pglob->gl_pathv[i]) + 2;
@@ -1085,7 +1068,7 @@ prefix_array (const char *dirname, char **array, size_t n)
 
 
 /* We must not compile this function twice.  */
-#if !defined _LIBC || !defined NO_GLOB_PATTERN_P
+#if !defined NO_GLOB_PATTERN_P
 /* Return nonzero if PATTERN contains any metacharacters.
    Metacharacters can be quoted with backslashes if QUOTE is nonzero.  */
 int
@@ -1118,9 +1101,6 @@ __glob_pattern_p (const char *pattern, int quote)
 
   return 0;
 }
-# ifdef _LIBC
-weak_alias (__glob_pattern_p, glob_pattern_p)
-# endif
 #endif
 
 
@@ -1176,7 +1156,7 @@ glob_in_dir (const char *pattern, const char *directory, int flags,
 # endif
 	  if (((flags & GLOB_ALTDIRFUNC)
 	       ? (*pglob->gl_stat) (fullname, &st)
-	       : __stat (fullname, &st)) == 0)
+	       : stat (fullname, &st)) == 0)
 	    /* We found this file to be existing.  Now tell the rest
 	       of the function to copy this name into the result.  */
 	    flags |= GLOB_NOCHECK;
