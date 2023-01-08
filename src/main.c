@@ -34,9 +34,6 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef WINDOWS32
 # include <windows.h>
 # include <io.h>
-#ifdef HAVE_STRINGS_H
-# include <strings.h> /* for strcasecmp */
-#endif
 # include "pathstuff.h"
 # include "sub_proc.h"
 # include "w32err.h"

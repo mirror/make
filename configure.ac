@@ -64,9 +64,9 @@ AC_SEARCH_LIBS([getpwnam], [sun])
 AC_HEADER_DIRENT
 AC_HEADER_STAT
 
-AC_CHECK_HEADERS([stdlib.h locale.h unistd.h limits.h fcntl.h string.h \
+AC_CHECK_HEADERS([stdlib.h string.h strings.h locale.h unistd.h limits.h \
                   memory.h sys/param.h sys/resource.h sys/timeb.h sys/time.h \
-                  sys/select.h sys/file.h spawn.h])
+                  sys/select.h sys/file.h fcntl.h spawn.h])
 
 AM_PROG_CC_C_O
 AC_C_CONST

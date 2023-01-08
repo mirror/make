@@ -251,8 +251,6 @@ extern int vms_unix_simulation;
 # ifdef HAVE_STRING_H
 #  include <string.h>
 #  define ANSI_STRING 1
-# else
-#  include <strings.h>
 # endif
 # ifdef HAVE_MEMORY_H
 #  include <memory.h>
@@ -294,6 +292,10 @@ char *strerror (int errnum);
 #endif
 #if HAVE_STDINT_H
 # include <stdint.h>
+#endif
+
+#if HAVE_STRINGS_H
+# include <strings.h>  /* Needed for strcasecmp / strncasecmp.  */
 #endif
 
 #if defined _MSC_VER || defined __MINGW32__
