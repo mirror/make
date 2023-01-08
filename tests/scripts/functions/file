@@ -23,7 +23,7 @@ define A
 a
 b
 endef
-$(file     >>     file.out,$(A))
+$(file     >>     file.out    ,$(A))
 x:;@cat file.out
 !,
               '', "a\nb");
@@ -218,5 +218,15 @@ run_make_test('$(file <)', '',
 
 run_make_test('$(file foo)', '',
               "#MAKEFILE#:1: *** file: invalid file operation: foo.  Stop.\n", 512);
+
+# SV 17448: check whitespace
+create_file('out1', "1\n");
+
+run_make_test(q!
+all:;$(info $(file <  out1  ))
+!,
+              '', "1\n#MAKE#: 'all' is up to date.");
+
+unlink('out1');
 
 1;

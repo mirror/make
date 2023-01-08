@@ -2327,6 +2327,10 @@ func_file (char *o, char **argv, const char *funcname UNUSED)
 
   if (fn[0] == '>')
     {
+      size_t len;
+      const char *end;
+      const char *start;
+      char *nm;
       FILE *fp;
       const char *mode = "w";
 
@@ -2337,14 +2341,21 @@ func_file (char *o, char **argv, const char *funcname UNUSED)
           mode = "a";
           ++fn;
         }
-      NEXT_TOKEN (fn);
 
-      if (fn[0] == '\0')
+      start = next_token (fn);
+
+      if (start[0] == '\0')
         O (fatal, *expanding_var, _("file: missing filename"));
 
-      ENULLLOOP (fp, fopen (fn, mode));
+      end = end_of_token (start);
+      len = end - start;
+      nm = alloca (len + 1);
+      memcpy (nm, start, len);
+      nm[len] = '\0';
+
+      ENULLLOOP (fp, fopen (nm, mode));
       if (fp == NULL)
-        OSS (fatal, reading_file, _("open: %s: %s"), fn, strerror (errno));
+        OSS (fatal, reading_file, _("open: %s: %s"), nm, strerror (errno));
 
       /* We've changed the contents of a directory, possibly.
          Another option would be to look up the directory we changed and reset
@@ -2357,30 +2368,44 @@ func_file (char *o, char **argv, const char *funcname UNUSED)
           int nl = l == 0 || argv[1][l-1] != '\n';
 
           if (fputs (argv[1], fp) == EOF || (nl && fputc ('\n', fp) == EOF))
-            OSS (fatal, reading_file, _("write: %s: %s"), fn, strerror (errno));
+            OSS (fatal, reading_file, _("write: %s: %s"), nm, strerror (errno));
         }
       if (fclose (fp))
-        OSS (fatal, reading_file, _("close: %s: %s"), fn, strerror (errno));
+        OSS (fatal, reading_file, _("close: %s: %s"), nm, strerror (errno));
     }
   else if (fn[0] == '<')
     {
       size_t n = 0;
+      size_t len;
+      const char *end;
+      const char *start;
+      char *nm;
       FILE *fp;
 
-      ++fn;
-      NEXT_TOKEN (fn);
-      if (fn[0] == '\0')
+      start = next_token (fn + 1);
+
+      if (start[0] == '\0')
         O (fatal, *expanding_var, _("file: missing filename"));
 
       if (argv[1])
         O (fatal, *expanding_var, _("file: too many arguments"));
 
-      ENULLLOOP (fp, fopen (fn, "r"));
+      end = end_of_token (start);
+      len = end - start;
+      nm = alloca (len + 1);
+      memcpy (nm, start, len);
+      nm[len] = '\0';
+
+      ENULLLOOP (fp, fopen (nm, "r"));
       if (fp == NULL)
         {
           if (errno == ENOENT)
-            return o;
-          OSS (fatal, reading_file, _("open: %s: %s"), fn, strerror (errno));
+            {
+              DB (DB_VERBOSE, (_("file: Failed to open '%s': %s\n"),
+                               nm, strerror (errno)));
+              return o;
+            }
+          OSS (fatal, reading_file, _("open: %s: %s"), nm, strerror (errno));
         }
 
       while (1)
@@ -2394,12 +2419,12 @@ func_file (char *o, char **argv, const char *funcname UNUSED)
             }
           if (ferror (fp))
             if (errno != EINTR)
-              OSS (fatal, reading_file, _("read: %s: %s"), fn, strerror (errno));
+              OSS (fatal, reading_file, _("read: %s: %s"), nm, strerror (errno));
           if (feof (fp))
             break;
         }
       if (fclose (fp))
-        OSS (fatal, reading_file, _("close: %s: %s"), fn, strerror (errno));
+        OSS (fatal, reading_file, _("close: %s: %s"), nm, strerror (errno));
 
       /* Remove trailing newline.  */
       if (n && o[-1] == '\n')

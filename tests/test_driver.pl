@@ -434,7 +434,7 @@ sub get_osname
   # See if the filesystem supports long file names with multiple
   # dots.  DOS doesn't.
   $short_filenames = 0;
-  (open (TOUCHFD, "> fancy.file.name") and close (TOUCHFD))
+  (open (TOUCHFD, '>', 'fancy.file.name') and close (TOUCHFD))
       or $short_filenames = 1;
   unlink ("fancy.file.name") or $short_filenames = 1;
 
@@ -1287,7 +1287,7 @@ sub remove_directory_tree_inner
 #
 #  foreach my $file (@filenames) {
 #    utime ($now, $now, $file)
-#          or (open (TOUCHFD, ">> $file") and close (TOUCHFD))
+#          or (open (TOUCHFD, '>>', $file) and close (TOUCHFD))
 #               or &error ("Couldn't touch $file: $!\n", 1);
 #  }
 #  return 1;
@@ -1334,7 +1334,7 @@ sub create_file
 {
   my ($filename, @lines) = @_;
 
-  open (CF, "> $filename") or &error ("Couldn't open $filename: $!\n", 1);
+  open (CF, '>', $filename) or &error ("Couldn't open '$filename': $!\n", 1);
   foreach $line (@lines) {
     print CF $line;
   }
