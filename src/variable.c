@@ -2005,8 +2005,10 @@ sync_Path_environment ()
   if (!path)
     return;
 
-  /* Convert PATH into something WINDOWS32 world can grok.  */
-  convert_Path_to_windows32 (path, ';');
+  /* Convert the value of PATH into something WINDOWS32 world can grok.
+    Note: convert_Path_to_windows32 must see only the value of PATH,
+    and see it from its first character, to do its tricky job.  */
+  convert_Path_to_windows32 (path + CSTRLEN ("PATH="), ';');
 
   environ_path = path;
   putenv (environ_path);
