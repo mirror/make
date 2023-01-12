@@ -155,6 +155,8 @@ for my $opt (@opts) {
     run_make_test('', "-f$bye $opt", $answer);
 }
 
+
+# This close MUST come at the end of the test!!
 close(STDIN);
 unlink($hello, $bye, $byesrc);
 

@@ -163,7 +163,7 @@ include hello.d
 
 unlink('hello.td');
 
-# Test DV 62088 : make sure we don't re-invoke for stdin makefiles.
+# Test SV 62088 : make sure we don't re-invoke for stdin makefiles.
 # The test framework doesn't seem to have a good way to do this.
 
 create_file('input.mk', "all:;\$(info all)\n");
@@ -173,6 +173,8 @@ open(STDIN, "<", 'input.mk') || die "input.mk: $!\n";
 
 run_make_test('', '-sf -', "all\n");
 
+
+# This close MUST come at the end of the test!!
 close(STDIN);
 unlink('input.mk');
 
