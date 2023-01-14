@@ -269,7 +269,7 @@ package from there:
 If you don't want to create a new repository then run "git clean -fdx".
 Then:
 
-  ./bootstrap.sh
+  ./bootstrap
   ./configure
   make distcheck
 

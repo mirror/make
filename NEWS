@@ -1,6 +1,6 @@
 GNU Make NEWS                                               -*-indented-text-*-
   History of user-visible changes.
-  01 January 2023
+  14 January 2023
 
 See the end of this file for copyrights and conditions.
 
@@ -8,8 +8,9 @@ All user-visible changes are more fully described in the GNU Make manual,
 which is contained in this distribution as the file doc/make.texi.
 See the README file and the GNU Make manual for instructions for
 reporting bugs.
+
 
-Version 4.4.1 (01 Jan 2023)
+Version 4.4.0.90 (14 Jan 2023)
 
 This release is primarily a bug-fix release.
 A complete list of bugs fixed in this version is available here:

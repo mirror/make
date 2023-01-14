@@ -300,6 +300,7 @@ CONFIG_CHECKS := \
 
 .PHONY: check-alt-config
 check-alt-config: $(CONFIG_CHECKS)
+	@echo --- $@ SUCCESS
 
 # Trick GNU Make so it doesn't run the submake as a recursive make.
 NR_MAKE = $(MAKE)
@@ -503,42 +504,12 @@ tag-release:
 # Sign it with my key.  If you don't have my key/passphrase then sorry,
 # you're SOL! :)
 
-GPG = gpg
-GPGFLAGS = -u $(GPG_KEYID)
-
-DIST_ARCHIVES_SIG = $(addsuffix .sig,$(DIST_ARCHIVES))
-DIST_ARCHIVES_DIRECTIVE = $(addsuffix .directive.asc,$(DIST_ARCHIVES))
-
-# A simple rule to test signing, etc.
-.PHONY: distsign
-distsign: $(DIST_ARCHIVES_SIG) $(DIST_ARCHIVES_DIRECTIVE)
-
-%.sig : %
-	@echo "Signing file '$<':"
-	$(GPG) $(GPGFLAGS) -o "$@" -b "$<"
-
-%.directive.asc: %
-	@echo "Creating signed directive file '$@':"
-	@( \
-	   echo 'version: 1.2'; \
-	   echo 'directory: make'; \
-	   echo 'filename: $*'; \
-	   echo 'comment: Official upload of $(PACKAGE_NAME) version $(PACKAGE_VERSION)'; \
-	 ) > "$*.directive"
-	$(GPG) $(GPGFLAGS) -o "$@" --clearsign "$*.directive"
-	@rm -f "$*.directive"
-
-# Upload the artifacts
-
-FTPPUT := $(firstword $(shell command -v ncftpput) $(wildcard $(GNULIBDIR)/build-aux/ncftpput-ftp) invalid)
-gnu-upload-host = ftp-upload.gnu.org
-gnu-upload-dir  = /incoming
-
+GNUPLOAD := $(GNULIBDIR)/build-aux/gnupload
 
 UPLOADS = upload-alpha upload-ftp
 .PHONY: $(UPLOADS)
-$(UPLOADS): $(DIST_ARCHIVES) $(DIST_ARCHIVES_SIG) $(DIST_ARCHIVES_DIRECTIVE)
-	$(FTPPUT) "$(gnu-upload-host)" "$(gnu-upload-dir)/$(@:upload-%=%)" $^
+$(UPLOADS): upload-%: $(DIST_ARCHIVES)
+	$(GNUPLOAD) --user "$(GPG_KEYID)" --to "$*.gnu.org:make" -- $^
 
 
 # Rebuild Makefile.in if this file is modified.
