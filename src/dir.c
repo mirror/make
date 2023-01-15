@@ -114,10 +114,6 @@ dosify (const char *filename)
 #include "pathstuff.h"
 #endif
 
-#ifdef _AMIGA
-#include <ctype.h>
-#endif
-
 #ifdef HAVE_CASE_INSENSITIVE_FS
 static const char *
 downcase (const char *filename)
@@ -853,11 +849,7 @@ file_exists_p (const char *name)
   }
 #endif /* HAVE_DOS_PATHS */
   if (dirend == NULL)
-#ifndef _AMIGA
     return dir_file_exists_p (".", name);
-#else /* !AMIGA */
-    return dir_file_exists_p ("", name);
-#endif /* AMIGA */
 
   slash = dirend;
   if (dirend == name)
@@ -927,11 +919,7 @@ file_impossible (const char *filename)
   }
 #endif /* HAVE_DOS_PATHS */
   if (dirend == NULL)
-#ifdef _AMIGA
-    dir = find_directory ("");
-#else /* !AMIGA */
     dir = find_directory (".");
-#endif /* AMIGA */
   else
     {
       const char *dirname;
@@ -1023,11 +1011,7 @@ file_impossible_p (const char *filename)
   }
 #endif /* HAVE_DOS_PATHS */
   if (dirend == NULL)
-#ifdef _AMIGA
-    dir = find_directory ("")->contents;
-#else /* !AMIGA */
     dir = find_directory (".")->contents;
-#endif /* AMIGA */
   else
     {
       const char *dirname;

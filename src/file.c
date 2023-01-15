@@ -116,11 +116,7 @@ lookup_file (const char *name)
   if (*name == '\0')
     {
       /* It was all slashes after a dot.  */
-#if defined(_AMIGA)
-      name = "";
-#else
       name = "./";
-#endif
 #if defined(VMS)
       /* TODO - This section is probably not needed. */
       if (want_vmsify)

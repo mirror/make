@@ -177,8 +177,6 @@ Ports
 
   - See README.VMS for details about GNU Make on OpenVMS.
 
-  - See README.Amiga for details about GNU Make on AmigaDOS.
-
   - See README.zOS for details about GNU Make on z/OS.
 
   - See README.W32 for details about GNU Make on Windows NT, 95, or 98.

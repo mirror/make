@@ -32,9 +32,6 @@ GNU Make porting efforts:
         John W. Eaton <jwe@bevo.che.wisc.edu>
         Martin Zinser <zinser@decus.decus.de>
 
-  Port to Amiga by:
-      Aaron Digulla <digulla@fh-konstanz.de>
-
   Port to MS-Windows (native/MinGW) maintained by:
       Eli Zaretskii <eliz@gnu.org>
 
@@ -65,6 +62,7 @@ Other contributors:
   Joe Crayne <oh.hello.joe@gmail.com>
   Jeremy Devenport <jeremy.devenport@gmail.com>
   Pete Dietl <petedietl@gmail.com>
+  Aaron Digulla <digulla@fh-konstanz.de>
   Martin Dorey <martin.dorey@hds.com>
   Christian Eggers <ceggers@arri.de>
   Paul Eggert <eggert@twinsun.com>

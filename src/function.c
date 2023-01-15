@@ -23,10 +23,6 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "commands.h"
 #include "debug.h"
 
-#ifdef _AMIGA
-#include "amiga.h"
-#endif
-
 
 struct function_table_entry
   {
@@ -638,11 +634,7 @@ func_basename_dir (char *o, char **argv, const char *funcname)
             o = variable_buffer_output (o, "[]", 2);
         }
 #else
-#ifndef _AMIGA
       o = variable_buffer_output (o, "./", 2);
-#else
-      ; /* Just a nop...  */
-#endif /* AMIGA */
 #endif /* !VMS */
       else
         /* The entire name is the basename.  */
@@ -1528,12 +1520,8 @@ func_and (char *o, char **argv, const char *funcname UNUSED)
 static char *
 func_wildcard (char *o, char **argv, const char *funcname UNUSED)
 {
-#ifdef _AMIGA
-   o = wildcard_expansion (argv[0], o);
-#else
    char *p = string_glob (argv[0]);
    o = variable_buffer_output (o, p, strlen (p));
-#endif
    return o;
 }
 
@@ -1834,7 +1822,6 @@ func_shell_base (char *o, char **argv, int trim_newlines)
 #define func_shell 0
 
 #else
-#ifndef _AMIGA
 char *
 func_shell_base (char *o, char **argv, int trim_newlines)
 {
@@ -2007,94 +1994,6 @@ func_shell_base (char *o, char **argv, int trim_newlines)
 
   return o;
 }
-
-#else   /* _AMIGA */
-
-/* Do the Amiga version of func_shell.  */
-
-char *
-func_shell_base (char *o, char **argv, int trim_newlines)
-{
-  /* Amiga can't fork nor spawn, but I can start a program with
-     redirection of my choice.  However, this means that we
-     don't have an opportunity to reopen stdout to trap it.  Thus,
-     we save our own stdout onto a new descriptor and dup a temp
-     file's descriptor onto our stdout temporarily.  After we
-     spawn the shell program, we dup our own stdout back to the
-     stdout descriptor.  The buffer reading is the same as above,
-     except that we're now reading from a file.  */
-
-#include <dos/dos.h>
-#include <proto/dos.h>
-
-  BPTR child_stdout;
-  char tmp_output[FILENAME_MAX];
-  size_t maxlen = 200, i;
-  int cc;
-  char * buffer, * ptr;
-  char ** aptr;
-  size_t len = 0;
-  char* batch_filename = NULL;
-
-  /* Construct the argument list.  */
-  command_argv = construct_command_argv (argv[0], NULL, NULL, 0,
-                                         &batch_filename);
-  if (command_argv == 0)
-    return o;
-
-  /* Note the mktemp() is a security hole, but this only runs on Amiga.
-     Ideally we would use get_tmpfile(), but this uses a special Open(), not
-     fopen(), and I'm not familiar enough with the code to mess with it.  */
-  strcpy (tmp_output, "t:MakeshXXXXXXXX");
-  mktemp (tmp_output);
-  child_stdout = Open (tmp_output, MODE_NEWFILE);
-
-  for (aptr=command_argv; *aptr; aptr++)
-    len += strlen (*aptr) + 1;
-
-  buffer = xmalloc (len + 1);
-  ptr = buffer;
-
-  for (aptr=command_argv; *aptr; aptr++)
-    {
-      strcpy (ptr, *aptr);
-      ptr += strlen (ptr) + 1;
-      *(ptr++) = ' ';
-      *ptr = '\0';
-    }
-
-  ptr[-1] = '\n';
-
-  Execute (buffer, NULL, child_stdout);
-  free (buffer);
-
-  Close (child_stdout);
-
-  child_stdout = Open (tmp_output, MODE_OLDFILE);
-
-  buffer = xmalloc (maxlen);
-  i = 0;
-  do
-    {
-      if (i == maxlen)
-        {
-          maxlen += 512;
-          buffer = xrealloc (buffer, maxlen + 1);
-        }
-
-      cc = Read (child_stdout, &buffer[i], maxlen - i);
-      if (cc > 0)
-        i += cc;
-    } while (cc > 0);
-
-  Close (child_stdout);
-
-  fold_newlines (buffer, &i, trim_newlines);
-  o = variable_buffer_output (o, buffer, i);
-  free (buffer);
-  return o;
-}
-#endif  /* _AMIGA */
 
 static char *
 func_shell (char *o, char **argv, const char *funcname UNUSED)

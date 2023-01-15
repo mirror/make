@@ -16,6 +16,10 @@ A complete list of bugs fixed in this version is available here:
 
 https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&set=custom
 
+* WARNING: Removed AmigaOS support!
+  This version of GNU Make no longer supports AmigaOS.  If you need support
+  for AmigaOS please use one of the older versions.
+
 
 Version 4.4.1 (26 Feb 2023)
 

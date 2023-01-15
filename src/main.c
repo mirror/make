@@ -27,10 +27,6 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "shuffle.h"
 
 #include <assert.h>
-#ifdef _AMIGA
-# include <dos/dos.h>
-# include <proto/dos.h>
-#endif
 #ifdef WINDOWS32
 # include <windows.h>
 # include <io.h>
@@ -46,9 +42,6 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 # include <fcntl.h>
 #endif
 
-#ifdef _AMIGA
-int __stack = 20000; /* Make sure we have 20K of stack space */
-#endif
 #ifdef VMS
 int vms_use_mcr_command = 0;
 int vms_always_use_cmd_file = 0;
@@ -1164,7 +1157,7 @@ temp_stdin_unlink ()
 extern char **environ;
 #endif
 
-#if defined(_AMIGA) || defined(MK_OS_ZOS)
+#if defined(MK_OS_ZOS)
 int
 main (int argc, char **argv)
 #else
@@ -1486,7 +1479,6 @@ main (int argc, char **argv, char **envp)
   char **envp = environ;
 #endif
 
-#ifndef _AMIGA
   {
     unsigned int i;
 
@@ -1557,35 +1549,6 @@ main (int argc, char **argv, char **envp)
   if (!unix_path)
     define_variable_cname ("PATH", windows32_path ? windows32_path : "",
                            o_env, 1)->export = v_export;
-#endif
-#else /* For Amiga, read the ENV: device, ignoring all dirs */
-  {
-    BPTR env, file, old;
-    char buffer[1024];
-    int len;
-    __aligned struct FileInfoBlock fib;
-
-    env = Lock ("ENV:", ACCESS_READ);
-    if (env)
-      {
-        old = CurrentDir (DupLock (env));
-        Examine (env, &fib);
-
-        while (ExNext (env, &fib))
-          {
-            if (fib.fib_DirEntryType < 0) /* File */
-              {
-                /* Define an empty variable. It will be filled in
-                   variable_lookup(). Makes startup quite a bit faster. */
-                define_variable (fib.fib_FileName,
-                                 strlen (fib.fib_FileName),
-                                 "", o_env, 1)->export = v_export;
-              }
-          }
-        UnLock (env);
-        UnLock (CurrentDir (old));
-      }
-  }
 #endif
 
   /* Decode the switches.  */
@@ -2729,7 +2692,6 @@ main (int argc, char **argv, char **envp)
               fflush (stdout);
             }
 
-#ifndef _AMIGA
           {
             char **p;
             for (p = environ; *p != 0; ++p)
@@ -2751,18 +2713,6 @@ main (int argc, char **argv, char **envp)
                   }
               }
           }
-#else /* AMIGA */
-          {
-            char buffer[256];
-
-            sprintf (buffer, "%u", makelevel);
-            SetVar (MAKELEVEL_NAME, buffer, -1, GVF_GLOBAL_ONLY);
-
-            sprintf (buffer, "%s%u", OUTPUT_IS_TRACED () ? "-" : "", restarts);
-            SetVar ("MAKE_RESTARTS", buffer, -1, GVF_GLOBAL_ONLY);
-            restarts = 0;
-          }
-#endif
 
           /* If we didn't set the restarts variable yet, add it.  */
           if (restarts)
@@ -2781,10 +2731,7 @@ main (int argc, char **argv, char **envp)
           /* The exec'd "child" will be another make, of course.  */
           jobserver_pre_child(1);
 
-#ifdef _AMIGA
-          exec_command (nargv);
-          exit (0);
-#elif defined (__EMX__)
+#if defined (__EMX__)
           {
             /* It is not possible to use execve() here because this
                would cause the parent process to be terminated with

@@ -1689,10 +1689,8 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
 {
   static const char *dirs[] =
     {
-#ifndef _AMIGA
       "/lib",
       "/usr/lib",
-#endif
 #if defined(WINDOWS32) && !defined(LIBDIR)
 /*
  * This is completely up to the user at product install time. Just define

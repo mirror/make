@@ -49,8 +49,6 @@ w32_SRCS =	src/w32/pathstuff.c src/w32/w32os.c src/w32/compat/dirent.c \
 vms_SRCS =	src/vms_exit.c src/vms_export_symbol.c src/vms_progname.c \
 		src/vmsdir.h src/vmsfunctions.c src/vmsify.c
 
-amiga_SRCS =	src/amiga.c src/amiga.h
-
 glob_SRCS =	lib/fnmatch.c lib/fnmatch.h lib/glob.c lib/glob.h
 
 alloca_SRCS =	lib/alloca.c
@@ -58,7 +56,7 @@ alloca_SRCS =	lib/alloca.c
 loadavg_SRCS =	lib/getloadavg.c
 
 make_SOURCES =	$(make_SRCS)
-EXTRA_make_SOURCES = $(amiga_SRCS) $(vms_SRCS)
+EXTRA_make_SOURCES = $(vms_SRCS)
 
 if HAVE_GUILE
   _GUILE_CFLAGS = $(GUILE_CFLAGS)
@@ -98,7 +96,7 @@ endif
 
 # Extra stuff to include in the distribution.
 
-mk_FILES =	Basic.mk mk/msdosdjgpp.mk mk/Amiga.mk mk/VMS.mk mk/Windows32.mk
+mk_FILES =	Basic.mk mk/msdosdjgpp.mk mk/VMS.mk mk/Windows32.mk
 # We don't need this, since the standard automake output will do.
 #mk/Posix.mk.in
 
@@ -113,7 +111,6 @@ test_FILES =	tests/run_make_tests tests/run_make_tests.bat \
 
 EXTRA_DIST =	ChangeLog INSTALL README build.sh build.cfg.in $(man_MANS) \
 		src/mkconfig.h README.customs README.OS2 README.zOS \
-		README.Amiga SCOPTIONS src/config.ami \
 		README.DOS builddos.bat src/configh.dos \
 		README.W32 build_w32.bat src/config.h.W32 \
 		README.VMS makefile.com src/config.h-vms src/vmsjobs.c \

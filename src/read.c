@@ -30,17 +30,13 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #ifdef WINDOWS32
-#include <windows.h>
-#include "sub_proc.h"
-#else  /* !WINDOWS32 */
-#ifndef _AMIGA
-#ifndef VMS
-#include <pwd.h>
-#else
+# include <windows.h>
+# include "sub_proc.h"
+#elif defined(VMS)
 struct passwd *getpwnam (char *name);
+#else
+# include <pwd.h>
 #endif
-#endif
-#endif /* !WINDOWS32 */
 
 /* A 'struct ebuffer' controls the origin of the makefile we are currently
    eval'ing.
@@ -110,12 +106,10 @@ static const char *default_include_directories[] =
 #if defined(INCLUDEDIR)
     INCLUDEDIR,
 #endif
-#ifndef _AMIGA
     "/usr/gnu/include",
     "/usr/local/include",
     "/usr/include",
-#endif
-    0
+    NULL
   };
 
 /* List of directories to search for include files in  */
@@ -234,15 +228,11 @@ read_all_makefiles (const char **makefiles)
         /* TODO: Above is not always true, this needs more work */
         { "makefile.vms", "gnumakefile", "makefile", 0 };
 #else
-#ifdef _AMIGA
-        { "GNUmakefile", "Makefile", "SMakefile", 0 };
-#else /* !Amiga && !VMS */
 #ifdef WINDOWS32
         { "GNUmakefile", "makefile", "Makefile", "makefile.mak", 0 };
-#else /* !Amiga && !VMS && !WINDOWS32 */
+#else /* !VMS && !WINDOWS32 */
         { "GNUmakefile", "makefile", "Makefile", 0 };
-#endif /* !Amiga && !VMS && !WINDOWS32 */
-#endif /* AMIGA */
+#endif /* !VMS && !WINDOWS32 */
 #endif /* VMS */
       const char **p = default_makefiles;
       while (*p != 0 && !file_exists_p (*p))
@@ -1263,22 +1253,6 @@ eval (struct ebuffer *ebuf, int set_default)
             else
               break;
           }
-#ifdef _AMIGA
-        /* Here, the situation is quite complicated. Let's have a look
-           at a couple of targets:
-
-           install: dev:make
-
-           dev:make: make
-
-           dev:make:: xyz
-
-           The rule is that it's only a target, if there are TWO :'s
-           OR a space around the :.
-        */
-        if (p && !(ISSPACE (p[1]) || !p[1] || ISSPACE (p[-1])))
-          p = 0;
-#endif
 #ifdef HAVE_DOS_PATHS
         {
           int check_again;
@@ -3108,7 +3082,7 @@ tilde_expand (const char *name)
           free (home_dir);
           home_dir = getenv ("HOME");
         }
-# if !defined(_AMIGA) && !defined(WINDOWS32)
+# if !defined(WINDOWS32)
       if (home_dir == 0 || home_dir[0] == '\0')
         {
           char *logname = getlogin ();
@@ -3120,7 +3094,7 @@ tilde_expand (const char *name)
                 home_dir = p->pw_dir;
             }
         }
-# endif /* !AMIGA && !WINDOWS32 */
+# endif /* !WINDOWS32 */
       if (home_dir != 0)
         {
           char *new = xstrdup (concat (2, home_dir, name + 1));
@@ -3129,7 +3103,7 @@ tilde_expand (const char *name)
           return new;
         }
     }
-# if !defined(_AMIGA) && !defined(WINDOWS32)
+# if !defined(WINDOWS32)
   else
     {
       struct passwd *pwent;
@@ -3148,7 +3122,7 @@ tilde_expand (const char *name)
       else if (userend != 0)
         *userend = '/';
     }
-# endif /* !AMIGA && !WINDOWS32 */
+# endif /* !WINDOWS32 */
 #endif /* !VMS */
   return 0;
 }
@@ -3265,11 +3239,6 @@ parse_file_seq (char **stringp, size_t size, int stopmap,
       if (p && *p == ',')
         *p =' ';
 #endif
-#ifdef _AMIGA
-      /* If we stopped due to a device name, skip it.  */
-      if (p && p != s+1 && p[0] == ':')
-        p = find_map_unquote (p+1, findmap);
-#endif
 #ifdef HAVE_DOS_PATHS
       /* If we stopped due to a drive specifier, skip it.
          Tokens separated by spaces are treated as separate paths since make
@@ -3315,16 +3284,10 @@ parse_file_seq (char **stringp, size_t size, int stopmap,
       if (s == p)
         {
         /* The name was stripped to empty ("./"). */
-#if defined(_AMIGA)
-          /* PDS-- This cannot be right!! */
-          tp[0] = '\0';
-          nlen = 0;
-#else
           tp[0] = '.';
           tp[1] = '/';
           tp[2] = '\0';
           nlen = 2;
-#endif
         }
       else
         {

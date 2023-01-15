@@ -37,12 +37,6 @@ int no_default_sh_exe = 1;
 int batch_mode_shell = 1;
 HANDLE main_thread;
 
-#elif defined (_AMIGA)
-
-const char *default_shell = "";
-extern int MyExecute (char **);
-int batch_mode_shell = 0;
-
 #elif defined (__MSDOS__)
 
 /* The default shell is a pointer so we can change it if Makefile
@@ -88,14 +82,6 @@ static int dos_pid = 123;
 int dos_status;
 int dos_command_running;
 #endif /* __MSDOS__ */
-
-#ifdef _AMIGA
-# include <proto/dos.h>
-static int amiga_pid = 123;
-static int amiga_status;
-static char amiga_bname[32];
-static int amiga_batch_file;
-#endif /* Amiga.  */
 
 #ifdef VMS
 # ifndef __GNUC__
@@ -738,7 +724,7 @@ reap_children (int block, int err)
       else
         {
           /* No remote children.  Check for local children.  */
-#if !defined(__MSDOS__) && !defined(_AMIGA) && !defined(WINDOWS32)
+#if !defined(__MSDOS__) && !defined(WINDOWS32)
           if (any_local)
             {
 #ifdef VMS
@@ -797,7 +783,7 @@ reap_children (int block, int err)
               /* We got a remote child.  */
               remote = 1;
             }
-#endif /* !__MSDOS__, !Amiga, !WINDOWS32.  */
+#endif /* !__MSDOS__, !WINDOWS32.  */
 
 #ifdef __MSDOS__
           /* Life is very different on MSDOS.  */
@@ -809,14 +795,6 @@ reap_children (int block, int err)
           exit_sig = WIFSIGNALED (status) ? WTERMSIG (status) : 0;
           coredump = 0;
 #endif /* __MSDOS__ */
-#ifdef _AMIGA
-          /* Same on Amiga */
-          pid = amiga_pid - 1;
-          status = amiga_status;
-          exit_code = amiga_status;
-          exit_sig = 0;
-          coredump = 0;
-#endif /* _AMIGA */
 #ifdef WINDOWS32
           {
             HANDLE hPID;
@@ -1373,7 +1351,7 @@ start_job_command (struct child *child)
      performed some action (makes a difference as to what messages are
      printed, etc.  */
 
-#if !defined(VMS) && !defined(_AMIGA)
+#if !defined(VMS)
   if (
 #if defined __MSDOS__ || defined (__EMX__)
       unixy_shell       /* the test is complicated and we already did it */
@@ -1391,7 +1369,7 @@ start_job_command (struct child *child)
       FREE_ARGV (argv);
       goto next_command;
     }
-#endif  /* !VMS && !_AMIGA */
+#endif  /* !VMS */
 
   /* If -n was given, recurse to get the next line in the sequence.  */
 
@@ -1419,7 +1397,6 @@ start_job_command (struct child *child)
 
   child->deleted = 0;
 
-#ifndef _AMIGA
   /* Set up the environment for the child.
      It's a slight inaccuracy to set the environment for recursive make even
      for command lines that aren't recursive, but I don't want to have to
@@ -1430,9 +1407,8 @@ start_job_command (struct child *child)
   if (child->environment == 0)
     child->environment = target_environment (child->file,
                                              child->file->cmds->any_recurse);
-#endif
 
-#if !defined(__MSDOS__) && !defined(_AMIGA) && !defined(WINDOWS32)
+#if !defined(__MSDOS__) && !defined(WINDOWS32)
 
 #ifndef VMS
   /* start_waiting_job has set CHILD->remote if we can start a remote job.  */
@@ -1481,7 +1457,7 @@ start_job_command (struct child *child)
 #endif /* !VMS */
     }
 
-#else   /* __MSDOS__ or Amiga or WINDOWS32 */
+#else   /* __MSDOS__ or WINDOWS32 */
 #ifdef __MSDOS__
   {
     int proc_return;
@@ -1538,17 +1514,6 @@ start_job_command (struct child *child)
     child->pid = dos_pid++;
   }
 #endif /* __MSDOS__ */
-#ifdef _AMIGA
-  amiga_status = MyExecute (argv);
-
-  ++dead_children;
-  child->pid = amiga_pid++;
-  if (amiga_batch_file)
-  {
-     amiga_batch_file = 0;
-     DeleteFile (amiga_bname);        /* Ignore errors.  */
-  }
-#endif  /* Amiga */
 #ifdef WINDOWS32
   {
       HANDLE hPID;
@@ -1593,7 +1558,7 @@ start_job_command (struct child *child)
         }
   }
 #endif /* WINDOWS32 */
-#endif  /* __MSDOS__ or Amiga or WINDOWS32 */
+#endif  /* __MSDOS__ or WINDOWS32 */
 
   /* Bump the number of jobs started in this second.  */
   if (child->pid >= 0)
@@ -2052,7 +2017,7 @@ job_next_command (struct child *child)
 static int
 load_too_high (void)
 {
-#if defined(__MSDOS__) || defined(VMS) || defined(_AMIGA) || defined(__riscos__)
+#if defined(__MSDOS__) || defined(VMS) || defined(__riscos__)
   return 1;
 #else
   static double last_sec;
@@ -2303,7 +2268,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
   return pid;
 }
 
-#elif !defined (_AMIGA) && !defined (__MSDOS__) && !defined (VMS)
+#elif !defined (__MSDOS__) && !defined (VMS)
 
 /* POSIX:
    Create a child process executing the command in ARGV.
@@ -2502,10 +2467,9 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
 
   return pid;
 }
-#endif /* !AMIGA && !__MSDOS__ && !VMS */
+#endif /* !__MSDOS__ && !VMS */
 #endif /* !WINDOWS32 */
 
-#ifndef _AMIGA
 /* Replace the current process with one running the command in ARGV,
    with environment ENVP.  This function does not return.  */
 
@@ -2691,19 +2655,6 @@ exec_command (char **argv, char **envp)
 #endif /* !WINDOWS32 */
 #endif /* !VMS */
 }
-#else /* On Amiga */
-void
-exec_command (char **argv)
-{
-  MyExecute (argv);
-}
-
-void clean_tmp (void)
-{
-  DeleteFile (amiga_bname);
-}
-
-#endif /* On Amiga */
 
 #ifndef VMS
 /* Figure out the argument list necessary to run LINE as a command.  Try to
@@ -2800,13 +2751,6 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
 
   const char *sh_chars;
   const char **sh_cmds;
-
-#elif defined (_AMIGA)
-  static const char *sh_chars = "#;\"|<>()?*$`";
-  static const char *sh_cmds[] =
-    { "cd", "eval", "if", "delete", "echo", "copy", "rename", "set", "setenv",
-      "date", "makedir", "skip", "else", "endif", "path", "prompt", "unset",
-      "unsetenv", "version", "command", 0 };
 
 #elif defined (WINDOWS32)
   /* We used to have a double quote (") in sh_chars_dos[] below, but
@@ -3216,34 +3160,6 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
   execute_by_shell = 1; /* actually, call 'system' if shell isn't unixy */
 #endif
 
-#ifdef _AMIGA
-  {
-    char *ptr;
-    char *buffer;
-    char *dptr;
-
-    buffer = xmalloc (strlen (line)+1);
-
-    ptr = line;
-    for (dptr=buffer; *ptr; )
-    {
-      if (*ptr == '\\' && ptr[1] == '\n')
-        ptr += 2;
-      else if (*ptr == '@') /* Kludge: multiline commands */
-      {
-        ptr += 2;
-        *dptr++ = '\n';
-      }
-      else
-        *dptr++ = *ptr++;
-    }
-    *dptr = 0;
-
-    new_argv = xmalloc (2 * sizeof (char *));
-    new_argv[0] = buffer;
-    new_argv[1] = 0;
-  }
-#else   /* Not Amiga  */
 #ifdef WINDOWS32
   /*
    * Not eating this whitespace caused things like
@@ -3690,7 +3606,6 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
 
     free (new_line);
   }
-#endif  /* ! AMIGA */
 
   return new_argv;
 }
@@ -3802,7 +3717,7 @@ construct_command_argv (char *line, char **restp, struct file *file,
   return argv;
 }
 
-#if !defined(HAVE_DUP2) && !defined(_AMIGA)
+#if !defined(HAVE_DUP2)
 int
 dup2 (int old, int new)
 {
@@ -3819,7 +3734,7 @@ dup2 (int old, int new)
 
   return fd;
 }
-#endif /* !HAVE_DUP2 && !_AMIGA */
+#endif /* !HAVE_DUP2 */
 
 /* On VMS systems, include special VMS functions.  */
 
