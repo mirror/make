@@ -58,12 +58,11 @@ use POSIX ();
 
 # sv 63157.
 # Test that make removes the temporary file which holds make code from stdin,
-# even when a signal is received.
-# include bye.mk and bye.mk: rule is needed to cause make to keep the temporary
-# file for re-exec. Without re-exec make will remove the file before the signal
-# arrives.
-# sleep is needed to let make write its "... Terminated" message to the log
-# file.
+# even when a signal is received.  include bye.mk and bye.mk: rule is needed
+# to cause make to keep the temporary file for re-exec. Without re-exec make
+# will remove the file before the signal arrives.  sleep is needed to let make
+# write its "... Terminated" message to the log file.  Must use REGEX because
+# some systems (MacOS) add extra text after Terminated.
 &utouch(-600, 'bye.mk');
 close(STDIN);
 open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
@@ -75,7 +74,7 @@ all:;
 bye.mk: force; @#HELPER# -q term $(pid) sleep 10
 force:
 !,
-              '-f-', '#MAKE#: *** [#MAKEFILE#:5: bye.mk] Terminated', POSIX::SIGTERM);
+              '-f-', '/#MAKE#: \*\*\* \[#MAKEFILE#:5: bye.mk] Terminated/', POSIX::SIGTERM);
 }
 unlink($fout);
 

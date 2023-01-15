@@ -908,9 +908,9 @@ sub compare_answer_vms
   return 0;
 }
 
-sub compare_answer_zos
+sub convert_answer_zos
 {
-  my ($kgo, $log) = @_;
+  my ($log) = @_;
 
   # z/OS emits "Error 143" or "SIGTERM" instead of terminated
   $log =~ s/Error 143/Terminated/gm;
@@ -920,7 +920,7 @@ sub compare_answer_zos
   $log =~ s/EDC5129I No such file or directory\./No such file or directory/gm;
   $log =~ s/FSUM7351 not found/not found/gm;
 
-  return $log eq $kgo;
+  return $log;
 }
 
 sub compare_answer
@@ -939,9 +939,15 @@ sub compare_answer
   $log =~ s,\r\n,\n,gs;
   return 1 if ($log eq $kgo);
 
-  # Keep these in case it's a regex
+  # Keep the originals in case it's a regex
   $mkgo = $kgo;
   $mlog = $log;
+
+  # z/OS has quirky outputs
+  if ($osname eq 'os390') {
+    $mlog = convert_answer_zos($mlog);
+    return 1 if ($mlog eq $kgo);
+  }
 
   # Some versions of Perl on Windows use /c instead of C:
   $mkgo =~ s,\b([A-Z]):,/\L$1,g;
@@ -955,9 +961,6 @@ sub compare_answer
 
   # VMS is a whole thing...
   return 1 if ($osname eq 'VMS' && compare_answer_vms($kgo, $log));
-
-  # z/OS has its own quirks
-  return 1 if ($osname eq 'os390' && compare_answer_zos($kgo, $log));
 
   # See if the answer might be a regex.
   if ($kgo =~ m,^/(.+)/$,) {
