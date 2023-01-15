@@ -254,12 +254,15 @@ create_file('a.c', 'int i;');
 create_file('b.c', 'int j;');
 utouch(-20, 'a.c', 'b.c');
 
+my $cc = get_config('CC') || 'cc';
+my $vars = "CC=$cc $arvar";
+
 run_make_test(q!
 mylib.a: mylib.a(a.o b.o)
 (%): % ;
 %.a: ; $(AR) $(ARFLAGS) $@ $?
 %.o : %.c ; @echo Compile $<; $(COMPILE.c) -o $@ $<
-!, $arvar, "Compile a.c\nCompile b.c\n$ar $arflags mylib.a a.o b.o\n${create2}rm b.o a.o");
+!, $vars, "Compile a.c\nCompile b.c\n$ar $arflags mylib.a a.o b.o\n${create2}rm b.o a.o");
 
 run_make_test(undef, $arvar, "#MAKE#: 'mylib.a' is up to date.");
 
