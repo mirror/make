@@ -196,7 +196,7 @@ convert_path_to_nutc(char *path)
                     p = ++etok;
                     continue;
                 } else if ((etok = strpbrk(etok+1, ":;")) == NULL)
-                    break;    /* thing found was a WINDOWS32 pathname */
+                    break;    /* thing found was a Windows32 pathname */
 
             /* save separator */
             sep = *etok;

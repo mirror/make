@@ -17,7 +17,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "makeint.h"
 #include "filedef.h"
 #include "variable.h"
-#ifdef WINDOWS32
+#if MK_OS_W32
 #include "pathstuff.h"
 #endif
 
@@ -185,7 +185,7 @@ construct_vpath_list (char *pattern, char *dirpath)
       return;
     }
 
-#ifdef WINDOWS32
+#if MK_OS_W32
     convert_vpath_to_windows32 (dirpath, ';');
 #endif
 

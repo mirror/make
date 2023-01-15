@@ -96,7 +96,7 @@ closedir(DIR *pDir)
                 return;
         }
 
-        /* close the WINDOWS32 directory handle */
+        /* close the Windows32 directory handle */
         if (pDir->dir_hDirHandle != INVALID_HANDLE_VALUE)
                 FindClose(pDir->dir_hDirHandle);
 
@@ -159,7 +159,7 @@ rewinddir(DIR* pDir)
                 return;
         }
 
-        /* close the WINDOWS32 directory handle */
+        /* close the Windows32 directory handle */
         if (pDir->dir_hDirHandle != INVALID_HANDLE_VALUE)
                 if (!FindClose(pDir->dir_hDirHandle))
                         errno = EBADF;

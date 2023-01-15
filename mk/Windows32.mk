@@ -43,7 +43,7 @@ LDFLAGS =
 msvc_CC = cl.exe
 msvc_LD = link.exe
 
-msvc_CPPFLAGS = /DHAVE_CONFIG_H /DWINDOWS32 /DWIN32 /D_CONSOLE
+msvc_CPPFLAGS = /DHAVE_CONFIG_H /DMK_OS_W32=1 /DWIN32 /D_CONSOLE
 msvc_CPPFLAGS += /I$(OUTDIR)src /I$(SRCDIR)/src /I$(SRCDIR)/src/w32/include /I$(OUTDIR)lib /I$(SRCDIR)/lib
 
 msvc_CFLAGS = /nologo /MT /W4 /EHsc

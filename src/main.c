@@ -27,7 +27,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "shuffle.h"
 
 #include <assert.h>
-#ifdef WINDOWS32
+#if MK_OS_W32
 # include <windows.h>
 # include <io.h>
 # include "pathstuff.h"
@@ -912,7 +912,7 @@ print_usage (int bad)
   die (bad ? MAKE_FAILURE : MAKE_SUCCESS);
 }
 
-#ifdef WINDOWS32
+#if MK_OS_W32
 
 /*
  * HANDLE runtime exceptions by avoiding a requestor on the GUI. Capture
@@ -1117,7 +1117,7 @@ find_and_set_default_shell (const char *token)
 
   return (sh_found);
 }
-#endif  /* WINDOWS32 */
+#endif  /* MK_OS_W32 */
 
 #ifdef __MSDOS__
 static void
@@ -1171,7 +1171,7 @@ main (int argc, char **argv, char **envp)
   unsigned int restarts = 0;
   unsigned int syncing = 0;
   int argv_slots;  /* The jobslot info we got from our parent process.  */
-#ifdef WINDOWS32
+#if MK_OS_W32
   const char *unix_path = NULL;
   const char *windows32_path = NULL;
 
@@ -1399,7 +1399,7 @@ main (int argc, char **argv, char **envp)
 
   /* Figure out where we are.  */
 
-#ifdef WINDOWS32
+#if MK_OS_W32
   if (getcwd_fs (current_directory, GET_PATH_MAX) == 0)
 #else
   if (getcwd (current_directory, GET_PATH_MAX) == 0)
@@ -1497,7 +1497,7 @@ main (int argc, char **argv, char **envp)
         if (*ep == '\0')
           continue;
 
-#ifdef WINDOWS32
+#if MK_OS_W32
         if (!unix_path && strneq (envp[i], "PATH=", 5))
           unix_path = ep+1;
         else if (!strnicmp (envp[i], "Path=", 5))
@@ -1542,7 +1542,7 @@ main (int argc, char **argv, char **envp)
         v->export = export;
       }
   }
-#ifdef WINDOWS32
+#if MK_OS_W32
   /* If we didn't find a correctly spelled PATH we define PATH as
    * either the first misspelled value or an empty string
    */
@@ -1683,7 +1683,7 @@ main (int argc, char **argv, char **envp)
      so the result will run the same program regardless of the current dir.
      If it is a name with no slash, we can only hope that PATH did not
      find it in the current directory.)  */
-#ifdef WINDOWS32
+#if MK_OS_W32
   /*
    * Convert from backslashes to forward slashes for
    * programs like sh which don't like them. Shouldn't
@@ -1693,7 +1693,7 @@ main (int argc, char **argv, char **envp)
   if (strpbrk (argv[0], "/:\\") || strstr (argv[0], "..")
       || strneq (argv[0], "//", 2))
     argv[0] = xstrdup (w32ify (argv[0], 1));
-#else /* WINDOWS32 */
+#else /* MK_OS_W32 */
 #if defined (__MSDOS__) || defined (__EMX__)
   if (strchr (argv[0], '\\'))
     {
@@ -1726,7 +1726,7 @@ main (int argc, char **argv, char **envp)
       )
     argv[0] = xstrdup (concat (3, current_directory, "/", argv[0]));
 #endif /* !__MSDOS__ */
-#endif /* WINDOWS32 */
+#endif /* MK_OS_W32 */
 #endif
 
   /* We may move, but until we do, here we are.  */
@@ -1739,8 +1739,8 @@ main (int argc, char **argv, char **envp)
       for (i = 0; directories->list[i] != 0; ++i)
         {
           const char *dir = directories->list[i];
-#ifdef WINDOWS32
-          /* WINDOWS32 chdir() doesn't work if the directory has a trailing '/'
+#if MK_OS_W32
+          /* Windows32 chdir() doesn't work if the directory has a trailing '/'
              But allow -C/ just in case someone wants that.  */
           {
             char *p = (char *)dir + strlen (dir) - 1;
@@ -1754,7 +1754,7 @@ main (int argc, char **argv, char **envp)
         }
     }
 
-#ifdef WINDOWS32
+#if MK_OS_W32
   /*
    * THIS BLOCK OF CODE MUST COME AFTER chdir() CALL ABOVE IN ORDER
    * TO NOT CONFUSE THE DEPENDENCY CHECKING CODE IN implicit.c.
@@ -1765,12 +1765,12 @@ main (int argc, char **argv, char **envp)
    * at the wrong place when it was first evaluated.
    */
   no_default_sh_exe = !find_and_set_default_shell (NULL);
-#endif /* WINDOWS32 */
+#endif /* MK_OS_W32 */
 
   /* If we chdir'ed, figure out where we are now.  */
   if (directories)
     {
-#ifdef WINDOWS32
+#if MK_OS_W32
       if (getcwd_fs (current_directory, GET_PATH_MAX) == 0)
 #else
       if (getcwd (current_directory, GET_PATH_MAX) == 0)
@@ -2104,11 +2104,11 @@ main (int argc, char **argv, char **envp)
       undefine_default_variables ();
   }
 
-#ifdef WINDOWS32
+#if MK_OS_W32
   /* look one last time after reading all Makefiles */
   if (no_default_sh_exe)
     no_default_sh_exe = !find_and_set_default_shell (NULL);
-#endif /* WINDOWS32 */
+#endif /* MK_OS_W32 */
 
 #if defined (__MSDOS__) || defined (__EMX__) || MK_OS_VMS
   /* We need to know what kind of shell we will be using.  */

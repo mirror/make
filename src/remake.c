@@ -33,7 +33,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #if MK_OS_VMS
 #include <starlet.h>
 #endif
-#ifdef WINDOWS32
+#if MK_OS_W32
 #include <windows.h>
 #include <io.h>
 #include <sys/stat.h>
@@ -1469,7 +1469,7 @@ f_mtime (struct file *file, int search)
 
       FILE_TIMESTAMP adjusted_mtime = mtime;
 
-#if defined(WINDOWS32) || defined(__MSDOS__)
+#if MK_OS_W32 || defined(__MSDOS__)
       /* Experimentation has shown that FAT filesystems can set file times
          up to 3 seconds into the future!  Play it safe.  */
 
@@ -1547,14 +1547,14 @@ static FILE_TIMESTAMP
 name_mtime (const char *name)
 {
   FILE_TIMESTAMP mtime;
-#if defined(WINDOWS32)
+#if MK_OS_W32
   struct STAT st;
 #else
   struct stat st;
 #endif
   int e;
 
-#if defined(WINDOWS32)
+#if MK_OS_W32
   {
     char tem[MAX_PATH+1], *tstart, *tend;
     const char *p = name + strlen (name);
@@ -1583,7 +1583,7 @@ name_mtime (const char *name)
         tend = &tem[0];
       }
 
-#if defined(WINDOWS32)
+#if MK_OS_W32
     e = STAT (tem, &st);
 #else
     e = stat (tem, &st);
@@ -1691,7 +1691,7 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
     {
       "/lib",
       "/usr/lib",
-#if defined(WINDOWS32) && !defined(LIBDIR)
+#if MK_OS_W32 && !defined(LIBDIR)
 /*
  * This is completely up to the user at product install time. Just define
  * a placeholder.

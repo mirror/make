@@ -17,10 +17,8 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "mkconfig.h"
 
-#define MK_W32 1
-
-/* Build for the WINDOWS32 API. */
-#define WINDOWS32 1
+/* Build for the Windows32 API. */
+#define MK_OS_W32 1
 
 /* Suppress some Visual C++ warnings.
    Maybe after the code cleanup for ISO C we can remove some/all of these.  */

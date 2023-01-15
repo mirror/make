@@ -29,7 +29,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "hash.h"
 
 
-#ifdef WINDOWS32
+#if MK_OS_W32
 # include <windows.h>
 # include "sub_proc.h"
 #elif MK_OS_VMS
@@ -98,7 +98,7 @@ static struct conditionals *conditionals = &toplevel_conditionals;
 
 static const char *default_include_directories[] =
   {
-#if defined(WINDOWS32) && !defined(INCLUDEDIR)
+#if MK_OS_W32 && !defined(INCLUDEDIR)
 /* This completely up to the user when they install MSVC or other packages.
    This is defined as a placeholder.  */
 # define INCLUDEDIR "."
@@ -228,11 +228,11 @@ read_all_makefiles (const char **makefiles)
         /* TODO: Above is not always true, this needs more work */
         { "makefile.vms", "gnumakefile", "makefile", 0 };
 #else
-#ifdef WINDOWS32
+#if MK_OS_W32
         { "GNUmakefile", "makefile", "Makefile", "makefile.mak", 0 };
-#else /* !MK_OS_VMS && !WINDOWS32 */
+#else /* !MK_OS_VMS && !MK_OS_W32 */
         { "GNUmakefile", "makefile", "Makefile", 0 };
-#endif /* !MK_OS_VMS && !WINDOWS32 */
+#endif /* !MK_OS_VMS && !MK_OS_W32 */
 #endif /* MK_OS_VMS */
       const char **p = default_makefiles;
       while (*p != 0 && !file_exists_p (*p))
@@ -2673,7 +2673,7 @@ readline (struct ebuffer *ebuf)
       /* We got a newline, so add one to the count of lines.  */
       ++nlines;
 
-#if !defined(WINDOWS32) && !defined(__MSDOS__) && !defined(__EMX__)
+#if !MK_OS_W32 && !defined(__MSDOS__) && !defined(__EMX__)
       /* Check to see if the line was really ended with CRLF; if so ignore
          the CR.  */
       if ((p - start) > 1 && p[-2] == '\r')
@@ -3082,7 +3082,7 @@ tilde_expand (const char *name)
           free (home_dir);
           home_dir = getenv ("HOME");
         }
-# if !defined(WINDOWS32)
+# if !MK_OS_W32
       if (home_dir == 0 || home_dir[0] == '\0')
         {
           char *logname = getlogin ();
@@ -3094,7 +3094,7 @@ tilde_expand (const char *name)
                 home_dir = p->pw_dir;
             }
         }
-# endif /* !WINDOWS32 */
+# endif /* !MK_OS_W32 */
       if (home_dir != 0)
         {
           char *new = xstrdup (concat (2, home_dir, name + 1));
@@ -3103,7 +3103,7 @@ tilde_expand (const char *name)
           return new;
         }
     }
-# if !defined(WINDOWS32)
+# if !MK_OS_W32
   else
     {
       struct passwd *pwent;
@@ -3122,7 +3122,7 @@ tilde_expand (const char *name)
       else if (userend != 0)
         *userend = '/';
     }
-# endif /* !WINDOWS32 */
+# endif /* !MK_OS_W32 */
 #endif /* !MK_OS_VMS */
   return 0;
 }

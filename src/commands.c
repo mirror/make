@@ -21,7 +21,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "variable.h"
 #include "job.h"
 #include "commands.h"
-#ifdef WINDOWS32
+#if MK_OS_W32
 #include <windows.h>
 #include "w32err.h"
 #endif
@@ -495,7 +495,7 @@ fatal_error_signal (int sig)
   remove_intermediates (1);
   exit (EXIT_FAILURE);
 #else /* not __MSDOS__ */
-#ifdef WINDOWS32
+#if MK_OS_W32
   extern HANDLE main_thread;
 
   /* Windows creates a separate thread for handling Ctrl+C, so we need
@@ -581,7 +581,7 @@ fatal_error_signal (int sig)
     exit (MAKE_TROUBLE);
 #endif
 
-#ifdef WINDOWS32
+#if MK_OS_W32
   if (main_thread)
     CloseHandle (main_thread);
   /* Cannot call W32_kill with a pid (it needs a handle).  The exit
@@ -592,7 +592,7 @@ fatal_error_signal (int sig)
      will be unblocked when we return and arrive then to kill us.  */
   if (kill (make_pid (), sig) < 0)
     pfatal_with_name ("kill");
-#endif /* not WINDOWS32 */
+#endif /* not MK_OS_W32 */
 #endif /* not __MSDOS__  */
 }
 

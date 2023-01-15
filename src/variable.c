@@ -26,7 +26,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "variable.h"
 #include "os.h"
 #include "rule.h"
-#ifdef WINDOWS32
+#if MK_OS_W32
 #include "pathstuff.h"
 #endif
 #include "hash.h"
@@ -971,7 +971,7 @@ define_automatic_variables (void)
   /* Define the magic D and F variables in terms of
      the automatic variables they are variations of.  */
 
-#if defined(__MSDOS__) || defined(WINDOWS32)
+#if defined(__MSDOS__) || MK_OS_W32
   /* For consistency, remove the trailing backslash as well as slash.  */
   define_variable_cname ("@D", "$(patsubst %/,%,$(patsubst %\\,%,$(dir $@)))",
                          o_automatic, 1);
@@ -987,7 +987,7 @@ define_automatic_variables (void)
                          o_automatic, 1);
   define_variable_cname ("+D", "$(patsubst %/,%,$(patsubst %\\,%,$(dir $+)))",
                          o_automatic, 1);
-#else  /* not __MSDOS__, not WINDOWS32 */
+#else  /* not __MSDOS__, not MK_OS_W32 */
   define_variable_cname ("@D", "$(patsubst %/,%,$(dir $@))", o_automatic, 1);
   define_variable_cname ("%D", "$(patsubst %/,%,$(dir $%))", o_automatic, 1);
   define_variable_cname ("*D", "$(patsubst %/,%,$(dir $*))", o_automatic, 1);
@@ -1210,7 +1210,7 @@ target_environment (struct file *file, int recursive)
               }
           }
 
-#ifdef WINDOWS32
+#if MK_OS_W32
         if (streq (v->name, "Path") || streq (v->name, "PATH"))
           {
             if (!cp)
@@ -1523,7 +1523,7 @@ do_variable_definition (const floc *flocp, const char *varname,
     }
   else
 #endif /* __MSDOS__ */
-#ifdef WINDOWS32
+#if MK_OS_W32
   if ((origin == o_file || origin == o_override || origin == o_command)
       && streq (varname, "SHELL"))
     {
@@ -2017,7 +2017,7 @@ print_target_variables (const struct file *file)
     }
 }
 
-#ifdef WINDOWS32
+#if MK_OS_W32
 void
 sync_Path_environment ()
 {
@@ -2028,7 +2028,7 @@ sync_Path_environment ()
   if (!path)
     return;
 
-  /* Convert the value of PATH into something WINDOWS32 world can grok.
+  /* Convert the value of PATH into something Windows32 world can grok.
     Note: convert_Path_to_windows32 must see only the value of PATH,
     and see it from its first character, to do its tricky job.  */
   convert_Path_to_windows32 (path + CSTRLEN ("PATH="), ';');

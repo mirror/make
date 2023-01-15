@@ -60,7 +60,7 @@ enum
 
 struct dirent
   {
-    ino_t d_ino;             /* unused - no equivalent on WINDOWS32.  */
+    ino_t d_ino;             /* unused - no equivalent on Windows32.  */
     unsigned char d_type;
     char d_name[NAME_MAX+1]; /* must come last due to dir.c assumptions.  */
   };

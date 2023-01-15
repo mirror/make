@@ -449,7 +449,7 @@ AS_CASE([$host],
   [*-*-mingw32],
    [AM_CONDITIONAL([WINDOWSENV], [true])
     w32_target_env=yes
-    AC_DEFINE([WINDOWS32], [1], [Build for the WINDOWS32 API.])
+    AC_DEFINE([MK_OS_W32], [1], [Build for the Windows32 API.])
     AC_DEFINE([HAVE_DOS_PATHS], [1], [Support DOS-style pathnames.])
   ])
 

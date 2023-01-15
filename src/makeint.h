@@ -44,7 +44,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
    Be sure to use the local one, and not one installed on the system.
    Define GMK_BUILDING_MAKE for proper selection of dllexport/dllimport
    declarations for MS-Windows.  */
-#ifdef WINDOWS32
+#if MK_OS_W32
 # define GMK_BUILDING_MAKE
 #endif
 #include "gnumake.h"
@@ -367,7 +367,7 @@ extern mode_t umask (mode_t);
 # include <direct.h>
 #endif
 
-#ifdef WINDOWS32
+#if MK_OS_W32
 # include <fcntl.h>
 # include <malloc.h>
 # define pipe(_p)        _pipe((_p), 512, O_BINARY)
@@ -400,7 +400,7 @@ extern int unixy_shell;
 # ifndef WIN32_LEAN_AND_MEAN
 #  define WIN32_LEAN_AND_MEAN
 # endif
-#endif  /* WINDOWS32 */
+#endif  /* MK_OS_W32 */
 
 /* ALL_SET() evaluates the second argument twice.  */
 #define ANY_SET(_v,_m)  (((_v)&(_m)) != 0)
@@ -681,7 +681,7 @@ void dbg (const char *fmt, ...);
 /* We omit these declarations on non-POSIX systems which define _POSIX_VERSION,
    because such systems often declare them in header files anyway.  */
 
-#if !defined (__GNU_LIBRARY__) && !defined (POSIX) && !defined (_POSIX_VERSION) && !defined(WINDOWS32)
+#if !defined (__GNU_LIBRARY__) && !defined (POSIX) && !defined (_POSIX_VERSION) && !MK_OS_W32
 
 # if !MK_OS_VMS
 long int lseek ();
