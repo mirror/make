@@ -183,7 +183,7 @@ AS_IF([test "x$with_guile" != xno],
     CPPFLAGS="$CPPFLAGS $GUILE_CFLAGS"
     LIBS="$LIBS $GUILE_LIBS"
     AC_CHECK_HEADER([libguile.h],
-                    [AC_DEFINE([HAVE_GUILE], [1], [Embed GNU Guile support])],
+                    [have_guile=yes],
                     [have_guile=no],
                     [/* Avoid configuration error warnings. */])
     AS_IF([test "$have_guile" = yes],
@@ -207,6 +207,8 @@ guile_init (void *arg)
   ])
 ])
 
+AS_IF([test "$have_guile" = yes],
+      [AC_DEFINE([HAVE_GUILE], [1], [Embed GNU Guile support])])
 AM_CONDITIONAL([HAVE_GUILE], [test "$have_guile" = "yes"])
 
 AC_CHECK_DECLS([sys_siglist, _sys_siglist, __sys_siglist], , ,
