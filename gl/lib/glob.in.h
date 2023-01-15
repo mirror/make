@@ -67,7 +67,7 @@ extern "C" {
 #endif
 
 /* Structure describing a globbing run.  */
-#if !defined _AMIGA && !defined VMS /* Buggy compiler.   */
+#if !defined _AMIGA && !MK_OS_VMS /* Buggy compiler.   */
 struct stat;
 #endif
 typedef struct
@@ -83,7 +83,7 @@ typedef struct
     struct dirent *(*gl_readdir) (void *);
     void * (*gl_opendir) (const char *);
     int (*gl_lstat) (const char *, struct stat *);
-#if defined(VMS) && defined(__DECC) && !defined(_POSIX_C_SOURCE)
+#if MK_OS_VMS && defined(__DECC) && !defined(_POSIX_C_SOURCE)
     int (*gl_stat) (const char *, struct stat *, ...);
 #else
     int (*gl_stat) (const char *, struct stat *);

@@ -23,7 +23,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef  HAVE_DIRENT_H
 # include <dirent.h>
 # define NAMLEN(dirent) strlen((dirent)->d_name)
-# ifdef VMS
+# if MK_OS_VMS
 /* its prototype is in vmsdir.h, which is not needed for HAVE_DIRENT_H */
 const char *vmsify (const char *name, int type);
 # endif
@@ -50,7 +50,7 @@ const char *vmsify (const char *name, int type);
 # define NAMLEN(d) _D_NAMLEN(d)
 #endif
 
-#if (defined (POSIX) || defined (VMS) || defined (WINDOWS32)) && !defined (__GNU_LIBRARY__)
+#if (defined (POSIX) || MK_OS_VMS || defined (WINDOWS32)) && !defined (__GNU_LIBRARY__)
 /* Posix does not require that the d_ino field be present, and some
    systems do not provide it. */
 # define REAL_DIR_ENTRY(dp) 1
@@ -137,7 +137,7 @@ downcase (const char *filename)
 }
 #endif /* HAVE_CASE_INSENSITIVE_FS */
 
-#ifdef VMS
+#if MK_OS_VMS
 
 static char *
 downcase_inplace(char *filename)
@@ -227,7 +227,7 @@ vmsstat_dir (const char *name, struct stat *st)
 # define stat(__path, __sbuf) vmsstat_dir (__path, __sbuf)
 
 #endif /* _USE_STD_STAT */
-#endif /* VMS */
+#endif /* MK_OS_VMS */
 
 /* Never have more than this many directories open at once.  */
 
@@ -258,7 +258,7 @@ struct directory_contents
 # define FS_NTFS     0x2
 # define FS_UNKNOWN  0x4
 #else
-# ifdef VMS_INO_T
+# if MK_OS_VMS_INO_T
     ino_t ino[3];
 # else
     ino_t ino;
@@ -296,7 +296,7 @@ directory_contents_hash_1 (const void *key_0)
   ISTRING_HASH_1 (key->path_key, hash);
   hash ^= ((unsigned int) key->dev << 4) ^ (unsigned int) key->ctime;
 #else
-# ifdef VMS_INO_T
+# if MK_OS_VMS_INO_T
   hash = (((unsigned int) key->dev << 4)
           ^ ((unsigned int) key->ino[0]
              + (unsigned int) key->ino[1]
@@ -319,7 +319,7 @@ directory_contents_hash_2 (const void *key_0)
   ISTRING_HASH_2 (key->path_key, hash);
   hash ^= ((unsigned int) key->dev << 4) ^ (unsigned int) ~key->ctime;
 #else
-# ifdef VMS_INO_T
+# if MK_OS_VMS_INO_T
   hash = (((unsigned int) key->dev << 4)
           ^ ~((unsigned int) key->ino[0]
               + (unsigned int) key->ino[1]
@@ -358,7 +358,7 @@ directory_contents_hash_cmp (const void *xv, const void *yv)
   if (result)
     return result;
 #else
-# ifdef VMS_INO_T
+# if MK_OS_VMS_INO_T
   result = MAKECMP(x->ino[0], y->ino[0]);
   if (result)
     return result;
@@ -499,7 +499,7 @@ find_directory (const char *name)
       size_t len = strlen (name);
 
       dir = xmalloc (sizeof (struct directory));
-#if defined(HAVE_CASE_INSENSITIVE_FS) && defined(VMS)
+#if defined(HAVE_CASE_INSENSITIVE_FS) && MK_OS_VMS
       /* Todo: Why is this only needed on VMS? */
       {
         char *lname = downcase_inplace (xstrdup (name));
@@ -548,7 +548,7 @@ find_directory (const char *name)
   dc_key.path_key = w32_path = w32ify (name, 1);
   dc_key.ctime = st.st_ctime;
 #else
-# ifdef VMS_INO_T
+# if MK_OS_VMS_INO_T
   dc_key.ino[0] = st.st_ino[0];
   dc_key.ino[1] = st.st_ino[1];
   dc_key.ino[2] = st.st_ino[2];
@@ -734,7 +734,7 @@ dir_contents_file_exists_p (struct directory *dir,
           break;
         }
 
-#if defined(VMS) && defined(HAVE_DIRENT_H)
+#if MK_OS_VMS && defined(HAVE_DIRENT_H)
       /* In VMS we get file versions too, which have to be stripped off.
          Some versions of VMS return versions on Unix files even when
          the feature option to strip them is set.  */
@@ -760,7 +760,7 @@ dir_contents_file_exists_p (struct directory *dir,
 #endif
         {
           df = xmalloc (sizeof (struct dirfile));
-#if defined(HAVE_CASE_INSENSITIVE_FS) && defined(VMS)
+#if MK_OS_VMS && defined(HAVE_CASE_INSENSITIVE_FS)
           /* TODO: Why is this only needed on VMS? */
           df->name = strcache_add_len (downcase_inplace (d->d_name), len);
 #else
@@ -797,7 +797,7 @@ dir_contents_file_exists_p (struct directory *dir,
 int
 dir_file_exists_p (const char *dirname, const char *filename)
 {
-#ifdef VMS
+#if MK_OS_VMS
   if (filename && dirname && strpbrk (dirname, ":<[") != NULL)
     filename = vmsify (filename, 0);
 #endif
@@ -820,7 +820,7 @@ file_exists_p (const char *name)
 #endif
 
   dirend = strrchr (name, '/');
-#ifdef VMS
+#if MK_OS_VMS
   if (dirend == NULL)
     {
       dirend = strrchr (name, ']');
@@ -836,7 +836,7 @@ file_exists_p (const char *name)
       dirend = strrchr (name, ':');
       dirend == NULL ? dirend : dirend++;
     }
-#endif /* VMS */
+#endif /* MK_OS_VMS */
 #ifdef HAVE_DOS_PATHS
   /* Forward and backslashes might be mixed.  We need the rightmost one.  */
   {
@@ -868,7 +868,7 @@ file_exists_p (const char *name)
       p[dirend - name] = '\0';
       dirname = p;
     }
-#ifdef VMS
+#if MK_OS_VMS
   if (*slash == '/')
     slash++;
 #else
@@ -890,7 +890,7 @@ file_impossible (const char *filename)
   struct dirfile *new;
 
   dirend = strrchr (p, '/');
-#ifdef VMS
+#if MK_OS_VMS
   if (dirend == NULL)
     {
       dirend = strrchr (p, ']');
@@ -941,7 +941,7 @@ file_impossible (const char *filename)
           dirname = cp;
         }
       dir = find_directory (dirname);
-#ifdef VMS
+#if MK_OS_VMS
       if (*slash == '/')
         filename = p = slash + 1;
       else
@@ -964,7 +964,7 @@ file_impossible (const char *filename)
 
   new = xmalloc (sizeof (struct dirfile));
   new->length = strlen (filename);
-#if defined(HAVE_CASE_INSENSITIVE_FS) && defined(VMS)
+#if defined(HAVE_CASE_INSENSITIVE_FS) && MK_OS_VMS
   /* todo: Why is this only needed on VMS? */
   new->name = strcache_add_len (downcase (filename), new->length);
 #else
@@ -983,12 +983,12 @@ file_impossible_p (const char *filename)
   struct directory_contents *dir;
   struct dirfile *dirfile;
   struct dirfile dirfile_key;
-#ifdef VMS
+#if MK_OS_VMS
   int want_vmsify = 0;
 #endif
 
   dirend = strrchr (filename, '/');
-#ifdef VMS
+#if MK_OS_VMS
   if (dirend == NULL)
     {
       want_vmsify = (strpbrk (filename, "]>:^") != NULL);
@@ -1033,7 +1033,7 @@ file_impossible_p (const char *filename)
           dirname = cp;
         }
       dir = find_directory (dirname)->contents;
-#ifdef VMS
+#if MK_OS_VMS
       if (*slash == '/')
         filename = slash + 1;
       else
@@ -1053,7 +1053,7 @@ file_impossible_p (const char *filename)
 #ifdef HAVE_CASE_INSENSITIVE_FS
   filename = downcase (filename);
 #endif
-#ifdef VMS
+#if MK_OS_VMS
   if (want_vmsify)
     filename = vmsify (filename, 1);
 #endif
@@ -1274,8 +1274,8 @@ read_dirstream (void *stream)
  * On MS-Windows, stat() "succeeds" for foo/bar/. where foo/bar is a
  * regular file; fix that here.
  */
-#if !defined(stat) && !defined(WINDOWS32) || defined(VMS)
-# ifndef VMS
+#if !defined(stat) && !defined(WINDOWS32) || MK_OS_VMS
+# if !MK_OS_VMS
 #  ifndef HAVE_SYS_STAT_H
 int stat (const char *path, struct stat *sbuf);
 #  endif
@@ -1314,8 +1314,8 @@ local_stat (const char *path, struct stat *buf)
 #endif
 
 /* Similarly for lstat.  */
-#if !defined(lstat) && !defined(WINDOWS32) || defined(VMS)
-# ifndef VMS
+#if !defined(lstat) && !defined(WINDOWS32) || MK_OS_VMS
+# if !MK_OS_VMS
 #  ifndef HAVE_SYS_STAT_H
 int lstat (const char *path, struct stat *sbuf);
 #  endif

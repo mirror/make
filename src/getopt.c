@@ -68,7 +68,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 # include <unistd.h>
 #endif	/* GNU C library.  */
 
-#ifdef VMS
+#if MK_OS_VMS
 # include <unixlib.h>
 # if HAVE_STRING_H - 0
 #  include <string.h>

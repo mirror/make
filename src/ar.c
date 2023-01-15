@@ -120,7 +120,7 @@ ar_member_date (const char *name)
 
 /* Set the archive-member NAME's modtime to now.  */
 
-#ifdef VMS
+#if MK_OS_VMS
 int
 ar_touch (const char *name)
 {
@@ -172,7 +172,7 @@ ar_touch (const char *name)
 
   return val;
 }
-#endif /* !VMS */
+#endif /* !MK_OS_VMS */
 
 /* State of an 'ar_glob' run, passed to 'ar_glob_match'.  */
 
@@ -187,7 +187,7 @@ struct ar_glob_state
   {
     const char *arname;
     const char *pattern;
-#ifdef VMS
+#if MK_OS_VMS
     char *suffix;
 #endif
     size_t size;
@@ -210,7 +210,7 @@ ar_glob_match (int desc UNUSED, const char *mem, int truncated UNUSED,
     {
       /* We have a match.  Add it to the chain.  */
       struct nameseq *new = xcalloc (state->size);
-#ifdef VMS
+#if MK_OS_VMS
       if (state->suffix)
         new->name = strcache_add(
             concat(5, state->arname, "(", mem, state->suffix, ")"));
@@ -268,7 +268,7 @@ ar_glob (const char *arname, const char *member_pattern, size_t size)
   struct nameseq *n;
   const char **names;
   unsigned int i;
-#ifdef VMS
+#if MK_OS_VMS
   char *vms_member_pattern;
 #endif
   if (! ar_glob_pattern_p (member_pattern, 1))
@@ -278,7 +278,7 @@ ar_glob (const char *arname, const char *member_pattern, size_t size)
      ar_glob_match will accumulate them in STATE.chain.  */
   state.arname = arname;
   state.pattern = member_pattern;
-#ifdef VMS
+#if MK_OS_VMS
     {
       /* In a copy of the pattern, find the suffix, save it and  remove it from
          the pattern */
@@ -299,7 +299,7 @@ ar_glob (const char *arname, const char *member_pattern, size_t size)
   state.n = 0;
   ar_scan (arname, ar_glob_match, &state);
 
-#ifdef VMS
+#if MK_OS_VMS
   /* Deallocate any duplicated string */
   free(vms_member_pattern);
   if (state.suffix)

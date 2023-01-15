@@ -37,7 +37,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
    a '.c' or '.p' or ... file rather than from a .s file.  */
 
 static char default_suffixes[]
-#ifdef VMS
+#if MK_OS_VMS
   /* VMS should include all UNIX/POSIX + some VMS extensions */
   = ".out .exe .a .olb .hlb .tlb .mlb .ln .o .obj .c .cxx .cc .cpp .pas .p \
 .for .f .r .y .l .ym .yl .mar .s .ss .i .ii .mod .sym .def .h .info .dvi \
@@ -55,7 +55,7 @@ static char default_suffixes[]
 
 static struct pspec default_pattern_rules[] =
   {
-#ifdef VMS
+#if MK_OS_VMS
     { "(%)", "%",
         "@if f$$search(\"$@\") .eqs. \"\" then $(LIBRARY)/CREATE/"
          "$(or "
@@ -76,7 +76,7 @@ static struct pspec default_pattern_rules[] =
     /* The X.out rules are only in BSD's default set because
        BSD Make has no null-suffix rules, so 'foo.out' and
        'foo' are the same thing.  */
-#ifdef VMS
+#if MK_OS_VMS
     { "%.exe", "%",
         "$(CP) $< $@" },
 
@@ -95,7 +95,7 @@ static struct pspec default_pattern_rules[] =
 
 static struct pspec default_terminal_rules[] =
   {
-#ifdef VMS
+#if MK_OS_VMS
 
     /* RCS.  */
     { "%", "%$$5lv", /* Multinet style */
@@ -124,13 +124,13 @@ static struct pspec default_terminal_rules[] =
         "$(GET) $(GFLAGS) $(SCCS_OUTPUT_OPTION) $<" },
     { "%", "SCCS/s.%",
         "$(GET) $(GFLAGS) $(SCCS_OUTPUT_OPTION) $<" },
-#endif /* !VMS */
+#endif /* !MK_OS_VMS */
     { 0, 0, 0 }
   };
 
 static const char *default_suffix_rules[] =
   {
-#ifdef VMS
+#if MK_OS_VMS
     ".o",
     "$(LINK.obj) $^ $(LOADLIBES) $(LDLIBS) -o $@",
     ".obj",
@@ -263,7 +263,7 @@ static const char *default_suffix_rules[] =
     ".l.ln",
     "@$(RM) $*.c\n $(LEX.l) $< > $*.c\n$(LINT.c) -i $*.c -o $@\n $(RM) $*.c",
 
-#else /* ! VMS */
+#else /* ! MK_OS_VMS */
 
     ".o",
     "$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@",
@@ -393,14 +393,14 @@ static const char *default_suffix_rules[] =
     ".web.tex",
     "$(WEAVE) $<",
 
-#endif /* !VMS */
+#endif /* !MK_OS_VMS */
 
     0, 0,
   };
 
 static const char *default_variables[] =
   {
-#ifdef VMS
+#if MK_OS_VMS
 #ifdef __ALPHA
     "ARCH", "ALPHA",
 #endif
@@ -515,7 +515,7 @@ static const char *default_variables[] =
     "CP", "copy",
     ".LIBPATTERNS", "%.olb lib%.a",
 
-#else /* !VMS */
+#else /* !MK_OS_VMS */
 
     "AR", "ar",
 #ifdef _AIX
@@ -670,7 +670,7 @@ static const char *default_variables[] =
     ".LIBPATTERNS", "lib%.so lib%.a",
 #endif
 
-#endif /* !VMS */
+#endif /* !MK_OS_VMS */
     /* Make this assignment to avoid undefined variable warnings.  */
     GNUMAKEFLAGS_NAME, "",
     0, 0

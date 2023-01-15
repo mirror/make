@@ -29,7 +29,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef NO_ARCHIVES
 
-#ifdef VMS
+#if MK_OS_VMS
 #include <lbrdef.h>
 #include <mhddef.h>
 #include <credef.h>
@@ -289,7 +289,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *varg)
   return -2;
 }
 
-#else /* !VMS */
+#else /* !MK_OS_VMS */
 
 /* SCO Unix's compiler defines both of these.  */
 #ifdef  M_UNIX
@@ -841,7 +841,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *arg)
   close (desc);
   return -2;
 }
-#endif /* !VMS */
+#endif /* !MK_OS_VMS */
 
 /* Return nonzero iff NAME matches MEM.
    If TRUNCATED is nonzero, MEM may be truncated to
@@ -856,7 +856,7 @@ ar_name_equal (const char *name, const char *mem, int truncated)
   if (p != 0)
     name = p + 1;
 
-#ifndef VMS
+#if !MK_OS_VMS
   if (truncated)
     {
 #ifdef AIAMAG
@@ -896,10 +896,10 @@ ar_name_equal (const char *name, const char *mem, int truncated)
       match = !strcasecmp (name, mem);
     return match;
   }
-#endif /* !VMS */
+#endif /* !MK_OS_VMS */
 }
 
-#ifndef VMS
+#if !MK_OS_VMS
 /* ARGSUSED */
 static intmax_t
 ar_member_pos (int desc UNUSED, const char *mem, int truncated,

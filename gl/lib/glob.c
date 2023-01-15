@@ -71,7 +71,7 @@ USA.  */
 # endif
 #endif
 
-#if !defined _AMIGA && !defined VMS && !defined WINDOWS32
+#if !defined _AMIGA && !MK_OS_VMS && !defined WINDOWS32
 # include <pwd.h>
 #endif
 
@@ -518,13 +518,13 @@ glob (const char *pattern, int flags,
 
   oldcount = pglob->gl_pathc;
 
-#ifndef VMS
+#if !MK_OS_VMS
   if ((flags & (GLOB_TILDE|GLOB_TILDE_CHECK)) && dirname[0] == '~')
     {
       if (dirname[1] == '\0' || dirname[1] == '/')
 	{
 	  /* Look up home directory.  */
-#ifdef VMS
+#if MK_OS_VMS
 /* This isn't obvious, RTLs of DECC and VAXC know about "HOME" */
           const char *home_dir = getenv ("SYS$LOGIN");
 #else
@@ -538,7 +538,7 @@ glob (const char *pattern, int flags,
 	  if (home_dir == NULL || home_dir[0] == '\0')
             home_dir = "c:/users/default"; /* poor default */
 #  else
-#   ifdef VMS
+#   if MK_OS_VMS
 /* Again, this isn't obvious, if "HOME" isn't known "SYS$LOGIN" should be set */
 	  if (home_dir == NULL || home_dir[0] == '\0')
 	    home_dir = "SYS$DISK:[]";
@@ -601,7 +601,7 @@ glob (const char *pattern, int flags,
 	      else
 		home_dir = "~"; /* No luck.  */
 	    }
-#   endif /* VMS */
+#   endif /* MK_OS_VMS */
 #  endif /* WINDOWS32 */
 # endif
 	  /* Now construct the full directory.  */
@@ -622,7 +622,7 @@ glob (const char *pattern, int flags,
 	      dirname = newp;
 	    }
 	}
-# if !defined _AMIGA && !defined WINDOWS32 && !defined VMS
+# if !defined _AMIGA && !defined WINDOWS32 && !MK_OS_VMS
       else
 	{
 	  char *end_name = strchr (dirname, '/');
@@ -702,9 +702,9 @@ glob (const char *pattern, int flags,
 		 home directory.  */
 	      return GLOB_NOMATCH;
 	}
-# endif	/* Not Amiga && not WINDOWS32 && not VMS.  */
+# endif	/* Not Amiga && not WINDOWS32 && not MK_OS_VMS.  */
     }
-#endif	/* Not VMS.  */
+#endif	/* Not MK_OS_VMS.  */
 
   /* Now test whether we looked for "~" or "~NAME".  In this case we
      can give the answer now.  */
@@ -1124,7 +1124,7 @@ glob_in_dir (const char *pattern, const char *directory, int flags,
   int meta;
   int save;
 
-#ifdef VMS
+#if MK_OS_VMS
   if (*directory == 0)
     directory = "[]";
 #endif

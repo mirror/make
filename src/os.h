@@ -20,7 +20,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #define IO_STDOUT_OK            0x0008
 #define IO_STDERR_OK            0x0010
 
-#if defined(VMS) || defined(__MSDOS__)
+#if MK_OS_VMS || defined(__MSDOS__)
 # define check_io_state()  (IO_STDIN_OK|IO_STDOUT_OK|IO_STDERR_OK)
 # define fd_inherit(_i)    (0)
 # define fd_noinherit(_i)  (0)
@@ -151,7 +151,7 @@ void osync_release (void);
 #endif  /* NO_OUTPUT_SYNC */
 
 /* Create a "bad" file descriptor for stdin when parallel jobs are run.  */
-#if defined(VMS) || defined(WINDOWS32) || defined(__MSDOS__)
+#if MK_OS_VMS || defined(WINDOWS32) || defined(__MSDOS__)
 # define get_bad_stdin() (-1)
 #else
 int get_bad_stdin (void);

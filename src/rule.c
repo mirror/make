@@ -171,7 +171,7 @@ snap_implicit_rules (void)
           const char *dname = dep_name (dep);
           size_t len = strlen (dname);
 
-#ifdef VMS
+#if MK_OS_VMS
           const char *p = strrchr (dname, ']');
           const char *p2;
           if (p == 0)
@@ -250,7 +250,7 @@ convert_suffix_rule (const char *target, const char *source,
     {
       /* Special case: TARGET being nil means we are defining a '.X.a' suffix
          rule; the target pattern is always '(%.o)'.  */
-#ifdef VMS
+#if MK_OS_VMS
       *names = strcache_add_len ("(%.obj)", 7);
 #else
       *names = strcache_add_len ("(%.o)", 5);

@@ -30,7 +30,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #endif
 
-#ifdef VMS
+#if MK_OS_VMS
 #include <starlet.h>
 #endif
 #ifdef WINDOWS32
@@ -1431,7 +1431,7 @@ f_mtime (struct file *file, int search)
               /* If we found it in VPATH, see if it's in GPATH too; if so,
                  change the name right now; if not, defer until after the
                  dependencies are updated. */
-#ifndef VMS
+#if !MK_OS_VMS
               name_len = strlen (name) - strlen (file->name) - 1;
 #else
               name_len = strlen (name) - strlen (file->name);

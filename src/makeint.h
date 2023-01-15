@@ -94,6 +94,7 @@ extern int errno;
 #endif
 
 #ifdef __VMS
+# define MK_OS_VMS 1
 /* In strict ANSI mode, VMS compilers should not be defining the
    VMS macro.  Define it here instead of a bulk edit for the correct code.
  */
@@ -106,7 +107,7 @@ extern int errno;
 # include <unistd.h>
 /* Ultrix's unistd.h always defines _POSIX_VERSION, but you only get
    POSIX.1 behavior with 'cc -YPOSIX', which predefines POSIX itself!  */
-# if defined (_POSIX_VERSION) && !defined (ultrix) && !defined (VMS)
+# if defined (_POSIX_VERSION) && !defined (ultrix) && !MK_OS_VMS
 #  define POSIX 1
 # endif
 #endif
@@ -197,7 +198,7 @@ unsigned int get_path_max (void);
 # define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
 #endif
 
-#ifdef VMS
+#if MK_OS_VMS
 # include <fcntl.h>
 # include <types.h>
 # include <unixlib.h>
@@ -426,7 +427,7 @@ extern int unixy_shell;
 /* The set of characters which are directory separators is OS-specific.  */
 #define MAP_DIRSEP      0x8000
 
-#ifdef VMS
+#if MK_OS_VMS
 # define MAP_VMSCOMMA   MAP_COMMA
 #else
 # define MAP_VMSCOMMA   0x0000
@@ -443,7 +444,7 @@ extern int unixy_shell;
 # define PATH_SEPARATOR_CHAR ';'
 # define MAP_PATHSEP    MAP_SEMI
 #elif !defined(PATH_SEPARATOR_CHAR)
-# if defined (VMS)
+# if MK_OS_VMS
 #  define PATH_SEPARATOR_CHAR (vms_comma_separator ? ',' : ':')
 #  define MAP_PATHSEP    (vms_comma_separator ? MAP_COMMA : MAP_SEMI)
 # else
@@ -516,7 +517,7 @@ extern struct rlimit stack_limit;
 # define TTYNAME(_f) DEFAULT_TTYNAME
 #endif
 
-#ifdef VMS
+#if MK_OS_VMS
 # define DEFAULT_TMPDIR     "/sys$scratch/"
 #elif defined(P_tmpdir)
 # define DEFAULT_TMPDIR     P_tmpdir
@@ -618,7 +619,7 @@ typedef intmax_t (*ar_member_func_t) (int desc, const char *mem, int truncated,
 intmax_t ar_scan (const char *archive, ar_member_func_t function,
                   const void *arg);
 int ar_name_equal (const char *name, const char *mem, int truncated);
-#ifndef VMS
+#if !MK_OS_VMS
 int ar_member_touch (const char *arname, const char *memname);
 #endif
 #endif
@@ -682,12 +683,12 @@ void dbg (const char *fmt, ...);
 
 #if !defined (__GNU_LIBRARY__) && !defined (POSIX) && !defined (_POSIX_VERSION) && !defined(WINDOWS32)
 
-# ifndef VMS
+# if !MK_OS_VMS
 long int lseek ();
 # endif
 
 # ifdef  HAVE_GETCWD
-#  if !defined(VMS) && !defined(__DECC)
+#  if !MK_OS_VMS && !defined(__DECC)
 char *getcwd (void);
 #  endif
 # else
@@ -766,7 +767,7 @@ extern double max_load_average;
 
 extern const char *program;
 
-#ifdef VMS
+#if MK_OS_VMS
 const char *vms_command (const char *argv0);
 const char *vms_progname (const char *argv0);
 

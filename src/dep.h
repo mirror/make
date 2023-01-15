@@ -89,7 +89,7 @@ struct goaldep
 #define PARSE_SIMPLE_SEQ(_s,_t) \
             (_t *)parse_file_seq ((_s),sizeof (_t),MAP_NUL,NULL,PARSEFS_NONE)
 
-#ifdef VMS
+#if MK_OS_VMS
 void *parse_file_seq ();
 #else
 void *parse_file_seq (char **stringp, size_t size,

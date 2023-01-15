@@ -51,7 +51,7 @@ int batch_mode_shell = 0;
 const char *default_shell = "/bin/sh";
 int batch_mode_shell = 0;
 
-#elif defined (VMS)
+#elif MK_OS_VMS
 
 # include <descrip.h>
 # include <stsdef.h>
@@ -83,7 +83,7 @@ int dos_status;
 int dos_command_running;
 #endif /* __MSDOS__ */
 
-#ifdef VMS
+#if MK_OS_VMS
 # ifndef __GNUC__
 #   include <processes.h>
 # endif
@@ -179,7 +179,7 @@ int wait ();
 int dup2 ();
 int execve ();
 void _exit ();
-# ifndef VMS
+# if !MK_OS_VMS
 int geteuid ();
 int getegid ();
 int setgid ();
@@ -702,7 +702,7 @@ reap_children (int block, int err)
           DB (DB_JOBS, (_("Live child %p (%s) PID %s %s\n"),
                         c, c->file->name, pid2str (c->pid),
                         c->remote ? _(" (remote)") : ""));
-#ifdef VMS
+#if MK_OS_VMS
           break;
 #endif
         }
@@ -727,7 +727,7 @@ reap_children (int block, int err)
 #if !defined(__MSDOS__) && !defined(WINDOWS32)
           if (any_local)
             {
-#ifdef VMS
+#if MK_OS_VMS
               /* Todo: This needs more untangling multi-process support */
               /* Just do single child process support now */
               vmsWaitForChildren (&status);
@@ -746,7 +746,7 @@ reap_children (int block, int err)
               else
 #endif
                 EINTRLOOP (pid, wait (&status));
-#endif /* !VMS */
+#endif /* !MK_OS_VMS */
             }
           else
             pid = 0;
@@ -1153,7 +1153,7 @@ start_job_command (struct child *child)
 {
   int flags;
   char *p;
-#ifdef VMS
+#if MK_OS_VMS
 # define FREE_ARGV(_a)
   char *argv;
 #else
@@ -1216,7 +1216,7 @@ start_job_command (struct child *child)
   /* Figure out an argument list from this command line.  */
   {
     char *end = 0;
-#ifdef VMS
+#if MK_OS_VMS
     /* Skip any leading whitespace */
     while (*p)
       {
@@ -1275,7 +1275,7 @@ start_job_command (struct child *child)
   if (argv != 0 && question_flag && NONE_SET (flags, COMMANDS_RECURSE))
     {
       FREE_ARGV (argv);
-#ifdef VMS
+#if MK_OS_VMS
       /* On VMS, argv[0] can be a null string here */
       if (argv[0] != 0)
         {
@@ -1283,7 +1283,7 @@ start_job_command (struct child *child)
           child->file->update_status = us_question;
           notice_finished_file (child->file);
           return;
-#ifdef VMS
+#if MK_OS_VMS
         }
 #endif
     }
@@ -1351,7 +1351,7 @@ start_job_command (struct child *child)
      performed some action (makes a difference as to what messages are
      printed, etc.  */
 
-#if !defined(VMS)
+#if !MK_OS_VMS
   if (
 #if defined __MSDOS__ || defined (__EMX__)
       unixy_shell       /* the test is complicated and we already did it */
@@ -1369,7 +1369,7 @@ start_job_command (struct child *child)
       FREE_ARGV (argv);
       goto next_command;
     }
-#endif  /* !VMS */
+#endif  /* !MK_OS_VMS */
 
   /* If -n was given, recurse to get the next line in the sequence.  */
 
@@ -1410,7 +1410,7 @@ start_job_command (struct child *child)
 
 #if !defined(__MSDOS__) && !defined(WINDOWS32)
 
-#ifndef VMS
+#if !MK_OS_VMS
   /* start_waiting_job has set CHILD->remote if we can start a remote job.  */
   if (child->remote)
     {
@@ -1434,7 +1434,7 @@ start_job_command (struct child *child)
         }
     }
   else
-#endif /* !VMS */
+#endif /* !MK_OS_VMS */
     {
       /* Fork the child process.  */
     run_local:
@@ -1442,7 +1442,7 @@ start_job_command (struct child *child)
 
       child->remote = 0;
 
-#ifdef VMS
+#if MK_OS_VMS
       child->pid = child_execute_job ((struct childbase *)child, 1, argv);
 
 #else
@@ -1454,7 +1454,7 @@ start_job_command (struct child *child)
 
       jobserver_post_child (ANY_SET (flags, COMMANDS_RECURSE));
 
-#endif /* !VMS */
+#endif /* !MK_OS_VMS */
     }
 
 #else   /* __MSDOS__ or WINDOWS32 */
@@ -2017,7 +2017,7 @@ job_next_command (struct child *child)
 static int
 load_too_high (void)
 {
-#if defined(__MSDOS__) || defined(VMS) || defined(__riscos__)
+#if defined(__MSDOS__) || MK_OS_VMS || defined(__riscos__)
   return 1;
 #else
   static double last_sec;
@@ -2268,7 +2268,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
   return pid;
 }
 
-#elif !defined (__MSDOS__) && !defined (VMS)
+#elif !defined (__MSDOS__) && !MK_OS_VMS
 
 /* POSIX:
    Create a child process executing the command in ARGV.
@@ -2467,7 +2467,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
 
   return pid;
 }
-#endif /* !__MSDOS__ && !VMS */
+#endif /* !__MSDOS__ && !MK_OS_VMS */
 #endif /* !WINDOWS32 */
 
 /* Replace the current process with one running the command in ARGV,
@@ -2476,7 +2476,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
 pid_t
 exec_command (char **argv, char **envp)
 {
-#ifdef VMS
+#if MK_OS_VMS
   /* to work around a problem with signals and execve: ignore them */
 #ifdef SIGCHLD
   signal (SIGCHLD,SIG_IGN);
@@ -2653,10 +2653,10 @@ exec_command (char **argv, char **envp)
 
   return pid;
 #endif /* !WINDOWS32 */
-#endif /* !VMS */
+#endif /* !MK_OS_VMS */
 }
 
-#ifndef VMS
+#if !MK_OS_VMS
 /* Figure out the argument list necessary to run LINE as a command.  Try to
    avoid using a shell.  This routine handles only ' quoting, and " quoting
    when no backslash, $ or ' characters are seen in the quotes.  Starting
@@ -3609,7 +3609,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
 
   return new_argv;
 }
-#endif /* !VMS */
+#endif /* !MK_OS_VMS */
 
 /* Figure out the argument list necessary to run LINE as a command.  Try to
    avoid using a shell.  This routine handles only ' quoting, and " quoting
@@ -3738,6 +3738,6 @@ dup2 (int old, int new)
 
 /* On VMS systems, include special VMS functions.  */
 
-#ifdef VMS
+#if MK_OS_VMS
 #include "vmsjobs.c"
 #endif

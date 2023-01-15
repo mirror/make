@@ -24,7 +24,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "makeint.h"
 
-#if VMS
+#if MK_OS_VMS
 #include <unixlib.h>
 #include <stdlib.h>
 #include <jpidef.h>

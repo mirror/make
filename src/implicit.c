@@ -284,7 +284,7 @@ pattern_search (struct file *file, int archive,
          but not counting any slash at the end.  (foo/bar/ counts as
          bar/ in directory foo/, not empty in directory foo/bar/.)  */
       lastslash = memrchr (filename, '/', namelen - 1);
-#ifdef VMS
+#if MK_OS_VMS
       if (lastslash == NULL)
         lastslash = strrchr (filename, ']');
       if (lastslash == NULL)
@@ -357,7 +357,7 @@ pattern_search (struct file *file, int archive,
           check_lastslash = 0;
           if (lastslash)
             {
-#ifdef VMS
+#if MK_OS_VMS
               check_lastslash = strpbrk (target, "/]>:") == NULL;
 #else
               check_lastslash = strchr (target, '/') == 0;

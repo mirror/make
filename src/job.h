@@ -18,7 +18,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Structure describing a running or dead child process.  */
 
-#ifdef VMS
+#if MK_OS_VMS
 #define VMSCHILD                                                        \
     char *comname;              /* Temporary command file name */       \
     int efn;                    /* Completion event flag number */      \

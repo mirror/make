@@ -365,7 +365,7 @@ selective_vpath_search (struct vpath *path, const char *file,
       /* Add the directory prefix already in *FILE.  */
       if (name_dplen > 0)
         {
-#ifndef VMS
+#if !MK_OS_VMS
           *p++ = '/';
 #else
           /* VMS: if this is not in VMS format, treat as Unix format */
@@ -381,7 +381,7 @@ selective_vpath_search (struct vpath *path, const char *file,
         p[-1] = '/';
 #endif
       /* Now add the name-within-directory at the end of NAME.  */
-#ifndef VMS
+#if !MK_OS_VMS
       if (p != name && p[-1] != '/')
         {
           *p = '/';
@@ -440,7 +440,7 @@ selective_vpath_search (struct vpath *path, const char *file,
           /* That file wasn't mentioned in the makefile.
              See if it actually exists.  */
 
-#ifdef VMS
+#if MK_OS_VMS
           /* For VMS syntax just use the original vpath */
           if (*p != '/')
             exists_in_cache = exists = dir_file_exists_p (vpath[i], filename);
@@ -467,7 +467,7 @@ selective_vpath_search (struct vpath *path, const char *file,
 
           struct stat st;
 
-#ifndef VMS
+#if !MK_OS_VMS
           /* Put the slash back in NAME.  */
           *p = '/';
 #else

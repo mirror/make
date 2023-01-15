@@ -73,7 +73,7 @@ lookup_file (const char *name)
 {
   struct file *f;
   struct file file_key;
-#ifdef VMS
+#if MK_OS_VMS
   int want_vmsify;
 #ifndef WANT_CASE_SENSITIVE_TARGETS
   char *lname;
@@ -85,7 +85,7 @@ lookup_file (const char *name)
   /* This is also done in parse_file_seq, so this is redundant
      for names read from makefiles.  It is here for names passed
      on the command line.  */
-#ifdef VMS
+#if MK_OS_VMS
    want_vmsify = (strpbrk (name, "]>:^") != NULL);
 # ifndef WANT_CASE_SENSITIVE_TARGETS
   if (*name != '.')
@@ -117,7 +117,7 @@ lookup_file (const char *name)
     {
       /* It was all slashes after a dot.  */
       name = "./";
-#if defined(VMS)
+#if MK_OS_VMS
       /* TODO - This section is probably not needed. */
       if (want_vmsify)
         name = "[]";
@@ -125,7 +125,7 @@ lookup_file (const char *name)
     }
   file_key.hname = name;
   f = hash_find_item (&files, &file_key);
-#if defined(VMS) && !defined(WANT_CASE_SENSITIVE_TARGETS)
+#if MK_OS_VMS && !defined(WANT_CASE_SENSITIVE_TARGETS)
   if (*name != '.')
     free (lname);
 #endif
@@ -149,7 +149,7 @@ enter_file (const char *name)
   assert (*name != '\0');
   assert (! verify_flag || strcache_iscached (name));
 
-#if defined(VMS) && !defined(WANT_CASE_SENSITIVE_TARGETS)
+#if MK_OS_VMS && !defined(WANT_CASE_SENSITIVE_TARGETS)
   if (*name != '.')
     {
       const char *n;

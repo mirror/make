@@ -520,7 +520,7 @@ func_notdir_suffix (char *o, char **argv, const char *funcname)
   int is_suffix = funcname[0] == 's';
   int is_notdir = !is_suffix;
   int stop = MAP_DIRSEP | (is_suffix ? MAP_DOT : 0);
-#ifdef VMS
+#if MK_OS_VMS
   /* For VMS list_iterator points to a comma separated list. To use the common
      [find_]next_token, create a local copy and replace the commas with
      spaces. Obviously, there is a problem if there is a ',' in the VMS filename
@@ -565,7 +565,7 @@ func_notdir_suffix (char *o, char **argv, const char *funcname)
 
       if (is_notdir || p >= p2)
         {
-#ifdef VMS
+#if MK_OS_VMS
           if (vms_comma_separator)
             o = variable_buffer_output (o, ",", 1);
           else
@@ -596,7 +596,7 @@ func_basename_dir (char *o, char **argv, const char *funcname)
   int is_basename = funcname[0] == 'b';
   int is_dir = !is_basename;
   int stop = MAP_DIRSEP | (is_basename ? MAP_DOT : 0) | MAP_NUL;
-#ifdef VMS
+#if MK_OS_VMS
   /* As in func_notdir_suffix ... */
   char *vms_p3 = alloca (strlen(p3) + 1);
   int i;
@@ -625,7 +625,7 @@ func_basename_dir (char *o, char **argv, const char *funcname)
         o = variable_buffer_output (o, p2, 2);
 #endif
       else if (is_dir)
-#ifdef VMS
+#if MK_OS_VMS
         {
           extern int vms_report_unix_paths;
           if (vms_report_unix_paths)
@@ -635,12 +635,12 @@ func_basename_dir (char *o, char **argv, const char *funcname)
         }
 #else
       o = variable_buffer_output (o, "./", 2);
-#endif /* !VMS */
+#endif /* !MK_OS_VMS */
       else
         /* The entire name is the basename.  */
         o = variable_buffer_output (o, p2, len);
 
-#ifdef VMS
+#if MK_OS_VMS
       if (vms_comma_separator)
         o = variable_buffer_output (o, ",", 1);
       else
@@ -1807,7 +1807,7 @@ msdos_openpipe (int* pipedes, int *pidp, char *text)
   Do shell spawning, with the naughty bits for different OSes.
  */
 
-#ifdef VMS
+#if MK_OS_VMS
 
 /* VMS can't do $(shell ...)  */
 
@@ -2000,7 +2000,7 @@ func_shell (char *o, char **argv, const char *funcname UNUSED)
 {
   return func_shell_base (o, argv, 1);
 }
-#endif  /* !VMS */
+#endif  /* !MK_OS_VMS */
 
 #ifdef EXPERIMENTAL
 

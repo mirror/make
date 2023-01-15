@@ -32,7 +32,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef WINDOWS32
 # include <windows.h>
 # include "sub_proc.h"
-#elif defined(VMS)
+#elif MK_OS_VMS
 struct passwd *getpwnam (char *name);
 #else
 # include <pwd.h>
@@ -223,17 +223,17 @@ read_all_makefiles (const char **makefiles)
   if (num_makefiles == 0)
     {
       static const char *default_makefiles[] =
-#ifdef VMS
+#if MK_OS_VMS
         /* all lower case since readdir() (the vms version) 'lowercasifies' */
         /* TODO: Above is not always true, this needs more work */
         { "makefile.vms", "gnumakefile", "makefile", 0 };
 #else
 #ifdef WINDOWS32
         { "GNUmakefile", "makefile", "Makefile", "makefile.mak", 0 };
-#else /* !VMS && !WINDOWS32 */
+#else /* !MK_OS_VMS && !WINDOWS32 */
         { "GNUmakefile", "makefile", "Makefile", 0 };
-#endif /* !VMS && !WINDOWS32 */
-#endif /* VMS */
+#endif /* !MK_OS_VMS && !WINDOWS32 */
+#endif /* MK_OS_VMS */
       const char **p = default_makefiles;
       while (*p != 0 && !file_exists_p (*p))
         ++p;
@@ -3060,7 +3060,7 @@ construct_include_path (const char **arg_dirs)
 char *
 tilde_expand (const char *name)
 {
-#if !defined(VMS)
+#if !MK_OS_VMS
   if (name[1] == '/' || name[1] == '\0')
     {
       char *home_dir;
@@ -3123,7 +3123,7 @@ tilde_expand (const char *name)
         *userend = '/';
     }
 # endif /* !WINDOWS32 */
-#endif /* !VMS */
+#endif /* !MK_OS_VMS */
   return 0;
 }
 
@@ -3234,7 +3234,7 @@ parse_file_seq (char **stringp, size_t size, int stopmap,
       s = p;
       p = find_map_unquote (p, findmap);
 
-#ifdef VMS
+#if MK_OS_VMS
         /* convert comma separated list to space separated */
       if (p && *p == ',')
         *p =' ';
@@ -3261,7 +3261,7 @@ parse_file_seq (char **stringp, size_t size, int stopmap,
 
       /* Strip leading "this directory" references.  */
       if (NONE_SET (flags, PARSEFS_NOSTRIP))
-#ifdef VMS
+#if MK_OS_VMS
         /* Skip leading '[]'s. should only be one set or bug somewhere else */
         if (p - s > 2 && s[0] == '[' && s[1] == ']')
             s += 2;
@@ -3291,7 +3291,7 @@ parse_file_seq (char **stringp, size_t size, int stopmap,
         }
       else
         {
-#ifdef VMS
+#if MK_OS_VMS
 /* VMS filenames can have a ':' in them but they have to be '\'ed but we need
  *  to remove this '\' before we can use the filename.
  * xstrdup called because S may be read-only string constant.

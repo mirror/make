@@ -215,7 +215,7 @@ define_variable_in_set (const char *name, size_t length,
   var_slot = (struct variable **) hash_find_slot (&set->table, &var_key);
   v = *var_slot;
 
-#ifdef VMS
+#if MK_OS_VMS
   /* VMS does not populate envp[] with DCL symbols and logical names which
      historically are mapped to environment variables.
      If the variable is not yet defined, then we need to check if getenv()
@@ -479,7 +479,7 @@ lookup_variable (const char *name, size_t length)
       is_parent |= setlist->next_is_parent;
     }
 
-#ifdef VMS
+#if MK_OS_VMS
   /* VMS doesn't populate envp[] with DCL symbols and logical names, which
      historically are mapped to environment variables and returned by
      getenv().  */
@@ -534,7 +534,7 @@ lookup_variable (const char *name, size_t length)
         return define_variable (vname, length, value, o_env, 1);
       }
   }
-#endif /* VMS */
+#endif /* MK_OS_VMS */
 
   return 0;
 }

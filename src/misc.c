@@ -572,7 +572,7 @@ umask (mode_t mask)
 }
 #endif
 
-#ifdef VMS
+#if MK_OS_VMS
 # define DEFAULT_TMPFILE    "sys$scratch:gnv$make_cmdXXXXXX.com"
 #else
 # define DEFAULT_TMPFILE    "GmXXXXXX"
@@ -630,7 +630,7 @@ get_tmptemplate ()
   template = xmalloc (strlen (tmpdir) + CSTRLEN (DEFAULT_TMPFILE) + 2);
   cp = stpcpy (template, tmpdir);
 
-#if !defined VMS
+#if !MK_OS_VMS
   /* It's not possible for tmpdir to be empty.  */
   if (! ISDIRSEP (cp[-1]))
     *(cp++) = '/';

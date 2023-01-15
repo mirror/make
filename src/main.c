@@ -42,7 +42,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 # include <fcntl.h>
 #endif
 
-#ifdef VMS
+#if MK_OS_VMS
 int vms_use_mcr_command = 0;
 int vms_always_use_cmd_file = 0;
 int vms_gnv_shell = 0;
@@ -669,7 +669,7 @@ initialize_stopchar_map (void)
   stopchar_map[(int)'\t'] = MAP_BLANK;
 
   stopchar_map[(int)'/'] = MAP_DIRSEP;
-#if defined(VMS)
+#if MK_OS_VMS
   stopchar_map[(int)':'] |= MAP_DIRSEP;
   stopchar_map[(int)']'] |= MAP_DIRSEP;
   stopchar_map[(int)'>'] |= MAP_DIRSEP;
@@ -1336,7 +1336,7 @@ main (int argc, char **argv, char **envp)
               program = xstrndup (program, len - 4);
           }
         }
-#elif defined(VMS)
+#elif MK_OS_VMS
       set_program_name (argv[0]);
       program = program_name;
       {
@@ -1677,7 +1677,7 @@ main (int argc, char **argv, char **envp)
       fflush (stdout);
     }
 
-#ifndef VMS
+#if !MK_OS_VMS
   /* Set the "MAKE_COMMAND" variable to the name we were invoked with.
      (If it is a relative pathname with a slash, prepend our directory name
      so the result will run the same program regardless of the current dir.
@@ -1829,7 +1829,7 @@ main (int argc, char **argv, char **envp)
   /* The extra indirection through $(MAKE_COMMAND) is done
      for hysterical raisins.  */
 
-#ifdef VMS
+#if MK_OS_VMS
   if (vms_use_mcr_command)
     define_variable_cname ("MAKE_COMMAND", vms_command (argv[0]), o_default, 0);
   else
@@ -1885,7 +1885,7 @@ main (int argc, char **argv, char **envp)
          a reference to this hidden variable is written instead. */
       define_variable_cname ("MAKEOVERRIDES", "${-*-command-variables-*-}",
                              o_default, 1);
-#ifdef VMS
+#if MK_OS_VMS
       vms_export_dcl_symbol ("MAKEOVERRIDES", "${-*-command-variables-*-}");
 #endif
     }
@@ -2110,7 +2110,7 @@ main (int argc, char **argv, char **envp)
     no_default_sh_exe = !find_and_set_default_shell (NULL);
 #endif /* WINDOWS32 */
 
-#if defined (__MSDOS__) || defined (__EMX__) || defined (VMS)
+#if defined (__MSDOS__) || defined (__EMX__) || MK_OS_VMS
   /* We need to know what kind of shell we will be using.  */
   {
     extern int _is_unixy_shell (const char *_path);
@@ -2155,7 +2155,7 @@ main (int argc, char **argv, char **envp)
   else
     job_slots = arg_job_slots;
 
-#if defined (__MSDOS__) || defined (__EMX__) || defined (VMS)
+#if defined (__MSDOS__) || defined (__EMX__) || MK_OS_VMS
   if (job_slots != 1
 # ifdef __EMX__
       && _osmode != OS2_MODE /* turn off -j if we are in DOS mode */
@@ -2700,7 +2700,7 @@ main (int argc, char **argv, char **envp)
                   {
                     *p = alloca (40);
                     sprintf (*p, "%s=%u", MAKELEVEL_NAME, makelevel);
-#ifdef VMS
+#if MK_OS_VMS
                     vms_putenv_symbol (*p);
 #endif
                   }
@@ -2971,7 +2971,7 @@ handle_non_switch_argument (const char *arg, enum variable_origin origin)
     /* Ignore plain '-' for compatibility.  */
     return;
 
-#ifdef VMS
+#if MK_OS_VMS
   {
     /* VMS DCL quoting can result in foo="bar baz" showing up here.
        Need to remove the double quotes from the value. */

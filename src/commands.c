@@ -26,7 +26,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "w32err.h"
 #endif
 
-#if VMS
+#if MK_OS_VMS
 # define FILE_LIST_SEPARATOR (vms_comma_separator ? ',' : ' ')
 #else
 # define FILE_LIST_SEPARATOR ' '
