@@ -1241,11 +1241,11 @@ main (int argc, char **argv, char **envp)
   (void)bindtextdomain (PACKAGE, LOCALEDIR);
   (void)textdomain (PACKAGE);
 
-#ifdef  POSIX
+#ifdef POSIX
   sigemptyset (&fatal_signal_set);
 #define ADD_SIG(sig)    sigaddset (&fatal_signal_set, sig)
 #else
-#ifdef  HAVE_SIGSETMASK
+#ifdef HAVE_SIGSETMASK
   fatal_signal_mask = 0;
 #define ADD_SIG(sig)    fatal_signal_mask |= sigmask (sig)
 #else
@@ -1278,7 +1278,7 @@ main (int argc, char **argv, char **envp)
   FATAL_SIG (SIGFPE);
 #endif
 
-#ifdef  SIGDANGER
+#ifdef SIGDANGER
   FATAL_SIG (SIGDANGER);
 #endif
 #ifdef SIGXCPU
@@ -1288,7 +1288,7 @@ main (int argc, char **argv, char **envp)
   FATAL_SIG (SIGXFSZ);
 #endif
 
-#undef  FATAL_SIG
+#undef FATAL_SIG
 
   /* Do not ignore the child-death signal.  This must be done before
      any children could possibly be created; otherwise, the wait
@@ -1405,7 +1405,7 @@ main (int argc, char **argv, char **envp)
   if (getcwd (current_directory, GET_PATH_MAX) == 0)
 #endif
     {
-#ifdef  HAVE_GETCWD
+#ifdef HAVE_GETCWD
       perror_with_name ("getcwd", "");
 #else
       OS (error, NILF, "getwd: %s", current_directory);
@@ -1693,8 +1693,7 @@ main (int argc, char **argv, char **envp)
   if (strpbrk (argv[0], "/:\\") || strstr (argv[0], "..")
       || strneq (argv[0], "//", 2))
     argv[0] = xstrdup (w32ify (argv[0], 1));
-#else /* MK_OS_W32 */
-#if MK_OS_DOS || MK_OS_OS2
+#elif MK_OS_DOS || MK_OS_OS2
   if (strchr (argv[0], '\\'))
     {
       char *p;
@@ -1727,7 +1726,6 @@ main (int argc, char **argv, char **envp)
     argv[0] = xstrdup (concat (3, current_directory, "/", argv[0]));
 #endif /* !MK_OS_DOS */
 #endif /* MK_OS_W32 */
-#endif
 
   /* We may move, but until we do, here we are.  */
   starting_directory = current_directory;
@@ -1776,7 +1774,7 @@ main (int argc, char **argv, char **envp)
       if (getcwd (current_directory, GET_PATH_MAX) == 0)
 #endif
         {
-#ifdef  HAVE_GETCWD
+#ifdef HAVE_GETCWD
           perror_with_name ("getcwd", "");
 #else
           OS (error, NILF, "getwd: %s", current_directory);
@@ -3531,7 +3529,7 @@ define_makeflags (int makefile)
           abort ();
         }
 
-#undef  ADD_FLAG
+#undef ADD_FLAG
 
   /* Four more for the possible " -- ", plus variable references.  */
   flagslen += 4 + CSTRLEN (posixref) + 4 + CSTRLEN (evalref) + 4;

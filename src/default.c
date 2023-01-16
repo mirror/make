@@ -552,17 +552,17 @@ static const char *default_variables[] =
     "COFLAGS", "",
 
     "CPP", "$(CC) -E",
-#ifdef  CRAY
+#ifdef CRAY
     "CF77PPFLAGS", "-P",
     "CF77PP", "/lib/cpp",
     "CFT", "cft77",
     "CF", "cf77",
     "FC", "$(CF)",
-#else   /* Not CRAY.  */
-#ifdef  _IBMR2
+#else /* Not CRAY.  */
+#ifdef _IBMR2
     "FC", "xlf",
 #else
-#ifdef  __convex__
+#ifdef __convex__
     "FC", "fc",
 #else
     "FC", "f77",
@@ -582,10 +582,10 @@ static const char *default_variables[] =
 #endif
     "LINT", "lint",
     "M2C", "m2c",
-#ifdef  pyr
+#ifdef pyr
     "PC", "pascal",
 #else
-#ifdef  CRAY
+#ifdef CRAY
     "PC", "PASCAL",
     "SEGLDR", "segldr",
 #else
@@ -656,7 +656,7 @@ static const char *default_variables[] =
     "OUTPUT_OPTION", "-o $@",
 #endif
 
-#ifdef  SCCS_GET_MINUS_G
+#ifdef SCCS_GET_MINUS_G
     "SCCS_OUTPUT_OPTION", "-G$@",
 #endif
 

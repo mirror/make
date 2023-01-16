@@ -292,8 +292,8 @@ ar_scan (const char *archive, ar_member_func_t function, const void *varg)
 #else /* !MK_OS_VMS */
 
 /* SCO Unix's compiler defines both of these.  */
-#ifdef  M_UNIX
-#undef  M_XENIX
+#ifdef M_UNIX
+#undef M_XENIX
 #endif
 
 /* On the sun386i and in System V rel 3, ar.h defines two different archive
@@ -302,7 +302,7 @@ ar_scan (const char *archive, ar_member_func_t function, const void *varg)
    to have a nonzero value.  */
 
 #if (!defined (PORTAR) || PORTAR == 0) && (!defined (PORT5AR) || PORT5AR == 0)
-#undef  PORTAR
+#undef PORTAR
 #ifdef M_XENIX
 /* According to Jim Sievert <jas1@rsvl.unisys.com>, for SCO XENIX defining
    PORTAR to 1 gets the wrong archive format, and defining it to 0 gets the

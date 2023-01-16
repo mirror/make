@@ -313,7 +313,7 @@ set_file_variables (struct file *file, const char *stem)
     DEFINE_VARIABLE ("|", 1, bar_value);
   }
 
-#undef  DEFINE_VARIABLE
+#undef DEFINE_VARIABLE
 }
 
 /* Chop CMDS up into individual command lines if necessary.

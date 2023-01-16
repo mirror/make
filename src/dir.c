@@ -20,7 +20,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "dep.h"
 #include "debug.h"
 
-#ifdef  HAVE_DIRENT_H
+#ifdef HAVE_DIRENT_H
 # include <dirent.h>
 # define NAMLEN(dirent) strlen((dirent)->d_name)
 # if MK_OS_VMS

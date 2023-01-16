@@ -49,7 +49,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 #include "gnumake.h"
 
-#ifdef  CRAY
+#ifdef CRAY
 /* This must happen before #include <signal.h> so
    that the declaration therein is changed.  */
 # define signal bsdsignal
@@ -107,7 +107,7 @@ extern int errno;
 # endif
 #endif
 
-#ifdef  HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 # include <unistd.h>
 /* Ultrix's unistd.h always defines _POSIX_VERSION, but you only get
    POSIX.1 behavior with 'cc -YPOSIX', which predefines POSIX itself!  */
@@ -137,10 +137,10 @@ extern int errno;
 # include <vfork.h>
 #endif
 
-#ifdef  HAVE_LIMITS_H
+#ifdef HAVE_LIMITS_H
 # include <limits.h>
 #endif
-#ifdef  HAVE_SYS_PARAM_H
+#ifdef HAVE_SYS_PARAM_H
 # include <sys/param.h>
 #endif
 
@@ -154,7 +154,7 @@ extern int errno;
 # endif
 #endif
 
-#ifdef  PATH_MAX
+#ifdef PATH_MAX
 # define GET_PATH_MAX   PATH_MAX
 # define PATH_VAR(var)  char var[PATH_MAX+1]
 #else
@@ -269,16 +269,16 @@ void exit (int) NORETURN;
 # define EXIT_FAILURE 1
 #endif
 
-#ifndef  ANSI_STRING
+#ifndef ANSI_STRING
 
 /* SCO Xenix has a buggy macro definition in <string.h>.  */
-#undef  strerror
+#undef strerror
 #if !defined(__DECC)
 char *strerror (int errnum);
 #endif
 
 #endif  /* !ANSI_STRING.  */
-#undef  ANSI_STRING
+#undef ANSI_STRING
 
 #if HAVE_INTTYPES_H
 # include <inttypes.h>
@@ -691,7 +691,7 @@ void dbg (const char *fmt, ...);
 long int lseek ();
 # endif
 
-# ifdef  HAVE_GETCWD
+# ifdef HAVE_GETCWD
 #  if !MK_OS_VMS && !defined(__DECC)
 char *getcwd (void);
 #  endif
