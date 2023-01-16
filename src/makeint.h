@@ -93,6 +93,10 @@ extern int errno;
 # define MK_OS_ZOS 1
 #endif
 
+#if defined(__EMX__)
+# define MK_OS_OS2 1
+#endif
+
 #ifdef __VMS
 # define MK_OS_VMS 1
 /* In strict ANSI mode, VMS compilers should not be defining the
@@ -834,7 +838,7 @@ extern volatile sig_atomic_t handling_fatal_signal;
 #endif
 
 #ifndef initialize_main
-# ifdef __EMX__
+# if MK_OS_OS2
 #  define initialize_main(pargc, pargv) \
                           { _wildcard(pargc, pargv); _response(pargc, pargv); }
 # else
@@ -842,7 +846,7 @@ extern volatile sig_atomic_t handling_fatal_signal;
 # endif
 #endif
 
-#ifdef __EMX__
+#if MK_OS_OS2
 # if !defined chdir
 #  define chdir _chdir2
 # endif

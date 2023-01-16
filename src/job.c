@@ -46,7 +46,7 @@ HANDLE main_thread;
 const char *default_shell = "command.com";
 int batch_mode_shell = 0;
 
-#elif defined (__EMX__)
+#elif MK_OS_OS2
 
 const char *default_shell = "/bin/sh";
 int batch_mode_shell = 0;
@@ -102,7 +102,7 @@ static void vmsWaitForChildren (int *);
 # define WAIT_NOHANG 1
 #endif /* MK_OS_W32 */
 
-#ifdef __EMX__
+#if MK_OS_OS2
 # include <process.h>
 #endif
 
@@ -368,7 +368,7 @@ create_batch_file (char const *base, int unixy, int *fd)
 }
 #endif /* MK_OS_W32 */
 
-#ifdef __EMX__
+#if MK_OS_OS2
 /* returns whether path is assumed to be a unix like shell. */
 int
 _is_unixy_shell (const char *path)
@@ -412,7 +412,7 @@ _is_unixy_shell (const char *path)
   /* in doubt assume a unix like shell */
   return 1;
 }
-#endif /* __EMX__ */
+#endif /* MK_OS_OS2 */
 
 /* determines whether path looks to be a Bourne-like shell. */
 int
@@ -600,7 +600,7 @@ child_handler (int sig UNUSED)
 
   jobserver_signal ();
 
-#ifdef __EMX__
+#if MK_OS_OS2
   /* The signal handler must called only once! */
   signal (SIGCHLD, SIG_DFL);
 #endif
@@ -1353,7 +1353,7 @@ start_job_command (struct child *child)
 
 #if !MK_OS_VMS
   if (
-#if MK_OS_DOS || defined (__EMX__)
+#if MK_OS_DOS || MK_OS_OS2
       unixy_shell       /* the test is complicated and we already did it */
 #else
       (argv[0] && is_bourne_compatible_shell (argv[0]))
@@ -2171,7 +2171,7 @@ start_waiting_jobs (void)
 #if !MK_OS_W32
 
 /* EMX: Start a child process. This function returns the new pid.  */
-# if defined __EMX__
+# if MK_OS_OS2
 pid_t
 child_execute_job (struct childbase *child, int good_stdin, char **argv)
 {
@@ -2547,7 +2547,7 @@ exec_command (char **argv, char **envp)
 
   pid_t pid = -1;
 
-# ifdef __EMX__
+# if MK_OS_OS2
   /* Run the program.  */
   pid = spawnvpe (P_NOWAIT, argv[0], argv, envp);
   if (pid >= 0)
@@ -2569,7 +2569,7 @@ exec_command (char **argv, char **envp)
   environ = envp;
   execvp (argv[0], argv);
 
-# endif /* !__EMX__ */
+# endif /* !MK_OS_OS2 */
 
   switch (errno)
     {
@@ -2584,7 +2584,7 @@ exec_command (char **argv, char **envp)
         int argc;
         int i=1;
 
-# ifdef __EMX__
+# if MK_OS_OS2
         /* Do not use $SHELL from the environment */
         struct variable *p = lookup_variable ("SHELL", 5);
         if (p)
@@ -2601,7 +2601,7 @@ exec_command (char **argv, char **envp)
         while (argv[argc] != 0)
           ++argc;
 
-# ifdef __EMX__
+# if MK_OS_OS2
         if (!unixy_shell)
           ++argc;
 # endif
@@ -2609,7 +2609,7 @@ exec_command (char **argv, char **envp)
         new_argv = alloca ((1 + argc + 1) * sizeof (char *));
         new_argv[0] = (char *)shell;
 
-# ifdef __EMX__
+# if MK_OS_OS2
         if (!unixy_shell)
           {
             new_argv[1] = (char *)"/c";
@@ -2625,7 +2625,7 @@ exec_command (char **argv, char **envp)
             --argc;
           }
 
-# ifdef __EMX__
+# if MK_OS_OS2
         pid = spawnvpe (P_NOWAIT, shell, new_argv, envp);
         if (pid >= 0)
           break;
@@ -2639,7 +2639,7 @@ exec_command (char **argv, char **envp)
         break;
       }
 
-# ifdef __EMX__
+# if MK_OS_OS2
     case EINVAL:
       /* this nasty error was driving me nuts :-( */
       O (error, NILF, _("spawnvpe: environment space might be exhausted"));
@@ -2725,7 +2725,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
   const char *sh_chars;
   const char **sh_cmds;
 
-#elif defined (__EMX__)
+#elif MK_OS_OS2
   static const char *sh_chars_dos = "*?[];|<>%^&()";
   static const char *sh_cmds_dos[] =
     { "break", "call", "cd", "chcp", "chdir", "cls", "copy", "ctty", "date",
@@ -2856,7 +2856,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
   if (slow_flag)
     goto slow;
 #else  /* not MK_OS_W32 */
-#if MK_OS_DOS || defined (__EMX__)
+#if MK_OS_DOS || MK_OS_OS2
   else if (strcasecmp (shell, default_shell))
     {
       extern int _is_unixy_shell (const char *_path);
@@ -2877,7 +2877,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
     {
       sh_chars = sh_chars_dos;
       sh_cmds  = sh_cmds_dos;
-# ifdef __EMX__
+# if MK_OS_OS2
       if (_osmode == OS2_MODE)
         {
           sh_chars = sh_chars_os2;
@@ -2888,7 +2888,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
 #else  /* !MK_OS_DOS */
   else if (strcmp (shell, default_shell))
     goto slow;
-#endif /* !MK_OS_DOS && !__EMX__ */
+#endif /* !MK_OS_DOS && !MK_OS_OS2 */
 #endif /* not MK_OS_W32 */
 
   if (ifs)
@@ -2938,7 +2938,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
                  DOS/Windows/OS2, if we don't have a POSIX shell, we keep the
                  pre-POSIX behavior of removing the backslash-newline.  */
               if (instring == '"'
-#if MK_OS_DOS || defined (__EMX__) || MK_OS_W32
+#if MK_OS_DOS || MK_OS_OS2 || MK_OS_W32
                   || !unixy_shell
 #endif
                   )
@@ -3096,7 +3096,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
                   {
                     if (streq (sh_cmds[j], new_argv[0]))
                       goto slow;
-#if defined(__EMX__) || MK_OS_W32
+#if MK_OS_OS2 || MK_OS_W32
                     /* Non-Unix shells are case insensitive.  */
                     if (!unixy_shell
                         && strcasecmp (sh_cmds[j], new_argv[0]) == 0)
@@ -3191,7 +3191,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
     char *command_ptr = NULL; /* used for batch_mode_shell mode */
 #endif
 
-# ifdef __EMX__ /* is this necessary? */
+# if MK_OS_OS2 /* is this necessary? */
     if (!unixy_shell && shellflags)
       {
         size_t len = strlen (shellflags);
@@ -3218,7 +3218,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
 
         /* Remove and ignore interior prefix chars [@+-] because they're
              meaningless given a single shell. */
-#if MK_OS_DOS || defined (__EMX__)
+#if MK_OS_DOS || MK_OS_OS2
         if (unixy_shell)     /* the test is complicated and we already did it */
 #else
         if (is_bourne_compatible_shell (shell)
@@ -3414,7 +3414,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
             /* POSIX says we keep the backslash-newline.  If we don't have a
                POSIX shell on DOS/Windows/OS2, mimic the pre-POSIX behavior
                and remove the backslash/newline.  */
-#if MK_OS_DOS || defined (__EMX__) || MK_OS_W32
+#if MK_OS_DOS || MK_OS_OS2 || MK_OS_W32
 # define PRESERVE_BSNL  unixy_shell
 #else
 # define PRESERVE_BSNL  1
@@ -3516,7 +3516,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
       new_argv = construct_command_argv_internal (new_line, 0, 0, 0, 0,
                                                   flags, 0);
 
-#ifdef __EMX__
+#if MK_OS_OS2
     else if (!unixy_shell)
       {
         /* new_line is local, must not be freed therefore
@@ -3649,7 +3649,7 @@ construct_command_argv (char *line, char **restp, struct file *file,
         strcpy (shell, p);
       }
 #endif
-#ifdef __EMX__
+#if MK_OS_OS2
     {
       static const char *unixroot = NULL;
       static const char *last_shell = "";
@@ -3691,7 +3691,7 @@ construct_command_argv (char *line, char **restp, struct file *file,
             free (buf);
         }
     }
-#endif /* __EMX__ */
+#endif /* MK_OS_OS2 */
 
     var = lookup_variable_for_file (STRING_SIZE_TUPLE (".SHELLFLAGS"), file);
     if (!var)

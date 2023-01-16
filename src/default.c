@@ -27,7 +27,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Define GCC_IS_NATIVE if gcc is the native development environment on
    your system (gcc/bison/flex vs cc/yacc/lex).  */
-#if MK_OS_DOS || defined(__EMX__)
+#if MK_OS_DOS || MK_OS_OS2
 # define GCC_IS_NATIVE
 #endif
 
@@ -43,7 +43,7 @@ static char default_suffixes[]
 .for .f .r .y .l .ym .yl .mar .s .ss .i .ii .mod .sym .def .h .info .dvi \
 .tex .texinfo .texi .txinfo .mem .hlp .brn .rnh .rno .rnt .rnx .w .ch .cweb \
 .web .com .sh .elc .el";
-#elif defined(__EMX__)
+#elif MK_OS_OS2
   = ".out .a .ln .o .c .cc .C .cpp .p .f .F .m .r .y .l .ym .yl .s .S \
 .mod .sym .def .h .info .dvi .tex .texinfo .texi .txinfo \
 .w .ch .web .sh .elc .el .obj .exe .dll .lib";

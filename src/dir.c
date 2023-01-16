@@ -653,7 +653,7 @@ dir_contents_file_exists_p (struct directory *dir,
   filename = downcase (filename);
 #endif
 
-#ifdef __EMX__
+#if MK_OS_OS2
   if (filename != NULL)
     {
       size_t len = strlen (filename);

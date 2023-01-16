@@ -231,7 +231,7 @@ construct_vpath_list (char *pattern, char *dirpath)
       len = p - v;
       /* Make sure there's no trailing slash,
          but still allow "/" as a directory.  */
-#if MK_OS_DOS || defined(__EMX__) || defined(HAVE_DOS_PATHS)
+#if MK_OS_DOS || MK_OS_OS2 || defined(HAVE_DOS_PATHS)
       /* We need also to leave alone a trailing slash in "d:/".  */
       if (len > 3 || (len > 1 && v[1] != ':'))
 #endif

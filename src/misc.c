@@ -28,7 +28,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 # include <io.h>
 #endif
 
-#ifdef __EMX__
+#if MK_OS_OS2
 # define INCL_DOS
 # include <os2.h>
 #endif
@@ -585,7 +585,7 @@ get_tmpdir ()
 
   if (!tmpdir)
     {
-#if MK_OS_DOS || MK_OS_W32 || defined (__EMX__)
+#if MK_OS_DOS || MK_OS_W32 || MK_OS_OS2
 # define TMP_EXTRAS   "TMP", "TEMP",
 #else
 # define TMP_EXTRAS
@@ -786,7 +786,7 @@ get_tmpfile (char **name)
 }
 
 
-#if HAVE_TTYNAME && defined(__EMX__)
+#if HAVE_TTYNAME && MK_OS_OS2
 /* OS/2 kLIBC has a declaration for ttyname(), so configure finds it.
    But, it is not implemented!  Roll our own.  */
 char *ttyname (int fd)

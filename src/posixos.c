@@ -557,7 +557,7 @@ set_child_handler_action_flags (int set_handler, int set_alarm)
 {
   struct sigaction sa;
 
-#ifdef __EMX__
+#if MK_OS_OS2
   /* The child handler must be turned off here.  */
   signal (SIGCHLD, SIG_DFL);
 #endif

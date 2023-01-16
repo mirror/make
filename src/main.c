@@ -34,7 +34,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 # include "sub_proc.h"
 # include "w32err.h"
 #endif
-#ifdef __EMX__
+#if MK_OS_OS2
 # include <sys/types.h>
 # include <sys/wait.h>
 #endif
@@ -1694,7 +1694,7 @@ main (int argc, char **argv, char **envp)
       || strneq (argv[0], "//", 2))
     argv[0] = xstrdup (w32ify (argv[0], 1));
 #else /* MK_OS_W32 */
-#if MK_OS_DOS || defined (__EMX__)
+#if MK_OS_DOS || MK_OS_OS2
   if (strchr (argv[0], '\\'))
     {
       char *p;
@@ -1710,7 +1710,7 @@ main (int argc, char **argv, char **envp)
   if (current_directory[0] != '\0'
       && argv[0] != 0
       && (argv[0][0] != '/' && (argv[0][0] == '\0' || argv[0][1] != ':'))
-# ifdef __EMX__
+# if MK_OS_OS2
       /* do not prepend cwd if argv[0] contains no '/', e.g. "make" */
       && (strchr (argv[0], '/') != 0 || strchr (argv[0], '\\') != 0)
 # endif
@@ -1946,7 +1946,7 @@ main (int argc, char **argv, char **envp)
       f->last_mtime = f->mtime_before_update = f_mtime (f, 0);
     }
 
-#ifndef __EMX__ /* Don't use a SIGCHLD handler for OS/2 */
+#if !MK_OS_OS2 /* Don't use a SIGCHLD handler for OS/2 */
 #if !defined(HAVE_WAIT_NOHANG) || defined(MAKE_JOBSERVER)
   /* Set up to handle children dying.  This must be done before
      reading in the makefiles so that 'shell' function calls will work.
@@ -2110,7 +2110,7 @@ main (int argc, char **argv, char **envp)
     no_default_sh_exe = !find_and_set_default_shell (NULL);
 #endif /* MK_OS_W32 */
 
-#if MK_OS_DOS || defined (__EMX__) || MK_OS_VMS
+#if MK_OS_DOS || MK_OS_OS2 || MK_OS_VMS
   /* We need to know what kind of shell we will be using.  */
   {
     extern int _is_unixy_shell (const char *_path);
@@ -2130,7 +2130,7 @@ main (int argc, char **argv, char **envp)
           default_shell = shell_path;
       }
   }
-#endif /* MK_OS_DOS || __EMX__ */
+#endif /* MK_OS_DOS || MK_OS_OS2 */
 
   /* Final jobserver configuration.
 
@@ -2155,9 +2155,9 @@ main (int argc, char **argv, char **envp)
   else
     job_slots = arg_job_slots;
 
-#if MK_OS_DOS || defined (__EMX__) || MK_OS_VMS
+#if MK_OS_DOS || MK_OS_OS2 || MK_OS_VMS
   if (job_slots != 1
-# ifdef __EMX__
+# if MK_OS_OS2
       && _osmode != OS2_MODE /* turn off -j if we are in DOS mode */
 # endif
       )
@@ -2731,7 +2731,7 @@ main (int argc, char **argv, char **envp)
           /* The exec'd "child" will be another make, of course.  */
           jobserver_pre_child(1);
 
-#if defined (__EMX__)
+#if MK_OS_OS2
           {
             /* It is not possible to use execve() here because this
                would cause the parent process to be terminated with

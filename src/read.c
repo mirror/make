@@ -1895,7 +1895,7 @@ check_specials (struct nameseq *files, int set_default)
           continue;
         }
 
-#if !MK_OS_DOS && !defined (__EMX__)
+#if !MK_OS_DOS && !MK_OS_OS2
       if (!one_shell && streq (nm, ".ONESHELL"))
         {
           one_shell = 1;
@@ -2673,7 +2673,7 @@ readline (struct ebuffer *ebuf)
       /* We got a newline, so add one to the count of lines.  */
       ++nlines;
 
-#if !MK_OS_W32 && !MK_OS_DOS && !defined(__EMX__)
+#if !MK_OS_W32 && !MK_OS_DOS && !MK_OS_OS2
       /* Check to see if the line was really ended with CRLF; if so ignore
          the CR.  */
       if ((p - start) > 1 && p[-2] == '\r')

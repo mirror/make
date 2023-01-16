@@ -893,7 +893,7 @@ define_automatic_variables (void)
           (void) define_variable (shell_str, shlen, comp->value, o_env, 0);
       }
   }
-#elif defined(__EMX__)
+#elif MK_OS_OS2
   {
     static char shell_str[] = "SHELL";
     const int shlen = sizeof (shell_str) - 1;
@@ -954,7 +954,7 @@ define_automatic_variables (void)
      environment variable on MSDOS, so whoever sets it, does that on purpose.
      On OS/2 we do not use SHELL from environment but we have already handled
      that problem above. */
-#if !MK_OS_DOS && !defined(__EMX__)
+#if !MK_OS_DOS && !MK_OS_OS2
   /* Don't let SHELL come from the environment.  */
   if (*v->value == '\0' || v->origin == o_env || v->origin == o_env_override)
     {
