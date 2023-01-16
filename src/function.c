@@ -1748,7 +1748,7 @@ windows32_openpipe (int *pipedes, int errfd, pid_t *pid_p, char **command_argv, 
 #endif
 
 
-#ifdef __MSDOS__
+#if MK_OS_DOS
 FILE *
 msdos_openpipe (int* pipedes, int *pidp, char *text)
 {
@@ -1828,14 +1828,14 @@ func_shell_base (char *o, char **argv, int trim_newlines)
   struct childbase child = {0};
   char *batch_filename = NULL;
   int errfd;
-#ifdef __MSDOS__
+#if MK_OS_DOS
   FILE *fpipe;
 #endif
   char **command_argv = NULL;
   int pipedes[2];
   pid_t pid;
 
-#ifndef __MSDOS__
+#if !MK_OS_DOS
 #if MK_OS_W32
   /* Reset just_print_flag.  This is needed on Windows when batch files
      are used to run the commands, because we normally refrain from
@@ -1854,7 +1854,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
 #endif
       return o;
     }
-#endif /* !__MSDOS__ */
+#endif /* !MK_OS_DOS */
 
   /* Set up the output in case the shell writes something.  */
   output_start ();
@@ -1864,7 +1864,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
 
   child.environment = target_environment (NULL, 0);
 
-#if defined(__MSDOS__)
+#if MK_OS_DOS
   fpipe = msdos_openpipe (pipedes, &pid, argv[0]);
   if (pipedes[0] < 0)
     {
@@ -1919,7 +1919,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
 
     /* Record the PID for reap_children.  */
     shell_function_pid = pid;
-#ifndef  __MSDOS__
+#if !MK_OS_DOS
     shell_function_completed = 0;
 
     /* Close the write side of the pipe.  We test for -1, since
@@ -1950,7 +1950,7 @@ func_shell_base (char *o, char **argv, int trim_newlines)
     buffer[i] = '\0';
 
     /* Close the read side of the pipe.  */
-#ifdef  __MSDOS__
+#if MK_OS_DOS
     if (fpipe)
       {
         int st = pclose (fpipe);

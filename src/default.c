@@ -27,7 +27,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Define GCC_IS_NATIVE if gcc is the native development environment on
    your system (gcc/bison/flex vs cc/yacc/lex).  */
-#if defined(__MSDOS__) || defined(__EMX__)
+#if MK_OS_DOS || defined(__EMX__)
 # define GCC_IS_NATIVE
 #endif
 
@@ -326,19 +326,19 @@ static const char *default_suffix_rules[] =
     ".c.ln",
     "$(LINT.c) -C$* $<",
     ".y.ln",
-#ifndef __MSDOS__
-    "$(YACC.y) $< \n $(LINT.c) -C$* y.tab.c \n $(RM) y.tab.c",
-#else
+#if MK_OS_DOS
     "$(YACC.y) $< \n $(LINT.c) -C$* y_tab.c \n $(RM) y_tab.c",
+#else
+    "$(YACC.y) $< \n $(LINT.c) -C$* y.tab.c \n $(RM) y.tab.c",
 #endif
     ".l.ln",
     "@$(RM) $*.c\n $(LEX.l) $< > $*.c\n$(LINT.c) -i $*.c -o $@\n $(RM) $*.c",
 
     ".y.c",
-#ifndef __MSDOS__
-    "$(YACC.y) $< \n mv -f y.tab.c $@",
-#else
+#if MK_OS_DOS
     "$(YACC.y) $< \n mv -f y_tab.c $@",
+#else
+    "$(YACC.y) $< \n mv -f y.tab.c $@",
 #endif
     ".l.c",
     "@$(RM) $@ \n $(LEX.l) $< > $@",
@@ -536,7 +536,7 @@ static const char *default_variables[] =
     "CXX", MAKE_CXX,
 #else
 # ifdef GCC_IS_NATIVE
-#  ifdef __MSDOS__
+#  ifdef MK_OS_DOS
     "CXX", "gpp",       /* g++ is an invalid name on MSDOS */
 #  else
     "CXX", "gcc",
@@ -660,7 +660,7 @@ static const char *default_variables[] =
     "SCCS_OUTPUT_OPTION", "-G$@",
 #endif
 
-#if defined(__MSDOS__)
+#if MK_OS_DOS
     ".LIBPATTERNS", "lib%.a $(DJDIR)/lib/lib%.a",
 #elif defined(__APPLE__)
     ".LIBPATTERNS", "lib%.dylib lib%.a",

@@ -1469,7 +1469,7 @@ f_mtime (struct file *file, int search)
 
       FILE_TIMESTAMP adjusted_mtime = mtime;
 
-#if MK_OS_W32 || defined(__MSDOS__)
+#if MK_OS_W32 || MK_OS_DOS
       /* Experimentation has shown that FAT filesystems can set file times
          up to 3 seconds into the future!  Play it safe.  */
 

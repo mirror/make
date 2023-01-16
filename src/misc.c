@@ -585,7 +585,7 @@ get_tmpdir ()
 
   if (!tmpdir)
     {
-#if defined (__MSDOS__) || MK_OS_W32 || defined (__EMX__)
+#if MK_OS_DOS || MK_OS_W32 || defined (__EMX__)
 # define TMP_EXTRAS   "TMP", "TEMP",
 #else
 # define TMP_EXTRAS

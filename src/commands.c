@@ -483,7 +483,7 @@ volatile sig_atomic_t handling_fatal_signal = 0;
 void
 fatal_error_signal (int sig)
 {
-#ifdef __MSDOS__
+#if MK_OS_DOS
   extern int dos_status, dos_command_running;
 
   if (dos_command_running)
@@ -494,7 +494,7 @@ fatal_error_signal (int sig)
     }
   remove_intermediates (1);
   exit (EXIT_FAILURE);
-#else /* not __MSDOS__ */
+#else /* not MK_OS_DOS */
 #if MK_OS_W32
   extern HANDLE main_thread;
 
@@ -593,7 +593,7 @@ fatal_error_signal (int sig)
   if (kill (make_pid (), sig) < 0)
     pfatal_with_name ("kill");
 #endif /* not MK_OS_W32 */
-#endif /* not __MSDOS__  */
+#endif /* not MK_OS_DOS  */
 }
 
 /* Delete FILE unless it's precious or not actually a file (phony),

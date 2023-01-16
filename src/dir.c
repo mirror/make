@@ -60,7 +60,7 @@ const char *vmsify (const char *name, int type);
 # define FAKE_DIR_ENTRY(dp) (dp->d_ino = 1)
 #endif /* POSIX */
 
-#ifdef __MSDOS__
+#if MK_OS_DOS
 #include <ctype.h>
 #include <fcntl.h>
 
@@ -108,7 +108,7 @@ dosify (const char *filename)
   *df = '\0';
   return dos_filename;
 }
-#endif /* __MSDOS__ */
+#endif /* MK_OS_DOS */
 
 #if MK_OS_W32
 #include "pathstuff.h"
@@ -645,7 +645,7 @@ dir_contents_file_exists_p (struct directory *dir,
     /* The directory could not be stat'd or opened.  */
     return 0;
 
-#ifdef __MSDOS__
+#if MK_OS_DOS
   filename = dosify (filename);
 #endif
 
@@ -1047,7 +1047,7 @@ file_impossible_p (const char *filename)
     /* There are no files entered for this directory.  */
     return 0;
 
-#ifdef __MSDOS__
+#if MK_OS_DOS
   filename = dosify (filename);
 #endif
 #ifdef HAVE_CASE_INSENSITIVE_FS

@@ -1895,7 +1895,7 @@ check_specials (struct nameseq *files, int set_default)
           continue;
         }
 
-#if !defined (__MSDOS__) && !defined (__EMX__)
+#if !MK_OS_DOS && !defined (__EMX__)
       if (!one_shell && streq (nm, ".ONESHELL"))
         {
           one_shell = 1;
@@ -2673,7 +2673,7 @@ readline (struct ebuffer *ebuf)
       /* We got a newline, so add one to the count of lines.  */
       ++nlines;
 
-#if !MK_OS_W32 && !defined(__MSDOS__) && !defined(__EMX__)
+#if !MK_OS_W32 && !MK_OS_DOS && !defined(__EMX__)
       /* Check to see if the line was really ended with CRLF; if so ignore
          the CR.  */
       if ((p - start) > 1 && p[-2] == '\r')
@@ -2952,7 +2952,7 @@ construct_include_path (const char **arg_dirs)
     for (cpp = arg_dirs; *cpp != 0; ++cpp)
       ++idx;
 
-#ifdef  __MSDOS__
+#if MK_OS_DOS
   /* Add one for $DJDIR.  */
   ++idx;
 #endif
@@ -3006,7 +3006,7 @@ construct_include_path (const char **arg_dirs)
   /* Now add the standard default dirs at the end.  */
   if (!disable)
     {
-#ifdef  __MSDOS__
+#if MK_OS_DOS
       /* The environment variable $DJDIR holds the root of the DJGPP directory
          tree; add ${DJDIR}/include.  */
       struct variable *djdir = lookup_variable ("DJDIR", 5);

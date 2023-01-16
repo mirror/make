@@ -1119,14 +1119,14 @@ find_and_set_default_shell (const char *token)
 }
 #endif  /* MK_OS_W32 */
 
-#ifdef __MSDOS__
+#if MK_OS_DOS
 static void
 msdos_return_to_initial_directory (void)
 {
   if (directory_before_chdir)
     chdir (directory_before_chdir);
 }
-#endif  /* __MSDOS__ */
+#endif  /* MK_OS_DOS */
 
 static void
 reset_jobserver (void)
@@ -1222,7 +1222,7 @@ main (int argc, char **argv, char **envp)
   verify_flag = 1;
 #endif
 
-#if defined (__MSDOS__) && !defined (_POSIX_SOURCE)
+#if MK_OS_DOS && !defined (_POSIX_SOURCE)
   /* Request the most powerful version of 'system', to
      make up for the dumb default shell.  */
   __system_flags = (__system_redirect
@@ -1271,7 +1271,7 @@ main (int argc, char **argv, char **envp)
   FATAL_SIG (SIGINT);
   FATAL_SIG (SIGTERM);
 
-#ifdef __MSDOS__
+#if MK_OS_DOS
   /* Windows 9X delivers FP exceptions in child programs to their
      parent!  We don't want Make to die when a child divides by zero,
      so we work around that lossage by catching SIGFPE.  */
@@ -1416,7 +1416,7 @@ main (int argc, char **argv, char **envp)
   else
     directory_before_chdir = xstrdup (current_directory);
 
-#ifdef  __MSDOS__
+#if MK_OS_DOS
   /* Make sure we will return to the initial directory, come what may.  */
   atexit (msdos_return_to_initial_directory);
 #endif
@@ -1531,7 +1531,7 @@ main (int argc, char **argv, char **envp)
            value of SHELL given to subprocesses.  */
         if (streq (v->name, "SHELL"))
           {
-#ifndef __MSDOS__
+#if !MK_OS_DOS
             export = v_noexport;
 #endif
             shell_var.name = xstrdup ("SHELL");
@@ -1694,7 +1694,7 @@ main (int argc, char **argv, char **envp)
       || strneq (argv[0], "//", 2))
     argv[0] = xstrdup (w32ify (argv[0], 1));
 #else /* MK_OS_W32 */
-#if defined (__MSDOS__) || defined (__EMX__)
+#if MK_OS_DOS || defined (__EMX__)
   if (strchr (argv[0], '\\'))
     {
       char *p;
@@ -1716,7 +1716,7 @@ main (int argc, char **argv, char **envp)
 # endif
       )
     argv[0] = xstrdup (concat (3, current_directory, "/", argv[0]));
-#else  /* !__MSDOS__ */
+#else  /* !MK_OS_DOS */
   if (current_directory[0] != '\0'
       && argv[0] != 0 && argv[0][0] != '/' && strchr (argv[0], '/') != 0
 #ifdef HAVE_DOS_PATHS
@@ -1725,7 +1725,7 @@ main (int argc, char **argv, char **envp)
 #endif
       )
     argv[0] = xstrdup (concat (3, current_directory, "/", argv[0]));
-#endif /* !__MSDOS__ */
+#endif /* !MK_OS_DOS */
 #endif /* MK_OS_W32 */
 #endif
 
@@ -2110,7 +2110,7 @@ main (int argc, char **argv, char **envp)
     no_default_sh_exe = !find_and_set_default_shell (NULL);
 #endif /* MK_OS_W32 */
 
-#if defined (__MSDOS__) || defined (__EMX__) || MK_OS_VMS
+#if MK_OS_DOS || defined (__EMX__) || MK_OS_VMS
   /* We need to know what kind of shell we will be using.  */
   {
     extern int _is_unixy_shell (const char *_path);
@@ -2130,7 +2130,7 @@ main (int argc, char **argv, char **envp)
           default_shell = shell_path;
       }
   }
-#endif /* __MSDOS__ || __EMX__ */
+#endif /* MK_OS_DOS || __EMX__ */
 
   /* Final jobserver configuration.
 
@@ -2155,7 +2155,7 @@ main (int argc, char **argv, char **envp)
   else
     job_slots = arg_job_slots;
 
-#if defined (__MSDOS__) || defined (__EMX__) || MK_OS_VMS
+#if MK_OS_DOS || defined (__EMX__) || MK_OS_VMS
   if (job_slots != 1
 # ifdef __EMX__
       && _osmode != OS2_MODE /* turn off -j if we are in DOS mode */

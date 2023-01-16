@@ -416,14 +416,14 @@ glob (const char *pattern, int flags,
 
   /* Find the filename.  */
   filename = strrchr (pattern, '/');
-#if defined __MSDOS__ || MK_OS_W32
+#if MK_OS_DOS || MK_OS_W32
   /* The case of "d:pattern".  Since `:' is not allowed in
      file names, we can safely assume that wherever it
      happens in pattern, it signals the filename part.  This
      is so we could some day support patterns like "[a-z]:foo".  */
   if (filename == NULL)
     filename = strchr (pattern, ':');
-#endif /* __MSDOS__ || MK_OS_W32 */
+#endif /* MK_OS_DOS || MK_OS_W32 */
   if (filename == NULL)
     {
       /* This can mean two things: a simple name or "~name".  The later
@@ -460,7 +460,7 @@ glob (const char *pattern, int flags,
     {
       char *newp;
       dirlen = filename - pattern;
-#if defined __MSDOS__ || MK_OS_W32
+#if MK_OS_DOS || MK_OS_W32
       if (*filename == ':'
 	  || (filename > pattern + 1 && filename[-1] == ':'))
 	{
@@ -494,7 +494,7 @@ glob (const char *pattern, int flags,
       ++filename;
 
       if (filename[0] == '\0'
-#if defined __MSDOS__ || MK_OS_W32
+#if MK_OS_DOS || MK_OS_W32
           && dirname[dirlen - 1] != ':'
 	  && (dirlen < 3 || dirname[dirlen - 2] != ':'
 	      || dirname[dirlen - 1] != '/')
@@ -1011,7 +1011,7 @@ prefix_array (const char *dirname, char **array, size_t n)
 {
   size_t i;
   size_t dirlen = strlen (dirname);
-#if defined __MSDOS__ || MK_OS_W32
+#if MK_OS_DOS || MK_OS_W32
   char sep_char = '/';
 # define DIRSEP_CHAR sep_char
 #else
@@ -1022,7 +1022,7 @@ prefix_array (const char *dirname, char **array, size_t n)
     /* DIRNAME is just "/", so normal prepending would get us "//foo".
        We want "/foo" instead, so don't prepend any chars from DIRNAME.  */
     dirlen = 0;
-#if defined __MSDOS__ || MK_OS_W32
+#if MK_OS_DOS || MK_OS_W32
   else if (dirlen > 1)
     {
       if (dirname[dirlen - 1] == '/' && dirname[dirlen - 2] == ':')

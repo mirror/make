@@ -37,7 +37,7 @@ int no_default_sh_exe = 1;
 int batch_mode_shell = 1;
 HANDLE main_thread;
 
-#elif defined (__MSDOS__)
+#elif MK_OS_DOS
 
 /* The default shell is a pointer so we can change it if Makefile
    says so.  It is without an explicit path so we get a chance
@@ -75,13 +75,13 @@ int batch_mode_shell = 0;
 
 #endif
 
-#ifdef __MSDOS__
+#if MK_OS_DOS
 # include <process.h>
 static int execute_by_shell;
 static int dos_pid = 123;
 int dos_status;
 int dos_command_running;
-#endif /* __MSDOS__ */
+#endif /* MK_OS_DOS */
 
 #if MK_OS_VMS
 # ifndef __GNUC__
@@ -440,7 +440,7 @@ is_bourne_compatible_shell (const char *path)
   /* this should be able to deal with extensions on Windows-like systems */
   for (s = unix_shells; *s != NULL; ++s)
     {
-#if MK_OS_W32 || defined(__MSDOS__)
+#if MK_OS_W32 || MK_OS_DOS
       size_t len = strlen (*s);
       if ((strlen (cp) >= len && STOP_SET (cp[len], MAP_DOT|MAP_NUL))
           && strncasecmp (cp, *s, len) == 0)
@@ -724,7 +724,7 @@ reap_children (int block, int err)
       else
         {
           /* No remote children.  Check for local children.  */
-#if !defined(__MSDOS__) && !MK_OS_W32
+#if !MK_OS_DOS && !MK_OS_W32
           if (any_local)
             {
 #if MK_OS_VMS
@@ -783,9 +783,9 @@ reap_children (int block, int err)
               /* We got a remote child.  */
               remote = 1;
             }
-#endif /* !__MSDOS__, !MK_OS_W32.  */
+#endif /* !MK_OS_DOS, !MK_OS_W32.  */
 
-#ifdef __MSDOS__
+#if MK_OS_DOS
           /* Life is very different on MSDOS.  */
           pid = dos_pid - 1;
           status = dos_status;
@@ -794,7 +794,7 @@ reap_children (int block, int err)
             exit_code = -1;
           exit_sig = WIFSIGNALED (status) ? WTERMSIG (status) : 0;
           coredump = 0;
-#endif /* __MSDOS__ */
+#endif /* MK_OS_DOS */
 #if MK_OS_W32
           {
             HANDLE hPID;
@@ -1299,7 +1299,7 @@ start_job_command (struct child *child)
   if (argv == 0)
     {
     next_command:
-#ifdef __MSDOS__
+#if MK_OS_DOS
       execute_by_shell = 0;   /* in case construct_command_argv sets it */
 #endif
       /* This line has no commands.  Go to the next.  */
@@ -1353,7 +1353,7 @@ start_job_command (struct child *child)
 
 #if !MK_OS_VMS
   if (
-#if defined __MSDOS__ || defined (__EMX__)
+#if MK_OS_DOS || defined (__EMX__)
       unixy_shell       /* the test is complicated and we already did it */
 #else
       (argv[0] && is_bourne_compatible_shell (argv[0]))
@@ -1408,7 +1408,7 @@ start_job_command (struct child *child)
     child->environment = target_environment (child->file,
                                              child->file->cmds->any_recurse);
 
-#if !defined(__MSDOS__) && !MK_OS_W32
+#if !MK_OS_DOS && !MK_OS_W32
 
 #if !MK_OS_VMS
   /* start_waiting_job has set CHILD->remote if we can start a remote job.  */
@@ -1457,8 +1457,8 @@ start_job_command (struct child *child)
 #endif /* !MK_OS_VMS */
     }
 
-#else   /* __MSDOS__ or MK_OS_W32 */
-#ifdef __MSDOS__
+#else   /* MK_OS_DOS or MK_OS_W32 */
+#if MK_OS_DOS
   {
     int proc_return;
 
@@ -1513,7 +1513,7 @@ start_job_command (struct child *child)
     ++dead_children;
     child->pid = dos_pid++;
   }
-#endif /* __MSDOS__ */
+#endif /* MK_OS_DOS */
 #if MK_OS_W32
   {
       HANDLE hPID;
@@ -1558,7 +1558,7 @@ start_job_command (struct child *child)
         }
   }
 #endif /* MK_OS_W32 */
-#endif  /* __MSDOS__ or MK_OS_W32 */
+#endif  /* MK_OS_DOS or MK_OS_W32 */
 
   /* Bump the number of jobs started in this second.  */
   if (child->pid >= 0)
@@ -2017,7 +2017,7 @@ job_next_command (struct child *child)
 static int
 load_too_high (void)
 {
-#if defined(__MSDOS__) || MK_OS_VMS || defined(__riscos__)
+#if MK_OS_DOS || MK_OS_VMS || defined(__riscos__)
   return 1;
 #else
   static double last_sec;
@@ -2268,7 +2268,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
   return pid;
 }
 
-#elif !defined (__MSDOS__) && !MK_OS_VMS
+#elif !MK_OS_DOS && !MK_OS_VMS
 
 /* POSIX:
    Create a child process executing the command in ARGV.
@@ -2467,7 +2467,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
 
   return pid;
 }
-#endif /* !__MSDOS__ && !MK_OS_VMS */
+#endif /* !MK_OS_DOS && !MK_OS_VMS */
 #endif /* !MK_OS_W32 */
 
 /* Replace the current process with one running the command in ARGV,
@@ -2684,7 +2684,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
                                  const char *shellflags, const char *ifs,
                                  int flags, char **batch_filename UNUSED)
 {
-#ifdef __MSDOS__
+#if MK_OS_DOS
   /* MSDOS supports both the stock DOS shell and ports of Unixy shells.
      We call 'system' for anything that requires ''slow'' processing,
      because DOS shells are too dumb.  When $SHELL points to a real
@@ -2856,7 +2856,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
   if (slow_flag)
     goto slow;
 #else  /* not MK_OS_W32 */
-#if defined (__MSDOS__) || defined (__EMX__)
+#if MK_OS_DOS || defined (__EMX__)
   else if (strcasecmp (shell, default_shell))
     {
       extern int _is_unixy_shell (const char *_path);
@@ -2885,10 +2885,10 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
         }
 # endif
     }
-#else  /* !__MSDOS__ */
+#else  /* !MK_OS_DOS */
   else if (strcmp (shell, default_shell))
     goto slow;
-#endif /* !__MSDOS__ && !__EMX__ */
+#endif /* !MK_OS_DOS && !__EMX__ */
 #endif /* not MK_OS_W32 */
 
   if (ifs)
@@ -2938,7 +2938,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
                  DOS/Windows/OS2, if we don't have a POSIX shell, we keep the
                  pre-POSIX behavior of removing the backslash-newline.  */
               if (instring == '"'
-#if defined (__MSDOS__) || defined (__EMX__) || MK_OS_W32
+#if MK_OS_DOS || defined (__EMX__) || MK_OS_W32
                   || !unixy_shell
 #endif
                   )
@@ -2978,7 +2978,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
       else if (one_shell && *p == '\n')
         /* In .ONESHELL mode \n is a separator like ; or && */
         goto slow;
-#ifdef  __MSDOS__
+#if MK_OS_DOS
       else if (*p == '.' && p[1] == '.' && p[2] == '.' && p[3] != '.')
         /* '...' is a wildcard in DJGPP.  */
         goto slow;
@@ -3030,7 +3030,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
                    still leaves a small window for problems, but at least it
                    should work for the vast majority of naive users.  */
 
-#ifdef __MSDOS__
+#if MK_OS_DOS
                 /* A dot is only special as part of the "..."
                    wildcard.  */
                 if (strneq (p + 1, ".\\.\\.", 5))
@@ -3156,7 +3156,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
       free (new_argv);
     }
 
-#ifdef __MSDOS__
+#if MK_OS_DOS
   execute_by_shell = 1; /* actually, call 'system' if shell isn't unixy */
 #endif
 
@@ -3218,7 +3218,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
 
         /* Remove and ignore interior prefix chars [@+-] because they're
              meaningless given a single shell. */
-#if defined __MSDOS__ || defined (__EMX__)
+#if MK_OS_DOS || defined (__EMX__)
         if (unixy_shell)     /* the test is complicated and we already did it */
 #else
         if (is_bourne_compatible_shell (shell)
@@ -3414,7 +3414,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
             /* POSIX says we keep the backslash-newline.  If we don't have a
                POSIX shell on DOS/Windows/OS2, mimic the pre-POSIX behavior
                and remove the backslash/newline.  */
-#if defined (__MSDOS__) || defined (__EMX__) || MK_OS_W32
+#if MK_OS_DOS || defined (__EMX__) || MK_OS_W32
 # define PRESERVE_BSNL  unixy_shell
 #else
 # define PRESERVE_BSNL  1
@@ -3439,7 +3439,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
              || ISSPACE (*p)
              || strchr (sh_chars, *p) != 0))
           *ap++ = '\\';
-#ifdef __MSDOS__
+#if MK_OS_DOS
         else if (unixy_shell && strneq (p, "...", 3))
           {
             /* The case of '...' wildcard again.  */
@@ -3584,7 +3584,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
           new_argv[3] = NULL;
         }
       }
-#elif defined(__MSDOS__)
+#elif MK_OS_DOS
     else
       {
         /* With MSDOS shells, we must construct the command line here

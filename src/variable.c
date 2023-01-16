@@ -871,7 +871,7 @@ define_automatic_variables (void)
   define_variable_cname ("MAKE_VERSION", buf, o_default, 0);
   define_variable_cname ("MAKE_HOST", make_host, o_default, 0);
 
-#ifdef  __MSDOS__
+#if MK_OS_DOS
   /* Allow to specify a special shell just for Make,
      and use $COMSPEC as the default $SHELL when appropriate.  */
   {
@@ -946,7 +946,7 @@ define_automatic_variables (void)
   /* This won't override any definition, but it will provide one if there
      isn't one there.  */
   v = define_variable_cname ("SHELL", default_shell, o_default, 0);
-#ifdef __MSDOS__
+#if MK_OS_DOS
   v->export = v_export;  /*  Export always SHELL.  */
 #endif
 
@@ -954,7 +954,7 @@ define_automatic_variables (void)
      environment variable on MSDOS, so whoever sets it, does that on purpose.
      On OS/2 we do not use SHELL from environment but we have already handled
      that problem above. */
-#if !defined(__MSDOS__) && !defined(__EMX__)
+#if !MK_OS_DOS && !defined(__EMX__)
   /* Don't let SHELL come from the environment.  */
   if (*v->value == '\0' || v->origin == o_env || v->origin == o_env_override)
     {
@@ -971,7 +971,7 @@ define_automatic_variables (void)
   /* Define the magic D and F variables in terms of
      the automatic variables they are variations of.  */
 
-#if defined(__MSDOS__) || MK_OS_W32
+#if MK_OS_DOS || MK_OS_W32
   /* For consistency, remove the trailing backslash as well as slash.  */
   define_variable_cname ("@D", "$(patsubst %/,%,$(patsubst %\\,%,$(dir $@)))",
                          o_automatic, 1);
@@ -987,7 +987,7 @@ define_automatic_variables (void)
                          o_automatic, 1);
   define_variable_cname ("+D", "$(patsubst %/,%,$(patsubst %\\,%,$(dir $+)))",
                          o_automatic, 1);
-#else  /* not __MSDOS__, not MK_OS_W32 */
+#else  /* not MK_OS_DOS, not MK_OS_W32 */
   define_variable_cname ("@D", "$(patsubst %/,%,$(dir $@))", o_automatic, 1);
   define_variable_cname ("%D", "$(patsubst %/,%,$(dir $%))", o_automatic, 1);
   define_variable_cname ("*D", "$(patsubst %/,%,$(dir $*))", o_automatic, 1);
@@ -1442,7 +1442,7 @@ do_variable_definition (const floc *flocp, const char *varname,
 
   assert (newval);
 
-#ifdef __MSDOS__
+#if MK_OS_DOS
   /* Many Unix Makefiles include a line saying "SHELL=/bin/sh", but
      non-Unix systems don't conform to this default configuration (in
      fact, most of them don't even have '/bin').  On the other hand,
@@ -1522,7 +1522,7 @@ do_variable_definition (const floc *flocp, const char *varname,
         }
     }
   else
-#endif /* __MSDOS__ */
+#endif /* MK_OS_DOS */
 #if MK_OS_W32
   if ((origin == o_file || origin == o_override || origin == o_command)
       && streq (varname, "SHELL"))
