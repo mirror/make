@@ -182,6 +182,8 @@ void define_new_function(const floc *flocp, const char *name,
                          unsigned int min, unsigned int max, unsigned int flags,
                          gmk_func_ptr func);
 struct variable *lookup_variable (const char *name, size_t length);
+struct variable *lookup_variable_for_file (const char *name, size_t length,
+                                           struct file *file);
 struct variable *lookup_variable_in_set (const char *name, size_t length,
                                          const struct variable_set *set);
 

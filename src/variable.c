@@ -538,6 +538,29 @@ lookup_variable (const char *name, size_t length)
 
   return 0;
 }
+/* Lookup a variable whose name is a string starting at NAME
+   and with LENGTH chars.  NAME need not be null-terminated.
+   Returns address of the 'struct variable' containing all info
+   on the variable, or nil if no such variable is defined.  */
+
+struct variable *
+lookup_variable_for_file (const char *name, size_t length, struct file *file)
+{
+  struct variable *var;
+  struct variable_set_list *savev;
+
+  if (file == NULL)
+    return lookup_variable (name, length);
+
+  savev = current_variable_set_list;
+  current_variable_set_list = file->variables;
+
+  var = lookup_variable (name, length);
+
+  current_variable_set_list = savev;
+
+  return var;
+}
 
 /* Lookup a variable whose name is a string starting at NAME
    and with LENGTH chars in set SET.  NAME need not be null-terminated.

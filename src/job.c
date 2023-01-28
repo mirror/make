@@ -2886,7 +2886,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
     return 0;
 
   if (shellflags == 0)
-    shellflags = posix_pedantic ? "-ec" : "-c";
+    shellflags = posix_pedantic && NONE_SET (flags, COMMANDS_NOERROR) ? "-ec" : "-c";
 
   /* See if it is safe to parse commands internally.  */
   if (shell == 0)
@@ -3710,6 +3710,7 @@ construct_command_argv (char *line, char **restp, struct file *file,
   char **argv;
 
   {
+    struct variable *var;
     /* Turn off --warn-undefined-variables while we expand SHELL and IFS.  */
     int save = warn_undefined_variables_flag;
     warn_undefined_variables_flag = 0;
@@ -3770,7 +3771,15 @@ construct_command_argv (char *line, char **restp, struct file *file,
     }
 #endif /* __EMX__ */
 
-    shellflags = allocated_variable_expand_for_file ("$(.SHELLFLAGS)", file);
+    var = lookup_variable_for_file (STRING_SIZE_TUPLE (".SHELLFLAGS"), file);
+    if (!var)
+      shellflags = xstrdup ("");
+    else if (posix_pedantic && var->origin == o_default)
+      /* In POSIX mode we default to -ec, unless we're ignoring errors.  */
+      shellflags = xstrdup (ANY_SET (cmd_flags, COMMANDS_NOERROR) ? "-c" : "-ec");
+    else
+      shellflags = allocated_variable_expand_for_file (var->value, file);
+
     ifs = allocated_variable_expand_for_file ("$(IFS)", file);
 
     warn_undefined_variables_flag = save;
