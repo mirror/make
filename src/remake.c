@@ -958,7 +958,7 @@ notice_finished_file (struct file *file)
              we don't want to do the touching.  */
           unsigned int i;
           for (i = 0; i < file->cmds->ncommand_lines; ++i)
-            if (!(file->cmds->lines_flags[i] & COMMANDS_RECURSE))
+            if (NONE_SET (file->cmds->lines_flags[i], COMMANDS_RECURSE))
               goto have_nonrecursing;
         }
       else
@@ -999,7 +999,7 @@ notice_finished_file (struct file *file)
       if ((question_flag || just_print_flag || touch_flag) && file->cmds)
         {
           for (i = file->cmds->ncommand_lines; i > 0; --i)
-            if (! (file->cmds->lines_flags[i-1] & COMMANDS_RECURSE))
+            if (NONE_SET (file->cmds->lines_flags[i-1], COMMANDS_RECURSE))
               break;
         }
 

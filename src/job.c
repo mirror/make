@@ -1193,7 +1193,7 @@ start_job_command (struct child *child)
            | child->file->cmds->lines_flags[child->command_line - 1]);
 
   p = child->command_ptr;
-  child->noerror = ((flags & COMMANDS_NOERROR) != 0);
+  child->noerror = ANY_SET (flags, COMMANDS_NOERROR);
 
   while (*p != '\0')
     {
@@ -1209,7 +1209,7 @@ start_job_command (struct child *child)
       ++p;
     }
 
-  child->recursive = ((flags & COMMANDS_RECURSE) != 0);
+  child->recursive = ANY_SET (flags, COMMANDS_RECURSE);
 
   /* Update the file's command flags with any new ones we found.  We only
      keep the COMMANDS_RECURSE setting.  Even this isn't 100% correct; we are
@@ -1294,7 +1294,7 @@ start_job_command (struct child *child)
      command line, or 'succeeded' otherwise.  The exit status of 1 tells the
      user that -q is saying 'something to do'; the exit status for a random
      error is 2.  */
-  if (argv != 0 && question_flag && !(flags & COMMANDS_RECURSE))
+  if (argv != 0 && question_flag && NONE_SET (flags, COMMANDS_RECURSE))
     {
       FREE_ARGV (argv);
 #ifdef VMS
@@ -1310,7 +1310,7 @@ start_job_command (struct child *child)
 #endif
     }
 
-  if (touch_flag && !(flags & COMMANDS_RECURSE))
+  if (touch_flag && NONE_SET (flags, COMMANDS_RECURSE))
     {
       /* Go on to the next command.  It might be the recursive one.
          We construct ARGV only to find the end of the command line.  */
@@ -1344,7 +1344,7 @@ start_job_command (struct child *child)
      in SYNC_RECURSE mode or this command is not recursive.  We'll also check
      output_sync separately below in case it changes due to error.  */
   child->output.syncout = output_sync && (output_sync == OUTPUT_SYNC_RECURSE
-                                          || !(flags & COMMANDS_RECURSE));
+                                          || NONE_SET (flags, COMMANDS_RECURSE));
 
   OUTPUT_SET (&child->output);
 
@@ -1355,7 +1355,7 @@ start_job_command (struct child *child)
 
   /* Print the command if appropriate.  */
   if (just_print_flag || ISDB (DB_PRINT)
-      || (!(flags & COMMANDS_SILENT) && !run_silent))
+      || (NONE_SET (flags, COMMANDS_SILENT) && !run_silent))
     OS (message, 0, "%s", p);
 
   /* Tell update_goal_chain that a command has been started on behalf of
@@ -1395,7 +1395,7 @@ start_job_command (struct child *child)
 
   /* If -n was given, recurse to get the next line in the sequence.  */
 
-  if (just_print_flag && !(flags & COMMANDS_RECURSE))
+  if (just_print_flag && NONE_SET (flags, COMMANDS_RECURSE))
     {
       FREE_ARGV (argv);
       goto next_command;
@@ -1464,12 +1464,12 @@ start_job_command (struct child *child)
 
 #else
 
-      jobserver_pre_child (flags & COMMANDS_RECURSE);
+      jobserver_pre_child (ANY_SET (flags, COMMANDS_RECURSE));
 
       child->pid = child_execute_job ((struct childbase *)child,
                                       child->good_stdin, argv);
 
-      jobserver_post_child (flags & COMMANDS_RECURSE);
+      jobserver_post_child (ANY_SET (flags, COMMANDS_RECURSE));
 
 #endif /* !VMS */
     }
@@ -3538,7 +3538,7 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
     /* Some shells do not work well when invoked as 'sh -c xxx' to run a
        command line (e.g. Cygnus GNUWIN32 sh.exe on W32 systems).  In these
        cases, run commands via a script file.  */
-    if (just_print_flag && !(flags & COMMANDS_RECURSE))
+    if (just_print_flag && NONE_SET (flags, COMMANDS_RECURSE))
       {
         /* Need to allocate new_argv, although it's unused, because
            start_job_command will want to free it and its 0'th element.  */
