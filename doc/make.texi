@@ -11529,7 +11529,7 @@ rules by adding these lines to your makefile:
 
 @example
 (%) : % ;
-%.a : ; $(AR) $(ARFLAGS) $@ $?
+%.a : ; $(AR) $(ARFLAGS) $@@ $?
 @end example
 
 The first line changes the rule that updates an individual object in the
@@ -11548,7 +11548,7 @@ If you prefer to write an explicit rule you can use:
 
 @example
 libfoo.a: libfoo.a(x.o y.o @dots{})
-        $(AR) $(ARFLAGS) $@ $?
+        $(AR) $(ARFLAGS) $@@ $?
 @end example
 
 @node Archive Suffix Rules,  , Archive Pitfalls, Archives
