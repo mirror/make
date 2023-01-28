@@ -35,7 +35,7 @@ $redir = '' if $osname eq 'VMS';
 
 # This is the value from src/default.c
 my $arflags = $osname eq 'aix' ? '-Xany -rv' : '-rv';
-my $arvar = "AR=$ar";
+my $arvar = "AR=\"$ar\"";
 
 # Newer versions of binutils can be built with --enable-deterministic-archives
 # which forces all timestamps (among other things) to always be 0, defeating
@@ -44,7 +44,7 @@ unlink('libxx.a');
 $_ = `$ar ${arflags}U libxx.a a1.o $redir`;
 if ($? == 0) {
     $arflags = "${arflags}U";
-    $arvar = "$arvar ARFLAGS=$arflags";
+    $arvar = "$arvar ARFLAGS=\"$arflags\"";
 }
 
 # Some versions of ar print different things on creation.  Find out.
@@ -255,14 +255,15 @@ create_file('b.c', 'int j;');
 utouch(-20, 'a.c', 'b.c');
 
 my $cc = get_config('CC') || 'cc';
-my $vars = "CC=$cc $arvar";
+my $vars = "CC=\"$cc\" $arvar";
 
 run_make_test(q!
 mylib.a: mylib.a(a.o b.o)
 (%): % ;
 %.a: ; $(AR) $(ARFLAGS) $@ $?
 %.o : %.c ; @echo Compile $<; $(COMPILE.c) -o $@ $<
-!, $vars, "Compile a.c\nCompile b.c\n$ar $arflags mylib.a a.o b.o\n${create2}rm b.o a.o");
+!,
+              $vars, "Compile a.c\nCompile b.c\n$ar $arflags mylib.a a.o b.o\n${create2}rm b.o a.o");
 
 run_make_test(undef, $arvar, "#MAKE#: 'mylib.a' is up to date.");
 
