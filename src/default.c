@@ -527,18 +527,24 @@ static const char *default_variables[] =
     "AS", "as",
 #ifdef GCC_IS_NATIVE
     "CC", "gcc",
-# ifdef __MSDOS__
-    "CXX", "gpp",       /* g++ is an invalid name on MSDOS */
-# else
-    "CXX", "gcc",
-# endif /* __MSDOS__ */
     "OBJC", "gcc",
 #else
     "CC", "cc",
-    "CXX", "g++",
     "OBJC", "cc",
 #endif
-
+#ifdef MAKE_CXX
+    "CXX", MAKE_CXX,
+#else
+# ifdef GCC_IS_NATIVE
+#  ifdef __MSDOS__
+    "CXX", "gpp",       /* g++ is an invalid name on MSDOS */
+#  else
+    "CXX", "gcc",
+#  endif /* __MSDOS__ */
+# else
+    "CXX", "g++",
+# endif
+#endif
     /* This expands to $(CO) $(COFLAGS) $< $@ if $@ does not exist,
        and to the empty string if $@ does exist.  */
     "CHECKOUT,v", "+$(if $(wildcard $@),,$(CO) $(COFLAGS) $< $@)",

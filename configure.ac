@@ -37,6 +37,8 @@ AM_INIT_AUTOMAKE([1.16.1 foreign -Werror -Wall])
 # Checks for programs.
 AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
+AC_PROG_CXX
+AC_DEFINE_UNQUOTED(MAKE_CXX, ["$CXX"], [Default C++ compiler.])
 
 # Configure gnulib
 gl_EARLY
