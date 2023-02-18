@@ -491,14 +491,15 @@ update_file_1 (struct file *file, unsigned int depth)
      fail. */
   file->no_diag = file->dontcare;
 
-  ++depth;
-
   /* Notice recursive update of the same file.  */
   start_updating (file);
 
   /* We might change file if we find a different one via vpath;
      remember this one to turn off updating.  */
   ofile = file;
+
+  /* Increase the depth for reporting how we build the file.  */
+  ++depth;
 
   /* Looking at the file's modtime beforehand allows the possibility
      that its name may be changed by a VPATH search, and thus it may
@@ -734,15 +735,17 @@ update_file_1 (struct file *file, unsigned int depth)
   finish_updating (file);
   finish_updating (ofile);
 
-  DBF (DB_VERBOSE, _("Finished prerequisites of target file '%s'.\n"));
+  /* We've decided what we need to do to build the file.  */
+  --depth;
 
   if (running)
     {
       set_command_state (file, cs_deps_running);
-      --depth;
       DBF (DB_VERBOSE, _("The prerequisites of '%s' are being made.\n"));
       return us_success;
     }
+
+  DBF (DB_VERBOSE, _("Finished prerequisites of target file '%s'.\n"));
 
   /* If any dependency failed, give up now.  */
 
@@ -751,8 +754,6 @@ update_file_1 (struct file *file, unsigned int depth)
       /* I'm not sure if we can't just assign dep_status...  */
       file->update_status = dep_status == us_none ? us_failed : dep_status;
       notice_finished_file (file);
-
-      --depth;
 
       DBF (DB_VERBOSE, _("Giving up on target file '%s'.\n"));
 
@@ -828,15 +829,12 @@ update_file_1 (struct file *file, unsigned int depth)
 
           if (fmt)
             {
-              print_spaces (depth);
+              print_spaces (depth+1);
               printf (fmt, dep_name (d), file->name);
               fflush (stdout);
             }
         }
     }
-
-  /* Here depth returns to the value it had when we were called.  */
-  depth--;
 
   if (file->double_colon && file->deps == 0)
     {
@@ -1084,7 +1082,6 @@ check_dep (struct file *file, unsigned int depth,
   struct dep *d;
   enum update_status dep_status = us_success;
 
-  ++depth;
   start_updating (file);
 
   /* We might change file if we find a different one via vpath;
@@ -1182,7 +1179,7 @@ check_dep (struct file *file, unsigned int depth,
 
               d->file->parent = file;
               maybe_make = *must_make_ptr;
-              new = check_dep (d->file, depth, this_mtime, &maybe_make);
+              new = check_dep (d->file, depth+1, this_mtime, &maybe_make);
               if (new > dep_status)
                 dep_status = new;
 

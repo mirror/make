@@ -38,10 +38,10 @@ sub output_sync_clean {
 # reliable.  If things are too fast, then sometimes a different job will steal
 # the output sync lock and the output is mis-ordered from what we expect.
 sub output_sync_wait {
-    return subst_make_string("#HELPER# -q wait ../mksync.$_[0] sleep 1");
+    return subst_make_string("#HELPER# \$Q wait ../mksync.$_[0] sleep 1");
 }
 sub output_sync_set {
-    return subst_make_string("#HELPER# -q file ../mksync.$_[0]");
+    return subst_make_string("#HELPER# \$Q file ../mksync.$_[0]");
 }
 
 @syncfiles = qw(mksync.foo mksync.foo_start mksync.bar mksync.bar_start);
@@ -66,27 +66,32 @@ open(MAKEFILE,"> foo/Makefile");
 print MAKEFILE <<EOF;
 all: foo
 
-foo: foo-base ; \@$set_foo
+foo: foo-base ; $set_foo
 
 foo-base:
 \t\@echo foo: start
-\t\@$wait_bar
+\t$wait_bar
 \t\@echo foo: end
 
-foo-job: foo-job-base ; \@$set_foo
+foo-job: foo-job-base ; $set_foo
 
 foo-job-base:
-\t\@$wait_bar_start
+\t$wait_bar_start
 \t\@echo foo: start
-\t\@$set_foo_start
-\t\@$wait_bar
+\t$set_foo_start
+\t$wait_bar
 \t\@echo foo: end
 
 foo-fail:
 \t\@echo foo-fail: start
-\t\@$wait_bar
+\t$wait_bar
 \t\@echo foo-fail: end
-\t\@exit 1
+\texit 1
+
+V :=
+\$V.SILENT:
+Q :=
+\$VQ := -q
 EOF
 close(MAKEFILE);
 
@@ -94,24 +99,29 @@ open(MAKEFILE,"> bar/Makefile");
 print MAKEFILE <<EOF;
 all: bar baz
 
-bar: bar-base ; \@$set_bar
+bar: bar-base ; $set_bar
 bar-base:
 \t\@echo bar: start
 \t\@echo bar: end
 
-bar-job: bar-job-base ; \@$set_bar
+bar-job: bar-job-base ; $set_bar
 
 bar-job-base:
 \t\@echo bar: start
-\t\@$set_bar_start
-\t\@$wait_foo_start
+\t$set_bar_start
+\t$wait_foo_start
 \t\@echo bar: end
 
 baz: baz-base
 baz-base:
 \t\@echo baz: start
-\t\@$wait_foo
+\t$wait_foo
 \t\@echo baz: end
+
+V :=
+\$V.SILENT:
+Q :=
+\$VQ := -q
 EOF
 close(MAKEFILE);
 

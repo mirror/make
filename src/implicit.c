@@ -272,6 +272,8 @@ pattern_search (struct file *file, int archive,
 
   PATH_VAR (stem_str); /* @@ Need to get rid of stem, stemlen, etc. */
 
+  ++depth;
+
 #ifndef NO_ARCHIVES
   if (archive || ar_name (filename))
     lastslash = 0;
@@ -893,7 +895,7 @@ pattern_search (struct file *file, int archive,
 
                       if (pattern_search (int_file,
                                           0,
-                                          depth + 1,
+                                          depth,
                                           recursions + 1,
                                           allow_compat_rules))
                         {
@@ -1138,6 +1140,8 @@ pattern_search (struct file *file, int archive,
  done:
   free (tryrules);
   free (deplist);
+
+  --depth;
 
   if (rule)
     {
