@@ -274,6 +274,7 @@ CFGCHECK_MAKEFLAGS   = # CFLAGS='$(AM_CFLAGS)'
 checkcfg.strict-c90:  CFGCHECK_CONFIGFLAGS = CFLAGS='-std=c90 -pedantic'
 checkcfg.strict-c90:  CFGCHECK_MAKEFLAGS   =
 
+checkcfg.job-pipe:    CFGCHECK_CONFIGFLAGS = CPPFLAGS=-DJOBSERVER_USE_FIFO=0
 checkcfg.no-jobserver:CFGCHECK_CONFIGFLAGS = --disable-job-server
 checkcfg.no-load:     CFGCHECK_CONFIGFLAGS = --disable-load
 checkcfg.no-guile:    CFGCHECK_CONFIGFLAGS = --without-guile
@@ -289,6 +290,7 @@ checkcfg.no-archives: CFGCHECK_CONFIGFLAGS = CPPFLAGS=-DNO_ARCHIVES
 
 CONFIG_CHECKS := \
 	checkcfg.strict-c90 \
+	checkcfg.job-pipe \
 	checkcfg.no-jobserver \
 	checkcfg.no-load \
 	checkcfg.no-guile \

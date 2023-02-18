@@ -234,6 +234,7 @@ static const int inf_jobs = 0;
 char *jobserver_auth = NULL;
 
 /* Style for the jobserver.  */
+
 static char *jobserver_style = NULL;
 
 /* Shuffle mode for goals and prerequisites.  */
@@ -1447,7 +1448,7 @@ main (int argc, char **argv, char **envp)
 #endif
 #ifdef MAKE_JOBSERVER
                            " jobserver"
-# ifdef HAVE_MKFIFO
+# if JOBSERVER_USE_FIFO
                            " jobserver-fifo"
 # endif
 #endif

@@ -671,6 +671,7 @@ sub set_more_defaults
 
   create_file('features.mk', 'all:;$(info $(.FEATURES))');
   %FEATURES = map { $_ => 1 } split /\s+/, `$make_path -sf features.mk`;
+  print "$make_path FEATURES: @{[%FEATURES]}\n" if $verbose;
   unlink('features.mk');
 
   # Find the default values for different built-in variables

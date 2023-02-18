@@ -83,6 +83,9 @@ extern int errno;
 #endif
 
 /* Define macros specifying which OS we are building for.  */
+#if __gnu_hurd__
+# define MK_OS_HURD 1
+#endif
 #if defined(__MVS__)
 # define MK_OS_ZOS 1
 #endif
@@ -741,6 +744,14 @@ extern int batch_mode_shell;
 extern char cmd_prefix;
 
 extern unsigned int no_intermediates;
+
+#if HAVE_MKFIFO
+# if !defined(JOBSERVER_USE_FIFO) && !MK_OS_HURD
+/* It seems that mkfifo() is not working correctly, or at least not the way
+   GNU make wants it to work, on GNU/Hurd so don't use it there.  */
+#  define JOBSERVER_USE_FIFO 1
+# endif
+#endif
 
 #define JOBSERVER_AUTH_OPT      "jobserver-auth"
 

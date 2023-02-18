@@ -147,8 +147,8 @@ jobserver_setup (int slots, const char *style)
 {
   int r;
 
-#if HAVE_MKFIFO
-  if (style == NULL || strcmp (style, "fifo") == 0)
+#if JOBSERVER_USE_FIFO
+  if (!style || strcmp (style, "fifo") == 0)
     {
   /* Unfortunately glibc warns about uses of mktemp even though we aren't
      using it in dangerous way here.  So avoid this by generating our own
