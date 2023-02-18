@@ -393,7 +393,9 @@ extern int unixy_shell;
 # endif
 
 /* Include only the minimal stuff from windows.h.   */
-# define WIN32_LEAN_AND_MEAN
+# ifndef WIN32_LEAN_AND_MEAN
+#  define WIN32_LEAN_AND_MEAN
+# endif
 #endif  /* WINDOWS32 */
 
 /* ALL_SET() evaluates the second argument twice.  */
