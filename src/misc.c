@@ -28,6 +28,11 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 # include <io.h>
 #endif
 
+#ifdef __EMX__
+# define INCL_DOS
+# include <os2.h>
+#endif
+
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #else
@@ -779,6 +784,40 @@ get_tmpfile (char **name)
 
   return file;
 }
+
+
+#if HAVE_TTYNAME && defined(__EMX__)
+/* OS/2 kLIBC has a declaration for ttyname(), so configure finds it.
+   But, it is not implemented!  Roll our own.  */
+char *ttyname (int fd)
+{
+  ULONG type;
+  ULONG attr;
+  ULONG rc;
+
+  rc = DosQueryHType (fd, &type, &attr);
+  if (rc)
+    {
+      errno = EBADF;
+      return NULL;
+    }
+
+  if (type == HANDTYPE_DEVICE)
+    {
+      if (attr & 3)     /* 1 = KBD$, 2 = SCREEN$ */
+        return (char *) "/dev/con";
+
+      if (attr & 4)     /* 4 = NUL */
+        return (char *) "/dev/nul";
+
+      if (attr & 8)     /* 8 = CLOCK$ */
+        return (char *) "/dev/clock$";
+    }
+
+  errno = ENOTTY;
+  return NULL;
+}
+#endif
 
 
 #if !HAVE_STRCASECMP && !HAVE_STRICMP && !HAVE_STRCMPI
