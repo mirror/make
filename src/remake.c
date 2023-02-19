@@ -109,6 +109,7 @@ check_also_make (const struct file *file)
 enum update_status
 update_goal_chain (struct goaldep *goaldeps)
 {
+  unsigned long last_cmd_count = 0;
   int t = touch_flag, q = question_flag, n = just_print_flag;
   enum update_status status = us_none;
 
@@ -134,9 +135,12 @@ update_goal_chain (struct goaldep *goaldeps)
 
       start_waiting_jobs ();
 
-      /* Wait for a child to die.  */
+      /* Check for exited children.  If no children have finished since the
+         last time we looked, then block until one exits.  If some have
+         exited don't block, so we can possibly do more work.  */
 
-      reap_children (1, 0);
+      reap_children (last_cmd_count == command_count, 0);
+      last_cmd_count = command_count;
 
       lastgoal = 0;
       gu = goals;
