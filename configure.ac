@@ -353,14 +353,14 @@ AS_CASE([/$make_cv_load/$user_load/],
 # For example passing -rdynamic to the SunPRO linker gives a warning
 # but succeeds and creates a shared object, not an executable!
 AS_IF([test "$make_cv_load" = yes], [
-  AC_MSG_CHECKING([If the linker accepts -Wl,--export-dynamic])
+  AC_MSG_CHECKING([if the linker accepts -Wl,--export-dynamic])
   old_LDFLAGS="$LDFLAGS"
   LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
   AC_LINK_IFELSE([AC_LANG_SOURCE([int main(){}])],
     [AC_MSG_RESULT([yes])
      AC_SUBST([AM_LDFLAGS], [-Wl,--export-dynamic])],
     [AC_MSG_RESULT([no])
-     AC_MSG_CHECKING([If the linker accepts -rdynamic])
+     AC_MSG_CHECKING([if the linker accepts -rdynamic])
      LDFLAGS="$old_LDFLAGS -rdynamic"
      AC_LINK_IFELSE([AC_LANG_SOURCE([int main(){}])],
        [AC_MSG_RESULT([yes])
