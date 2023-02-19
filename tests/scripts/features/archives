@@ -265,16 +265,16 @@ mylib.a: mylib.a(a.o b.o)
 !,
               $vars, "Compile a.c\nCompile b.c\n$ar $arflags mylib.a a.o b.o\n${create2}rm b.o a.o");
 
-run_make_test(undef, $arvar, "#MAKE#: 'mylib.a' is up to date.");
+run_make_test(undef, $vars, "#MAKE#: 'mylib.a' is up to date.");
 
 # Now update one of the source files and it should be compiled and archived
 
 sleep(2);
 touch('b.c');
 
-run_make_test(undef, $arvar, "Compile b.c\n$ar $arflags mylib.a b.o\n${add2}rm b.o");
+run_make_test(undef, $vars, "Compile b.c\n$ar $arflags mylib.a b.o\n${add2}rm b.o");
 
-run_make_test(undef, $arvar, "#MAKE#: 'mylib.a' is up to date.");
+run_make_test(undef, $vars, "#MAKE#: 'mylib.a' is up to date.");
 
 unlink('a.c', 'b.c', 'a.o', 'b.o', 'mylib.a');
 }
