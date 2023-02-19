@@ -86,6 +86,9 @@ extern int errno;
 #if __gnu_hurd__
 # define MK_OS_HURD 1
 #endif
+#if __CYGWIN__
+# define MK_OS_CYGWIN 1
+#endif
 #if defined(__MVS__)
 # define MK_OS_ZOS 1
 #endif
@@ -748,9 +751,9 @@ extern char cmd_prefix;
 extern unsigned int no_intermediates;
 
 #if HAVE_MKFIFO
-# if !defined(JOBSERVER_USE_FIFO) && !MK_OS_HURD
 /* It seems that mkfifo() is not working correctly, or at least not the way
-   GNU make wants it to work, on GNU/Hurd so don't use it there.  */
+   GNU make wants it to work, on GNU/Hurd and Cygwin so don't use it there.  */
+# if !defined(JOBSERVER_USE_FIFO) && !MK_OS_HURD && !MK_OS_CYGWIN
 #  define JOBSERVER_USE_FIFO 1
 # endif
 #endif
