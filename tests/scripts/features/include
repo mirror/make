@@ -476,14 +476,16 @@ all: ;
 # Test that included makefiles are not intermediate.
 # Here 'test.foo' is mentioned explicitly and cannot be considered
 # intermediate.
-&touch('test.foo', 'test.x', 'test');
+utouch(-10, 'test.foo');
+utouch(-5, 'test.x');
+touch('test');
 run_make_test(q!
 .PHONY: force
 include test.foo
-%.foo: force; touch -a $@
+%.foo: force; @echo force $@
 %.x: %.foo; touch $@
 test: test.x; touch $@
-!, '', "touch -a test.foo\n#MAKE#: 'test' is up to date.\n");
+!, '', "force test.foo\n#MAKE#: 'test' is up to date.\n");
 
 unlink('test.foo', 'test.x', 'test');
 
