@@ -413,7 +413,6 @@ sub get_osname
   elsif ($osname =~ m%OS/2%) {
     $port_type = 'OS/2';
   }
-
   # VMS has a GNV Unix mode or a DCL mode.
   # The SHELL environment variable should not be defined in VMS-DCL mode.
   elsif ($osname eq 'VMS' && !defined $ENV{"SHELL"}) {

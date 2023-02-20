@@ -136,11 +136,13 @@ all: ; $sname
 
 unlink($sname);
 
-# SV 57674: ensure we use a system default PATH if one is not set
-delete $ENV{PATH};
-run_make_test(q!
+if ($port_type eq 'UNIX') {
+    # SV 57674: ensure we use a system default PATH if one is not set
+    delete $ENV{PATH};
+    run_make_test(q!
 a: ; @echo hi
 !,
-              '', "hi\n");
+                  '', "hi\n");
+}
 
 1;
