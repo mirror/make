@@ -707,7 +707,7 @@ set_default_suffixes (void)
    installed after.  */
 
 void
-install_default_suffix_rules (void)
+install_default_suffix_rules ()
 {
   const char **s;
 
@@ -717,14 +717,16 @@ install_default_suffix_rules (void)
   for (s = default_suffix_rules; *s != 0; s += 2)
     {
       struct file *f = enter_file (strcache_add (s[0]));
-      /* This function should run before any makefile is parsed.  */
-      assert (f->cmds == 0);
-      f->cmds = xmalloc (sizeof (struct commands));
-      f->cmds->fileinfo.filenm = 0;
-      f->cmds->commands = xstrdup (s[1]);
-      f->cmds->command_lines = 0;
-      f->cmds->recipe_prefix = RECIPEPREFIX_DEFAULT;
-      f->builtin = 1;
+      /* Install the default rule only if there is no user defined rule.  */
+      if (!f->cmds)
+        {
+          f->cmds = xmalloc (sizeof (struct commands));
+          f->cmds->fileinfo.filenm = NULL;
+          f->cmds->commands = xstrdup (s[1]);
+          f->cmds->command_lines = NULL;
+          f->cmds->recipe_prefix = RECIPEPREFIX_DEFAULT;
+          f->builtin = 1;
+        }
     }
 }
 

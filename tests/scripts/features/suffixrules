@@ -95,5 +95,70 @@ run_make_test(undef,
 
 unlink('foo.baz', 'foo.biz', 'foo.bar');
 
+
+touch('hello.c');
+unlink('hello.o');
+
+# sv 63821.
+# Default suffix rule .c.o.
+
+run_make_test('all: hello.o', 'COMPILE.c=@echo OUTPUT_OPTION=', 'hello.c');
+
+# User defined rules beat built-in rules.
+
+run_make_test(q!
+all: hello.o
+.c.o:; $(info $@ user defined .c.o rule)
+!, '', "hello.o user defined .c.o rule\n#MAKE#: Nothing to be done for 'all'.\n");
+
+# sv 63821.
+# The same as above, but suffixes are cleared.
+
+run_make_test(q!
+all: hello.o
+.SUFFIXES:
+.c.o:; $(info $@ user defined .c.o rule)
+!, '', "#MAKE#: *** No rule to make target 'hello.o', needed by 'all'.  Stop.\n", 512);
+
+# sv 63821.
+# Suffixes are cleared and defined in the makefile.
+
+run_make_test(q!
+all: hello.o
+.SUFFIXES:
+.SUFFIXES: .c .o
+.c.o:; $(info $@ user defined .c.o rule)
+!, '', "hello.o user defined .c.o rule\n#MAKE#: Nothing to be done for 'all'.\n");
+
+# sv 63821.
+# When built-in rules are disabled, but certain suffixes are added to
+# .SUFFIXES, make should exit with the 'No rule...' error message.
+
+run_make_test(q!
+.SUFFIXES: .c .o
+all: hello.o
+!, '-r', "#MAKE#: *** No rule to make target 'hello.o', needed by 'all'.  Stop.\n", 512);
+
+# sv 63821.
+# Same as above, but this time built-in rules are disabled inside the makefile.
+
+run_make_test(q!
+MAKEFLAGS += -r
+.SUFFIXES: .c .o
+all: hello.o
+!, '', "#MAKE#: *** No rule to make target 'hello.o', needed by 'all'.  Stop.\n", 512);
+
+# sv 63821.
+# Same as above, but this time there is a rule.
+
+run_make_test(q!
+all: hello.o
+MAKEFLAGS += -r
+.SUFFIXES: .c .o
+.c.o:; $(info $@ user defined .c.o rule)
+!, '', "hello.o user defined .c.o rule\n#MAKE#: Nothing to be done for 'all'.\n");
+
+unlink('hello.c', 'hello.o');
+
 # Complete
 1;

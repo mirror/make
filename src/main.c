@@ -2028,13 +2028,6 @@ main (int argc, char **argv, char **envp)
   /* Define the initial list of suffixes for old-style rules.  */
   set_default_suffixes ();
 
-  /* Define the file rules for the built-in suffix rules.  These will later
-     be converted into pattern rules.  We used to do this in
-     install_default_implicit_rules, but since that happens after reading
-     makefiles, it results in the built-in pattern rules taking precedence
-     over makefile-specified suffix rules, which is wrong.  */
-  install_default_suffix_rules ();
-
   /* Define some internal and special variables.  */
   define_automatic_variables ();
 
@@ -2279,6 +2272,11 @@ main (int argc, char **argv, char **envp)
   /* Set up MAKEFLAGS and MFLAGS again, so they will be right.  */
 
   define_makeflags (0);
+
+  /* Define the file rules for the built-in suffix rules.  These will later
+     be converted into pattern rules.  */
+
+  install_default_suffix_rules ();
 
   /* Make each 'struct goaldep' point at the 'struct file' for the file
      depended on.  Also do magic for special targets.  */
