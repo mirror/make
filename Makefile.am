@@ -171,7 +171,8 @@ errorpre = makeerror-$(PACKAGE_VERSION)-$(host_triplet)
 testfiles = $(testlog) $(testresult) $(errorfile)
 MOSTLYCLEANFILES = $(testfiles)
 
-errordetails = config.status config.log src/config.h $(testlog) tests/work
+errordetails =	config.status config.log src/config.h src/mkconfig.h \
+		$(testlog) tests/work
 
 # Create a 4-letter random sequence
 rand_value = c = "abcdefghijklmnopqrstuvwxyz0123456789"
