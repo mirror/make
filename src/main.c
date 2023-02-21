@@ -2273,15 +2273,15 @@ main (int argc, char **argv, char **envp)
 
   define_makeflags (0);
 
-  /* Define the file rules for the built-in suffix rules.  These will later
-     be converted into pattern rules.  */
-
-  install_default_suffix_rules ();
-
   /* Make each 'struct goaldep' point at the 'struct file' for the file
      depended on.  Also do magic for special targets.  */
 
   snap_deps ();
+
+  /* Define the file rules for the built-in suffix rules.  These will later
+     be converted into pattern rules.  */
+
+  install_default_suffix_rules ();
 
   /* Convert old-style suffix rules to pattern rules.  It is important to
      do this before installing the built-in pattern rules below, so that
