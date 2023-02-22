@@ -28,7 +28,7 @@ if "%1" == "-h" goto Usage
 if "%1" == "--help" goto Usage
 
 echo.
-echo Creating GNU Make for Windows 9X/NT/2K/XP/Vista/7/8/10
+echo Creating GNU Make for Windows 9X/NT/2K/XP/Vista/7/8/10/11
 echo.
 
 set MAKE=gnumake
