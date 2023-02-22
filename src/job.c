@@ -1420,9 +1420,16 @@ start_job_command (struct child *child)
   child->deleted = 0;
 
 #ifndef _AMIGA
-  /* Set up the environment for the child.  */
+  /* Set up the environment for the child.
+     It's a slight inaccuracy to set the environment for recursive make even
+     for command lines that aren't recursive, but I don't want to have to
+     recompute the target environment for each command.  Better would be to
+     keep a separate entry for MAKEFLAGS in the environment so it could be
+     replaced on its own.  For now just set it for all lines.
+   */
   if (child->environment == 0)
-    child->environment = target_environment (child->file, child->recursive);
+    child->environment = target_environment (child->file,
+                                             child->file->cmds->any_recurse);
 #endif
 
 #if !defined(__MSDOS__) && !defined(_AMIGA) && !defined(WINDOWS32)

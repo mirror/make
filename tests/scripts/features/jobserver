@@ -132,6 +132,42 @@ all a: ; @echo $@
               '--jobserver-style=foo -j8',
               "#MAKE#: *** unknown jobserver auth style 'foo'.  Stop.", 512);
 
+# Ensure the jobserver is not disabled even if only later commands are recursive
+
+run_make_test(q!
+.RECIPEPREFIX := >
+all:
+> @echo $@ 1
+> @echo $@ 2
+> @$(MAKE) -f #MAKEFILE# recurse
+
+recurse: ; @echo $@
+!,
+              "$np -j8", "all 1\nall 2\nrecurse");
+
+if ($port_type ne 'W32') {
+    run_make_test(undef, "$np --jobserver-style=pipe -j8",
+                  "all 1\nall 2\nrecurse");
+}
+
+# And with + instead of $(MAKE)
+
+run_make_test(q!
+.RECIPEPREFIX := >
+all:
+> @echo $@ 1
+> @echo $@ 2
+> @+#MAKEPATH# -f #MAKEFILE# recurse
+
+recurse: ; @echo $@
+!,
+              "$np -j8", "all 1\nall 2\nrecurse");
+
+if ($port_type ne 'W32') {
+    run_make_test(undef, "$np --jobserver-style=pipe -j8",
+                  "all 1\nall 2\nrecurse");
+}
+
 if (exists $FEATURES{'jobserver-fifo'}) {
   # sv 62908.
   # Test that when mkfifo fails, make switches to pipe and succeeds.
