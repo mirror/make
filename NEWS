@@ -18,7 +18,14 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&se
 
 * WARNING: Removed AmigaOS support!
   This version of GNU Make no longer supports AmigaOS.  If you need support
-  for AmigaOS please use one of the older versions.
+  for AmigaOS please use one of the older versions of GNU Make.
+
+* New feature: Makefile warning reporting control
+  A new option "--warn" controls reporting of warnings for makefiles.  Actions
+  can be set to "ignore", "warn", or "error".  The existing warning for
+  undefined variables is implemented and defaults to "ignore".
+  "--warn-undefined-variables" is deprecated, and is translated to
+  "--warn=undefined-vars" internally.
 
 
 Version 4.4.1 (26 Feb 2023)

@@ -1,0 +1,86 @@
+#                                                                    -*-perl-*-
+
+$description = "Test the --warn option.";
+
+my %warn_test = (
+    '--warn' => '', '--warn=warn' => '', '--warn=error --warn=warn' => '',
+    '--warn --warn=error' => '=error',
+    '--warn=ignore --warn=error --warn=ignore --warn=undefined-var' => '=ignore,undefined-var',
+    '--warn=undefined-var:error --warn' => '=warn,undefined-var:error'
+);
+
+# Verify the deprecated --warn-undefined-variables option
+run_make_test(q!
+$(info MF=$(MAKEFLAGS))
+all:; @#HELPER# env MAKEFLAGS
+!,
+              '--warn-undefined-variables', "MF= --warn=undefined-var\nMAKEFLAGS= --warn=undefined-var");
+
+# Verify parsing of --warn in various forms.
+
+while (my ($f, $r) = each %warn_test) {
+    run_make_test(undef, $f, "MF= --warn$r\nMAKEFLAGS= --warn$r");
+}
+
+# Verify that values set in MAKEFLAGS take effect
+
+while (my ($f, $r) = each %warn_test) {
+    run_make_test(qq!
+MAKEFLAGS += $f
+\$(info MF=\$(MAKEFLAGS))
+all:; \@#HELPER# env MAKEFLAGS
+!,
+                  '', "MF= --warn$r\nMAKEFLAGS= --warn$r");
+}
+
+# Verify that make's special variables don't warn even if they're not set
+run_make_test(q!
+vars := $(.VARIABLES) $(MAKECMDGOALS) $(MAKE_RESTARTS) $(CURDIR)
+vars += $(GNUMAKEFLAGS) $(MAKEFLAGS) $(MFLAGS) $(MAKE_COMMAND) $(MAKE)
+vars += $(MAKEFILE_LIST) $(MAKEOVERRIDES) $(-*-command-variables-*-)
+vars += $(.RECIPEPREFIX) $(.LOADED) $(.FEATURES)
+vars += $(SHELL) $(.SHELLFLAGS) $(MAKE_TERMOUT) $(MAKE_TERMERR)
+vars += $(.DEFAULT) $(.DEFAULT_GOAL) $(-*-eval-flags-*-) $(SUFFIXES)
+vars += $(VPATH) $(GPATH)
+all:;
+!,
+              '--warn=undefined-var', "#MAKE#: 'all' is up to date.");
+
+# sv 63609.
+# Test for buffer overrun in warn_undefined.
+run_make_test(q!
+all:;
+X := $(averyveryveryloooooooooooooooooooooooooooongvariablename)
+!,
+              '--warn=undefined-var',
+              "#MAKEFILE#:3: reference to undefined variable 'averyveryveryloooooooooooooooooooooooooooongvariablename'
+#MAKE#: 'all' is up to date.\n"
+);
+
+# Check undefined variable warnings
+
+# With no options or with ignore, nothing should happen
+run_make_test('
+EMPTY =
+EREF = $(EMPTY)
+UREF = $(UNDEFINED)
+
+SEREF := $(EREF)
+SUREF := $(UREF)
+
+all: ; @echo ref $(EREF) $(UREF)',
+              '', 'ref');
+
+run_make_test(undef, '--warn=undefined-var:ignore', 'ref');
+
+# Check warnings
+run_make_test(undef, '--warn=undefined-var',
+              "#MAKEFILE#:7: reference to undefined variable 'UNDEFINED'
+#MAKEFILE#:9: reference to undefined variable 'UNDEFINED'
+ref");
+
+# Check and errors
+run_make_test(undef, '--warn=undefined-var:error',
+              "#MAKEFILE#:7: *** reference to undefined variable 'UNDEFINED'.  Stop.", 512);
+
+1;

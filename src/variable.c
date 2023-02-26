@@ -30,6 +30,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "pathstuff.h"
 #endif
 #include "hash.h"
+#include "warning.h"
 
 /* Incremented every time we enter target_environment().  */
 unsigned long long env_recursion = 0;
@@ -1868,15 +1869,19 @@ static const struct defined_vars defined_vars[] = {
 void
 warn_undefined (const char *name, size_t len)
 {
-  if (warn_undefined_variables_flag)
+  if (warn_check (wt_undefined_var))
     {
       const struct defined_vars *dp;
       for (dp = defined_vars; dp->name != NULL; ++dp)
         if (dp->len == len && memcmp (dp->name, name, len) == 0)
           return;
 
-      error (reading_file, len, _("warning: undefined variable '%.*s'"),
-             (int)len, name);
+      if (warn_error (wt_undefined_var))
+        fatal (reading_file, len, _("reference to undefined variable '%.*s'"),
+               (int)len, name);
+      else
+        error (reading_file, len, _("reference to undefined variable '%.*s'"),
+               (int)len, name);
     }
 }
 

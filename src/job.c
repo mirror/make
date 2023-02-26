@@ -27,6 +27,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "os.h"
 #include "dep.h"
 #include "shuffle.h"
+#include "warning.h"
 
 /* Default shell to use.  */
 #if MK_OS_W32
@@ -3633,9 +3634,9 @@ construct_command_argv (char *line, char **restp, struct file *file,
 
   {
     struct variable *var;
-    /* Turn off --warn-undefined-variables while we expand SHELL and IFS.  */
-    int save = warn_undefined_variables_flag;
-    warn_undefined_variables_flag = 0;
+    /* Turn off undefined variables warning while we expand HOME.  */
+    enum warning_state save = warn_get (wt_undefined_var);
+    warn_set (wt_undefined_var, w_ignore);
 
     shell = allocated_expand_variable_for_file (STRING_SIZE_TUPLE ("SHELL"), file);
 #if MK_OS_W32
@@ -3704,7 +3705,7 @@ construct_command_argv (char *line, char **restp, struct file *file,
 
     ifs = allocated_expand_variable_for_file (STRING_SIZE_TUPLE ("IFS"), file);
 
-    warn_undefined_variables_flag = save;
+    warn_set (wt_undefined_var, save);
   }
 
   argv = construct_command_argv_internal (line, restp, shell, shellflags, ifs,

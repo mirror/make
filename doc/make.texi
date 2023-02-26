@@ -310,6 +310,7 @@ How to Run @code{make}
                                   an alternate compiler and other things.
 * Testing::                     How to proceed past some errors, to
                                   test compilation.
+* Warnings::                    How to control reporting of makefile issues.
 * Temporary Files::             Where @code{make} keeps its temporary files.
 * Options Summary::             Summary of Options
 
@@ -5170,7 +5171,7 @@ compatibility.  It has the same value as @code{MAKEFLAGS} except that it
 does not contain the command line variable definitions, and it always
 begins with a hyphen unless it is empty (@code{MAKEFLAGS} begins with a
 hyphen only when it begins with an option that has no single-letter
-version, such as @samp{--warn-undefined-variables}).  @code{MFLAGS} was
+version, such as @samp{--no-print-directory}).  @code{MFLAGS} was
 traditionally used explicitly in the recursive @code{make} command, like
 this:
 
@@ -8873,6 +8874,7 @@ determines that some target is not already up to date.
                                   an alternate compiler and other things.
 * Testing::                     How to proceed past some errors, to
                                   test compilation.
+* Warnings::                    How to control reporting of makefile issues.
 * Temporary Files::             Where @code{make} keeps its temporary files.
 * Options Summary::             Summary of Options
 @end menu
@@ -9265,7 +9267,7 @@ overridden.  This is to use the @code{override} directive, which is a line
 that looks like this: @samp{override @var{variable} = @var{value}}
 (@pxref{Override Directive, ,The @code{override} Directive}).
 
-@node Testing, Temporary Files, Overriding, Running
+@node Testing, Warnings, Overriding, Running
 @section Testing the Compilation of a Program
 @cindex testing compilation
 @cindex compilation, testing
@@ -9303,7 +9305,68 @@ program, perhaps to find several independent problems so that you can
 correct them all before the next attempt to compile.  This is why Emacs'
 @kbd{M-x compile} command passes the @samp{-k} flag by default.
 
-@node Temporary Files, Options Summary, Testing, Running
+@node Warnings, Temporary Files, Testing, Running
+@section Makefile Warnings
+@cindex warnings
+
+GNU Make can detect some types of incorrect usage in makefiles and show
+warnings about them.  Currently these issues can be detected:
+
+@table @samp
+@item undefined-var
+Referencing a variable that has not been defined.
+@end table
+
+When one of these incorrect usages is detected, GNU Make can perform one of
+these actions:
+
+@table @samp
+@item ignore
+Ignore the usage.
+
+@item warn
+Show a warning about the usage and continue processing the makefile.
+
+@item error
+Show an error for the usage and immediately stop processing the makefile.
+@end table
+
+The default action when no warning control options are provided for
+@samp{undefined-var} is @samp{warn}.
+
+To modify this default behavior, you can use the @code{--warn} option.  This
+option can be specified on the command line, or by adding it to the
+@code{MAKEFLAGS} variable (@pxref{Recursion, ,Recursive Use of @code{make}}).
+Settings added to @code{MAKEFLAGS} are only affect after the assignment
+statement.
+
+The @code{--warn} option can be provided multiple times: the effects are
+cumulative with later options overriding over earlier options.  When GNU Make
+provides warning settings to sub-makes, they are all combined into a single
+@code{--warn} option in @code{MAKEFLAGS}.
+
+If @code{--warn} is provided with no arguments then all issues are detected
+and reported at the @samp{warn} level unless otherwise specified.
+
+If one of the actions (@samp{ignore}, @samp{warn}, @samp{error}) is provided
+as an argument to @code{--warn}, then this action becomes the default for all
+warning types.  For example all warnings can be disabled by using
+@code{--warn=ignore}, or all warnings can be considered fatal errors by using
+@code{--warn=error}.
+
+Additionally, warning types can be specified.  If the warning is listed alone,
+then that warning is enabled with the @code{warn} action: e.g.,
+@code{--warn=undefined-var} will enable @samp{undefined-var} warnings with the
+@samp{warn} action.  Alternatively an action can be provided after the warning
+type, separated by a @code{:}.  So @code{--warn=undefined-var:error} enables
+@samp{undefined-var} warnings with an action of @samp{error}.
+
+More specific settings take precedence over the global setting.  For example,
+an option @code{--warn=undefined-var:error,ignore} will set the action for
+@samp{undefined-var} warnings to @samp{error}, and the action for all other
+warnings to @samp{ignore}.
+
+@node Temporary Files, Options Summary, Warnings, Running
 @section Temporary Files
 @cindex temporary files
 
@@ -9756,13 +9819,19 @@ running a @code{touch} command on the given file before running
 imagination of @code{make}.
 @xref{Instead of Execution, ,Instead of Executing Recipes}.
 
+
+@item --warn[=@var{arg}[,@var{arg}]]
+@cindex @code{--warn}
+@cindex warnings
+Specify the handling of @ref{Warnings, ,Makefile Warnings} detected in
+makefiles.
+
 @item --warn-undefined-variables
 @cindex @code{--warn-undefined-variables}
 @cindex variables, warning for undefined
 @cindex undefined variables, warning message
-Issue a warning message whenever @code{make} sees a reference to an
-undefined variable.  This can be helpful when you are trying to debug
-makefiles which use variables in complex ways.
+A deprecated name for @code{--warn=undefined-var}.  @xref{Warnings,
+,Makefile Warnings}.
 @end table
 
 @node Implicit Rules, Archives, Running, Top

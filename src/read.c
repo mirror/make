@@ -27,7 +27,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "rule.h"
 #include "debug.h"
 #include "hash.h"
-
+#include "warning.h"
 
 #if MK_OS_W32
 # include <windows.h>
@@ -3067,13 +3067,13 @@ tilde_expand (const char *name)
       int is_variable;
 
       {
-        /* Turn off --warn-undefined-variables while we expand HOME.  */
-        int save = warn_undefined_variables_flag;
-        warn_undefined_variables_flag = 0;
+        /* Turn off undefined variables warning while we expand HOME.  */
+        enum warning_state save = warn_get (wt_undefined_var);
+        warn_set (wt_undefined_var, w_ignore);
 
         home_dir = allocated_expand_variable (STRING_SIZE_TUPLE ("HOME"));
 
-        warn_undefined_variables_flag = save;
+        warn_set (wt_undefined_var, save);
       }
 
       is_variable = home_dir[0] != '\0';

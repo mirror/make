@@ -364,8 +364,36 @@ command on the given file before running
 except that the modification time is changed only in the imagination of
 .BR make .
 .TP 0.5i
+\fB\-\-warn\fR[=\fIARG[\fR,\fIARG\fR]]
+Control warning reporting for makefiles.  This option can appear multiple times.
+In case of conflicts, later settings override earlier settings.
+.I ARG
+can be an action; one of
+.IR ignore ,
+.IR warn ,
+or
+.I error
+to set the default action for all warnings, or it can be a specific warning:
+.I undefined-var
+(referencing an undefined variable).  The behavior of each warning can be set
+by adding
+.BI : action
+after the warning name.  If an action is not specified the default is
+.IR warn .
+If no
+.I ARG
+is provided the action for all warnings is
+.IR warn .
+If no
+.B \-\-warn
+option is provided the default action for
+.I undefined-var
+is
+.IR ignore .
+.TP 0.5i
 .B \-\-warn\-undefined\-variables
-Warn when an undefined variable is referenced.
+A deprecated alternative for
+.BR \-\-warn=undefined-var .
 .SH "EXIT STATUS"
 GNU Make exits with a status of zero if all makefiles were successfully parsed
 and no targets that were built failed.  A status of one will be returned
