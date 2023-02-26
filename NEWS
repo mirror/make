@@ -10,6 +10,13 @@ See the README file and the GNU Make manual for instructions for
 reporting bugs.
 
 
+Version 4.5 (26 Feb 2023)
+
+A complete list of bugs fixed in this version is available here:
+
+https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&set=custom
+
+
 Version 4.4.1 (26 Feb 2023)
 
 This release is primarily a bug-fix release.
