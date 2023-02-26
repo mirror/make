@@ -8,17 +8,19 @@
 # Each step consists of an operator and argument.
 #
 # It supports the following operators:
-#  out <word>   : echo <word> to stdout with a newline
-#  raw <word>   : echo <word> to stdout without adding anything
-#  env <word>   : echo the value of the env.var. <word>, or "<unset>"
-#  file <word>  : echo <word> to stdout AND create the file <word>
-#  dir <word>   : echo <word> to stdout AND create the directory <word>
-#  rm <word>    : echo <word> to stdout AND delete the file/directory <word>
-#  wait <word>  : wait for a file named <word> to exist
-#  tmout <secs> : Change the timeout for waiting.  Default is 4 seconds.
-#  sleep <secs> : Sleep for <secs> seconds then echo <secs>
-#  term <pid>   : send SIGTERM to PID <pid>
-#  fail <err>   : echo <err> to stdout then exit with error code err
+#  out <word>     : echo <word> to stdout with a newline
+#  raw <word>     : echo <word> to stdout without adding anything
+#  env <word>     : echo the value of the env.var. <word>, or "<unset>"
+#  file <word>    : echo <word> to stdout AND create the file <word>
+#  dir <word>     : echo <word> to stdout AND create the directory <word>
+#  rm <word>      : echo <word> to stdout AND delete the file/directory <word>
+#  wait <word>    : wait for a file named <word> to exist
+#  exist <word>   : echo <word> AND fail if a file named <word> doesn't exist
+#  noexist <word> : echo <word> AND fail if a file named <word> exists
+#  tmout <secs>   : Change the timeout for waiting.  Default is 4 seconds.
+#  sleep <secs>   : Sleep for <secs> seconds then echo <secs>
+#  term <pid>     : send SIGTERM to PID <pid>
+#  fail <err>     : echo <err> to stdout then exit with error code err
 #
 # If given -q only the "out", "raw", and "env" commands generate output.
 
@@ -58,6 +60,18 @@ sub op {
         open(my $fh, '>', $nm) or die "$nm: open: $!\n";
         close(my $fh);
         return 1;
+    }
+
+    if ($op eq 'exist') {
+        -f "$nm" || die "$nm: file should exist: $!\n";
+        print "exist $nm\n" unless $quiet;
+        return 1
+    }
+
+    if ($op eq 'noexist') {
+        -f "$nm" && die "$nm: file exists\n";
+        print "noexist $nm\n" unless $quiet;
+        return 1
     }
 
     # Show the output before creating the directory

@@ -20,32 +20,27 @@ also specified on the command line.";
 $port_type eq 'W32' and return -1;
 
 open(MAKEFILE,"> $makefile");
-printf MAKEFILE q,
-define test
-if [ ! -f test-file ]; then \
-  echo >> test-file; sleep 2; %s test-file; \
-else \
-  echo $@ FAILED; \
-fi
-endef
+printf MAKEFILE subst_make_string(q!
+test = #HELPER# noexist test-file file test-file sleep 2 rm test-file
 
 all : ONE TWO THREE
 ONE : ; @$(test)
 TWO : ; @$(test)
 THREE : ; @$(test)
-,, $CMD_rmfile;
+!);
 close(MAKEFILE);
+my $ans = "noexist test-file\nfile test-file\nsleep 2\nrm test-file\n";
 
 $mkoptions = "-l 0.0001";
 $mkoptions .= " -j 4" if ($parallel_jobs);
 
 # We have to wait longer than the default (5s).
-&run_make_with_options($makefile, $mkoptions, &get_logfile, 0, 8);
+&run_make_with_options($makefile, $mkoptions, &get_logfile, 0, 10);
 
 $slurp = &read_file_into_string(&get_logfile(1));
 if ($slurp =~ /cannot enforce load limit/) {
   return -1;
 }
-&compare_output("", &get_logfile(1));
+&compare_output("$ans$ans$ans", &get_logfile(1));
 
 1;
