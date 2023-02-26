@@ -3417,48 +3417,53 @@ define_makeflags (int makefile)
 {
   const char ref[] = "MAKEOVERRIDES";
   const char posixref[] = "-*-command-variables-*-";
-  const char evalref[] = "$(-*-eval-flags-*-)";
+  const char evalref[] = " $(-*-eval-flags-*-)";
   const struct command_switch *cs;
   struct variable *v;
-  char *flagstring;
-  char *p;
+  char *bufsave;
+  size_t lensave;
+  char *fp;
+  char c[3];
 
-  /* We will construct a linked list of 'struct flag's describing
-     all the flags which need to go in MAKEFLAGS.  Then, once we
-     know how many there are and their lengths, we can put them all
-     together in a string.  */
+  install_variable_buffer (&bufsave, &lensave);
 
-  struct flag
-    {
-      struct flag *next;
-      const struct command_switch *cs;
-      const char *arg;
-    };
-  struct flag *flags = 0;
-  struct flag *last = 0;
-  size_t flagslen = 0;
-#define ADD_FLAG(ARG, LEN) \
-  do {                                                                        \
-    struct flag *new = alloca (sizeof (struct flag));                         \
-    new->cs = cs;                                                             \
-    new->arg = (ARG);                                                         \
-    new->next = 0;                                                            \
-    if (! flags)                                                              \
-      flags = new;                                                            \
-    else                                                                      \
-      last->next = new;                                                       \
-    last = new;                                                               \
-    if (new->arg == 0)                                                        \
-      /* Just a single flag letter: " -x"  */                                 \
-      flagslen += 3;                                                          \
-    else                                                                      \
-      /* " -xfoo", plus space to escape "foo".  */                            \
-      flagslen += 1 + 1 + 1 + (3 * (LEN));                                    \
-    if (!short_option (cs->c))                                                \
-      /* This switch has no single-letter version, so we use the long.  */    \
-      flagslen += 2 + strlen (cs->long_name);                                 \
-  } while (0)
+  /* Start with a dash, for MFLAGS.  */
+  fp = variable_buffer_output (variable_buffer, "-", 1);
 
+#define SHORT_NOT_DEFAULT(_c)                                           \
+    ((!*(int *) (_c)->value_ptr) == ((_c)->type == flag_off)            \
+     && ((_c)->default_value == NULL || (_c)->specified                 \
+         || *(int *) (_c)->value_ptr != *(int *) (_c)->default_value))
+
+  /* Add simple options as a group.  These can't have args by definion.  */
+  for (cs = switches; cs->c != '\0'; ++cs)
+    if (cs->toenv && short_option (cs->c) && (!makefile || !cs->no_makefile)
+        && (cs->type == flag || cs->type == flag_off)
+        && SHORT_NOT_DEFAULT (cs))
+      {
+        c[0] = (char)cs->c;
+        fp = variable_buffer_output (fp, c, 1);
+      }
+
+  memcpy (c, " --", 3);
+
+#define ADD_OPT(_c)                                                     \
+  do{                                                                   \
+    if (short_option (cs->c))                                           \
+      {                                                                 \
+        c[2] = (char)cs->c;                                             \
+        fp = variable_buffer_output (fp, c, 3);                         \
+      }                                                                 \
+    else                                                                \
+      {                                                                 \
+        c[2] = '-';                                                     \
+        fp = variable_buffer_output (fp, c, 3);                         \
+        fp = variable_buffer_output (fp, cs->long_name,                 \
+                                     strlen (cs->long_name));           \
+      }                                                                 \
+  }while(0)
+
+  /* Now add more complex flags: ones with options and/or long names.  */
   for (cs = switches; cs->c != '\0'; ++cs)
     if (cs->toenv && (!makefile || !cs->no_makefile))
       switch (cs->type)
@@ -3468,10 +3473,9 @@ define_makeflags (int makefile)
 
         case flag:
         case flag_off:
-          if ((!*(int *) cs->value_ptr) == (cs->type == flag_off)
-              && (cs->default_value == NULL || cs->specified
-                  || *(int *) cs->value_ptr != *(int *) cs->default_value))
-            ADD_FLAG (0, 0);
+          /* We did the short flags above.  */
+          if (!short_option (cs->c) && SHORT_NOT_DEFAULT (cs))
+            ADD_OPT (cs);
           break;
 
         case positive_int:
@@ -3479,15 +3483,16 @@ define_makeflags (int makefile)
                && (*(unsigned int *) cs->value_ptr
                    == *(unsigned int *) cs->default_value)))
             break;
-          if (cs->noarg_value != 0
-              && (*(unsigned int *) cs->value_ptr ==
-                  *(unsigned int *) cs->noarg_value))
-            ADD_FLAG ("", 0); /* Optional value omitted; see below.  */
-          else
+          ADD_OPT (cs);
+          if (!cs->noarg_value || (*(unsigned int *) cs->value_ptr
+                                   != *(unsigned int *) cs->noarg_value))
             {
+              /* Add the value if not omitted.  */
               char *buf = alloca (30);
               sprintf (buf, "%u", *(unsigned int *) cs->value_ptr);
-              ADD_FLAG (buf, strlen (buf));
+              if (!short_option (cs->c))
+                fp = variable_buffer_output (fp, "=", 1);
+              fp = variable_buffer_output (fp, buf, strlen (buf));
             }
           break;
 
@@ -3495,21 +3500,29 @@ define_makeflags (int makefile)
           if (cs->default_value != 0
               && (*(double *) cs->value_ptr == *(double *) cs->default_value))
             break;
-          if (cs->noarg_value != 0
-              && (*(double *) cs->value_ptr == *(double *) cs->noarg_value))
-            ADD_FLAG ("", 0); /* Optional value omitted; see below.  */
-          else
+          ADD_OPT (cs);
+          if (!cs->noarg_value
+              || (*(double *) cs->value_ptr != *(double *) cs->noarg_value))
             {
               char *buf = alloca (100);
               sprintf (buf, "%g", *(double *) cs->value_ptr);
-              ADD_FLAG (buf, strlen (buf));
+              if (!short_option (cs->c))
+                fp = variable_buffer_output (fp, "=", 1);
+              fp = variable_buffer_output (fp, buf, strlen (buf));
             }
           break;
 
         case string:
-          p = *((char **)cs->value_ptr);
-          if (p)
-            ADD_FLAG (p, strlen (p));
+          {
+            char *p = *((char **)cs->value_ptr);
+            if (p)
+              {
+                ADD_OPT (cs);
+                if (!short_option (cs->c))
+                  fp = variable_buffer_output (fp, "=", 1);
+                fp = variable_buffer_output(fp, p, strlen (p));
+              }
+          }
           break;
 
         case filename:
@@ -3520,7 +3533,12 @@ define_makeflags (int makefile)
               {
                 unsigned int i;
                 for (i = 0; i < sl->idx; ++i)
-                  ADD_FLAG (sl->list[i], strlen (sl->list[i]));
+                  {
+                    ADD_OPT (cs);
+                    if (!short_option (cs->c))
+                      fp = variable_buffer_output (fp, "=", 1);
+                    fp = variable_buffer_output (fp, sl->list[i], strlen (sl->list[i]));
+                  }
               }
           }
           break;
@@ -3529,74 +3547,26 @@ define_makeflags (int makefile)
           abort ();
         }
 
-#undef ADD_FLAG
-
-  /* Four more for the possible " -- ", plus variable references.  */
-  flagslen += 4 + CSTRLEN (posixref) + 4 + CSTRLEN (evalref) + 4;
-
-  /* Construct the value in FLAGSTRING.
-     We allocate enough space for a preceding dash and trailing null.  */
-  flagstring = alloca (1 + flagslen + 1);
-  memset (flagstring, '\0', 1 + flagslen + 1);
-  p = flagstring;
-
-  /* Start with a dash, for MFLAGS.  */
-  *p++ = '-';
-
-  /* Add simple options as a group.  */
-  while (flags != 0 && !flags->arg && short_option (flags->cs->c))
-    {
-      *p++ = (char) flags->cs->c;
-      flags = flags->next;
-    }
-
-  /* Now add more complex flags: ones with options and/or long names.  */
-  while (flags)
-    {
-      *p++ = ' ';
-      *p++ = '-';
-
-      /* Add the flag letter or name to the string.  */
-      if (short_option (flags->cs->c))
-        *p++ = (char) flags->cs->c;
-      else
-        {
-          /* Long options require a double-dash.  */
-          *p++ = '-';
-          p = stpcpy (p, flags->cs->long_name);
-        }
-      /* An omitted optional argument has an ARG of "".  */
-      if (flags->arg && flags->arg[0] != '\0')
-        {
-          if (!short_option (flags->cs->c))
-            /* Long options require '='.  */
-            *p++ = '=';
-          p = quote_for_env (p, flags->arg);
-        }
-      flags = flags->next;
-    }
+#undef ADD_OPT
+#undef SHORT_NOT_DEFAULT
 
   /* If no flags at all, get rid of the initial dash.  */
-  if (p == &flagstring[1])
-    {
-      flagstring[0] = '\0';
-      p = flagstring;
-    }
+  if (fp == variable_buffer + 1)
+    fp = variable_buffer;
+
+  *fp = '\0';
 
   /* Define MFLAGS before appending variable definitions.  Omit an initial
      empty dash.  Since MFLAGS is not parsed for flags, there is no reason to
      override any makefile redefinition.  */
   define_variable_cname ("MFLAGS",
-                         flagstring + (flagstring[0] == '-' && flagstring[1] == ' ' ? 2 : 0),
+                         variable_buffer + (variable_buffer[0] == '-' && variable_buffer[1] == ' ' ? 2 : 0),
                          o_env, 1);
 
   /* Write a reference to -*-eval-flags-*-, which contains all the --eval
      flag options.  */
   if (eval_strings)
-    {
-      *p++ = ' ';
-      p = mempcpy (p, evalref, CSTRLEN (evalref));
-    }
+    fp = variable_buffer_output (fp, evalref, CSTRLEN (evalref));
 
   {
     /* If there are any overrides to add, write a reference to
@@ -3606,20 +3576,20 @@ define_makeflags (int makefile)
     const char *r = posix_pedantic ? posixref : ref;
     size_t l = strlen (r);
     v = lookup_variable (r, l);
-
     if (v && v->value && v->value[0] != '\0')
       {
-        p = stpcpy (p, " -- ");
-        *(p++) = '$';
-        *(p++) = '(';
-        p = mempcpy (p, r, l);
-        *(p++) = ')';
+        fp = variable_buffer_output (fp, " -- $(", 6);
+        fp = variable_buffer_output (fp, r, l);
+        fp = variable_buffer_output (fp, ")", 1);
       }
   }
 
+  *fp = '\0';
+
   /* If there is a leading dash, omit it.  */
-  if (flagstring[0] == '-')
-    ++flagstring;
+  fp = variable_buffer;
+  if (fp[0] == '-')
+    ++fp;
 
   /* This used to use o_env, but that lost when a makefile defined MAKEFLAGS.
      Makefiles set MAKEFLAGS to add switches, but we still want to redefine
@@ -3627,9 +3597,11 @@ define_makeflags (int makefile)
      lost when users added -e, causing a previous MAKEFLAGS env. var. to take
      precedence over the new one.  Of course, an override or command
      definition will still take precedence.  */
-  v =  define_variable_cname (MAKEFLAGS_NAME, flagstring,
-                              env_overrides ? o_env_override : o_file, 1);
+  v = define_variable_cname (MAKEFLAGS_NAME, fp,
+                             env_overrides ? o_env_override : o_file, 1);
   v->special = 1;
+
+  restore_variable_buffer (bufsave, lensave);
 
   return v;
 }
