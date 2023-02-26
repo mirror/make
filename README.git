@@ -335,10 +335,15 @@ When publishing a final release there are extra steps that need to be taken:
 
 Manage the Savannah project for GNU Make:
 
-  * In Savannah modify the "Value", "Rank", and "Description" values for the
-    current "SCM" entry in both "Component Version" and "Fix Release" fields
-    to refer to the new release.  The "Rank" field should be 10 less than the
-    previous release so it orders properly.
+  * In Savannah edit the "Component Version" field and choose the "SCM" entry.
+    Modify the "Value", "Rank", and "Description" values for the to refer to
+    the new release.  The "Rank" field should be 10 less than the previous
+    release so it orders properly.
+
+  * In Savannah edit the "Fixed Release" field and choose the "SCM" entry.
+    Modify the "Value", "Rank", and "Description" values for the to refer to
+    the new release.  The "Rank" field should be 10 less than the previous
+    release so it orders properly.
 
   * In Savannah create a new entry for the "Component Version" field:
       - Value: SCM

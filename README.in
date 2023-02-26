@@ -3,11 +3,15 @@ This directory contains the @PACKAGE_VERSION@ release of @PACKAGE_NAME@.
 See the file NEWS for the user-visible changes from previous releases.
 In addition, there have been bugs fixed.
 
+>> If you are trying to build GNU Make from a Git clone rather than a
+>> downloaded source distribution, see the README.git file for instructions.
+
 Please check the system-specific notes below for any caveats related to your
 operating system.
 
-If you are trying to build GNU Make from a Git clone rather than a downloaded
-source distribution, see the README.git file for instructions.
+This README assumes you are building on a POSIX-based operating system.
+For ports to other operating systems please see the system-specific README
+files, as described in the "Ports" section below.
 
 For source distribution building and installation instructions, see the file
 INSTALL.
@@ -28,6 +32,7 @@ GNU Make is free software.  See the file COPYING for copying conditions.
 GNU Make is copyright by the Free Software Foundation.  Copyright notices
 condense sequential years into a range; e.g. "1987-1994" means all years
 from 1987 to 1994 inclusive.
+
 
 Downloading
 -----------
@@ -140,16 +145,6 @@ known to be broken to be checked in.  Use at your own risk.
 System-specific Notes
 ---------------------
 
-It has been reported that the XLC 1.2 compiler on AIX 3.2 is buggy such
-that if you compile make with 'cc -O' on AIX 3.2, it will not work
-correctly.  It is said that using 'cc' without '-O' does work.
-
-The standard /bin/sh on SunOS 4.1.3_U1 and 4.1.4 is broken and cannot be
-used to configure GNU Make.  Please install a different shell such as
-bash or pdksh in order to run "configure".  See this message for more
-information:
-  https://mail.gnu.org/archive/html/bug-autoconf/2003-10/msg00190.html
-
 One area that is often a problem in configuration and porting is the code
 to check the system's current load average.  To make it easier to test and
 debug this code, you can do 'make check-loadavg' to see if it works
@@ -201,8 +196,8 @@ Ports
     it you should start by asking on those mailing lists and forums.
 
 Please note there are two _separate_ ports of GNU Make for Microsoft
-systems: a native Windows tool built with (for example) MSVC or Cygwin,
-and a DOS-based tool built with DJGPP.  Please be sure you are looking
+systems: a native Windows port built with (for example) MSVC or MinGW,
+and a DOS-based port built with DJGPP.  Please be sure you are looking
 at the right README!
 
 
