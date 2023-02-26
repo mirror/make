@@ -667,6 +667,8 @@ static void
 initialize_warnings ()
 {
   /* All warnings must have a default.  */
+  default_warnings[wt_invalid_var] = w_warn;
+  default_warnings[wt_invalid_ref] = w_warn;
   default_warnings[wt_undefined_var] = w_ignore;
 }
 
@@ -885,7 +887,9 @@ decode_debug_flags (void)
 }
 
 static const char *w_state_map[w_error+1] = {NULL, "ignore", "warn", "error"};
-static const char *w_name_map[wt_max] = {"undefined-var"};
+static const char *w_name_map[wt_max] = {"invalid-var",
+                                         "invalid-ref",
+                                         "undefined-var"};
 
 #define encode_warn_state(_b,_s) variable_buffer_output (_b, w_state_map[_s], strlen (w_state_map[_s]))
 #define encode_warn_name(_b,_t)  variable_buffer_output (_b, w_name_map[_t], strlen (w_name_map[_t]))
@@ -906,7 +910,7 @@ decode_warn_state (const char *state, size_t length)
 static enum warning_type
 decode_warn_name (const char *name, size_t length)
 {
-  for (enum warning_type wt = wt_undefined_var; wt < wt_max; ++wt)
+  for (enum warning_type wt = wt_invalid_var; wt < wt_max; ++wt)
     {
       size_t len = strlen (w_name_map[wt]);
       if (length == len && strncasecmp (name, w_name_map[wt], length) == 0)

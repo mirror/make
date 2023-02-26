@@ -764,5 +764,5 @@ undefine_default_variables (void)
   const char **s;
 
   for (s = default_variables; *s != 0; s += 2)
-    undefine_variable_global (s[0], strlen (s[0]), o_default);
+    undefine_variable_global (NILF, s[0], strlen (s[0]), o_default);
 }

@@ -184,6 +184,26 @@ struct variable_set_list *current_variable_set_list = &global_setlist;
 
 /* Implement variables.  */
 
+static void
+check_valid_name (const floc* flocp, const char *name, size_t length)
+{
+  const char *cp, *end;
+
+  if (!warn_check (wt_invalid_var))
+    return;
+
+  for (cp = name, end = name + length; cp < end; ++cp)
+    if (ISSPACE (*cp))
+      break;
+  if (cp == end)
+    return;
+
+  if (warn_error (wt_invalid_var))
+    ONS (fatal, flocp, _("invalid variable name '%.*s'"), (int)length, name);
+
+  ONS (error, flocp, _("invalid variable name '%.*s'"), (int)length, name);
+}
+
 void
 init_hash_global_variable_set (void)
 {
@@ -207,6 +227,8 @@ define_variable_in_set (const char *name, size_t length,
   struct variable *v;
   struct variable **var_slot;
   struct variable var_key;
+
+  check_valid_name (flocp, name, length);
 
   if (set == NULL)
     set = &global_variable_set;
@@ -330,13 +352,15 @@ free_variable_set (struct variable_set_list *list)
 }
 
 void
-undefine_variable_in_set (const char *name, size_t length,
+undefine_variable_in_set (const floc *flocp, const char *name, size_t length,
                           enum variable_origin origin,
                           struct variable_set *set)
 {
   struct variable *v;
   struct variable **var_slot;
   struct variable var_key;
+
+  check_valid_name (flocp, name, length);
 
   if (set == NULL)
     set = &global_variable_set;
@@ -452,6 +476,29 @@ lookup_special_var (struct variable *var)
 }
 
 
+/* Check the variable name for validity.  */
+static void
+check_variable_reference (const char *name, size_t length)
+{
+  const char *cp, *end;
+
+  if (!warn_check (wt_invalid_ref))
+    return;
+
+  for (cp = name, end = name + length; cp < end; ++cp)
+    if (ISSPACE (*cp))
+      break;
+  if (cp == end)
+    return;
+
+  if (warn_error (wt_invalid_ref))
+    ONS (fatal, *expanding_var,
+         _("invalid variable reference '%.*s'"), (int)length, name);
+
+  ONS (error, *expanding_var,
+       _("invalid variable reference '%.*s'"), (int)length, name);
+}
+
 /* Lookup a variable whose name is a string starting at NAME
    and with LENGTH chars.  NAME need not be null-terminated.
    Returns address of the 'struct variable' containing all info
@@ -463,6 +510,8 @@ lookup_variable (const char *name, size_t length)
   const struct variable_set_list *setlist;
   struct variable var_key;
   int is_parent = 0;
+
+  check_variable_reference (name, length);
 
   var_key.name = (char *) name;
   var_key.length = (unsigned int) length;
@@ -572,6 +621,8 @@ lookup_variable_in_set (const char *name, size_t length,
                         const struct variable_set *set)
 {
   struct variable var_key;
+
+  check_variable_reference (name, length);
 
   var_key.name = (char *) name;
   var_key.length = (unsigned int) length;

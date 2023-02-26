@@ -17,7 +17,9 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Types of warnings we can show.  */
 enum warning_type
   {
-    wt_undefined_var = 0, /* Reference an undefined variable name.  */
+    wt_invalid_var = 0, /* Assign to an invalid variable name.  */
+    wt_invalid_ref,     /* Reference an invalid variable name.  */
+    wt_undefined_var,   /* Reference an undefined variable name.  */
     wt_max
   };
 

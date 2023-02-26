@@ -1368,7 +1368,7 @@ do_undefine (char *name, enum variable_origin origin, struct ebuffer *ebuf)
     --p;
   p[1] = '\0';
 
-  undefine_variable_global (name, p - name + 1, origin);
+  undefine_variable_global (&ebuf->floc, name, p - name + 1, origin);
   free (var);
 }
 

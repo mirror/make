@@ -184,6 +184,7 @@ void hash_init_function_table (void);
 void define_new_function(const floc *flocp, const char *name,
                          unsigned int min, unsigned int max, unsigned int flags,
                          gmk_func_ptr func);
+
 struct variable *lookup_variable (const char *name, size_t length);
 struct variable *lookup_variable_for_file (const char *name, size_t length,
                                            struct file *file);
@@ -226,14 +227,15 @@ void warn_undefined (const char* name, size_t length);
 #define define_variable_for_file(n,l,v,o,r,f) \
           define_variable_in_set((n),(l),(v),(o),(r),(f)->variables->set,NILF)
 
-void undefine_variable_in_set (const char *name, size_t length,
+void undefine_variable_in_set (const floc *flocp,
+                               const char *name, size_t length,
                                enum variable_origin origin,
                                struct variable_set *set);
 
 /* Remove variable from the current variable set. */
 
-#define undefine_variable_global(n,l,o) \
-          undefine_variable_in_set((n),(l),(o),NULL)
+#define undefine_variable_global(f,n,l,o) \
+          undefine_variable_in_set((f),(n),(l),(o),NULL)
 
 char **target_environment (struct file *file, int recursive);
 

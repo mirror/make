@@ -5,8 +5,8 @@ $description = "Test the --warn option.";
 my %warn_test = (
     '--warn' => '', '--warn=warn' => '', '--warn=error --warn=warn' => '',
     '--warn --warn=error' => '=error',
-    '--warn=ignore --warn=error --warn=ignore --warn=undefined-var' => '=ignore,undefined-var',
-    '--warn=undefined-var:error --warn' => '=warn,undefined-var:error'
+    '--warn=ignore --warn=error --warn=ignore --warn=invalid-var,invalid-ref,undefined-var' => '=ignore,invalid-var,invalid-ref,undefined-var',
+    '--warn=invalid-ref:ignore --warn=error --warn=invalid-var:warn,,,,,undefined-var:error,,,,,' => '=error,invalid-var,invalid-ref:ignore,undefined-var:error'
 );
 
 # Verify the deprecated --warn-undefined-variables option
@@ -82,5 +82,69 @@ ref");
 # Check and errors
 run_make_test(undef, '--warn=undefined-var:error',
               "#MAKEFILE#:7: *** reference to undefined variable 'UNDEFINED'.  Stop.", 512);
+
+# Check invalid variable reference warnings
+
+# With no options we still check for invalid references
+run_make_test('
+IREF = $(bad variable)
+SIREF := $(IREF)
+
+define nl
+
+
+endef
+
+all: ; @echo ref $(also$(nl)bad) $(IREF) $(SIREF)',
+              '', "#MAKEFILE#:2: invalid variable reference 'bad variable'
+#MAKEFILE#:10: invalid variable reference 'also\nbad'
+#MAKEFILE#:2: invalid variable reference 'bad variable'
+ref");
+
+run_make_test(undef, '--warn=ignore', 'ref');
+
+run_make_test(undef, '--warn=invalid-ref:ignore', 'ref');
+
+# Check and errors
+run_make_test(undef, '--warn=invalid-ref:error',
+              "#MAKEFILE#:2: *** invalid variable reference 'bad variable'.  Stop.", 512);
+
+# Check invalid variable name warnings
+
+# With no options we still check for invalid references
+run_make_test('
+EMPTY =
+SPACE = $(EMPTY) $(EMPTY)
+BAD$(SPACE)VAR = foo
+
+define nl
+
+
+endef
+
+NL$(nl)VAR = bar
+
+define BAD$(SPACE)DEF :=
+foo
+endef
+
+define NL$(nl)DEF :=
+foo
+endef
+
+all: ; @echo ref',
+              '', "#MAKEFILE#:4: invalid variable name 'BAD VAR'
+#MAKEFILE#:11: invalid variable name 'NL\nVAR'
+#MAKEFILE#:13: invalid variable name 'BAD DEF'
+#MAKEFILE#:17: invalid variable name 'NL\nDEF'
+ref");
+
+run_make_test(undef, '--warn=ignore', 'ref');
+
+run_make_test(undef, '--warn=invalid-var:ignore', 'ref');
+
+# Check and errors
+run_make_test(undef, '--warn=invalid-var:error',
+              "#MAKEFILE#:4: *** invalid variable name 'BAD VAR'.  Stop.", 512);
 
 1;

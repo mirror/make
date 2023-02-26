@@ -9313,6 +9313,12 @@ GNU Make can detect some types of incorrect usage in makefiles and show
 warnings about them.  Currently these issues can be detected:
 
 @table @samp
+@item invalid-var
+Assigning to an invalid variable name (e.g., a name containing whitespace).
+
+@item invalid-ref
+Using an invalid variable name in a variable reference.
+
 @item undefined-var
 Referencing a variable that has not been defined.
 @end table
@@ -9331,8 +9337,9 @@ Show a warning about the usage and continue processing the makefile.
 Show an error for the usage and immediately stop processing the makefile.
 @end table
 
-The default action when no warning control options are provided for
-@samp{undefined-var} is @samp{warn}.
+The default action of GNU Make when no warning control options are provided
+is @samp{ignore} for @samp{undefined-var}, and @samp{warn} for
+@samp{invalid-var} and @samp{invalid-ref}.
 
 To modify this default behavior, you can use the @code{--warn} option.  This
 option can be specified on the command line, or by adding it to the
