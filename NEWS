@@ -1,6 +1,6 @@
 GNU Make NEWS                                               -*-indented-text-*-
   History of user-visible changes.
-  19 February 2023
+  26 February 2023
 
 See the end of this file for copyrights and conditions.
 
@@ -10,7 +10,7 @@ See the README file and the GNU Make manual for instructions for
 reporting bugs.
 
 
-Version 4.4.0.91 (19 Feb 2023)
+Version 4.4.1 (26 Feb 2023)
 
 This release is primarily a bug-fix release.
 A complete list of bugs fixed in this version is available here:
@@ -32,21 +32,21 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=110&se
   builds with archive creation.  See the "Dangers When Using Archives" section
   of the GNU Make manual, and https://savannah.gnu.org/bugs/index.php?14927
 
-* New platform: GNU Make is supported on z/OS
-  Thanks to Igor Todorovski <itodorov@ca.ibm.com> for the patches and testing
-  assistance.
-
 * Previously target-specific variables would inherit their "export" capability
   from parent target-specific variables even if they were marked private.  Now
   private parent target-specific variables have no affect.  For more details
   see https://savannah.gnu.org/bugs/index.php?61463
 
-* Updates to allow building on OS/2
-  Provided by KO Myung-Hun <komh78@gmail.com>
-
 * Disable FIFO jobserver on GNU/Hurd and Cygwin
   Experimentation shows that the new FIFO-based jobserver doesn't work well on
   GNU/Hurd or Cygwin: revert these systems to use the pipe-based jobserver.
+
+* Updates to allow building on OS/2
+  Provided by KO Myung-Hun <komh78@gmail.com>
+
+* New platform: GNU Make is supported on z/OS
+  Thanks to Igor Todorovski <itodorov@ca.ibm.com> for the patches and testing
+  assistance.
 
 
 Version 4.4 (31 Oct 2022)

@@ -251,6 +251,7 @@ consistent (that's why we don't finalize the Git tag, etc. until the end).
 
   * Update the configure.ac file with the new release number.
   * Update the EDITION value in the doc/make.texi file.
+  * Update the doc/make.1 file with the release date.
   * Update the NEWS file with the release number and date.
   * Ensure the Savannah bug list URL in the NEWS file uses the correct
     "Fixed Release" ID number.
