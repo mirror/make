@@ -115,13 +115,15 @@ all: ; @: $(info recur=/$(recur)/ simple=/$(simple)/ recure=/$(recur_empty)/ sim
 # TEST 9: Line continuation
 run_make_test(q!
 recur = $\
-  one$\
-  two$\
+  zero  $\
+  one$$\
+  two$$$\
   three
 simple := $\
-  four$\
-  five$\
-  six
+  four  $\
+  five$$\
+  six$$$\
+  seven
 
 all: d$\
      e$\
@@ -130,19 +132,21 @@ all: d$\
 .PHONY: dep
 dep: ; @: $(info recur=/$(recur)/ simple=/$(simple)/)
 !,
-             '', "recur=/onetwothree/ simple=/fourfivesix/\n");
+             '', "recur=/zeroone\$ two\$three/ simple=/fourfive\$ six\$seven/\n");
 
-# TEST 9: Line continuation
+# TEST 9: Line continuation with POSIX
 run_make_test(q!
 .POSIX:
 recur = $\
-  one$\
-  two$\
+  zero  $\
+  one$$\
+  two$$$\
   three
 simple := $\
-  four$\
-  five$\
-  six
+  four  $\
+  five$$\
+  six$$$\
+  seven
 
 all: d$\
      e$\
@@ -151,7 +155,7 @@ all: d$\
 .PHONY: dep
 dep: ; @: $(info recur=/$(recur)/ simple=/$(simple)/)
 !,
-             '', "recur=/onetwothree/ simple=/fourfivesix/\n");
+             '', "recur=/zero  one\$ two\$three/ simple=/four  five\$ six\$seven/\n");
 
 # Test POSIX :::=
 # This creates a recursive variable, but it expands the RHS first.  Any

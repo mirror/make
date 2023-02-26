@@ -2,6 +2,8 @@
 
 $description = "Run some negative tests (things that should fail).";
 
+my $unterm = '*** unterminated variable reference.  Stop.';
+
 # TEST #0
 # Check that non-terminated variable references are detected (and
 # reported using the best filename/lineno info
@@ -12,15 +14,12 @@ y = $x
 
 all: ; @echo $y
 ',
-              '', '#MAKEFILE#:3: *** unterminated variable reference.  Stop.',
+              '', "#MAKEFILE#:3: $unterm",
               512);
 
 # TEST #1
 # Bogus variable value passed on the command line.
-run_make_test(undef,
-              ['x=$(other'],
-              '#MAKEFILE#:4: *** unterminated variable reference.  Stop.',
-              512);
+run_make_test(undef, ['x=$(other'], "#MAKEFILE#:4: $unterm", 512);
 
 # TEST #2
 # Again, but this time while reading the makefile.
@@ -33,28 +32,23 @@ z := $y
 
 all: ; @echo $y
 ',
-              '', '#MAKEFILE#:3: *** unterminated variable reference.  Stop.',
-              512);
+              '', "#MAKEFILE#:3: $unterm", 512);
 
 # TEST #3
 # Bogus variable value passed on the command line.
-run_make_test(undef,
-              ['x=$(other'],
-              '#MAKEFILE#:4: *** unterminated variable reference.  Stop.',
-              512);
+run_make_test(undef, ['x=$(other'], "#MAKEFILE#:4: $unterm", 512);
+
+my $nosep = '*** missing separator.  Stop.';
 
 # Whitespace not allowed in variable names
-run_make_test('x y =', '',
-              '#MAKEFILE#:1: *** missing separator.  Stop.', 512);
+run_make_test('x y =', '', "#MAKEFILE#:1: $nosep", 512);
 
-run_make_test('x y=', '',
-              '#MAKEFILE#:1: *** missing separator.  Stop.', 512);
+run_make_test('x y=', '', "#MAKEFILE#:1: $nosep", 512);
 
 # In theory an empty variable should be ignored, but during parsing it's a
 # real token and so this fails.  I'm not 100% sure if this is right or not.
 
-run_make_test('x $X=', '',
-              '#MAKEFILE#:1: *** missing separator.  Stop.', 512);
+run_make_test('x $X=', '', "#MAKEFILE#:1: $nosep", 512);
 
 
 1;

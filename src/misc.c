@@ -131,7 +131,7 @@ collapse_continuations (char *line)
   char *q;
 
   q = strchr(in, '\n');
-  if (q == 0)
+  if (!q)
     return;
 
   do
@@ -162,17 +162,33 @@ collapse_continuations (char *line)
 
       if (i & 1)
         {
-          /* Backslash/newline handling:
-             In traditional GNU Make all trailing whitespace, consecutive
-             backslash/newlines, and any leading non-newline whitespace on the
-             next line is reduced to a single space.
-             In POSIX, each backslash/newline and is replaced by a space.  */
+          unsigned int dollar;
+
+          /* Backslash/newline handling: out points to the final "\".
+             In POSIX, each backslash/newline is replaced by a space.
+             In GNU Make all trailing whitespace, consecutive backslash +
+             newlines, and any leading non-newline whitespace on the next line
+             is reduced to a single space.
+             As a special case, replace "$\" with the empty string.  */
           while (ISBLANK (*in))
             ++in;
-          if (! posix_pedantic)
+
+          {
+            const char *dp = out;
+            while (dp > line && dp[-1] == '$')
+              --dp;
+            dollar = (out - dp) % 2;
+          }
+
+          if (dollar)
+            --out;
+
+          if (!posix_pedantic)
             while (out > line && ISBLANK (out[-1]))
               --out;
-          *out++ = ' ';
+
+          if (!dollar)
+            *out++ = ' ';
         }
       else
         {
