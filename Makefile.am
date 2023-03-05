@@ -191,6 +191,7 @@ check-regression: tests/config-flags.pm
 	    esac; \
 	    echo "cd tests && $(PERL) $(PERLFLAGS) ./run_make_tests.pl -srcdir $(abs_top_srcdir) -make $(GMK_OUTDIR)/make$(EXEEXT) $(MAKETESTFLAGS)"; \
 	    (cd tests && $(PERL) $(PERLFLAGS) ./run_make_tests.pl -srcdir '$(abs_top_srcdir)' -make '$(GMK_OUTDIR)/make$(EXEEXT)' $(MAKETESTFLAGS); echo $$? >.test-result) 2>&1 | tee $(testlog); \
+	    export TAR_OPTIONS='$(filter-out --sort%,$(TAR_OPTIONS))'; \
 	    er=$$(cat $(testresult)); if test "$$er" -ne 0; then \
 	      dirnm="$(errorpre)-$$($(rand_string))"; fnm="$$dirnm.tar.gz"; \
 	      rm -rf "$$dirnm"; mkdir "$$dirnm"; \
