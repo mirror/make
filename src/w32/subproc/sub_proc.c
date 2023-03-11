@@ -394,6 +394,9 @@ process_init()
         BYTE sd[SECURITY_DESCRIPTOR_MIN_LENGTH];
 
         pproc = malloc(sizeof(*pproc));
+	if (!pproc)
+		return((HANDLE)NULL);
+
         memset(pproc, 0, sizeof(*pproc));
 
         /* We can't use NULL for lpSecurityDescriptor because that
