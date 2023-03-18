@@ -271,6 +271,7 @@ call :Compile src/strcache
 call :Compile src/variable
 call :Compile src/version
 call :Compile src/vpath
+call :Compile src/warning
 call :Compile src/w32/pathstuff
 call :Compile src/w32/w32os
 call :Compile src/w32/compat/posixfcn

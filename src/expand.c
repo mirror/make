@@ -24,6 +24,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "job.h"
 #include "variable.h"
 #include "rule.h"
+#include "warning.h"
 
 /* Initially, any errors reported when expanding strings will be reported
    against the file where the error appears.  */

@@ -23,8 +23,8 @@ enum warning_type
     wt_max
   };
 
-/* State of a given warning.  */
-enum warning_state
+/* Action taken for a given warning.  */
+enum warning_action
   {
     w_unset = 0,
     w_ignore,
@@ -32,25 +32,24 @@ enum warning_state
     w_error
   };
 
-/* The default state of warnings.  */
-extern enum warning_state default_warnings[wt_max];
+struct warning_data
+  {
+    enum warning_action global;          /* Global setting.  */
+    enum warning_action actions[wt_max]; /* Action for each warning type.  */
+  };
 
-/* Current state of warnings.  */
-extern enum warning_state warnings[wt_max];
+/* Actions taken for each warning.  */
+extern enum warning_action warnings[wt_max];
 
-/* Global warning settings.  */
-extern enum warning_state warn_global;
+/* Get the current action for a given warning.  */
+#define warn_get(_w)     (warnings[_w])
 
-/* Get the current state of a given warning.  */
-#define warn_get(_w) (warnings[_w] != w_unset ? warnings[_w] \
-                      : warn_global != w_unset ? warn_global \
-                      : default_warnings[_w])
-
-/* Set the current state of a given warning.  Can't use w_unset here.  */
-#define warn_set(_w,_f) do{ warnings[_w] = (_f); } while (0)
+/* Set the current actin for a given warning.  Can't use w_unset here.
+   This should only be used for temporary resetting of warnings.  */
+#define warn_set(_w,_f)  do{ warnings[_w] = (_f); }while(0)
 
 /* True if we should check for the warning in the first place.  */
-#define warn_check(_w)  (warn_get (_w) > w_ignore)
+#define warn_check(_w)   (warn_get (_w) > w_ignore)
 
 /* Check if the warning is ignored.  */
 #define warn_ignored(_w) (warn_get (_w) == w_ignore)
@@ -60,3 +59,22 @@ extern enum warning_state warn_global;
 
 /* Check if the warning is in "error" mode.  */
 #define warn_error(_w)   (warn_get (_w) == w_error)
+
+void warn_init (void);
+void decode_warn_actions (const char *value, const floc *flocp);
+char *encode_warn_flag (char *fp);
+
+void warn_get_vardata (struct warning_data *data);
+void warn_set_vardata (const struct warning_data *data);
+
+#define warning(_t,_f,_m)                                   \
+    do{                                                     \
+        if (warn_check (_t))                                \
+          {                                                 \
+            char *_a = xstrdup (_m);                        \
+            if (warn_error (_t))                            \
+              fatal (_f, strlen (_a), "%s", _a);            \
+            error (_f, strlen (_a), _("warning: %s"), _a);  \
+            free (_a);                                      \
+          }                                                 \
+    }while(0)

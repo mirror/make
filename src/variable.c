@@ -198,10 +198,8 @@ check_valid_name (const floc* flocp, const char *name, size_t length)
   if (cp == end)
     return;
 
-  if (warn_error (wt_invalid_var))
-    ONS (fatal, flocp, _("invalid variable name '%.*s'"), (int)length, name);
-
-  ONS (error, flocp, _("invalid variable name '%.*s'"), (int)length, name);
+  warning (wt_invalid_var, flocp,
+           ONS (format, 0, _("invalid variable name '%.*s'"), (int)length, name));
 }
 
 void
@@ -491,12 +489,8 @@ check_variable_reference (const char *name, size_t length)
   if (cp == end)
     return;
 
-  if (warn_error (wt_invalid_ref))
-    ONS (fatal, *expanding_var,
-         _("invalid variable reference '%.*s'"), (int)length, name);
-
-  ONS (error, *expanding_var,
-       _("invalid variable reference '%.*s'"), (int)length, name);
+  warning (wt_invalid_ref, *expanding_var,
+           ONS (format, 0, _("invalid variable reference '%.*s'"), (int)length, name));
 }
 
 /* Lookup a variable whose name is a string starting at NAME
@@ -1335,11 +1329,18 @@ set_special_var (struct variable *var, enum variable_origin origin)
     reset_makeflags (origin);
 
   else if (streq (var->name, RECIPEPREFIX_NAME))
+    /* The user is resetting the command introduction prefix.  This has to
+       happen immediately, so that subsequent rules are interpreted
+       properly.  */
+    cmd_prefix = var->value[0]=='\0' ? RECIPEPREFIX_DEFAULT : var->value[0];
+
+  else if (streq (var->name, WARNINGS_NAME))
     {
-      /* The user is resetting the command introduction prefix.  This has to
-         happen immediately, so that subsequent rules are interpreted
-         properly.  */
-      cmd_prefix = var->value[0]=='\0' ? RECIPEPREFIX_DEFAULT : var->value[0];
+      /* It's weird but for .WARNINGS to make sense we need to expand them
+         when they are set, even if it's a recursive variable.  */
+      char *actions = allocated_expand_variable (STRING_SIZE_TUPLE (WARNINGS_NAME));
+      decode_warn_actions (actions, &var->fileinfo);
+      free (actions);
     }
 
   return var;
@@ -1499,7 +1500,7 @@ do_variable_definition (const floc *flocp, const char *varname,
               {
                 char *s;
                 if (streq (varname, MAKEFLAGS_NAME)
-                    && (s = strstr (v->value, " -- ")))
+                    && (s = strstr (v->value, " -- ")) != NULL)
                   /* We found a separator in MAKEFLAGS.  Ignore variable
                      assignments: set_special_var() will reconstruct things.  */
                   cp = mempcpy (cp, v->value, s - v->value);
@@ -1914,6 +1915,7 @@ static const struct defined_vars defined_vars[] = {
   { STRING_SIZE_TUPLE ("-*-eval-flags-*-") },
   { STRING_SIZE_TUPLE ("VPATH") },
   { STRING_SIZE_TUPLE ("GPATH") },
+  { STRING_SIZE_TUPLE (WARNINGS_NAME) },
   { NULL, 0 }
 };
 
@@ -1927,12 +1929,9 @@ warn_undefined (const char *name, size_t len)
         if (dp->len == len && memcmp (dp->name, name, len) == 0)
           return;
 
-      if (warn_error (wt_undefined_var))
-        fatal (reading_file, len, _("reference to undefined variable '%.*s'"),
-               (int)len, name);
-      else
-        error (reading_file, len, _("reference to undefined variable '%.*s'"),
-               (int)len, name);
+      warning (wt_undefined_var, reading_file,
+               ONS (format, 0, _("reference to undefined variable '%.*s'"),
+                    (int)len, name));
     }
 }
 

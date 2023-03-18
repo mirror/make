@@ -273,18 +273,6 @@ static struct stringlist *eval_strings = 0;
 
 static int print_usage_flag = 0;
 
-/* The default state of warnings.  */
-
-enum warning_state default_warnings[wt_max];
-
-/* Current state of warnings.  */
-
-enum warning_state warnings[wt_max];
-
-/* Global warning settings.  */
-
-enum warning_state warn_global;
-
 /* Command line warning flags.  */
 
 static struct stringlist *warn_flags = 0;
@@ -663,15 +651,6 @@ initialize_global_hash_tables (void)
   hash_init_function_table ();
 }
 
-static void
-initialize_warnings ()
-{
-  /* All warnings must have a default.  */
-  default_warnings[wt_invalid_var] = w_warn;
-  default_warnings[wt_invalid_ref] = w_warn;
-  default_warnings[wt_undefined_var] = w_ignore;
-}
-
 /* This character map locate stop chars when parsing GNU makefiles.
    Each element is true if we should stop parsing on that character.  */
 
@@ -884,101 +863,6 @@ decode_debug_flags (void)
 
   if (! db_level)
     debug_flag = 0;
-}
-
-static const char *w_state_map[w_error+1] = {NULL, "ignore", "warn", "error"};
-static const char *w_name_map[wt_max] = {"invalid-var",
-                                         "invalid-ref",
-                                         "undefined-var"};
-
-#define encode_warn_state(_b,_s) variable_buffer_output (_b, w_state_map[_s], strlen (w_state_map[_s]))
-#define encode_warn_name(_b,_t)  variable_buffer_output (_b, w_name_map[_t], strlen (w_name_map[_t]))
-
-static enum warning_state
-decode_warn_state (const char *state, size_t length)
-{
-  for (enum warning_state st = w_ignore; st <= w_error; ++st)
-    {
-      size_t len = strlen (w_state_map[st]);
-      if (length == len && strncasecmp (state, w_state_map[st], length) == 0)
-        return st;
-    }
-
-  return w_unset;
-}
-
-static enum warning_type
-decode_warn_name (const char *name, size_t length)
-{
-  for (enum warning_type wt = wt_invalid_var; wt < wt_max; ++wt)
-    {
-      size_t len = strlen (w_name_map[wt]);
-      if (length == len && strncasecmp (name, w_name_map[wt], length) == 0)
-        return wt;
-    }
-
-  return wt_max;
-}
-
-static void
-decode_warn_flags ()
-{
-  const char **pp;
-
-  /* */
-  if (warn_undefined_variables_flag)
-    {
-      warn_set (wt_undefined_var, w_warn);
-      warn_undefined_variables_flag = 0;
-    }
-
-  if (warn_flags)
-    for (pp=warn_flags->list; *pp; ++pp)
-      {
-        const char *p = *pp;
-
-        while (*p != '\0')
-          {
-            enum warning_state state;
-            /* See if the value is comma-separated.  */
-            const char *ep = strchr (p, ',');
-            if (!ep)
-              ep = p + strlen (p);
-
-            /* If the value is just a state set it globally.  */
-            state = decode_warn_state (p, ep - p);
-            if (state != w_unset)
-              warn_global = state;
-            else
-              {
-                enum warning_type type;
-                const char *cp = memchr (p, ':', ep - p);
-                if (!cp)
-                  cp = ep;
-                type = decode_warn_name (p, cp - p);
-                if (type == wt_max)
-                  ONS (fatal, NILF,
-                       _("unknown warning '%.*s'"), (int)(cp - p), p);
-
-                /* If there's a warning state, decode it.  */
-                if (cp == ep)
-                  state = w_warn;
-                else
-                  {
-                    ++cp;
-                    state = decode_warn_state (cp, ep - cp);
-                    if (state == w_unset)
-                      ONS (fatal, NILF,
-                           _("unknown warning state '%.*s'"), (int)(ep - cp), cp);
-                  }
-                warn_set (type, state);
-              }
-
-            p = ep;
-            while (*p == ',')
-              ++p;
-          }
-      }
 }
 
 static void
@@ -1323,7 +1207,7 @@ main (int argc, char **argv, char **envp)
 
   initialize_stopchar_map ();
 
-  initialize_warnings ();
+  warn_init ();
 
 #ifdef SET_STACK_SIZE
  /* Get rid of any avoidable limit on stack size.  */
@@ -1554,6 +1438,7 @@ main (int argc, char **argv, char **envp)
   define_variable_cname (".VARIABLES", "", o_default, 0)->special = 1;
   /* define_variable_cname (".TARGETS", "", o_default, 0)->special = 1; */
   define_variable_cname (".RECIPEPREFIX", "", o_default, 0)->special = 1;
+  define_variable_cname (WARNINGS_NAME, "", o_default, 0)->special = 1;
   define_variable_cname (".SHELLFLAGS", "-c", o_default, 0);
   define_variable_cname (".LOADED", "", o_default, 0);
 
@@ -3013,7 +2898,7 @@ main (int argc, char **argv, char **envp)
     /* If we detected some clock skew, generate one last warning */
     if (clock_skew_detected)
       O (error, NILF,
-         _("warning:  Clock skew detected.  Your build may be incomplete."));
+         _("warning: Clock skew detected.  Your build may be incomplete."));
 
     /* Exit.  */
     die (makefile_status);
@@ -3443,8 +3328,18 @@ decode_switches (int argc, const char **argv, enum variable_origin origin)
 
   /* If there are any options that need to be decoded do it now.  */
   decode_debug_flags ();
-  decode_warn_flags ();
   decode_output_sync_flags ();
+
+  /* Support old-style option.  */
+  if (warn_undefined_variables_flag)
+    {
+      decode_warn_actions ("undefined-var", NULL);
+      warn_undefined_variables_flag = 0;
+    }
+
+  if (warn_flags)
+    for (const char **pp = warn_flags->list; *pp; ++pp)
+      decode_warn_actions (*pp, NULL);
 
   /* Perform any special switch handling.  */
   run_silent = silent_flag;
@@ -3655,38 +3550,7 @@ define_makeflags (int makefile)
         case filename:
         case strlist:
           if (cs->c == WARN_OPT)
-            {
-              enum warning_type wt;
-              char sp = '=';
-
-              /* See if any warning options are set.  */
-              for (wt = 0; wt < wt_max; ++wt)
-                if (warnings[wt] != w_unset)
-                  break;
-              if (wt == wt_max && warn_global == w_unset)
-                break;
-
-              /* Something is set so construct a --warn option.  */
-              fp = variable_buffer_output(fp, STRING_SIZE_TUPLE (" --warn"));
-              if (wt == wt_max && warn_global == w_warn)
-                break;
-
-              if (warn_global > w_unset)
-                {
-                  fp = variable_buffer_output (fp, &sp, 1);
-                  sp = ',';
-                  fp = encode_warn_state (fp, warn_global);
-                }
-              for (wt = 0; wt < wt_max; ++wt)
-                if (warnings[wt] > w_unset)
-                  {
-                    fp = variable_buffer_output (fp, &sp, 1);
-                    sp = ',';
-                    fp = encode_warn_name (fp, wt);
-                    if (warnings[wt] != w_warn)
-                      fp = encode_warn_state (variable_buffer_output(fp, ":", 1), warnings[wt]);
-                  }
-            }
+            fp = encode_warn_flag (fp);
           else
             {
               struct stringlist *sl = *(struct stringlist **) cs->value_ptr;

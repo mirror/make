@@ -3635,7 +3635,7 @@ construct_command_argv (char *line, char **restp, struct file *file,
   {
     struct variable *var;
     /* Turn off undefined variables warning while we expand HOME.  */
-    enum warning_state save = warn_get (wt_undefined_var);
+    enum warning_action save = warn_get (wt_undefined_var);
     warn_set (wt_undefined_var, w_ignore);
 
     shell = allocated_expand_variable_for_file (STRING_SIZE_TUPLE ("SHELL"), file);

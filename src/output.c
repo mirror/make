@@ -475,8 +475,8 @@ error (const floc *flocp, size_t len, const char *fmt, ...)
 void
 fatal (const floc *flocp, size_t len, const char *fmt, ...)
 {
-  va_list args;
   const char *stop = _(".  Stop.\n");
+  va_list args;
   char *start;
   char *p;
 
@@ -503,6 +503,29 @@ fatal (const floc *flocp, size_t len, const char *fmt, ...)
   outputs (1, start);
 
   die (MAKE_FAILURE);
+}
+
+/* Format a message and return a pointer to an internal buffer.  */
+
+char *
+format (const char *prefix, size_t len, const char *fmt, ...)
+{
+  va_list args;
+  size_t plen = prefix ? strlen (prefix) : 0;
+  char *start;
+  char *p;
+
+  len += strlen (fmt) + plen + 1;
+  start = p = get_buffer (len);
+
+  if (plen)
+    p = mempcpy (p, prefix, plen);
+
+  va_start (args, fmt);
+  vsprintf (p, fmt, args);
+  va_end (args);
+
+  return start;
 }
 
 /* Print an error message from errno.  */

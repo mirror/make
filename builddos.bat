@@ -56,6 +56,7 @@ gcc -c -I./src -I%XSRC%/src -I./lib -I%XSRC%/lib -DHAVE_CONFIG_H -O2 -g %XSRC%/s
 gcc -c -I./src -I%XSRC%/src -I./lib -I%XSRC%/lib -DHAVE_CONFIG_H -O2 -g %XSRC%/src/implicit.c -o implicit.o
 gcc -c -I./src -I%XSRC%/src -I./lib -I%XSRC%/lib -DHAVE_CONFIG_H -O2 -g %XSRC%/src/default.c -o default.o
 gcc -c -I./src -I%XSRC%/src -I./lib -I%XSRC%/lib -DHAVE_CONFIG_H -O2 -g %XSRC%/src/variable.c -o variable.o
+gcc -c -I./src -I%XSRC%/src -I./lib -I%XSRC%/lib -DHAVE_CONFIG_H -O2 -g %XSRC%/src/warning.c -o warning.o
 gcc -c -I./src -I%XSRC%/src -I./lib -I%XSRC%/lib -DHAVE_CONFIG_H -O2 -g %XSRC%/src/expand.c -o expand.o
 gcc -c -I./src -I%XSRC%/src -I./lib -I%XSRC%/lib -DHAVE_CONFIG_H -O2 -g %XSRC%/src/function.c -o function.o
 gcc -c -I./src -I%XSRC%/src -I./lib -I%XSRC%/lib -DHAVE_CONFIG_H -O2 -g %XSRC%/src/vpath.c -o vpath.o
@@ -74,7 +75,7 @@ gcc -c -I./src -I%XSRC%/src -I./lib -I%XSRC%/lib -DHAVE_CONFIG_H -O2 -g %XSRC%/l
 gcc -c -I./src -I%XSRC%/src -I./lib -I%XSRC%/lib -DHAVE_CONFIG_H -O2 -g %XSRC%/lib/fnmatch.c -o lib/fnmatch.o
 @echo off
 echo commands.o > respf.$$$
-for %%f in (job output dir file misc main read remake rule implicit default variable load) do echo %%f.o >> respf.$$$
+for %%f in (job output dir file misc main read remake rule implicit default variable warning load) do echo %%f.o >> respf.$$$
 for %%f in (expand function vpath hash strcache version ar arscan signame remote-stub getopt getopt1 shuffle) do echo %%f.o >> respf.$$$
 for %%f in (lib\glob lib\fnmatch) do echo %%f.o >> respf.$$$
 gcc -c -I./src -I%XSRC%/src -I./lib -I%XSRC%/lib -DHAVE_CONFIG_H -O2 -g %XSRC%/src/guile.c -o guile.o

@@ -53,7 +53,7 @@ all:;
 X := $(averyveryveryloooooooooooooooooooooooooooongvariablename)
 !,
               '--warn=undefined-var',
-              "#MAKEFILE#:3: reference to undefined variable 'averyveryveryloooooooooooooooooooooooooooongvariablename'
+              "#MAKEFILE#:3: warning: reference to undefined variable 'averyveryveryloooooooooooooooooooooooooooongvariablename'
 #MAKE#: 'all' is up to date.\n"
 );
 
@@ -75,8 +75,8 @@ run_make_test(undef, '--warn=undefined-var:ignore', 'ref');
 
 # Check warnings
 run_make_test(undef, '--warn=undefined-var',
-              "#MAKEFILE#:7: reference to undefined variable 'UNDEFINED'
-#MAKEFILE#:9: reference to undefined variable 'UNDEFINED'
+              "#MAKEFILE#:7: warning: reference to undefined variable 'UNDEFINED'
+#MAKEFILE#:9: warning: reference to undefined variable 'UNDEFINED'
 ref");
 
 # Check and errors
@@ -96,9 +96,9 @@ define nl
 endef
 
 all: ; @echo ref $(also$(nl)bad) $(IREF) $(SIREF)',
-              '', "#MAKEFILE#:2: invalid variable reference 'bad variable'
-#MAKEFILE#:10: invalid variable reference 'also\nbad'
-#MAKEFILE#:2: invalid variable reference 'bad variable'
+              '', "#MAKEFILE#:2: warning: invalid variable reference 'bad variable'
+#MAKEFILE#:10: warning: invalid variable reference 'also\nbad'
+#MAKEFILE#:2: warning: invalid variable reference 'bad variable'
 ref");
 
 run_make_test(undef, '--warn=ignore', 'ref');
@@ -133,18 +133,26 @@ foo
 endef
 
 all: ; @echo ref',
-              '', "#MAKEFILE#:4: invalid variable name 'BAD VAR'
-#MAKEFILE#:11: invalid variable name 'NL\nVAR'
-#MAKEFILE#:13: invalid variable name 'BAD DEF'
-#MAKEFILE#:17: invalid variable name 'NL\nDEF'
+              '', "#MAKEFILE#:4: warning: invalid variable name 'BAD VAR'
+#MAKEFILE#:11: warning: invalid variable name 'NL\nVAR'
+#MAKEFILE#:13: warning: invalid variable name 'BAD DEF'
+#MAKEFILE#:17: warning: invalid variable name 'NL\nDEF'
 ref");
 
 run_make_test(undef, '--warn=ignore', 'ref');
 
 run_make_test(undef, '--warn=invalid-var:ignore', 'ref');
 
-# Check and errors
+# Check errors
 run_make_test(undef, '--warn=invalid-var:error',
               "#MAKEFILE#:4: *** invalid variable name 'BAD VAR'.  Stop.", 512);
+
+# Make sure unknown warnings and actions fail when given on the command line.
+
+run_make_test(undef, '--warn=no-such-warn',
+    "#MAKE#: *** unknown warning 'no-such-warn'.  Stop.", 512);
+
+run_make_test(undef, '--warn=invalid-var:no-such-action',
+    "#MAKE#: *** unknown warning action 'no-such-action'.  Stop.", 512);
 
 1;

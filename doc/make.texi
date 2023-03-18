@@ -7043,6 +7043,10 @@ a target-specific value).  Note @code{make} is smart enough not to add
 a prerequisite listed in @code{.EXTRA_PREREQS} as a prerequisite to
 itself.
 
+@item .WARNINGS
+Changes the actions taken when @code{make} detects warning conditions in the
+makefile.  @xref{Warnings, ,Makefile Warnings}.
+
 @end table
 
 @node Conditionals, Functions, Using Variables, Top
@@ -9309,69 +9313,108 @@ correct them all before the next attempt to compile.  This is why Emacs'
 @section Makefile Warnings
 @cindex warnings
 
-GNU Make can detect some types of incorrect usage in makefiles and show
-warnings about them.  Currently these issues can be detected:
-
-@table @samp
-@item invalid-var
-Assigning to an invalid variable name (e.g., a name containing whitespace).
-
-@item invalid-ref
-Using an invalid variable name in a variable reference.
-
-@item undefined-var
-Referencing a variable that has not been defined.
-@end table
-
-When one of these incorrect usages is detected, GNU Make can perform one of
-these actions:
+GNU Make can detect some types of incorrect usage in makefiles.  When one of
+these incorrect usages is detected, GNU Make can perform one of these actions:
 
 @table @samp
 @item ignore
+@cindex warning action ignore
+@cindex ignore, warning action
 Ignore the usage.
 
 @item warn
+@cindex warning action warn
+@cindex warn, warning action
 Show a warning about the usage and continue processing the makefile.
 
 @item error
+@cindex warning action error
+@cindex error, warning action
 Show an error for the usage and immediately stop processing the makefile.
 @end table
 
-The default action of GNU Make when no warning control options are provided
-is @samp{ignore} for @samp{undefined-var}, and @samp{warn} for
-@samp{invalid-var} and @samp{invalid-ref}.
+@noindent
+The types of warnings GNU Make can detect are:
 
-To modify this default behavior, you can use the @code{--warn} option.  This
-option can be specified on the command line, or by adding it to the
-@code{MAKEFLAGS} variable (@pxref{Recursion, ,Recursive Use of @code{make}}).
-Settings added to @code{MAKEFLAGS} are only affect after the assignment
-statement.
+@table @samp
+@item invalid-var
+@findex invalid-var
+@cindex warning invalid variable
+Assigning to an invalid variable name (e.g., a name containing whitespace).
+The default action is @samp{warn}.
+
+@item invalid-ref
+@findex invalid-ref
+@cindex warning invalid reference
+Using an invalid variable name in a variable reference.  The default action is
+@samp{warn}.
+
+@item undefined-var
+@findex undefined-var
+@cindex warning undefined variable
+Referencing a variable that has not been defined.  The default action is
+@samp{ignore}.  Note the deprecated @code{--warn-undefined-variables} option
+sets the action for this warning to @samp{warn}.
+@end table
+
+The actions for these warnings can be changed by specifying warning control
+options.  Each warning control option consists of either a warning type, or a
+warning action, or a warning type and warning action separated by a colon
+(@code{:}).  Multiple control options are separated by either whitespace or
+commas.
+
+If the control option is just a warning type, then the action associated with
+that type is set to @code{warn}.  If the option is just an action, then that
+action is applied to all warning types (a ``global action'').
+
+``Global actions'' take precedence over default actions.  Actions associated
+with a specific warning type take precedence over ``global actions'' and
+default actions.
+
+If multiple control options provide actions for the same warning type, the
+last action specified will be used.
+
+There are two ways to specify control options: using the @code{--warn} command
+line option, or using the @code{.WARNINGS} variable.
+
+@subsubheading The @code{.WARNINGS} variable
+@findex .WARNINGS
+Warning control options provided in the @code{.WARNINGS} variable take effect
+as soon as the variable assignment is parsed and will last until this instance
+of @code{make} finishes parsing all makefiles.  These settings will not be
+passed to recursive invocations of @code{make}.
+
+Note that the value of this variable is expanded immediately, even if the
+recursive expansion assignment operator (@code{=}) is used.
+
+Each assignment of @code{.WARNINGS} completely replaces any previous settings.
+If you want to preserve the previous settings, use the @code{+=} assignment
+operator.
+
+Currently, assigning @code{.WARNINGS} as a target-specific or pattern-specific
+variable has no effect.  This may change in the future.
+
+@subsubheading The @code{--warn} option
+@cindex @code{--warn}
+The @code{--warn} option can be specified on the command line, or by adding it
+to the @code{MAKEFLAGS} variable (@pxref{Recursion, ,Recursive Use of
+@code{make}}).  Settings added to @code{MAKEFLAGS} take affect after the
+assignment is parsed.  This option is passed to sub-makes through the
+@code{MAKEFLAGS} variable.
 
 The @code{--warn} option can be provided multiple times: the effects are
 cumulative with later options overriding over earlier options.  When GNU Make
 provides warning settings to sub-makes, they are all combined into a single
-@code{--warn} option in @code{MAKEFLAGS}.
+@code{--warn} option in @code{MAKEFLAGS} with a standard order.
 
-If @code{--warn} is provided with no arguments then all issues are detected
-and reported at the @samp{warn} level unless otherwise specified.
+Specifying @code{--warn} with no arguments is equivalent to using
+@code{--warn=warn}, which sets the action for all warning types to
+@samp{warn}.
 
-If one of the actions (@samp{ignore}, @samp{warn}, @samp{error}) is provided
-as an argument to @code{--warn}, then this action becomes the default for all
-warning types.  For example all warnings can be disabled by using
-@code{--warn=ignore}, or all warnings can be considered fatal errors by using
-@code{--warn=error}.
-
-Additionally, warning types can be specified.  If the warning is listed alone,
-then that warning is enabled with the @code{warn} action: e.g.,
-@code{--warn=undefined-var} will enable @samp{undefined-var} warnings with the
-@samp{warn} action.  Alternatively an action can be provided after the warning
-type, separated by a @code{:}.  So @code{--warn=undefined-var:error} enables
-@samp{undefined-var} warnings with an action of @samp{error}.
-
-More specific settings take precedence over the global setting.  For example,
-an option @code{--warn=undefined-var:error,ignore} will set the action for
-@samp{undefined-var} warnings to @samp{error}, and the action for all other
-warnings to @samp{ignore}.
+Any action specified with an @code{--warn} option will take precedence over
+actions provided in the makefile with @code{.WARNINGS}.  This means if you use
+@code{--warn=error}, for example, all warnings will be treated as errors
+regardless of any @code{.WARNINGS} assignments.
 
 @node Temporary Files, Options Summary, Warnings, Running
 @section Temporary Files

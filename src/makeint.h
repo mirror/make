@@ -553,6 +553,8 @@ void error (const floc *flocp, size_t length, const char *fmt, ...)
             ATTRIBUTE ((__format__ (__printf__, 3, 4)));
 void fatal (const floc *flocp, size_t length, const char *fmt, ...)
             ATTRIBUTE ((noreturn, __format__ (__printf__, 3, 4)));
+char *format (const char *prefix, size_t length, const char *fmt, ...)
+              ATTRIBUTE ((__format__ (__printf__, 3, 4)));
 void out_of_memory (void) NORETURN;
 
 /* When adding macros to this list be sure to update the value of
@@ -759,6 +761,9 @@ extern int batch_mode_shell;
 #define RECIPEPREFIX_NAME       ".RECIPEPREFIX"
 #define RECIPEPREFIX_DEFAULT    '\t'
 extern char cmd_prefix;
+
+/* Setting warning actions.  */
+#define WARNINGS_NAME           ".WARNINGS"
 
 extern unsigned int no_intermediates;
 

@@ -3068,7 +3068,7 @@ tilde_expand (const char *name)
 
       {
         /* Turn off undefined variables warning while we expand HOME.  */
-        enum warning_state save = warn_get (wt_undefined_var);
+        enum warning_action save = warn_get (wt_undefined_var);
         warn_set (wt_undefined_var, w_ignore);
 
         home_dir = allocated_expand_variable (STRING_SIZE_TUPLE ("HOME"));

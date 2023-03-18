@@ -1,0 +1,180 @@
+#                                                                    -*-perl-*-
+
+$description = "Test the .WARNINGS variable.";
+
+my %warn_test = (
+    'warn' => 'warn', 'error warn' => 'warn',
+    'error' => 'error',
+    'ignore error ignore invalid-var,invalid-ref,undefined-var' => 'ignore,invalid-var,invalid-ref,undefined-var',
+    'invalid-ref:ignore error invalid-var:warn,,,,,undefined-var:error,,,,,' => '=error,invalid-var,invalid-ref:ignore,undefined-var:error'
+);
+
+# Verify that values set in .WARNINGS don't get passed to sub-makes
+
+while (my ($f, $r) = each %warn_test) {
+    run_make_test(qq!
+.WARNINGS = error
+\$(info MF=\$(MAKEFLAGS))
+all:; \@#HELPER# env MAKEFLAGS
+!,
+                  '', "MF=\nMAKEFLAGS=");
+}
+
+# Verify that make's special variables don't warn even if they're not set
+run_make_test(q!
+.WARNINGS = undefined-var
+vars := $(.VARIABLES) $(MAKECMDGOALS) $(MAKE_RESTARTS) $(CURDIR)
+vars += $(GNUMAKEFLAGS) $(MAKEFLAGS) $(MFLAGS) $(MAKE_COMMAND) $(MAKE)
+vars += $(MAKEFILE_LIST) $(MAKEOVERRIDES) $(-*-command-variables-*-)
+vars += $(.RECIPEPREFIX) $(.LOADED) $(.FEATURES)
+vars += $(SHELL) $(.SHELLFLAGS) $(MAKE_TERMOUT) $(MAKE_TERMERR)
+vars += $(.DEFAULT) $(.DEFAULT_GOAL) $(-*-eval-flags-*-) $(SUFFIXES)
+vars += $(VPATH) $(GPATH)
+all:;
+!,
+              '', "#MAKE#: 'all' is up to date.");
+
+# sv 63609.
+# Test for buffer overrun in warn_undefined.
+run_make_test(q!
+.WARNINGS = undefined-var
+all:;
+X := $(averyveryveryloooooooooooooooooooooooooooongvariablename)
+!,
+              '', "#MAKEFILE#:4: warning: reference to undefined variable 'averyveryveryloooooooooooooooooooooooooooongvariablename'
+#MAKE#: 'all' is up to date.\n"
+);
+
+# Check undefined variable warnings
+
+# With no options or with ignore, nothing should happen
+run_make_test('
+.WARNINGS := $(warnval)
+EMPTY =
+EREF = $(EMPTY)
+UREF = $(UNDEFINED)
+
+SEREF := $(EREF)
+SUREF := $(UREF)
+
+all: ; @echo ref $(EREF) $(UREF)',
+              '', 'ref');
+
+run_make_test(undef, 'warnval=undefined-var:ignore', 'ref');
+
+# Check warnings
+run_make_test(undef, 'warnval=undefined-var',
+              "#MAKEFILE#:8: warning: reference to undefined variable 'UNDEFINED'
+#MAKEFILE#:10: warning: reference to undefined variable 'UNDEFINED'
+ref");
+
+# Check and errors
+run_make_test(undef, 'warnval=undefined-var:error',
+              "#MAKEFILE#:8: *** reference to undefined variable 'UNDEFINED'.  Stop.", 512);
+
+# Check invalid variable reference warnings
+
+# With no options we still check for invalid references
+run_make_test('
+.WARNINGS = $(warnval)
+IREF = $(bad variable)
+SIREF := $(IREF)
+
+define nl
+
+
+endef
+
+all: ; @echo ref $(also$(nl)bad) $(IREF) $(SIREF)',
+              '', "#MAKEFILE#:3: warning: invalid variable reference 'bad variable'
+#MAKEFILE#:11: warning: invalid variable reference 'also\nbad'
+#MAKEFILE#:3: warning: invalid variable reference 'bad variable'
+ref");
+
+run_make_test(undef, 'warnval=ignore', 'ref');
+
+run_make_test(undef, 'warnval=invalid-ref:ignore', 'ref');
+
+# Check and errors
+run_make_test(undef, 'warnval=invalid-ref:error',
+              "#MAKEFILE#:3: *** invalid variable reference 'bad variable'.  Stop.", 512);
+
+# Check invalid variable name warnings
+
+# With no options we still check for invalid references
+run_make_test('
+.WARNINGS = $(warnval)
+EMPTY =
+SPACE = $(EMPTY) $(EMPTY)
+BAD$(SPACE)VAR = foo
+
+define nl
+
+
+endef
+
+NL$(nl)VAR = bar
+
+define BAD$(SPACE)DEF :=
+foo
+endef
+
+define NL$(nl)DEF :=
+foo
+endef
+
+all: ; @echo ref',
+              '', "#MAKEFILE#:5: warning: invalid variable name 'BAD VAR'
+#MAKEFILE#:12: warning: invalid variable name 'NL\nVAR'
+#MAKEFILE#:14: warning: invalid variable name 'BAD DEF'
+#MAKEFILE#:18: warning: invalid variable name 'NL\nDEF'
+ref");
+
+run_make_test(undef, 'warnval=ignore', 'ref');
+
+run_make_test(undef, 'warnval=invalid-var:ignore', 'ref');
+
+# Check errors
+run_make_test(undef, 'warnval=invalid-var:error',
+              "#MAKEFILE#:5: *** invalid variable name 'BAD VAR'.  Stop.", 512);
+
+# Make sure unknown warnings and actions are only noted but not failed on:
+# this allows makefiles to be portable to older versions where those warnings
+# didn't exist
+
+run_make_test(q!
+.WARNINGS = no-such-warn
+all:;
+!,
+    '',"#MAKEFILE#:2: unknown warning 'no-such-warn': ignored\n#MAKE#: 'all' is up to date.");
+
+run_make_test(q!
+.WARNINGS = invalid-var:no-such-action
+all:;
+!,
+    '',"#MAKEFILE#:2: unknown warning action 'no-such-action': ignored\n#MAKE#: 'all' is up to date.");
+
+
+# Validate .WARNINGS set as target-specific variables
+# This is not supported (yet...?)
+
+# run_make_test(q!
+# ok := $(undef)
+# ref = $(undef)
+
+# all: enabled disabled enabled2 ;
+
+# .WARNINGS = undefined-var
+
+# enabled enabled2 disabled ref: ; $(info $@:$(ref))
+
+# disabled: .WARNINGS =
+# disabled: ref
+# !,
+#     '', "#MAKEFILE#:9: reference to undefined variable 'undef'\nenabled:
+# ref:
+# disabled:
+# #MAKEFILE#:9: reference to undefined variable 'undef'\nenabled2:
+# #MAKE#: 'all' is up to date.");
+
+1;

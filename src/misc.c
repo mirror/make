@@ -437,6 +437,7 @@ find_next_token (const char **ptr, size_t *lengthptr)
   return (char *)p;
 }
 
+
 /* Write a BUFFER of size LEN to file descriptor FD.
    Retry short writes from EINTR.  Return LEN, or -1 on error.  */
 ssize_t
@@ -611,7 +612,7 @@ get_tmpdir ()
       unsigned int found = 0;
 
       for (tp = tlist; *tp; ++tp)
-        if ((tmpdir = getenv (*tp)) && *tmpdir != '\0')
+        if ((tmpdir = getenv (*tp)) != NULL && *tmpdir != '\0')
           {
             struct stat st;
             int r;

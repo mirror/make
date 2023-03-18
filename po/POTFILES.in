@@ -45,4 +45,5 @@ src/variable.h
 src/vmsfunctions.c
 src/vmsjobs.c
 src/vpath.c
+src/warning.c
 src/w32/w32os.c
