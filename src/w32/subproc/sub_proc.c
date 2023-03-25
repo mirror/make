@@ -566,10 +566,10 @@ process_begin(
         char *shell_name = 0;
         int file_not_found=0;
         HANDLE exec_handle;
-        char exec_fname[MAX_PATH];
+        char exec_fname[MAX_PATH+1];
         const char *path_var = NULL;
         char **ep;
-        char buf[MAX_PATH];
+        char buf[MAX_PATH+1];
         DWORD bytes_returned;
         DWORD flags;
         char *command_line;
@@ -614,8 +614,9 @@ process_begin(
                         char *new_argv0;
                         char **argvi = argv;
                         size_t arglen = 0;
+                        char *exp = expand_variable ("SHELL", 5);
 
-                        strcpy(buf, expand_string ("$(SHELL)"));
+                        memcpy (buf, exp, strlen(exp) + 1);
                         shell_name = &buf[0];
                         strcpy(exec_fname, "-c");
                         /* Construct a single command string in argv[0].  */

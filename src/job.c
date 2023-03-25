@@ -1882,7 +1882,7 @@ new_job (struct file *file)
              nm, c->file->name);
       else
         {
-          char *newer = allocated_expand_string_for_file ("$?", c->file);
+          char *newer = allocated_expand_variable_for_file (STRING_SIZE_TUPLE ("?"), c->file);
           if (newer[0] != '\0')
             {
               OSSS (message, 0, _("%s: update target '%s' due to: %s"),
@@ -3637,7 +3637,7 @@ construct_command_argv (char *line, char **restp, struct file *file,
     int save = warn_undefined_variables_flag;
     warn_undefined_variables_flag = 0;
 
-    shell = allocated_expand_string_for_file ("$(SHELL)", file);
+    shell = allocated_expand_variable_for_file (STRING_SIZE_TUPLE ("SHELL"), file);
 #if MK_OS_W32
     /*
      * Convert to forward slashes so that construct_command_argv_internal()
@@ -3702,7 +3702,7 @@ construct_command_argv (char *line, char **restp, struct file *file,
     else
       shellflags = allocated_expand_string_for_file (var->value, file);
 
-    ifs = allocated_expand_string_for_file ("$(IFS)", file);
+    ifs = allocated_expand_variable_for_file (STRING_SIZE_TUPLE ("IFS"), file);
 
     warn_undefined_variables_flag = save;
   }

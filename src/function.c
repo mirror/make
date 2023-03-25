@@ -2613,7 +2613,6 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
 {
   static unsigned int max_args = 0;
   char *fname;
-  char *body;
   size_t flen;
   unsigned int i;
   int saved_args;
@@ -2651,13 +2650,6 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
   if (v == 0 || *v->value == '\0')
     return o;
 
-  body = alloca (flen + 4);
-  body[0] = '$';
-  body[1] = '(';
-  memcpy (body + 2, fname, flen);
-  body[flen+2] = ')';
-  body[flen+3] = '\0';
-
   /* Set up arguments $(1) .. $(N).  $(0) is the function name.  */
 
   push_new_variable_scope ();
@@ -2683,14 +2675,14 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
       define_variable (num, strlen (num), "", o_automatic, 0);
     }
 
-  /* Expand the body in the context of the arguments, adding the result to
+  /* Expand the function in the context of the arguments, adding the result to
      the variable buffer.  */
 
   v->exp_count = EXP_COUNT_MAX;
 
   saved_args = max_args;
   max_args = i;
-  o = expand_string_buf (o, body, flen+3);
+  o = expand_variable_output (o, fname, flen);
   max_args = saved_args;
 
   v->exp_count = 0;

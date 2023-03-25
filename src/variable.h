@@ -136,6 +136,12 @@ char *expand_argument (const char *str, const char *end);
 char *recursively_expand_for_file (struct variable *v, struct file *file);
 #define recursively_expand(v) recursively_expand_for_file ((v), NULL)
 
+char *expand_variable_output (char *ptr, const char *name, size_t length);
+char *expand_variable_buf (char *buf, const char *name, size_t length);
+#define expand_variable(n,l) expand_variable_buf (NULL, (n), (l));
+char *allocated_expand_variable (const char *name, size_t length);
+char *allocated_expand_variable_for_file (const char *name, size_t length, struct file *file);
+
 /* function.c */
 int handle_function (char **op, const char **stringp);
 int pattern_matches (const char *pattern, const char *percent, const char *str);

@@ -186,7 +186,7 @@ read_all_makefiles (const char **makefiles)
     char *name, *p;
     size_t length;
 
-    value = allocated_expand_string ("$(MAKEFILES)");
+    value = allocated_expand_variable (STRING_SIZE_TUPLE ("MAKEFILES"));
 
     /* Set NAME to the start of next token and LENGTH to its length.
        MAKEFILES is updated for finding remaining tokens.  */
@@ -3071,7 +3071,7 @@ tilde_expand (const char *name)
         int save = warn_undefined_variables_flag;
         warn_undefined_variables_flag = 0;
 
-        home_dir = allocated_expand_string ("$(HOME)");
+        home_dir = allocated_expand_variable (STRING_SIZE_TUPLE ("HOME"));
 
         warn_undefined_variables_flag = save;
       }

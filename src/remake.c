@@ -1717,7 +1717,7 @@ library_search (const char *lib, FILE_TIMESTAMP *mtime_ptr)
 
   const char **dp;
 
-  libpatterns = xstrdup (expand_string ("$(.LIBPATTERNS)"));
+  libpatterns = allocated_expand_variable (STRING_SIZE_TUPLE (".LIBPATTERNS"));
 
   /* Skip the '-l'.  */
   lib += 2;

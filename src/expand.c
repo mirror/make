@@ -83,7 +83,7 @@ initialize_variable_output ()
 {
   /* If we don't have a variable output buffer yet, get one.  */
 
-  if (variable_buffer == NULL)
+  if (!variable_buffer)
     {
       variable_buffer_length = 200;
       variable_buffer = xmalloc (variable_buffer_length);
@@ -221,42 +221,105 @@ recursively_expand_for_file (struct variable *v, struct file *file)
   return value;
 }
 
-/* Expand a simple reference to variable NAME, which is LENGTH chars long.  */
+/* Expand a simple reference to variable NAME, which is LENGTH chars long.
+   The result is written to PTR which must point into the variable_buffer.
+   Returns a pointer to the new end of the variable_buffer.  */
 
-#ifdef __GNUC__
-__inline
-#endif
-static char *
-reference_variable (char *o, const char *name, size_t length)
+char *
+expand_variable_output (char *ptr, const char *name, size_t length)
 {
   struct variable *v;
   char *value;
 
   v = lookup_variable (name, length);
 
-  if (v == 0)
+  if (!v)
     warn_undefined (name, length);
 
   /* If there's no variable by that name or it has no value, stop now.  */
-  if (v == 0 || (*v->value == '\0' && !v->append))
-    return o;
+  if (!v || (v->value[0] == '\0' && !v->append))
+    return ptr;
 
-  value = (v->recursive ? recursively_expand (v) : v->value);
+  value = v->recursive ? recursively_expand (v) : v->value;
 
-  o = variable_buffer_output (o, value, strlen (value));
+  ptr = variable_buffer_output (ptr, value, strlen (value));
 
   if (v->recursive)
     free (value);
 
-  return o;
+  return ptr;
+}
+
+/* Expand a simple reference to variable NAME, which is LENGTH chars long.
+   The result is written to BUF which must point into the variable_buffer.
+   If BUF is NULL, start at the beginning of the current variable_buffer.
+   Returns BUF, or the beginning of the buffer if BUF is NULL.  */
+
+char *
+expand_variable_buf (char *buf, const char *name, size_t length)
+{
+  if (!buf)
+    buf = initialize_variable_output ();
+
+  expand_variable_output (buf, name, length);
+
+  return buf;
+}
+
+/* Expand a simple reference to variable NAME, which is LENGTH chars long.
+   Returns an allocated buffer containing the value.  */
+
+char *
+allocated_expand_variable (const char *name, size_t length)
+{
+  char *obuf;
+  size_t olen;
+
+  install_variable_buffer (&obuf, &olen);
+
+  expand_variable_output (variable_buffer, name, length);
+
+  return swap_variable_buffer (obuf, olen);
+}
+
+/* Expand a simple reference to variable NAME, which is LENGTH chars long.
+   Error messages refer to the file and line where FILE's commands were found.
+   Expansion uses FILE's variable set list.
+   Returns an allocated buffer containing the value.  */
+
+char *
+allocated_expand_variable_for_file (const char *name, size_t length, struct file *file)
+{
+  char *result;
+  struct variable_set_list *savev;
+  const floc *savef;
+
+  if (!file)
+    return allocated_expand_variable (name, length);
+
+  savev = current_variable_set_list;
+  current_variable_set_list = file->variables;
+
+  savef = reading_file;
+  if (file->cmds && file->cmds->fileinfo.filenm)
+    reading_file = &file->cmds->fileinfo;
+  else
+    reading_file = NULL;
+
+  result = allocated_expand_variable (name, length);
+
+  current_variable_set_list = savev;
+  reading_file = savef;
+
+  return result;
 }
 
 /* Scan STRING for variable references and expansion-function calls.  Only
    LENGTH bytes of STRING are actually scanned.
    If LENGTH is SIZE_MAX, scan until a null byte is found.
 
-   Write the results to BUF, which must point into 'variable_buffer'.  If
-   BUF is NULL, start at the beginning of the current 'variable_buffer'.
+   Write the results to BUF, which must point into variable_buffer.  If
+   BUF is NULL, start at the beginning of the current variable_buffer.
 
    Return a pointer to BUF, or to the beginning of the new buffer if BUF is
    NULL.
@@ -445,7 +508,7 @@ expand_string_buf (char *buf, const char *string, size_t length)
             if (colon == 0)
               /* This is an ordinary variable reference.
                  Look up the value of the variable.  */
-                o = reference_variable (o, beg, end - beg);
+                o = expand_variable_output (o, beg, end - beg);
 
             free (abeg);
           }
@@ -457,7 +520,7 @@ expand_string_buf (char *buf, const char *string, size_t length)
 
           /* A $ followed by a random char is a variable reference:
              $a is equivalent to $(a).  */
-          o = reference_variable (o, p, 1);
+          o = expand_variable_output (o, p, 1);
 
           break;
         }

@@ -71,7 +71,8 @@ build_vpath_lists (void)
   /* If there is a VPATH variable with a nonnull expanded value, construct the
      general VPATH list from it.  */
 
-  p = expand_string ("$(strip $(VPATH))");
+  p = expand_variable ("VPATH", 5);
+  NEXT_TOKEN (p);
 
   if (*p != '\0')
     {
@@ -95,7 +96,8 @@ build_vpath_lists (void)
   /* If there is a GPATH variable with a nonnull expanded value, construct the
      GPATH list from it.  */
 
-  p = expand_string ("$(strip $(GPATH))");
+  p = expand_variable ("GPATH", 5);
+  NEXT_TOKEN (p);
 
   if (*p != '\0')
     {

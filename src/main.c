@@ -3328,19 +3328,12 @@ decode_switches (int argc, const char **argv, enum variable_origin origin)
 static void
 decode_env_switches (const char *envar, size_t len, enum variable_origin origin)
 {
-  char *varref = alloca (2 + len + 2);
   char *value, *p, *buf;
   int argc;
   const char **argv;
 
   /* Get the variable's value.  */
-  p = varref;
-  *(p++) = '$';
-  *(p++) = '(';
-  p = mempcpy (p, envar, len);
-  *(p++) = ')';
-  *p = '\0';
-  value = expand_string (varref);
+  value = expand_variable (envar, len);
 
   /* Skip whitespace, and check for an empty value.  */
   NEXT_TOKEN (value);
