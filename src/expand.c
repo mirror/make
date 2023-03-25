@@ -83,7 +83,7 @@ initialize_variable_output ()
 {
   /* If we don't have a variable output buffer yet, get one.  */
 
-  if (variable_buffer == 0)
+  if (variable_buffer == NULL)
     {
       variable_buffer_length = 200;
       variable_buffer = xmalloc (variable_buffer_length);
@@ -93,7 +93,48 @@ initialize_variable_output ()
 
   return variable_buffer;
 }
+
+/* Install a new variable_buffer context, returning the current one for
+   safe-keeping.  */
+
+void
+install_variable_buffer (char **bufp, size_t *lenp)
+{
+  *bufp = variable_buffer;
+  *lenp = variable_buffer_length;
+
+  variable_buffer = NULL;
+  initialize_variable_output ();
+}
+
+/* Free the current variable_buffer and restore a previously-saved one.
+ */
+
+void
+restore_variable_buffer (char *buf, size_t len)
+{
+  free (variable_buffer);
+
+  variable_buffer = buf;
+  variable_buffer_length = len;
+}
+
+/* Restore a previously-saved variable_buffer context, and return the
+   current one.
+ */
+
+char *
+swap_variable_buffer (char *buf, size_t len)
+{
+  char *p = variable_buffer;
+
+  variable_buffer = buf;
+  variable_buffer_length = len;
+
+  return p;
+}
 
+
 /* Recursively expand V.  The returned string is malloc'd.  */
 
 static char *allocated_variable_append (const struct variable *v);
@@ -555,23 +596,15 @@ variable_append (const char *name, size_t length,
 static char *
 allocated_variable_append (const struct variable *v)
 {
-  char *val;
-
   /* Construct the appended variable value.  */
+  char *obuf;
+  size_t olen;
 
-  char *obuf = variable_buffer;
-  size_t olen = variable_buffer_length;
-
-  variable_buffer = 0;
+  install_variable_buffer (&obuf, &olen);
 
   variable_append (v->name, strlen (v->name), current_variable_set_list, 1);
 
-  val = variable_buffer;
-
-  variable_buffer = obuf;
-  variable_buffer_length = olen;
-
-  return val;
+  return swap_variable_buffer (obuf, olen);
 }
 
 /* Like variable_expand_for_file, but the returned string is malloc'd.
@@ -580,42 +613,12 @@ allocated_variable_append (const struct variable *v)
 char *
 allocated_variable_expand_for_file (const char *line, struct file *file)
 {
-  char *value;
+  char *obuf;
+  size_t olen;
 
-  char *obuf = variable_buffer;
-  size_t olen = variable_buffer_length;
+  install_variable_buffer (&obuf, &olen);
 
-  variable_buffer = 0;
+  variable_expand_for_file (line, file);
 
-  value = variable_expand_for_file (line, file);
-
-  variable_buffer = obuf;
-  variable_buffer_length = olen;
-
-  return value;
-}
-
-/* Install a new variable_buffer context, returning the current one for
-   safe-keeping.  */
-
-void
-install_variable_buffer (char **bufp, size_t *lenp)
-{
-  *bufp = variable_buffer;
-  *lenp = variable_buffer_length;
-
-  variable_buffer = NULL;
-  initialize_variable_output ();
-}
-
-/* Restore a previously-saved variable_buffer setting (free the current one).
- */
-
-void
-restore_variable_buffer (char *buf, size_t len)
-{
-  free (variable_buffer);
-
-  variable_buffer = buf;
-  variable_buffer_length = len;
+  return swap_variable_buffer (obuf, olen);
 }

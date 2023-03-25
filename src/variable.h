@@ -121,21 +121,21 @@ extern struct variable *default_goal_var;
 extern struct variable shell_var;
 
 /* expand.c */
-#ifndef SIZE_MAX
-# define SIZE_MAX ((size_t)~(size_t)0)
-#endif
-
+char *initialize_variable_output (void);
 char *variable_buffer_output (char *ptr, const char *string, size_t length);
+void install_variable_buffer (char **bufp, size_t *lenp);
+void restore_variable_buffer (char *buf, size_t len);
+char *swap_variable_buffer (char *buf, size_t len);
+
+char *variable_expand_string (char *line, const char *string, size_t length);
 char *variable_expand (const char *line);
 char *variable_expand_for_file (const char *line, struct file *file);
 char *allocated_variable_expand_for_file (const char *line, struct file *file);
 #define allocated_variable_expand(line) \
   allocated_variable_expand_for_file (line, (struct file *) 0)
 char *expand_argument (const char *str, const char *end);
-char *variable_expand_string (char *line, const char *string, size_t length);
-char *initialize_variable_output (void);
-void install_variable_buffer (char **bufp, size_t *lenp);
-void restore_variable_buffer (char *buf, size_t len);
+char *recursively_expand_for_file (struct variable *v, struct file *file);
+#define recursively_expand(v)   recursively_expand_for_file (v, NULL)
 
 /* function.c */
 int handle_function (char **op, const char **stringp);
@@ -149,10 +149,6 @@ char *patsubst_expand_pat (char *o, const char *text, const char *pattern,
 char *patsubst_expand (char *o, const char *text, char *pattern, char *replace);
 char *func_shell_base (char *o, char **argv, int trim_newlines);
 void shell_completed (int exit_code, int exit_sig);
-
-/* expand.c */
-char *recursively_expand_for_file (struct variable *v, struct file *file);
-#define recursively_expand(v)   recursively_expand_for_file (v, NULL)
 
 /* variable.c */
 struct variable_set_list *create_new_variable_set (void);

@@ -172,6 +172,10 @@ unsigned int get_path_max (void);
 # define USHRT_MAX 65535
 #endif
 
+#ifndef SIZE_MAX
+# define SIZE_MAX ((size_t)~(size_t)0)
+#endif
+
 /* Nonzero if the integer type T is signed.
    Use <= to avoid GCC warnings about always-false expressions.  */
 #define INTEGER_TYPE_SIGNED(t) ((t) -1 <= 0)

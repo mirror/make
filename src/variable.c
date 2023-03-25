@@ -1272,17 +1272,14 @@ shell_result (const char *p)
   char *buf;
   size_t len;
   char *args[2];
-  char *result;
 
   install_variable_buffer (&buf, &len);
 
   args[0] = (char *) p;
   args[1] = NULL;
   func_shell_base (variable_buffer, args, 0);
-  result = strdup (variable_buffer);
 
-  restore_variable_buffer (buf, len);
-  return result;
+  return swap_variable_buffer (buf, len);
 }
 
 /* Given a variable, a value, and a flavor, define the variable.
