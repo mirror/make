@@ -127,15 +127,14 @@ void install_variable_buffer (char **bufp, size_t *lenp);
 void restore_variable_buffer (char *buf, size_t len);
 char *swap_variable_buffer (char *buf, size_t len);
 
-char *variable_expand_string (char *line, const char *string, size_t length);
-char *variable_expand (const char *line);
-char *variable_expand_for_file (const char *line, struct file *file);
-char *allocated_variable_expand_for_file (const char *line, struct file *file);
-#define allocated_variable_expand(line) \
-  allocated_variable_expand_for_file (line, (struct file *) 0)
+char *expand_string_buf (char *buf, const char *string, size_t length);
+#define expand_string(s) expand_string_buf (NULL, (s), SIZE_MAX)
+char *expand_string_for_file (const char *string, struct file *file);
+char *allocated_expand_string_for_file (const char *line, struct file *file);
+#define allocated_expand_string(s) allocated_expand_string_for_file ((s), NULL)
 char *expand_argument (const char *str, const char *end);
 char *recursively_expand_for_file (struct variable *v, struct file *file);
-#define recursively_expand(v)   recursively_expand_for_file (v, NULL)
+#define recursively_expand(v) recursively_expand_for_file ((v), NULL)
 
 /* function.c */
 int handle_function (char **op, const char **stringp);
@@ -232,8 +231,3 @@ char **target_environment (struct file *file, int recursive);
 
 struct pattern_var *create_pattern_var (const char *target,
                                         const char *suffix);
-
-extern int export_all_variables;
-
-#define MAKELEVEL_NAME "MAKELEVEL"
-#define MAKELEVEL_LENGTH (CSTRLEN (MAKELEVEL_NAME))

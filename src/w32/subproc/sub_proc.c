@@ -615,7 +615,7 @@ process_begin(
                         char **argvi = argv;
                         size_t arglen = 0;
 
-                        strcpy(buf, variable_expand ("$(SHELL)"));
+                        strcpy(buf, expand_string ("$(SHELL)"));
                         shell_name = &buf[0];
                         strcpy(exec_fname, "-c");
                         /* Construct a single command string in argv[0].  */

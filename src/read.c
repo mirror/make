@@ -186,7 +186,7 @@ read_all_makefiles (const char **makefiles)
     char *name, *p;
     size_t length;
 
-    value = allocated_variable_expand ("$(MAKEFILES)");
+    value = allocated_expand_string ("$(MAKEFILES)");
 
     /* Set NAME to the start of next token and LENGTH to its length.
        MAKEFILES is updated for finding remaining tokens.  */
@@ -807,7 +807,7 @@ eval (struct ebuffer *ebuf, int set_default)
 
               /* Expand the line so we can use indirect and constructed
                  variable names in an (un)export command.  */
-              cp = ap = allocated_variable_expand (p2);
+              cp = ap = allocated_expand_string (p2);
 
               for (p = find_next_token (&cp, &l); p != 0;
                    p = find_next_token (&cp, &l))
@@ -833,7 +833,7 @@ eval (struct ebuffer *ebuf, int set_default)
           /* vpath ends the previous rule.  */
           record_waiting_files ();
 
-          cp = variable_expand (p2);
+          cp = expand_string (p2);
           p = find_next_token (&cp, &l);
           if (p != 0)
             {
@@ -866,7 +866,7 @@ eval (struct ebuffer *ebuf, int set_default)
           /* Include ends the previous rule.  */
           record_waiting_files ();
 
-          p = allocated_variable_expand (p2);
+          p = allocated_expand_string (p2);
 
           /* If no filenames, it's a no-op.  */
           if (*p == '\0')
@@ -920,7 +920,7 @@ eval (struct ebuffer *ebuf, int set_default)
           /* Load ends the previous rule.  */
           record_waiting_files ();
 
-          p = allocated_variable_expand (p2);
+          p = allocated_expand_string (p2);
 
           /* If no filenames, it's a no-op.  */
           if (*p == '\0')
@@ -1052,7 +1052,7 @@ eval (struct ebuffer *ebuf, int set_default)
             break;
           }
 
-        p2 = variable_expand_string (NULL, lb_next, wlen);
+        p2 = expand_string_buf (NULL, lb_next, wlen);
 
         while (1)
           {
@@ -1080,7 +1080,7 @@ eval (struct ebuffer *ebuf, int set_default)
                        entirely consistent, since we do an unconditional
                        expand below once we know we don't have a
                        target-specific variable. */
-                    variable_expand_string (pend, lb_next, SIZE_MAX);
+                    expand_string_buf (pend, lb_next, SIZE_MAX);
                     lb_next += strlen (lb_next);
                     p2 = variable_buffer + p2_off;
                     cmdleft = variable_buffer + cmd_off + 1;
@@ -1116,7 +1116,7 @@ eval (struct ebuffer *ebuf, int set_default)
 
             p2 += strlen (p2);
             *(p2++) = ' ';
-            p2 = variable_expand_string (p2, lb_next, wlen);
+            p2 = expand_string_buf (p2, lb_next, wlen);
             /* We don't need to worry about cmdleft here, because if it was
                found in the variable_buffer the entire buffer has already
                been expanded... we'll never get here.  */
@@ -1228,7 +1228,7 @@ eval (struct ebuffer *ebuf, int set_default)
         if (*lb_next != '\0')
           {
             size_t l = p2 - variable_buffer;
-            variable_expand_string (p2 + plen, lb_next, SIZE_MAX);
+            expand_string_buf (p2 + plen, lb_next, SIZE_MAX);
             p2 = variable_buffer + l;
 
             /* Look for a semicolon in the expanded line.  */
@@ -1359,7 +1359,7 @@ do_undefine (char *name, enum variable_origin origin, struct ebuffer *ebuf)
   char *p, *var;
 
   /* Expand the variable name and find the beginning (NAME) and end.  */
-  var = allocated_variable_expand (name);
+  var = allocated_expand_string (name);
   name = next_token (var);
   if (*name == '\0')
     O (fatal, &ebuf->floc, _("empty variable name"));
@@ -1404,7 +1404,7 @@ do_define (char *name, enum variable_origin origin, struct ebuffer *ebuf)
     }
 
   /* Expand the variable name and find the beginning (NAME) and end.  */
-  n = allocated_variable_expand (name);
+  n = allocated_expand_string (name);
   name = next_token (n);
   if (name[0] == '\0')
     O (fatal, &defstart, _("empty variable name"));
@@ -1637,7 +1637,7 @@ conditional_line (char *line, size_t len, const floc *flocp)
 
       /* Expand the thing we're looking up, so we can use indirect and
          constructed variable names.  */
-      var = allocated_variable_expand (line);
+      var = allocated_expand_string (line);
 
       /* Make sure there's only one variable name to test.  */
       p = end_of_token (var);
@@ -1695,9 +1695,9 @@ conditional_line (char *line, size_t len, const floc *flocp)
       else
         *line++ = '\0';
 
-      s2 = variable_expand (s1);
+      s2 = expand_string (s1);
       /* We must allocate a new copy of the expanded string because
-         variable_expand re-uses the same buffer.  */
+         expand_string re-uses the same buffer.  */
       l = strlen (s2);
       s1 = alloca (l + 1);
       memcpy (s1, s2, l + 1);
@@ -1744,7 +1744,7 @@ conditional_line (char *line, size_t len, const floc *flocp)
       if (*line != '\0')
         EXTRATEXT ();
 
-      s2 = variable_expand (s2);
+      s2 = expand_string (s2);
       conditionals->ignoring[o] = (streq (s1, s2) == (cmdtype == c_ifneq));
     }
 
@@ -1804,7 +1804,7 @@ record_target_var (struct nameseq *filenames, char *defn,
 
           v->origin = origin;
           if (v->flavor == f_simple)
-            v->value = allocated_variable_expand (v->value);
+            v->value = allocated_expand_string (v->value);
           else
             v->value = xstrdup (v->value);
         }
@@ -3071,7 +3071,7 @@ tilde_expand (const char *name)
         int save = warn_undefined_variables_flag;
         warn_undefined_variables_flag = 0;
 
-        home_dir = allocated_variable_expand ("$(HOME)");
+        home_dir = allocated_expand_string ("$(HOME)");
 
         warn_undefined_variables_flag = save;
       }

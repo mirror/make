@@ -207,7 +207,7 @@ recursively_expand_for_file (struct variable *v, struct file *file)
   if (v->append)
     value = allocated_variable_append (v);
   else
-    value = allocated_variable_expand (v->value);
+    value = allocated_expand_string (v->value);
   v->expanding = 0;
 
   if (set_reading)
@@ -252,16 +252,17 @@ reference_variable (char *o, const char *name, size_t length)
 }
 
 /* Scan STRING for variable references and expansion-function calls.  Only
-   LENGTH bytes of STRING are actually scanned.  If LENGTH is -1, scan until
-   a null byte is found.
+   LENGTH bytes of STRING are actually scanned.
+   If LENGTH is SIZE_MAX, scan until a null byte is found.
 
-   Write the results to LINE, which must point into 'variable_buffer'.  If
-   LINE is NULL, start at the beginning of the buffer.
-   Return a pointer to LINE, or to the beginning of the buffer if LINE is
+   Write the results to BUF, which must point into 'variable_buffer'.  If
+   BUF is NULL, start at the beginning of the current 'variable_buffer'.
+
+   Return a pointer to BUF, or to the beginning of the new buffer if BUF is
    NULL.
  */
 char *
-variable_expand_string (char *line, const char *string, size_t length)
+expand_string_buf (char *buf, const char *string, size_t length)
 {
   struct variable *v;
   const char *p, *p1;
@@ -269,10 +270,10 @@ variable_expand_string (char *line, const char *string, size_t length)
   char *o;
   size_t line_offset;
 
-  if (!line)
-    line = initialize_variable_output ();
-  o = line;
-  line_offset = line - variable_buffer;
+  if (!buf)
+    buf = initialize_variable_output ();
+  o = buf;
+  line_offset = buf - variable_buffer;
 
   if (length == 0)
     return variable_buffer;
@@ -472,17 +473,7 @@ variable_expand_string (char *line, const char *string, size_t length)
   return (variable_buffer + line_offset);
 }
 
-/* Scan LINE for variable references and expansion-function calls.
-   Build in 'variable_buffer' the result of expanding the references and calls.
-   Return the address of the resulting string, which is null-terminated
-   and is valid only until the next time this function is called.  */
 
-char *
-variable_expand (const char *line)
-{
-  return variable_expand_string (NULL, line, SIZE_MAX);
-}
-
 /* Expand an argument for an expansion function.
    The text starting at STR and ending at END is variable-expanded
    into a null-terminated string that is returned as the value.
@@ -499,7 +490,7 @@ expand_argument (const char *str, const char *end)
     return xstrdup ("");
 
   if (!end || *end == '\0')
-    return allocated_variable_expand (str);
+    return allocated_expand_string (str);
 
   if (end - str + 1 > 1000)
     tmp = alloc = xmalloc (end - str + 1);
@@ -509,25 +500,27 @@ expand_argument (const char *str, const char *end)
   memcpy (tmp, str, end - str);
   tmp[end - str] = '\0';
 
-  r = allocated_variable_expand (tmp);
+  r = allocated_expand_string (tmp);
 
   free (alloc);
 
   return r;
 }
 
-/* Expand LINE for FILE.  Error messages refer to the file and line where
-   FILE's commands were found.  Expansion uses FILE's variable set list.  */
+
+/* Expand STRING for FILE, into the current variable_buffer.
+   Error messages refer to the file and line where FILE's commands were found.
+   Expansion uses FILE's variable set list.  */
 
 char *
-variable_expand_for_file (const char *line, struct file *file)
+expand_string_for_file (const char *string, struct file *file)
 {
   char *result;
   struct variable_set_list *savev;
   const floc *savef;
 
-  if (file == 0)
-    return variable_expand (line);
+  if (!file)
+    return expand_string (string);
 
   savev = current_variable_set_list;
   current_variable_set_list = file->variables;
@@ -536,17 +529,32 @@ variable_expand_for_file (const char *line, struct file *file)
   if (file->cmds && file->cmds->fileinfo.filenm)
     reading_file = &file->cmds->fileinfo;
   else
-    reading_file = 0;
+    reading_file = NULL;
 
-  result = variable_expand (line);
+  result = expand_string (string);
 
   current_variable_set_list = savev;
   reading_file = savef;
 
   return result;
 }
+
+/* Like expand_string_for_file, but the returned string is malloc'd.  */
+
+char *
+allocated_expand_string_for_file (const char *string, struct file *file)
+{
+  char *obuf;
+  size_t olen;
+
+  install_variable_buffer (&obuf, &olen);
+
+  expand_string_for_file (string, file);
+
+  return swap_variable_buffer (obuf, olen);
+}
 
-/* Like allocated_variable_expand, but for += target-specific variables.
+/* Like allocated_expand_string, but for += target-specific variables.
    First recursively construct the variable value from its appended parts in
    any upper variable sets.  Then expand the resulting value.  */
 
@@ -588,7 +596,7 @@ variable_append (const char *name, size_t length,
   if (! v->recursive)
     return variable_buffer_output (buf, v->value, strlen (v->value));
 
-  buf = variable_expand_string (buf, v->value, strlen (v->value));
+  buf = expand_string_buf (buf, v->value, strlen (v->value));
   return (buf + strlen (buf));
 }
 
@@ -603,22 +611,6 @@ allocated_variable_append (const struct variable *v)
   install_variable_buffer (&obuf, &olen);
 
   variable_append (v->name, strlen (v->name), current_variable_set_list, 1);
-
-  return swap_variable_buffer (obuf, olen);
-}
-
-/* Like variable_expand_for_file, but the returned string is malloc'd.
-   This function is called a lot.  It wants to be efficient.  */
-
-char *
-allocated_variable_expand_for_file (const char *line, struct file *file)
-{
-  char *obuf;
-  size_t olen;
-
-  install_variable_buffer (&obuf, &olen);
-
-  variable_expand_for_file (line, file);
 
   return swap_variable_buffer (obuf, olen);
 }

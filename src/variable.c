@@ -1005,7 +1005,6 @@ define_automatic_variables (void)
   define_variable_cname ("+F", "$(notdir $+)", o_automatic, 1);
 }
 
-int export_all_variables;
 
 static int
 should_export (const struct variable *v)
@@ -1305,14 +1304,14 @@ do_variable_definition (const floc *flocp, const char *varname,
          We have to allocate memory since otherwise it'll clobber the
          variable buffer, and we may still need that if we're looking at a
          target-specific variable.  */
-      newval = alloc_value = allocated_variable_expand (value);
+      newval = alloc_value = allocated_expand_string (value);
       break;
     case f_expand:
       {
         /* A POSIX "var :::= value" assignment.  Expand the value, then it
            becomes a recursive variable.  After expansion convert all '$'
            tokens to '$$' to resolve to '$' when recursively expanded.  */
-        char *t = allocated_variable_expand (value);
+        char *t = allocated_expand_string (value);
         char *np = alloc_value = xmalloc (strlen (t) * 2 + 1);
         char *op = t;
         while (op[0] != '\0')
@@ -1330,7 +1329,7 @@ do_variable_definition (const floc *flocp, const char *varname,
       {
         /* A shell definition "var != value".  Expand value, pass it to
            the shell, and store the result in recursively-expanded var. */
-        char *q = allocated_variable_expand (value);
+        char *q = allocated_expand_string (value);
         alloc_value = shell_result (q);
         free (q);
         flavor = f_recursive;
@@ -1398,7 +1397,7 @@ do_variable_definition (const floc *flocp, const char *varname,
                  when it was set; and from the expanded new value.  Allocate
                  memory for the expansion as we may still need the rest of the
                  buffer if we're looking at a target-specific variable.  */
-              val = tp = allocated_variable_expand (val);
+              val = tp = allocated_expand_string (val);
 
             /* If the new value is empty, nothing to do.  */
             vallen = strlen (val);
@@ -1544,7 +1543,7 @@ do_variable_definition (const floc *flocp, const char *varname,
         {
           char *tp = alloc_value;
 
-          alloc_value = allocated_variable_expand (newval);
+          alloc_value = allocated_expand_string (newval);
 
           if (find_and_set_default_shell (alloc_value))
             {
@@ -1767,7 +1766,7 @@ assign_variable_definition (struct variable *v, const char *line)
   name = alloca (v->length + 1);
   memcpy (name, v->name, v->length);
   name[v->length] = '\0';
-  v->name = allocated_variable_expand (name);
+  v->name = allocated_expand_string (name);
 
   if (v->name[0] == '\0')
     O (fatal, &v->fileinfo, _("empty variable name"));
@@ -2020,7 +2019,7 @@ sync_Path_environment ()
 {
   static char *environ_path = NULL;
   char *oldpath = environ_path;
-  char *path = allocated_variable_expand ("PATH=$(PATH)");
+  char *path = allocated_expand_string ("PATH=$(PATH)");
 
   if (!path)
     return;

@@ -1782,8 +1782,8 @@ new_job (struct file *file)
 
       /* Finally, expand the line.  */
       cmds->fileinfo.offset = i;
-      lines[i] = allocated_variable_expand_for_file (cmds->command_lines[i],
-                                                     file);
+      lines[i] = allocated_expand_string_for_file (cmds->command_lines[i],
+                                                   file);
     }
 
   cmds->fileinfo.offset = 0;
@@ -1882,7 +1882,7 @@ new_job (struct file *file)
              nm, c->file->name);
       else
         {
-          char *newer = allocated_variable_expand_for_file ("$?", c->file);
+          char *newer = allocated_expand_string_for_file ("$?", c->file);
           if (newer[0] != '\0')
             {
               OSSS (message, 0, _("%s: update target '%s' due to: %s"),
@@ -3637,7 +3637,7 @@ construct_command_argv (char *line, char **restp, struct file *file,
     int save = warn_undefined_variables_flag;
     warn_undefined_variables_flag = 0;
 
-    shell = allocated_variable_expand_for_file ("$(SHELL)", file);
+    shell = allocated_expand_string_for_file ("$(SHELL)", file);
 #if MK_OS_W32
     /*
      * Convert to forward slashes so that construct_command_argv_internal()
@@ -3700,9 +3700,9 @@ construct_command_argv (char *line, char **restp, struct file *file,
       /* In POSIX mode we default to -ec, unless we're ignoring errors.  */
       shellflags = xstrdup (ANY_SET (cmd_flags, COMMANDS_NOERROR) ? "-c" : "-ec");
     else
-      shellflags = allocated_variable_expand_for_file (var->value, file);
+      shellflags = allocated_expand_string_for_file (var->value, file);
 
-    ifs = allocated_variable_expand_for_file ("$(IFS)", file);
+    ifs = allocated_expand_string_for_file ("$(IFS)", file);
 
     warn_undefined_variables_flag = save;
   }

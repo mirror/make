@@ -179,6 +179,10 @@ int question_flag = 0;
 int no_builtin_rules_flag = 0;
 int no_builtin_variables_flag = 0;
 
+/* Nonzero means all variables are automatically exported.  */
+
+int export_all_variables = 0;
+
 /* Nonzero means keep going even if remaking some file fails (-k).  */
 
 int keep_going_flag;
@@ -2797,7 +2801,7 @@ main (int argc, char **argv, char **envp)
       char *p;
 
       if (default_goal_var->recursive)
-        p = variable_expand (default_goal_var->value);
+        p = expand_string (default_goal_var->value);
       else
         {
           p = variable_buffer_output (variable_buffer, default_goal_var->value,
@@ -3336,7 +3340,7 @@ decode_env_switches (const char *envar, size_t len, enum variable_origin origin)
   p = mempcpy (p, envar, len);
   *(p++) = ')';
   *p = '\0';
-  value = variable_expand (varref);
+  value = expand_string (varref);
 
   /* Skip whitespace, and check for an empty value.  */
   NEXT_TOKEN (value);

@@ -70,7 +70,7 @@ gmk_eval (const char *buffer, const gmk_floc *gfloc)
 char *
 gmk_expand (const char *ref)
 {
-  return allocated_variable_expand (ref);
+  return allocated_expand_string (ref);
 }
 
 /* Register a function to be called from makefiles.  */

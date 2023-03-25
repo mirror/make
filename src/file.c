@@ -636,7 +636,7 @@ expand_deps (struct file *f)
       set_file_variables (f, d->stem ? d->stem : f->stem);
 
       /* Perform second expansion.  */
-      p = variable_expand_for_file (d->name, f);
+      p = expand_string_for_file (d->name, f);
 
       /* Free the un-expanded name.  */
       free ((char*)d->name);
@@ -688,7 +688,7 @@ struct dep *
 expand_extra_prereqs (const struct variable *extra)
 {
   struct dep *d;
-  struct dep *prereqs = extra ? split_prereqs (variable_expand (extra->value)) : NULL;
+  struct dep *prereqs = extra ? split_prereqs (expand_string (extra->value)) : NULL;
 
   for (d = prereqs; d; d = d->next)
     {

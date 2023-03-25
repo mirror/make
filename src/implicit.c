@@ -706,7 +706,7 @@ pattern_search (struct file *file, int archive,
                     }
 
                   /* Perform the 2nd expansion.  */
-                  p = variable_expand_for_file (depname, file);
+                  p = expand_string_for_file (depname, file);
                   dptr = &dl;
 
                   /* Parse the results into a deps list.  */

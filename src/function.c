@@ -885,7 +885,7 @@ func_foreach (char *o, char **argv, const char *funcname UNUSED)
       free (var->value);
       var->value = xstrndup (p, len);
 
-      result = allocated_variable_expand (body);
+      result = allocated_expand_string (body);
 
       o = variable_buffer_output (o, result, strlen (result));
       o = variable_buffer_output (o, " ", 1);
@@ -945,7 +945,7 @@ func_let (char *o, char **argv, const char *funcname UNUSED)
   /* Expand the body in the context of the arguments, adding the result to
      the variable buffer.  */
 
-  o = variable_expand_string (o, body, SIZE_MAX);
+  o = expand_string_buf (o, body, SIZE_MAX);
 
   pop_variable_scope ();
   free (varnames);
@@ -2690,7 +2690,7 @@ func_call (char *o, char **argv, const char *funcname UNUSED)
 
   saved_args = max_args;
   max_args = i;
-  o = variable_expand_string (o, body, flen+3);
+  o = expand_string_buf (o, body, flen+3);
   max_args = saved_args;
 
   v->exp_count = 0;
