@@ -552,12 +552,11 @@ lookup_variable_for_file (const char *name, size_t length, struct file *file)
   if (file == NULL)
     return lookup_variable (name, length);
 
-  savev = current_variable_set_list;
-  current_variable_set_list = file->variables;
+  install_file_context (file, &savev, NULL);
 
   var = lookup_variable (name, length);
 
-  current_variable_set_list = savev;
+  restore_file_context (savev, NULL);
 
   return var;
 }
@@ -733,7 +732,7 @@ push_new_variable_scope (void)
       global_setlist.next = current_variable_set_list;
       current_variable_set_list = &global_setlist;
     }
-  return (current_variable_set_list);
+  return current_variable_set_list;
 }
 
 void
@@ -770,6 +769,39 @@ pop_variable_scope (void)
   hash_free (&set->table, 1);
   free (set);
 }
+
+/* Install a new global context for FILE so that errors/warnings are shown
+   in that context.  Sets OLDLIST to the previous list, and if not NULL sets
+   OLDFLOC to reading_file and changes reading_file to the current FILE.
+   Use restore_file_context() to undo this.  */
+
+void
+install_file_context (struct file *file, struct variable_set_list **oldlist, const floc **oldfloc)
+{
+  *oldlist = current_variable_set_list;
+  current_variable_set_list = file->variables;
+
+  if (oldfloc)
+    {
+      *oldfloc = reading_file;
+      if (file->cmds && file->cmds->fileinfo.filenm)
+        reading_file = &file->cmds->fileinfo;
+      else
+        reading_file = NULL;
+    }
+}
+
+/* Restore a saved global context from OLDLIST.  If OLDFLOC is not NULL,
+   set reading_file back to that value.  */
+
+void
+restore_file_context (struct variable_set_list *oldlist, const floc *oldfloc)
+{
+  current_variable_set_list = oldlist;
+  if (oldfloc)
+    reading_file = oldfloc;
+}
+
 
 /* Merge FROM_SET into TO_SET, freeing unused storage in FROM_SET.  */
 

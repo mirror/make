@@ -145,7 +145,7 @@ recursively_expand_for_file (struct variable *v, struct file *file)
   char *value;
   const floc *this_var;
   const floc **saved_varp;
-  struct variable_set_list *save = 0;
+  struct variable_set_list *savev = 0;
   int set_reading = 0;
 
   /* If we're expanding to put into the environment of a shell function then
@@ -198,10 +198,7 @@ recursively_expand_for_file (struct variable *v, struct file *file)
     }
 
   if (file)
-    {
-      save = current_variable_set_list;
-      current_variable_set_list = file->variables;
-    }
+    install_file_context (file, &savev, NULL);
 
   v->expanding = 1;
   if (v->append)
@@ -214,7 +211,7 @@ recursively_expand_for_file (struct variable *v, struct file *file)
     reading_file = 0;
 
   if (file)
-    current_variable_set_list = save;
+    restore_file_context (savev, NULL);
 
   expanding_var = saved_varp;
 
@@ -297,19 +294,11 @@ allocated_expand_variable_for_file (const char *name, size_t length, struct file
   if (!file)
     return allocated_expand_variable (name, length);
 
-  savev = current_variable_set_list;
-  current_variable_set_list = file->variables;
-
-  savef = reading_file;
-  if (file->cmds && file->cmds->fileinfo.filenm)
-    reading_file = &file->cmds->fileinfo;
-  else
-    reading_file = NULL;
+  install_file_context (file, &savev, &savef);
 
   result = allocated_expand_variable (name, length);
 
-  current_variable_set_list = savev;
-  reading_file = savef;
+  restore_file_context (savev, savef);
 
   return result;
 }
@@ -585,19 +574,11 @@ expand_string_for_file (const char *string, struct file *file)
   if (!file)
     return expand_string (string);
 
-  savev = current_variable_set_list;
-  current_variable_set_list = file->variables;
-
-  savef = reading_file;
-  if (file->cmds && file->cmds->fileinfo.filenm)
-    reading_file = &file->cmds->fileinfo;
-  else
-    reading_file = NULL;
+  install_file_context (file, &savev, &savef);
 
   result = expand_string (string);
 
-  current_variable_set_list = savev;
-  reading_file = savef;
+  restore_file_context (savev, savef);
 
   return result;
 }

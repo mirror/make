@@ -160,6 +160,8 @@ struct variable_set_list *create_new_variable_set (void);
 void free_variable_set (struct variable_set_list *);
 struct variable_set_list *push_new_variable_scope (void);
 void pop_variable_scope (void);
+void install_file_context (struct file *file, struct variable_set_list **oldlist, const floc **oldfloc);
+void restore_file_context (struct variable_set_list *oldlist, const floc *oldfloc);
 void define_automatic_variables (void);
 void initialize_file_variables (struct file *file, int reading);
 void print_file_variables (const struct file *file);
