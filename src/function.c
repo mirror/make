@@ -2011,7 +2011,8 @@ static char *
 func_eq (char *o, char **argv, char *funcname UNUSED)
 {
   int result = ! strcmp (argv[0], argv[1]);
-  o = variable_buffer_output (o,  result ? "1" : "", result);
+  if (result)
+    o = variable_buffer_output (o,  "1", 1);
   return o;
 }
 
@@ -2026,7 +2027,8 @@ func_not (char *o, char **argv, char *funcname UNUSED)
   int result = 0;
   NEXT_TOKEN (s);
   result = ! (*s);
-  o = variable_buffer_output (o,  result ? "1" : "", result);
+  if (result)
+    o = variable_buffer_output (o,  "1", 1);
   return o;
 }
 #endif

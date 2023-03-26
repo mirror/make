@@ -46,29 +46,33 @@ const floc **expanding_var = &reading_file;
 static size_t variable_buffer_length;
 char *variable_buffer;
 
-/* Subroutine of variable_expand and friends:
-   The text to add is LENGTH chars starting at STRING to the variable_buffer.
-   The text is added to the buffer at PTR, and the updated pointer into
-   the buffer is returned as the value.  Thus, the value returned by
-   each call to variable_buffer_output should be the first argument to
-   the following call.  */
+/* Append LENGTH chars of STRING at PTR which must point into variable_buffer.
+   The buffer will always be kept nul-terminated.
+   The updated pointer into the buffer is returned as the value.  Thus, the
+   value returned by each call to variable_buffer_output should be the first
+   argument to the following call.  */
 
 char *
 variable_buffer_output (char *ptr, const char *string, size_t length)
 {
   size_t newlen = length + (ptr - variable_buffer);
 
-  if ((newlen + VARIABLE_BUFFER_ZONE) > variable_buffer_length)
+  assert (ptr >= variable_buffer);
+  assert (ptr < variable_buffer + variable_buffer_length);
+
+  if (newlen + VARIABLE_BUFFER_ZONE + 1 > variable_buffer_length)
     {
       size_t offset = ptr - variable_buffer;
       variable_buffer_length = (newlen + 100 > 2 * variable_buffer_length
                                 ? newlen + 100
                                 : 2 * variable_buffer_length);
-      variable_buffer = xrealloc (variable_buffer, variable_buffer_length);
+      variable_buffer = xrealloc (variable_buffer, variable_buffer_length + 1);
       ptr = variable_buffer + offset;
     }
 
-  return mempcpy (ptr, string, length);
+  ptr = mempcpy (ptr, string, length);
+  *ptr = '\0';
+  return ptr;
 }
 
 /* Return a pointer to the beginning of the variable buffer.
@@ -83,8 +87,9 @@ initialize_variable_output ()
     {
       variable_buffer_length = 200;
       variable_buffer = xmalloc (variable_buffer_length);
-      variable_buffer[0] = '\0';
     }
+
+  variable_buffer[0] = '\0';
 
   return variable_buffer;
 }
@@ -229,10 +234,7 @@ variable_expand_string (char *line, const char *string, size_t length)
   line_offset = line - variable_buffer;
 
   if (length == 0)
-    {
-      variable_buffer_output (o, "", 1);
-      return variable_buffer;
-    }
+    return variable_buffer;
 
   /* We need a copy of STRING: due to eval, it's possible that it will get
      freed as we process it (it might be the value of a variable that's reset
@@ -426,7 +428,6 @@ variable_expand_string (char *line, const char *string, size_t length)
 
   free (save);
 
-  variable_buffer_output (o, "", 1);
   return (variable_buffer + line_offset);
 }
 
@@ -563,9 +564,8 @@ allocated_variable_append (const struct variable *v)
 
   variable_buffer = 0;
 
-  val = variable_append (v->name, strlen (v->name),
-                         current_variable_set_list, 1);
-  variable_buffer_output (val, "", 1);
+  variable_append (v->name, strlen (v->name), current_variable_set_list, 1);
+
   val = variable_buffer;
 
   variable_buffer = obuf;
@@ -604,7 +604,7 @@ install_variable_buffer (char **bufp, size_t *lenp)
   *bufp = variable_buffer;
   *lenp = variable_buffer_length;
 
-  variable_buffer = 0;
+  variable_buffer = NULL;
   initialize_variable_output ();
 }
 

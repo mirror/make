@@ -1278,7 +1278,7 @@ shell_result (const char *p)
 
   args[0] = (char *) p;
   args[1] = NULL;
-  variable_buffer_output (func_shell_base (variable_buffer, args, 0), "\0", 1);
+  func_shell_base (variable_buffer, args, 0);
   result = strdup (variable_buffer);
 
   restore_variable_buffer (buf, len);
