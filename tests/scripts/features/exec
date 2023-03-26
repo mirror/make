@@ -15,7 +15,11 @@ my $details = "The various shells that this test uses are the default"
 $port_type eq 'UNIX' or return -1;
 $^O =~ /cygwin/ and return -1;
 
-my @shbangs = ('', '#!/bin/sh', "#!$perl_name");
+my @shbangs = ('#!/bin/sh', "#!$perl_name");
+
+# The exec in Valgrind's VM doesn't allow starting commands without any shbang
+$valgrind or push @shbangs, '';
+
 my @shells = ('', 'SHELL=/bin/sh');
 
 # Try whatever shell the user has, as long as it's not a C shell.

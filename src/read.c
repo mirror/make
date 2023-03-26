@@ -3261,22 +3261,24 @@ parse_file_seq (char **stringp, size_t size, int stopmap,
 
       /* Strip leading "this directory" references.  */
       if (NONE_SET (flags, PARSEFS_NOSTRIP))
+        {
 #if MK_OS_VMS
-        /* Skip leading '[]'s. should only be one set or bug somewhere else */
-        if (p - s > 2 && s[0] == '[' && s[1] == ']')
+          /* Skip leading '[]'s. should only be one set or bug somewhere else */
+          if (p - s > 2 && s[0] == '[' && s[1] == ']')
             s += 2;
-        /* Skip leading '<>'s. should only be one set or bug somewhere else */
-        if (p - s > 2 && s[0] == '<' && s[1] == '>')
+          /* Skip leading '<>'s. should only be one set or bug somewhere else */
+          if (p - s > 2 && s[0] == '<' && s[1] == '>')
             s += 2;
 #endif
-        /* Skip leading './'s.  */
-        while (p - s > 2 && s[0] == '.' && s[1] == '/')
-          {
-            /* Skip "./" and all following slashes.  */
-            s += 2;
-            while (*s == '/')
-              ++s;
-          }
+          /* Skip leading './'s.  */
+          while (p - s > 2 && s[0] == '.' && s[1] == '/')
+            {
+              /* Skip "./" and all following slashes.  */
+              s += 2;
+              while (*s == '/')
+                ++s;
+            }
+        }
 
       /* Extract the filename just found, and skip it.
          Set NAME to the string, and NLEN to its length.  */

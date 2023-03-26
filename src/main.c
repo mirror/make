@@ -1467,6 +1467,9 @@ main (int argc, char **argv, char **envp)
 #ifdef MAKE_MAINTAINER_MODE
                            " maintainer"
 #endif
+#if defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_MEMORY__)
+                           " sanitize"
+#endif
                            ;
 
     define_variable_cname (".FEATURES", features, o_default, 0);

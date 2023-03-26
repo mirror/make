@@ -115,16 +115,21 @@ rmdir($tmakedir);
 # makefile from stdin to a temporary file.
 # Create a non-writable temporary directory.
 
-my $tdir = 'test_tmp_dir';
-mkdir($tdir, 0500);
-$ENV{'TMPDIR'} = $tdir;
-close(STDIN);
-open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
+# If we do this Valgrind fails because it cannot write temp files... the docs
+# don't describe any way to tell valgrind to use a directory other than TMPDIR.
 
-run_make_test(q!
+if (!$valgrind) {
+    my $tdir = 'test_tmp_dir';
+    mkdir($tdir, 0500);
+    $ENV{'TMPDIR'} = $tdir;
+    close(STDIN);
+    open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
+
+    run_make_test(q!
 all:; $(info hello, world)
 !, '-f-', '/cannot store makefile from stdin to a temporary file.  Stop./', 512);
-rmdir($tdir);
+    rmdir($tdir);
+}
 }
 
 # This close MUST come at the end of the test!!

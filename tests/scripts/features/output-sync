@@ -380,17 +380,23 @@ unlink($fout);
 # Create a non-writable temporary directory.
 # Run the test twice, because run_make_test cannot match a regex against a
 # multiline input.
-my $tdir = 'test_tmp_dir';
-mkdir($tdir, 0500);
-$ENV{'TMPDIR'} = $tdir;
 
-run_make_test(q!
+# If we do this Valgrind fails because it cannot write temp files... the docs
+# don't describe any way to tell valgrind to use a directory other than TMPDIR.
+
+if (!$valgrind) {
+    my $tdir = 'test_tmp_dir';
+    mkdir($tdir, 0500);
+    $ENV{'TMPDIR'} = $tdir;
+
+    run_make_test(q!
 all:; $(info hello, world)
 !, '-Orecurse', "/suppressing output-sync/");
 
-run_make_test(undef, '-Orecurse', "/#MAKE#: 'all' is up to date./");
+    run_make_test(undef, '-Orecurse', "/#MAKE#: 'all' is up to date./");
 
-rmdir($tdir);
+    rmdir($tdir);
+}
 }
 
 # This tells the test driver that the perl test script executed properly.

@@ -21,7 +21,8 @@ $details = 'This only works on systems that support it.';
 # If we don't have Guile support, never mind.
 exists $FEATURES{guile} or return -1;
 
-# Guile and Valgrind don't play together at all.
+# Guile and Valgrind/ASAN don't play together at all.
+exists $FEATURES{sanitize} and return -1;
 $valgrind and return -1;
 
 # Verify simple data type conversions

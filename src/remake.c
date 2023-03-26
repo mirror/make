@@ -69,6 +69,13 @@ static struct dep *goal_dep;
    All files start with considered == 0.  */
 static unsigned int considered = 0;
 
+/* During processing we might drop some dependencies, which can't be freed
+   immediately because they are still in use.  Remember them: this is mainly
+   to satisfy leak detectors.  */
+static struct dep **dropped_list = NULL;
+static size_t dropped_list_len = 0;
+#define DROPPED_LIST_INCR 5
+
 static enum update_status update_file (struct file *file, unsigned int depth);
 static enum update_status update_file_1 (struct file *file, unsigned int depth);
 static enum update_status check_dep (struct file *file, unsigned int depth,
@@ -608,15 +615,21 @@ update_file_1 (struct file *file, unsigned int depth)
               OSS (error, NILF, _("Circular %s <- %s dependency dropped."),
                    file->name, d->file->name);
 
-              /* We cannot free D here because our the caller will still have
-                 a reference to it when we were called recursively via
-                 check_dep below.  */
               if (lastd == 0)
                 file->deps = du->next;
               else
                 lastd->next = du->next;
 
               du = du->next;
+
+              /* We cannot free D here because our the caller will still have
+                 a reference to it when we were called recursively via
+                 check_dep below.  */
+              if (dropped_list_len % DROPPED_LIST_INCR == 0)
+                dropped_list = xrealloc (dropped_list,
+                                         sizeof (struct dep *) * (dropped_list_len + DROPPED_LIST_INCR));
+              dropped_list[dropped_list_len++] = d;
+
               continue;
             }
 

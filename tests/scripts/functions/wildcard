@@ -150,8 +150,9 @@ if ($port_type ne 'W32' && eval { symlink("",""); 1 }) {
 
   # Test for dangling symlinks
   # This doesn't work with the built-in glob... needs to be updated!
+  # It also for some obscure reason, will break if we use ASAN!!
 
-  if (get_config('USE_SYSTEM_GLOB') eq 'yes') {
+  if (get_config('USE_SYSTEM_GLOB') eq 'yes' && !exists($FEATURES{sanitize})) {
     symlink($dir, $lnk);
 
     run_make_test(qq!all: ; \@echo \$(wildcard $lnk)!, '', "$lnk");

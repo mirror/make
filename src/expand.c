@@ -226,6 +226,7 @@ char *
 expand_variable_output (char *ptr, const char *name, size_t length)
 {
   struct variable *v;
+  unsigned int recursive;
   char *value;
 
   v = lookup_variable (name, length);
@@ -237,11 +238,14 @@ expand_variable_output (char *ptr, const char *name, size_t length)
   if (!v || (v->value[0] == '\0' && !v->append))
     return ptr;
 
-  value = v->recursive ? recursively_expand (v) : v->value;
+  /* Remember this since expansion could change it.  */
+  recursive = v->recursive;
+
+  value = recursive ? recursively_expand (v) : v->value;
 
   ptr = variable_buffer_output (ptr, value, strlen (value));
 
-  if (v->recursive)
+  if (recursive)
     free (value);
 
   return ptr;

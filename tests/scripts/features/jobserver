@@ -168,7 +168,8 @@ if ($port_type ne 'W32') {
                   "all 1\nall 2\nrecurse");
 }
 
-if (exists $FEATURES{'jobserver-fifo'}) {
+# We can't reset TMPDIR to something invalid when using valgrind
+if (exists $FEATURES{'jobserver-fifo'} && !$valgrind) {
   # sv 62908.
   # Test that when mkfifo fails, make switches to pipe and succeeds.
   # Force mkfifo to fail by attempting to create a fifo in a non existent
