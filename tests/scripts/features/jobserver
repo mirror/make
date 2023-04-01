@@ -14,7 +14,7 @@ if (!$parallel_jobs) {
 
 # Shorthand
 my $np = '--no-print-directory';
-my $j1err = "warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.";
+my $j1err = "warning: jobserver unavailable: using -j1 (add '+' to parent make rule)";
 
 # Simple test of MAKEFLAGS settings
 run_make_test(q!
@@ -42,7 +42,7 @@ recurse: ; @echo $@: "/$(SHOW)/"; $(MAKE) -j3 -f #MAKEFILE# recurse2
 recurse2: ; @echo $@: "/$(SHOW)/"; $(MAKE) -f #MAKEFILE# all
 all:;@echo $@: "/$(SHOW)/"
 !,
-              "-j2 $np", "recurse: /-j2 --jobserver-auth=<auth> $np/\n#MAKE#[1]: warning: -j3 forced in submake: resetting jobserver mode.\nrecurse2: /-j3 --jobserver-auth=<auth> $np/\nall: /-j3 --jobserver-auth=<auth> $np/\n");
+              "-j2 $np", "recurse: /-j2 --jobserver-auth=<auth> $np/\n#MAKE#[1]: warning: -j3 forced in submake: resetting jobserver mode\nrecurse2: /-j3 --jobserver-auth=<auth> $np/\nall: /-j3 --jobserver-auth=<auth> $np/\n");
 
 # Test override of -jN with -j
 run_make_test(q!
@@ -51,7 +51,7 @@ recurse: ; @echo $@: "/$(SHOW)/"; $(MAKE) -j -f #MAKEFILE# recurse2
 recurse2: ; @echo $@: "/$(SHOW)/"; $(MAKE) -f #MAKEFILE# all
 all:;@echo $@: "/$(SHOW)/"
 !,
-              "-j2 $np", "recurse: /-j2 --jobserver-auth=<auth> $np/\n#MAKE#[1]: warning: -j0 forced in submake: resetting jobserver mode.\nrecurse2: /-j $np/\nall: /-j $np/\n");
+              "-j2 $np", "recurse: /-j2 --jobserver-auth=<auth> $np/\n#MAKE#[1]: warning: -j0 forced in submake: resetting jobserver mode\nrecurse2: /-j $np/\nall: /-j $np/\n");
 
 # Don't put --jobserver-auth into a re-exec'd MAKEFLAGS.
 # We can't test this directly because there's no way a makefile can
@@ -76,7 +76,7 @@ inc.mk:
 #> @echo 'MAKEFLAGS = $(MAKEFLAGS)'
 > @echo 'FOO = bar' > $@
 !,
-              "$np -j2", "#MAKE#[1]: warning: -j2 forced in submake: resetting jobserver mode.\nall\n");
+              "$np -j2", "#MAKE#[1]: warning: -j2 forced in submake: resetting jobserver mode\nall\n");
 
 unlink('inc.mk');
 
@@ -118,7 +118,7 @@ recurse: ; @echo hi
 !,
               '-w -j2', "#MAKE#: Entering directory '#PWD#'
 #MAKE#[1]: Entering directory '#PWD#'
-#MAKE#[1]: warning: -j1 forced in submake: resetting jobserver mode.
+#MAKE#[1]: warning: -j1 forced in submake: resetting jobserver mode
 hi
 #MAKE#[1]: Leaving directory '#PWD#'
 #MAKE#: Leaving directory '#PWD#'\n");

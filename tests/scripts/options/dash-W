@@ -19,7 +19,8 @@ run_make_test(undef, '', "#MAKE#: 'a.x' is up to date.");
 run_make_test(undef, '-W b.x', 'echo >> a.x');
 
 # Put the timestamp for a.x into the future; it should still be remade.
-
+# There are clock skew errors printed here but they will be cleared by
+# the comparison code.
 utouch(1000, 'a.x');
 run_make_test(undef, '', "#MAKE#: 'a.x' is up to date.");
 run_make_test(undef, '-W b.x', 'echo >> a.x');
@@ -50,6 +51,8 @@ touch baz.x');
 # Now run with -W bar.x
 
 # Tweak foo.x's timestamp so the update will change it.
+# There are clock skew errors printed here but they will be cleared by
+# the comparison code.
 &utouch(1000, 'foo.x');
 
 run_make_test(undef, '-W bar.x', "restarts=\ntouch foo.x\nrestarts=1\ntouch baz.x");

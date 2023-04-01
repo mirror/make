@@ -1184,7 +1184,7 @@ func_error (char *o, char **argv, const char *funcname)
       }
 
     default:
-      OS (fatal, *expanding_var, "Internal error: func_error: '%s'", funcname);
+      OS (fatal, *expanding_var, "INTERNAL: func_error: '%s'", funcname);
     }
 
   /* The warning function expands to the empty string.  */
@@ -1669,7 +1669,7 @@ windows32_openpipe (int *pipedes, int errfd, pid_t *pid_p, char **command_argv, 
       if (hIn == INVALID_HANDLE_VALUE)
         {
           ON (error, NILF,
-              _("windows32_openpipe: DuplicateHandle(In) failed (e=%lu)\n"), e);
+              _("windows32_openpipe: DuplicateHandle(In) failed (e=%lu)"), e);
           return -1;
         }
     }
@@ -1693,14 +1693,14 @@ windows32_openpipe (int *pipedes, int errfd, pid_t *pid_p, char **command_argv, 
       if (hErr == INVALID_HANDLE_VALUE)
         {
           ON (error, NILF,
-              _("windows32_openpipe: DuplicateHandle(Err) failed (e=%lu)\n"), e);
+              _("windows32_openpipe: DuplicateHandle(Err) failed (e=%lu)"), e);
           return -1;
         }
     }
 
   if (! CreatePipe (&hChildOutRd, &hChildOutWr, &saAttr, 0))
     {
-      ON (error, NILF, _("CreatePipe() failed (e=%lu)\n"), GetLastError());
+      ON (error, NILF, _("CreatePipe() failed (e=%lu)"), GetLastError());
       return -1;
     }
 
@@ -1708,7 +1708,7 @@ windows32_openpipe (int *pipedes, int errfd, pid_t *pid_p, char **command_argv, 
 
   if (!hProcess)
     {
-      O (error, NILF, _("windows32_openpipe(): process_init_fd() failed\n"));
+      O (error, NILF, _("windows32_openpipe(): process_init_fd() failed"));
       return -1;
     }
 
@@ -2706,17 +2706,17 @@ define_new_function (const floc *flocp, const char *name,
   len = e - name;
 
   if (len == 0)
-    O (fatal, flocp, _("Empty function name"));
+    O (fatal, flocp, _("empty function name"));
   if (*name == '.' || *e != '\0')
-    OS (fatal, flocp, _("Invalid function name: %s"), name);
+    OS (fatal, flocp, _("invalid function name: %s"), name);
   if (len > 255)
-    OS (fatal, flocp, _("Function name too long: %s"), name);
+    OS (fatal, flocp, _("function name too long: %s"), name);
   if (min > 255)
     ONS (fatal, flocp,
-         _("Invalid minimum argument count (%u) for function %s"), min, name);
+         _("invalid minimum argument count (%u) for function %s"), min, name);
   if (max > 255 || (max && max < min))
     ONS (fatal, flocp,
-         _("Invalid maximum argument count (%u) for function %s"), max, name);
+         _("invalid maximum argument count (%u) for function %s"), max, name);
 
   ent = xmalloc (sizeof (struct function_table_entry));
   ent->name = strcache_add (name);

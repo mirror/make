@@ -249,7 +249,7 @@ setup_tmpfile (struct output *out)
   /* If we failed to create a temp file, disable output sync going forward.  */
  error:
   O (error, NILF,
-     _("cannot open output-sync lock file, suppressing output-sync."));
+     _("cannot open output-sync lock file: suppressing output-sync"));
 
   output_close (out);
   output_sync = OUTPUT_SYNC_NONE;
@@ -280,7 +280,7 @@ output_dump (struct output *out)
       if (!osync_acquire ())
         {
           O (error, NILF,
-             _("warning: Cannot acquire output lock, disabling output sync."));
+             _("warning: cannot acquire output lock: disabling output sync"));
           osync_clear ();
         }
 

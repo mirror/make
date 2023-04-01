@@ -912,12 +912,12 @@ sub convert_answer_zos
   my ($log) = @_;
 
   # z/OS emits "Error 143" or "SIGTERM" instead of terminated
-  $log =~ s/Error 143/Terminated/gm;
-  $log =~ s/SIGTERM/Terminated/gm;
+  $log =~ s/Error 143/Terminated/igm;
+  $log =~ s/SIGTERM/Terminated/igm;
 
   # z/OS error messages have a prefix
-  $log =~ s/EDC5129I No such file or directory\./No such file or directory/gm;
-  $log =~ s/FSUM7351 not found/not found/gm;
+  $log =~ s/EDC5129I No such file or directory\./No such file or directory/igm;
+  $log =~ s/FSUM7351 not found/not found/igm;
 
   return $log;
 }
@@ -929,8 +929,8 @@ sub compare_answer
 
   # For make, get rid of any time skew error before comparing--too bad this
   # has to go into the "generic" driver code :-/
-  $log =~ s/^.*modification time .*in the future.*\n//gm;
-  $log =~ s/^.*Clock skew detected.*\n//gm;
+  $log =~ s/^.*modification time .*in the future.*\n//igm;
+  $log =~ s/^.*clock skew detected.*\n//igm;
   return 1 if ($log eq $kgo);
 
   # Get rid of newline differences, forever

@@ -376,7 +376,7 @@ chop_commands (struct commands *cmds)
 
           if (nlines == USHRT_MAX)
             ON (fatal, &cmds->fileinfo,
-                _("Recipe has too many lines (limit %hu)"), nlines);
+                _("recipe has too many lines (limit %hu)"), nlines);
 
           if (nlines == max)
             {
@@ -618,11 +618,11 @@ delete_target (struct file *file, const char *on_behalf_of)
         {
           if (on_behalf_of)
             OSS (error, NILF,
-                 _("*** [%s] Archive member '%s' may be bogus; not deleted"),
+                 _("*** [%s] archive member '%s' may be bogus; not deleted"),
                  on_behalf_of, file->name);
           else
             OS (error, NILF,
-                _("*** Archive member '%s' may be bogus; not deleted"),
+                _("*** archive member '%s' may be bogus; not deleted"),
                 file->name);
         }
       return;
@@ -636,9 +636,9 @@ delete_target (struct file *file, const char *on_behalf_of)
     {
       if (on_behalf_of)
         OSS (error, NILF,
-             _("*** [%s] Deleting file '%s'"), on_behalf_of, file->name);
+             _("*** [%s] deleting file '%s'"), on_behalf_of, file->name);
       else
-        OS (error, NILF, _("*** Deleting file '%s'"), file->name);
+        OS (error, NILF, _("*** deleting file '%s'"), file->name);
       if (unlink (file->name) < 0
           && errno != ENOENT)   /* It disappeared; so what.  */
         perror_with_name ("unlink: ", file->name);

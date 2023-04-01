@@ -193,7 +193,7 @@ recursively_expand_for_file (struct variable *v, struct file *file)
       if (!v->exp_count)
         /* Expanding V causes infinite recursion.  Lose.  */
         OS (fatal, *expanding_var,
-            _("Recursive variable '%s' references itself (eventually)"),
+            _("recursive variable '%s' references itself (eventually)"),
             v->name);
       --v->exp_count;
     }

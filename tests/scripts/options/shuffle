@@ -92,7 +92,7 @@ all: a_ b_ ; @echo $@
 a_: b_
 b_: a_
 ',
-              '--shuffle=reverse', "#MAKE#: Circular a_ <- b_ dependency dropped.\na_\nb_\nall");
+              '--shuffle=reverse', "#MAKE#: circular a_ <- b_ dependency dropped\na_\nb_\nall");
 
 # Check if order-only dependencies get reordered.
 run_make_test('

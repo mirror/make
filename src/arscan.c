@@ -399,11 +399,11 @@ parse_int (const char *ptr, const size_t len, const int base, uintmax_t max,
 
       if (*ptr < '0' || *ptr > maxchar)
         OSSS (fatal, NILF,
-              _("Invalid %s for archive %s member %s"), type, archive, name);
+              _("invalid %s for archive %s member %s"), type, archive, name);
       nv = (val * base) + (*ptr - '0');
       if (nv < val || nv > max)
         OSSS (fatal, NILF,
-              _("Invalid %s for archive %s member %s"), type, archive, name);
+              _("invalid %s for archive %s member %s"), type, archive, name);
       val = nv;
       ++ptr;
     }

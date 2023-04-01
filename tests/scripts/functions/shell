@@ -183,7 +183,7 @@ else
 default:;: $(ELT)
 endif
 !,
-                      '--no-print-directory -j2 --jobserver-style=pipe', "#MAKE#[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.\n: 2\n: 1");
+                      '--no-print-directory -j2 --jobserver-style=pipe', "#MAKE#[2]: warning: jobserver unavailable: using -j1 (add '+' to parent make rule)\n: 2\n: 1");
     }
 
     # This crashes if we use vfork and don't reset environ properly

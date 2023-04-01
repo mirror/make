@@ -101,7 +101,7 @@ check_also_make (const struct file *file)
     for (ad = file->also_make; ad; ad = ad->next)
       if (ad->file->last_mtime == NONEXISTENT_MTIME)
         OS (error, file->cmds ? &file->cmds->fileinfo : NILF,
-            _("warning: pattern recipe did not update peer target '%s'."),
+            _("warning: pattern recipe did not update peer target '%s'"),
             ad->file->name);
 }
 
@@ -529,7 +529,7 @@ update_file_1 (struct file *file, unsigned int depth)
       int ns = FILE_TIMESTAMP_NS (this_mtime);
       if (ns != 0)
         OS (error, NILF,
-            _("*** Warning: .LOW_RESOLUTION_TIME file '%s' has a high resolution time stamp"),
+            _("*** warning: .LOW_RESOLUTION_TIME file '%s' has a high resolution time stamp"),
             file->name);
       this_mtime += FILE_TIMESTAMPS_PER_S - 1 - ns;
     }
@@ -612,7 +612,7 @@ update_file_1 (struct file *file, unsigned int depth)
 
           if (is_updating (d->file))
             {
-              OSS (error, NILF, _("Circular %s <- %s dependency dropped."),
+              OSS (error, NILF, _("circular %s <- %s dependency dropped"),
                    file->name, d->file->name);
 
               if (lastd == 0)
@@ -1177,7 +1177,7 @@ check_dep (struct file *file, unsigned int depth,
 
               if (is_updating (d->file))
                 {
-                  OSS (error, NILF, _("Circular %s <- %s dependency dropped."),
+                  OSS (error, NILF, _("circular %s <- %s dependency dropped"),
                        file->name, d->file->name);
                   if (ld == 0)
                     {
@@ -1513,7 +1513,7 @@ f_mtime (struct file *file, int search)
               else
                 sprintf (from_now_string, "%.2g", from_now);
               OSS (error, NILF,
-                   _("Warning: File '%s' has modification time %s s in the future"),
+                   _("warning: file '%s' has modification time %s s in the future"),
                    file->name, from_now_string);
               clock_skew_detected = 1;
             }

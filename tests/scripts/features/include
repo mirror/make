@@ -432,9 +432,9 @@ all:; @echo hello
 include inc_b.mk
 %_a.mk %_b.mk:; exit 1
 !,
-              '', "exit 1\n#MAKEFILE#:4: Failed to remake makefile 'inc_b.mk'.\n", 512);
+              '', "exit 1\n#MAKEFILE#:4: failed to remake makefile 'inc_b.mk'", 512);
 
-run_make_test(undef, '-k', "exit 1\n#MAKEFILE#:4: Failed to remake makefile 'inc_b.mk'.\n", 512);
+run_make_test(undef, '-k', "exit 1\n#MAKEFILE#:4: failed to remake makefile 'inc_b.mk'", 512);
 
 # It seems wrong to me that this gives a different error message, but at
 # least it doesn't keep going.
@@ -446,7 +446,7 @@ include inc_a.mk
 !,
               '', "exit 1\n#MAKEFILE#:3: inc_a.mk: $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:5: inc_a.mk] Error 1\n", 512);
 
-run_make_test(undef, '-k', "exit 1\n#MAKEFILE#:3: inc_a.mk: $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:5: inc_a.mk] Error 1\n#MAKEFILE#:3: Failed to remake makefile 'inc_a.mk'.\n", 512);
+run_make_test(undef, '-k', "exit 1\n#MAKEFILE#:3: inc_a.mk: $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:5: inc_a.mk] Error 1\n#MAKEFILE#:3: failed to remake makefile 'inc_a.mk'", 512);
 
 # Check the default makefiles... this requires us to invoke make with no
 # arguments.  Also check MAKEFILES

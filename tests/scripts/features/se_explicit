@@ -185,9 +185,9 @@ foo: $$@.o ;
 # Not creating libcat.a here prevents segfault,
 libcat.a: ; @touch $@
 !,
-              '', q!#MAKEFILE#:16: Recipe was specified for file '-lcat' at #MAKEFILE#:16,
-#MAKEFILE#:16: but '-lcat' is now considered the same file as 'libcat.a'.
-#MAKEFILE#:16: Recipe for '-lcat' will be ignored in favor of the one for 'libcat.a'.!);
+              '', q!#MAKEFILE#:16: recipe was specified for file '-lcat' at #MAKEFILE#:16,
+#MAKEFILE#:16: but '-lcat' is now considered the same file as 'libcat.a'
+#MAKEFILE#:16: recipe for '-lcat' will be ignored in favor of the one for 'libcat.a'!);
 unlink('libcat.a');
 
 # SV 28456 : Don't reset $$< for default recipes
@@ -454,9 +454,9 @@ all: hello.c; $(info $@ from $^)
 hello.c: $$(info second expansion of hello.c prereqs); $(info 1 $@)
 src/hello.c: $$(info second expansion of src/hello.c prereqs); $(info 2 $@)
 !, '',
-"#MAKEFILE#:5: Recipe was specified for file 'hello.c' at #MAKEFILE#:5,
-#MAKEFILE#:5: but 'hello.c' is now considered the same file as 'src/hello.c'.
-#MAKEFILE#:5: Recipe for 'hello.c' will be ignored in favor of the one for 'src/hello.c'.
+"#MAKEFILE#:5: recipe was specified for file 'hello.c' at #MAKEFILE#:5,
+#MAKEFILE#:5: but 'hello.c' is now considered the same file as 'src/hello.c'
+#MAKEFILE#:5: recipe for 'hello.c' will be ignored in favor of the one for 'src/hello.c'
 second expansion of src/hello.c prereqs
 second expansion of hello.c prereqs
 2 src/hello.c

@@ -83,7 +83,7 @@ if ($parallel_jobs) {
 
 # TEST 8: Test circular dependency check; PR/1671
 
-run_make_test(undef, "d", "ok\n$make_name: Circular d <- d dependency dropped.\noops\n");
+run_make_test(undef, "d", "ok\n$make_name: circular d <- d dependency dropped\noops\n");
 
 # TEST 8: I don't grok why this is different than the above, but it is...
 #

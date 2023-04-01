@@ -475,7 +475,7 @@ unlink('1.all', '1.q', '1.r');
 run_make_test(q!
 %a %b : ; touch $*a
 !,
-              'gta', "touch gta\n#MAKEFILE#:2: warning: pattern recipe did not update peer target 'gtb'.\n");
+              'gta', "touch gta\n#MAKEFILE#:2: warning: pattern recipe did not update peer target 'gtb'\n");
 unlink(qw(gta));
 
 # We don't warn if we didn't update the file
@@ -497,7 +497,7 @@ all:;
 include gta
 %a %b : ; touch $*a
 !,
-              '', "touch gta\n#MAKEFILE#:4: warning: pattern recipe did not update peer target 'gtb'.\n#MAKE#: 'all' is up to date.");
+              '', "touch gta\n#MAKEFILE#:4: warning: pattern recipe did not update peer target 'gtb'\n#MAKE#: 'all' is up to date.");
 unlink(qw(gta));
 
 run_make_test(q!
@@ -505,7 +505,7 @@ run_make_test(q!
 %.o: %.c; touch $@
 foo.y: ; touch $@
 !,
-              'foo.o', "touch foo.y\ntouch foo.c\n#MAKEFILE#:2: warning: pattern recipe did not update peer target 'foo.h'.\ntouch foo.o\nrm foo.c");
+              'foo.o', "touch foo.y\ntouch foo.c\n#MAKEFILE#:2: warning: pattern recipe did not update peer target 'foo.h'\ntouch foo.o\nrm foo.c");
 unlink(qw(foo.y foo.c foo.o));
 
 if (0) {

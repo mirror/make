@@ -57,7 +57,7 @@ load_object (const floc *flocp, int noerror, const char *ldname,
       if (! global_dl)
         {
           const char *err = dlerror ();
-          OS (fatal, flocp, _("Failed to open global symbol table: %s"), err);
+          OS (fatal, flocp, _("failed to open global symbol table: %s"), err);
         }
     }
 
@@ -96,14 +96,14 @@ load_object (const floc *flocp, int noerror, const char *ldname,
       symp = (load_func_t) dlsym (dlp, "plugin_is_GPL_compatible");
       if (! symp)
         OS (fatal, flocp,
-             _("Loaded object %s is not declared to be GPL compatible"),
+             _("loaded object %s is not declared to be GPL compatible"),
              ldname);
 
       symp = (load_func_t) dlsym (dlp, symname);
       if (! symp)
         {
           const char *err = dlerror ();
-          OSSS (fatal, flocp, _("Failed to load symbol %s from %s: %s"),
+          OSSS (fatal, flocp, _("failed to load symbol %s from %s: %s"),
                 symname, ldname, err);
         }
 
@@ -148,7 +148,7 @@ load_file (const floc *flocp, struct file *file, int noerror)
 
           ++fp;
           if (fp == ep)
-            OS (fatal, flocp, _("Empty symbol name for load: %s"), ldname);
+            OS (fatal, flocp, _("empty symbol name for load: %s"), ldname);
 
           /* Make a copy of the ldname part.  */
           memcpy (new, ldname, l);
@@ -248,7 +248,7 @@ load_file (const floc *flocp, struct file *file UNUSED, int noerror)
 {
   if (! noerror)
     O (fatal, flocp,
-       _("The 'load' operation is not supported on this platform"));
+       _("'load' is not supported on this platform"));
 
   return 0;
 }
@@ -256,7 +256,7 @@ load_file (const floc *flocp, struct file *file UNUSED, int noerror)
 int
 unload_file (const char *name UNUSED)
 {
-  O (fatal, NILF, "INTERNAL: Cannot unload when load is not supported");
+  O (fatal, NILF, "INTERNAL: cannot unload when load is not supported");
 }
 
 #endif  /* MAKE_LOAD */

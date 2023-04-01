@@ -1110,7 +1110,7 @@ free_child (struct child *child)
   output_close (&child->output);
 
   if (!jobserver_tokens)
-    ONS (fatal, NILF, "INTERNAL: Freeing child %p (%s) but no tokens left",
+    ONS (fatal, NILF, "INTERNAL: freeing child %p (%s) but no tokens left",
          child, child->file->name);
 
   /* If we're using the jobserver and this child is not the only outstanding
@@ -2242,7 +2242,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
   if (save_fdin >= 0)
     {
       if (dup2 (save_fdin, FD_STDIN) != FD_STDIN)
-        O (fatal, NILF, _("Could not restore stdin"));
+        O (fatal, NILF, _("could not restore stdin"));
       else
         close (save_fdin);
     }
@@ -2250,7 +2250,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
   if (save_fdout >= 0)
     {
       if (dup2 (save_fdout, FD_STDOUT) != FD_STDOUT)
-        O (fatal, NILF, _("Could not restore stdout"));
+        O (fatal, NILF, _("could not restore stdout"));
       else
         close (save_fdout);
     }
@@ -2258,7 +2258,7 @@ child_execute_job (struct childbase *child, int good_stdin, char **argv)
   if (save_fderr >= 0)
     {
       if (dup2 (save_fderr, FD_STDERR) != FD_STDERR)
-        O (fatal, NILF, _("Could not restore stderr"));
+        O (fatal, NILF, _("could not restore stderr"));
       else
         close (save_fderr);
     }

@@ -1824,7 +1824,7 @@ main (int argc, char **argv, char **envp)
             goto job_setup_complete;
 
           /* Oops: we have jobserver-auth but it's invalid :(.  */
-          O (error, NILF, _("warning: jobserver unavailable: using -j1.  Add '+' to parent make rule."));
+          O (error, NILF, _("warning: jobserver unavailable: using -j1 (add '+' to parent make rule)"));
           arg_job_slots = 1;
         }
 
@@ -1832,7 +1832,7 @@ main (int argc, char **argv, char **envp)
          the master make of a new jobserver group.  */
       else if (!restarts)
         ON (error, NILF,
-            _("warning: -j%d forced in submake: resetting jobserver mode."),
+            _("warning: -j%d forced in submake: resetting jobserver mode"),
             argv_slots);
 
       /* We can't use our parent's jobserver, so reset.  */
@@ -2082,7 +2082,7 @@ main (int argc, char **argv, char **envp)
            Make us the master of a new jobserver group.  */
         if (!restarts)
           ON (error, NILF,
-              _("warning: -j%d forced in makefile: resetting jobserver mode."),
+              _("warning: -j%d forced in makefile: resetting jobserver mode"),
               arg_job_slots);
 
         /* We can't use our parent's jobserver, so reset.  */
@@ -2178,8 +2178,8 @@ main (int argc, char **argv, char **envp)
       )
     {
       O (error, NILF,
-         _("Parallel jobs (-j) are not supported on this platform."));
-      O (error, NILF, _("Resetting to single job (-j1) mode."));
+         _("parallel jobs (-j) are not supported on this platform"));
+      O (error, NILF, _("resetting to single job (-j1) mode"));
       arg_job_slots = INVALID_JOB_SLOTS;
       job_slots = 1;
     }
@@ -2242,7 +2242,7 @@ main (int argc, char **argv, char **envp)
 #ifndef MAKE_SYMLINKS
   if (check_symlink_flag)
     {
-      O (error, NILF, _("Symbolic links not supported: disabling -L."));
+      O (error, NILF, _("symbolic links not supported: disabling -L"));
       check_symlink_flag = 0;
     }
 #endif
@@ -2520,8 +2520,7 @@ main (int argc, char **argv, char **envp)
                         /* The update failed and this makefile was not
                            from the MAKEFILES variable, so we care.  */
                         OS (error, &d->floc,
-                            _("Failed to remake makefile '%s'."),
-                            d->file->name);
+                            _("failed to remake makefile '%s'"), d->file->name);
                         mtime = file_mtime_no_search (d->file);
                         any_remade |= (mtime != NONEXISTENT_MTIME
                                        && mtime != makefile_mtimes[i]);
@@ -2540,11 +2539,11 @@ main (int argc, char **argv, char **envp)
                       /* An included makefile.  We don't need to die, but we
                          do want to complain.  */
                       OS (error, &d->floc,
-                          _("Included makefile '%s' was not found."), dnm);
+                          _("included makefile '%s' was not found"), dnm);
                     else
                       {
                         /* A normal makefile.  We must die later.  */
-                        OS (error, NILF, _("Makefile '%s' was not found"), dnm);
+                        OS (error, NILF, _("makefile '%s' was not found"), dnm);
                         any_failed = 1;
                       }
                   }
@@ -2692,7 +2691,7 @@ main (int argc, char **argv, char **envp)
                 }
               if (bad)
                 O (fatal, NILF,
-                   _("Couldn't change back to original directory"));
+                   _("couldn't change back to original directory"));
             }
 
           ++restarts;
@@ -2898,7 +2897,7 @@ main (int argc, char **argv, char **envp)
     /* If we detected some clock skew, generate one last warning */
     if (clock_skew_detected)
       O (error, NILF,
-         _("warning: Clock skew detected.  Your build may be incomplete."));
+         _("warning: clock skew detected: your build may be incomplete"));
 
     /* Exit.  */
     die (makefile_status);
@@ -3715,7 +3714,7 @@ clean_jobserver (int status)
     {
       if (status != 2)
         ON (error, NILF,
-            "INTERNAL: Exiting with %u jobserver tokens (should be 0)!",
+            "INTERNAL: exiting with %u jobserver tokens (should be 0)!",
             jobserver_tokens);
       else
         /* Don't write back the "free" token */
@@ -3733,7 +3732,7 @@ clean_jobserver (int status)
 
       if (tokens != master_job_slots)
         ONN (error, NILF,
-             "INTERNAL: Exiting with %u jobserver tokens available; should be %u!",
+             "INTERNAL: exiting with %u jobserver tokens available; should be %u!",
              tokens, master_job_slots);
 
       reset_jobserver ();

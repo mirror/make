@@ -269,19 +269,19 @@ rehash_file (struct file *from_file, const char *to_hname)
           if (to_file->cmds->fileinfo.filenm != 0)
             error (&from_file->cmds->fileinfo,
                    l + strlen (to_file->cmds->fileinfo.filenm) + INTSTR_LENGTH,
-                   _("Recipe was specified for file '%s' at %s:%lu,"),
+                   _("recipe was specified for file '%s' at %s:%lu,"),
                    from_file->name, from_file->cmds->fileinfo.filenm,
                    from_file->cmds->fileinfo.lineno);
           else
             error (&from_file->cmds->fileinfo, l,
-                   _("Recipe for file '%s' was found by implicit rule search,"),
+                   _("recipe for file '%s' was found by implicit rule search,"),
                    from_file->name);
           l += strlen (to_hname);
           error (&from_file->cmds->fileinfo, l,
-                 _("but '%s' is now considered the same file as '%s'."),
+                 _("but '%s' is now considered the same file as '%s'"),
                  from_file->name, to_hname);
           error (&from_file->cmds->fileinfo, l,
-                 _("Recipe for '%s' will be ignored in favor of the one for '%s'."),
+                 _("recipe for '%s' will be ignored in favor of the one for '%s'"),
                  from_file->name, to_hname);
         }
     }
@@ -410,7 +410,7 @@ remove_intermediates (int sig)
               {
                 if (sig)
                   OS (error, NILF,
-                      _("*** Deleting intermediate file '%s'"), f->name);
+                      _("*** deleting intermediate file '%s'"), f->name);
                 else
                   {
                     if (! doneany)
@@ -949,7 +949,7 @@ file_timestamp_cons (const char *fname, time_t stamp, long int ns)
       ts = s <= OLD_MTIME ? ORDINARY_MTIME_MIN : ORDINARY_MTIME_MAX;
       file_timestamp_sprintf (buf, ts);
       OSS (error, NILF,
-           _("%s: Timestamp out of range; substituting %s"), f, buf);
+           _("%s: timestamp out of range: substituting %s"), f, buf);
     }
 
   return ts;
@@ -1199,7 +1199,7 @@ print_file_data_base (void)
     do{                                                                       \
         if (_p->_n && _p->_n[0] && !strcache_iscached (_p->_n))               \
           error (NULL, strlen (_p->name) + CSTRLEN (# _n) + strlen (_p->_n),  \
-                 _("%s: Field '%s' not cached: %s"), _p->name, # _n, _p->_n); \
+                 _("%s: field '%s' not cached: %s"), _p->name, # _n, _p->_n); \
     }while(0)
 
 static void

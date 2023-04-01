@@ -63,7 +63,7 @@ ar_parse_name (const char *name, char **arname_p, char **memname_p)
   p = strchr (*arname_p, '(');
   /* This is never called unless ar_name() is true so p cannot be NULL.  */
   if (!p)
-    OS (fatal, NILF, "Internal: ar_parse_name: bad name '%s'", *arname_p);
+    OS (fatal, NILF, "INTERNAL: ar_parse_name: bad name '%s'", *arname_p);
   *(p++) = '\0';
   p[strlen (p) - 1] = '\0';
   *memname_p = p;
@@ -148,7 +148,7 @@ ar_touch (const char *name)
   switch (ar_member_touch (arname, memname))
     {
     case -1:
-      OS (error, NILF, _("touch: Archive '%s' does not exist"), arname);
+      OS (error, NILF, _("touch: archive '%s' does not exist"), arname);
       break;
     case -2:
       OS (error, NILF, _("touch: '%s' is not a valid archive"), arname);
@@ -158,14 +158,14 @@ ar_touch (const char *name)
       break;
     case 1:
       OSS (error, NILF,
-           _("touch: Member '%s' does not exist in '%s'"), memname, arname);
+           _("touch: member '%s' does not exist in '%s'"), memname, arname);
       break;
     case 0:
       val = 0;
       break;
     default:
       OS (error, NILF,
-          _("touch: Bad return code from ar_member_touch on '%s'"), name);
+          _("touch: bad return code from ar_member_touch on '%s'"), name);
     }
 
   free (arname);

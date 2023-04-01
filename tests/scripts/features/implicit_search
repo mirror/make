@@ -177,7 +177,7 @@ all: hello.tsk
 %.o:$r %.c; \$(info hello.c)
 %.o:$r %.f %.tsk; \$(info hello.f)
 ", '-r',
-"#MAKE#: Circular hello.o <- hello.tsk dependency dropped.\nhello.f\nhello.tsk\n#MAKE#: Nothing to be done for 'all'.");
+"#MAKE#: circular hello.o <- hello.tsk dependency dropped\nhello.f\nhello.tsk\n#MAKE#: Nothing to be done for 'all'.");
 
 }
 
