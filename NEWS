@@ -28,6 +28,11 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&se
   undefined variables (defaults to "ignore"). "--warn-undefined-variables" is
   deprecated, and is translated to "--warn=undefined-vars" internally.
 
+* New feature: Control warnings with the .WARNINGS variable
+  In addition to --warn from the command line, which take effect for make
+  invoked recursively, warnings can be controlled only for the current
+  instance of make using the .WARNINGS variable.
+
 
 Version 4.4.1 (26 Feb 2023)
 
