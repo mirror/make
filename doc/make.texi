@@ -2369,8 +2369,6 @@ there is no need to write explicit rules for compiling the files.
 
 @node Directory Search, Phony Targets, Wildcards, Rules
 @section Searching Directories for Prerequisites
-@vindex VPATH
-@findex vpath
 @cindex vpath
 @cindex search path for prerequisites (@code{VPATH})
 @cindex directory search (@code{VPATH})
@@ -2484,7 +2482,6 @@ end in @code{.h}.  (If there is no @samp{%}, the pattern must match the
 prerequisite exactly, which is not useful very often.)
 
 @cindex @code{%}, quoting in @code{vpath}
-@cindex @code{%}, quoting with @code{\} (backslash)
 @cindex @code{\} (backslash), to quote @code{%}
 @cindex backslash (@code{\}), to quote @code{%}
 @cindex quoting @code{%}, in @code{vpath}
@@ -2760,7 +2757,7 @@ probably no such file will ever exist.  Therefore, the @code{rm} command
 will be executed every time you say @samp{make clean}.
 @cindex @code{rm} (shell command)
 
-@findex .PHONY
+@cindex using .PHONY
 In this example, the @file{clean} target will not work properly if a
 file named @file{clean} is ever created in this directory.  Since it
 has no prerequisites, @file{clean} would always be considered up to
@@ -2997,7 +2994,7 @@ The prerequisites of the special target @code{.SUFFIXES} are the list
 of suffixes to be used in checking for suffix rules.
 @xref{Suffix Rules, , Old-Fashioned Suffix Rules}.
 
-@findex .DEFAULT
+@findex .DEFAULT@r{, special target}
 @item .DEFAULT
 
 The recipe specified for @code{.DEFAULT} is used for any target for
@@ -3083,7 +3080,6 @@ that the creation of @file{hello.bin} could succeed.
 as secondary (i.e., no target is removed because it is considered
 intermediate).
 
-@findex .SECONDEXPANSION
 @item .SECONDEXPANSION
 
 If @code{.SECONDEXPANSION} is mentioned as a target anywhere in the
@@ -3187,7 +3183,6 @@ prerequisites of those targets will be run serially.  This implicitly adds a
 @code{.WAIT} between each prerequisite of the listed targets.  @xref{Parallel
 Disable, , Disabling Parallel Execution}.
 
-@findex .ONESHELL
 @item .ONESHELL
 @cindex recipe execution, single invocation
 
@@ -3274,7 +3269,6 @@ bigoutput littleoutput : text.g
         generate text.g -$(subst output,,$@@) > $@@
 @end group
 @end example
-@findex subst
 
 @noindent
 is equivalent to
@@ -3473,7 +3467,6 @@ to write a prerequisite pattern that does not contain @samp{%}; then this
 prerequisite is the same for all targets.
 
 @cindex @code{%}, quoting in static pattern
-@cindex @code{%}, quoting with @code{\} (backslash)
 @cindex @code{\} (backslash), to quote @code{%}
 @cindex backslash (@code{\}), to quote @code{%}
 @cindex quoting @code{%}, in static pattern
@@ -4064,7 +4057,6 @@ doing them.
 @cindex @code{-s}
 @cindex @code{--silent}
 @cindex @code{--quiet}
-@findex .SILENT
 The @samp{-s} or @samp{--silent}
 flag to @code{make} prevents all echoing, as if all recipes
 started with @samp{@@}.  A rule in the makefile for the special target
@@ -4246,7 +4238,6 @@ explicitly exporting @code{SHELL} (@pxref{Variables/Recursion,
 ,Communicating Variables to a Sub-@code{make}}), forcing it to be
 passed in the environment to recipe lines.
 
-@vindex @code{MAKESHELL} @r{(MS-DOS alternative to @code{SHELL})}
 However, on MS-DOS and MS-Windows the value of @code{SHELL} in the
 environment @strong{is} used, since on those systems most users do not
 set this variable, and therefore it is most likely set specifically to
@@ -4318,9 +4309,6 @@ The effect of the above DOS-specific processing is that a Makefile that
 contains @samp{SHELL = /bin/sh} (as many Unix makefiles do), will work
 on MS-DOS unaltered if you have e.g.@: @file{sh.exe} installed in some
 directory along your @code{PATH}.
-
-@vindex SHELL
-@vindex .SHELLFLAGS
 
 @node Parallel, Errors, Execution, Recipes
 @section Parallel Execution
@@ -4411,7 +4399,6 @@ in parallel and it's not feasible to add the prerequisites needed to inform
 parallel execution.
 
 @cindex .NOTPARALLEL special target
-@findex .NOTPARALLEL
 If the @code{.NOTPARALLEL} special target with no prerequisites is specified
 anywhere then the entire instance of @code{make} will be run serially,
 regardless of the parallel setting.  For example:
@@ -4657,7 +4644,6 @@ remove a file.
 
 @cindex @code{-i}
 @cindex @code{--ignore-errors}
-@findex .IGNORE
 When you run @code{make} with the @samp{-i} or @samp{--ignore-errors}
 flag, errors are ignored in all recipes of all rules.  A rule in the
 makefile for the special target @code{.IGNORE} has the same effect, if
@@ -4696,7 +4682,7 @@ is why Emacs' @code{compile} command passes the @samp{-k} flag by
 default.
 @cindex Emacs (@code{M-x compile})
 
-@findex .DELETE_ON_ERROR
+@findex .DELETE_ON_ERROR@r{, errors in recipes}
 @cindex deletion of target files
 @cindex removal of target files
 @cindex target, deleting on error
@@ -4737,7 +4723,7 @@ invocation of @code{make} would think that @file{foo.o} did not require
 updating---resulting in a strange error message from the linker when it
 tries to link an object file half of which is missing.
 
-@findex .PRECIOUS
+@cindex .PRECIOUS, preserving targets
 You can prevent the deletion of a target file in this way by making the
 special target @code{.PRECIOUS} depend on it.  Before remaking a target,
 @code{make} checks to see whether it appears on the prerequisites of
@@ -5005,7 +4991,7 @@ This tells @code{make} that variables which are not explicitly mentioned in an
 @code{export} or @code{unexport} directive should be exported.  Any variable
 given in an @code{unexport} directive will still @emph{not} be exported.
 
-@findex .EXPORT_ALL_VARIABLES
+@findex .EXPORT_ALL_VARIABLES@r{, compatibility}
 @cindex compatibility in exporting
 The behavior elicited by an @code{export} directive by itself was the default
 in older versions of GNU @code{make}.  If your makefiles depend on this
@@ -5159,8 +5145,6 @@ This is not usually useful to do.  However, some systems have a small
 fixed limit on the size of the environment, and putting so much
 information into the value of @code{MAKEFLAGS} can exceed it.  If you
 see the error message @samp{Arg list too long}, this may be the problem.
-@findex .POSIX
-@cindex POSIX
 (For strict compliance with POSIX.2, changing @code{MAKEOVERRIDES} does
 not affect @code{MAKEFLAGS} if the special target @samp{.POSIX} appears
 in the makefile.  You probably do not care about this.)
@@ -5658,8 +5642,6 @@ when it is passed down from level to level.
 (@xref{Variables/Recursion, , Communicating Variables to a
 Sub-@code{make}}, for information about @code{MAKELEVEL}.)
 
-@vindex MAKELEVEL
-@vindex MAKE
 @example
 @group
 ifeq (0,$@{MAKELEVEL@})
@@ -5876,7 +5858,6 @@ expansion function (@pxref{Text Functions, ,Functions for String Substitution an
 substitution references as well as @code{patsubst} for compatibility
 with other implementations of @code{make}.
 
-@findex patsubst
 Another type of substitution reference lets you use the full power of
 the @code{patsubst} function.  It has the same form
 @samp{$(@var{var}:@var{a}=@var{b})} described above, except that now
@@ -6753,7 +6734,7 @@ GNU @code{make} supports some variables that have special properties.
 
 @table @code
 
-@vindex MAKEFILE_LIST @r{(list of parsed makefiles)}
+@vindex MAKEFILE_LIST
 @cindex makefiles, and @code{MAKEFILE_LIST} variable
 @cindex including (@code{MAKEFILE_LIST} variable)
 @item MAKEFILE_LIST
@@ -6791,7 +6772,7 @@ name2 = inc.mk
 @end group
 @end example
 
-@vindex .DEFAULT_GOAL @r{(define default goal)}
+@vindex .DEFAULT_GOAL
 @item .DEFAULT_GOAL
 Sets the default goal to be used if no targets were specified on the
 command line (@pxref{Goals, , Arguments to Specify the Goals}).  The
@@ -6839,7 +6820,7 @@ foo
 Note that assigning more than one target name to @code{.DEFAULT_GOAL} is
 invalid and will result in an error.
 
-@vindex MAKE_RESTARTS @r{(number of times @code{make} has restarted)}
+@vindex MAKE_RESTARTS
 @item MAKE_RESTARTS
 This variable is set only if this instance of @code{make} has
 restarted (@pxref{Remaking Makefiles, , How Makefiles Are Remade}): it
@@ -6847,8 +6828,8 @@ will contain the number of times this instance has restarted.  Note
 this is not the same as recursion (counted by the @code{MAKELEVEL}
 variable).  You should not set, modify, or export this variable.
 
-@vindex MAKE_TERMOUT @r{(whether stdout is a terminal)}
-@vindex MAKE_TERMERR @r{(whether stderr is a terminal)}
+@vindex MAKE_TERMOUT
+@vindex MAKE_TERMERR
 @item MAKE_TERMOUT
 @itemx MAKE_TERMERR
 When @code{make} starts it will check whether stdout and stderr will
@@ -6869,7 +6850,7 @@ If you invoke a sub-@code{make} and redirect its stdout or stderr it
 is your responsibility to reset or unexport these variables as well,
 if your makefiles rely on them.
 
-@vindex .RECIPEPREFIX @r{(change the recipe prefix character)}
+@vindex .RECIPEPREFIX
 @item .RECIPEPREFIX
 The first character of the value of this variable is used as the
 character make assumes is introducing a recipe line.  If the variable
@@ -6887,7 +6868,7 @@ all:
 The value of @code{.RECIPEPREFIX} can be changed multiple times; once set
 it stays in effect for all rules parsed until it is modified.
 
-@vindex .VARIABLES @r{(list of variables)}
+@vindex .VARIABLES
 @item .VARIABLES
 Expands to a list of the @emph{names} of all global variables defined
 so far.  This includes variables which have empty values, as well as
@@ -6897,7 +6878,7 @@ defined in a target-specific context.  Note that any value you assign
 to this variable will be ignored; it will always return its special
 value.
 
-@c @vindex .TARGETS @r{(list of targets)}
+@c @vindex .TARGETS
 @c @item .TARGETS
 @c The second special variable is @code{.TARGETS}.  When expanded, the
 @c value consists of a list of all targets defined in all makefiles read
@@ -6907,7 +6888,7 @@ value.
 @c file must appear as a target, on the left-hand side of a ``:'', to be
 @c considered a target for the purposes of this variable.
 
-@vindex .FEATURES @r{(list of supported features)}
+@vindex .FEATURES
 @item .FEATURES
 Expands to a list of special features supported by this version of
 @code{make}.  Possible values include, but are not limited to:
@@ -6984,14 +6965,14 @@ Supports target-specific and pattern-specific variable assignments.
 Supports the @code{undefine} directive.  @xref{Undefine Directive}.
 @end table
 
-@vindex .INCLUDE_DIRS @r{(list of include directories)}
+@vindex .INCLUDE_DIRS
 @item .INCLUDE_DIRS
 Expands to a list of directories that @code{make} searches for
 included makefiles (@pxref{Include, , Including Other Makefiles}).
 Note that modifying this variable's value does not change the list of
 directories which are searched.
 
-@vindex .EXTRA_PREREQS @r{(prerequisites not added to automatic variables)}
+@vindex .EXTRA_PREREQS
 @item .EXTRA_PREREQS
 Each word in this variable is a new prerequisite which is added to
 targets for which it is set.  These prerequisites differ from normal
@@ -7515,7 +7496,6 @@ first @samp{%} in the @var{pattern} and @var{replacement} is treated
 this way; any subsequent @samp{%} is unchanged.
 
 @cindex @code{%}, quoting in @code{patsubst}
-@cindex @code{%}, quoting with @code{\} (backslash)
 @cindex @code{\} (backslash), to quote @code{%}
 @cindex backslash (@code{\}), to quote @code{%}
 @cindex quoting @code{%}, in @code{patsubst}
@@ -7974,7 +7954,6 @@ This function can merge the results of the @code{dir} and
 was given to those two functions.
 
 @item $(wildcard @var{pattern})
-@findex wildcard
 @cindex wildcard, function
 The argument @var{pattern} is a file name pattern, typically containing
 wildcard characters (as in shell file name patterns).  The result of
@@ -8006,7 +7985,6 @@ the file names to refer to an existing file or directory.  Use the
 
 @node Conditional Functions, Let Function, File Name Functions, Functions
 @section Functions for Conditionals
-@findex if
 @cindex conditional expansion
 There are four functions that provide conditional expansion.  A key
 aspect of these functions is that not all of the arguments are
@@ -9312,6 +9290,7 @@ correct them all before the next attempt to compile.  This is why Emacs'
 @node Warnings, Temporary Files, Testing, Running
 @section Makefile Warnings
 @cindex warnings
+@cindex enabling warnings
 
 GNU Make can detect some types of incorrect usage in makefiles.  When one of
 these incorrect usages is detected, GNU Make can perform one of these actions:
@@ -9378,7 +9357,7 @@ There are two ways to specify control options: using the @code{--warn} command
 line option, or using the @code{.WARNINGS} variable.
 
 @subsubheading The @code{.WARNINGS} variable
-@findex .WARNINGS
+@vindex .WARNINGS
 Warning control options provided in the @code{.WARNINGS} variable take effect
 as soon as the variable assignment is parsed and will last until this instance
 of @code{make} finishes parsing all makefiles.  These settings will not be
@@ -11326,7 +11305,6 @@ previous rules as do pattern rules with no recipe (@pxref{Canceling
 Rules, , Canceling Implicit Rules}).  They simply enter the suffix or
 pair of suffixes concatenated as a target in the data base.
 
-@findex .SUFFIXES
 The known suffixes are simply the names of the prerequisites of the special
 target @code{.SUFFIXES}.  You can add your own suffixes by writing a rule
 for @code{.SUFFIXES} that adds more prerequisites, as in:
@@ -13321,7 +13299,7 @@ environment.  @xref{Choosing the Shell}.
 
 On MS-DOS only, the name of the command interpreter that is to be used
 by @code{make}.  This value takes precedence over the value of
-@code{SHELL}.  @xref{Execution, ,MAKESHELL variable}.
+@code{SHELL}.  @xref{Choosing the Shell}.
 
 @item MAKE
 
