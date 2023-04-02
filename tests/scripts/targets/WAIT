@@ -298,5 +298,344 @@ all:;@:
 !,
               '', "#MAKEFILE#:2: .WAIT should not have prerequisites\n#MAKEFILE#:3: .WAIT should not have commands\n");
 
+# Wait for all double colon targets on the left, before building targets on the
+# right.
+# Subtest 1. First run this test without .WAIT and observe and A recipes
+# interleave with B recipes.
+# Then run the same test with .WAIT and observe that all A recipes get started
+# sequentially before the 1st B recipe gets started and then all B recipes get
+# started sequentially.
+
+unlink('A-1-done', 'A-2-done', 'A-3-done', 'B-1-done', 'B-2-done', 'B-3-done');
+
+run_make_test(q!
+all: A B
+A::; @#HELPER# -q out A-1 file A-1-done wait B-1-done out A-1-done
+A::; @#HELPER# -q out A-2 file A-2-done wait B-2-done out A-2-done
+A::; @#HELPER# -q out A-3 file A-3-done wait B-3-done out A-3-done
+B::; @#HELPER# -q wait A-1-done out B-1 out B-1-done file B-1-done
+B::; @#HELPER# -q wait A-2-done out B-2 out B-2-done file B-2-done
+B::; @#HELPER# -q wait A-3-done out B-3 out B-3-done file B-3-done
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10', "A-1\nB-1\nB-1-done\nA-1-done\nA-2\nB-2\nB-2-done\nA-2-done\nA-3\nB-3\nB-3-done\nA-3-done\n");
+
+unlink('A-1-done', 'A-2-done', 'A-3-done', 'B-1-done', 'B-2-done', 'B-3-done');
+
+# Subtest 2.
+# Wait for all double colon targets on the left, before building targets on the
+# right.
+
+run_make_test(q!
+all: A .WAIT B
+A::; @#HELPER# -q out $@-1 out $@-1-done
+A::; @#HELPER# -q out $@-2 out $@-2-done
+A::; @#HELPER# -q out $@-3 out $@-3-done
+B::; @#HELPER# -q out $@-1 out $@-1-done
+B::; @#HELPER# -q out $@-2 out $@-2-done
+B::; @#HELPER# -q out $@-3 out $@-3-done
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10', "A-1\nA-1-done\nA-2\nA-2-done\nA-3\nA-3-done\nB-1\nB-1-done\nB-2\nB-2-done\nB-3\nB-3-done\n");
+
+# sv 63856.
+# Wait for all double colon targets on the left, before building targets on the
+# right.
+# Subtest 1. First run this test without .WAIT and observe and A recipes
+# interleave with B recipes.
+# Then run the same test with .WAIT and observe that all A recipes get started
+# sequentially before the 1st B recipe gets started and then all B recipes get
+# started sequentially.
+# The targets are specified on the command line.
+
+unlink('A-1-done', 'A-2-done', 'A-3-done', 'B-1-done', 'B-2-done', 'B-3-done');
+
+run_make_test(q!
+A::; @#HELPER# -q out A-1 file A-1-done wait B-1-done out A-1-done
+A::; @#HELPER# -q out A-2 file A-2-done wait B-2-done out A-2-done
+A::; @#HELPER# -q out A-3 file A-3-done wait B-3-done out A-3-done
+B::; @#HELPER# -q wait A-1-done out B-1 out B-1-done file B-1-done
+B::; @#HELPER# -q wait A-2-done out B-2 out B-2-done file B-2-done
+B::; @#HELPER# -q wait A-3-done out B-3 out B-3-done file B-3-done
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10 A B', "A-1\nB-1\nB-1-done\nA-1-done\nA-2\nB-2\nB-2-done\nA-2-done\nA-3\nB-3\nB-3-done\nA-3-done\n");
+
+unlink('A-1-done', 'A-2-done', 'A-3-done', 'B-1-done', 'B-2-done', 'B-3-done');
+
+# Subtest 2.
+# sv 63856.
+# Wait for all double colon targets on the left, before building targets on the
+# right. The targets are specified on the command line.
+
+run_make_test(q!
+A::; @#HELPER# -q out $@-1 out $@-1-done
+A::; @#HELPER# -q out $@-2 out $@-2-done
+A::; @#HELPER# -q out $@-3 out $@-3-done
+B::; @#HELPER# -q out $@-1 out $@-1-done
+B::; @#HELPER# -q out $@-2 out $@-2-done
+B::; @#HELPER# -q out $@-3 out $@-3-done
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10 A .WAIT B', "A-1\nA-1-done\nA-2\nA-2-done\nA-3\nA-3-done\nB-1\nB-1-done\nB-2\nB-2-done\nB-3\nB-3-done\n");
+
+
+# Wait for all double colon targets on the left, before building targets on the
+# right.
+# Regular targets which have double colon targets as prerequisites.
+# Subtest 1. First run this test without .WAIT and observe and A recipes
+# interleave with B recipes.
+# The targets are specified in the makefile.
+
+unlink('D', 'D-done', 'E', 'E-done');
+unlink('A-1-done', 'A-2-done', 'A-3-done', 'B-1-done', 'B-2-done', 'B-3-done');
+
+run_make_test(q!
+all: C .WAIT A B
+A::; @#HELPER# -q out A-1 file A-1-done wait B-1-done out A-1-done
+A::; @#HELPER# -q out A-2 file A-2-done wait B-2-done out A-2-done
+A::; @#HELPER# -q out A-3 file A-3-done wait B-3-done out A-3-done
+B::; @#HELPER# -q wait A-1-done out B-1 out B-1-done file B-1-done
+B::; @#HELPER# -q wait A-2-done out B-2 out B-2-done file B-2-done
+B::; @#HELPER# -q wait A-3-done out B-3 out B-3-done file B-3-done
+
+C: D E
+D:; @#HELPER# -q out D file D wait E-done out D-done
+E:; @#HELPER# -q wait D out E out E-done file E-done
+
+.PHONY: C D E
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10', "D\nE\nE-done\nD-done\nA-1\nB-1\nB-1-done\nA-1-done\nA-2\nB-2\nB-2-done\nA-2-done\nA-3\nB-3\nB-3-done\nA-3-done\n");
+
+# Wait for all double colon targets on the left, before building targets on the
+# right.
+# Regular targets which have double colon targets as prerequisites.
+# Subtest 2.
+# Run the same test with .WAIT and observe that all A recipes get started
+# sequentially before the 1st B recipe gets started and then all B recipes get
+# started sequentially.
+# The targets are specified in the makefile.
+#
+
+unlink('D', 'D-done', 'E', 'E-done');
+unlink('A-1-done', 'A-2-done', 'A-3-done', 'B-1-done', 'B-2-done', 'B-3-done');
+
+run_make_test(q!
+all: C .WAIT A .WAIT B
+A::; @#HELPER# -q out $@-1 out $@-1-done
+A::; @#HELPER# -q out $@-2 out $@-2-done
+A::; @#HELPER# -q out $@-3 out $@-3-done
+B::; @#HELPER# -q out $@-1 out $@-1-done
+B::; @#HELPER# -q out $@-2 out $@-2-done
+B::; @#HELPER# -q out $@-3 out $@-3-done
+
+C: D E
+D:; @#HELPER# -q out D file D wait E-done out D-done
+E:; @#HELPER# -q wait D out E out E-done file E-done
+
+.PHONY: C D E
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10', "D\nE\nE-done\nD-done\nA-1\nA-1-done\nA-2\nA-2-done\nA-3\nA-3-done\nB-1\nB-1-done\nB-2\nB-2-done\nB-3\nB-3-done\n");
+
+
+# Wait for all double colon targets on the left, before building targets on the
+# right.
+# Regular targets which have double colon targets as prerequisites.
+# Subtest 1. First run this test without .WAIT and observe and A recipes
+# interleave with B recipes.
+# The targets are specified on the command line.
+
+unlink('D', 'D-done', 'E', 'E-done');
+unlink('A-1-done', 'A-2-done', 'A-3-done', 'B-1-done', 'B-2-done', 'B-3-done');
+
+run_make_test(q!
+A::; @#HELPER# -q out A-1 file A-1-done wait B-1-done out A-1-done
+A::; @#HELPER# -q out A-2 file A-2-done wait B-2-done out A-2-done
+A::; @#HELPER# -q out A-3 file A-3-done wait B-3-done out A-3-done
+B::; @#HELPER# -q wait A-1-done out B-1 out B-1-done file B-1-done
+B::; @#HELPER# -q wait A-2-done out B-2 out B-2-done file B-2-done
+B::; @#HELPER# -q wait A-3-done out B-3 out B-3-done file B-3-done
+
+C: D E
+D:; @#HELPER# -q out D file D wait E-done out D-done
+E:; @#HELPER# -q wait D out E out E-done file E-done
+
+.PHONY: C D E
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10 C .WAIT A B', "D\nE\nE-done\nD-done\nA-1\nB-1\nB-1-done\nA-1-done\nA-2\nB-2\nB-2-done\nA-2-done\nA-3\nB-3\nB-3-done\nA-3-done\n");
+
+# Wait for all double colon targets on the left, before building targets on the
+# right.
+# Regular targets which have double colon targets as prerequisites.
+# Subtest 2.
+# Run the same test with .WAIT and observe that all A recipes get started
+# sequentially before the 1st B recipe gets started and then all B recipes get
+# started sequentially.
+# The targets are specified on the command line.
+
+unlink('D', 'D-done', 'E', 'E-done');
+unlink('A-1-done', 'A-2-done', 'A-3-done', 'B-1-done', 'B-2-done', 'B-3-done');
+
+run_make_test(q!
+A::; @#HELPER# -q out $@-1 out $@-1-done
+A::; @#HELPER# -q out $@-2 out $@-2-done
+A::; @#HELPER# -q out $@-3 out $@-3-done
+B::; @#HELPER# -q out $@-1 out $@-1-done
+B::; @#HELPER# -q out $@-2 out $@-2-done
+B::; @#HELPER# -q out $@-3 out $@-3-done
+
+C: D E
+D:; @#HELPER# -q out D file D wait E-done out D-done
+E:; @#HELPER# -q wait D out E out E-done file E-done
+
+.PHONY: C D E
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10 C .WAIT A .WAIT B', "D\nE\nE-done\nD-done\nA-1\nA-1-done\nA-2\nA-2-done\nA-3\nA-3-done\nB-1\nB-1-done\nB-2\nB-2-done\nB-3\nB-3-done\n");
+
+unlink('D', 'D-done', 'E', 'E-done');
+unlink('A-1-done', 'A-2-done', 'A-3-done', 'B-1-done', 'B-2-done', 'B-3-done');
+
+# Wait for all double colon targets on the left, before building targets on the
+# right.
+# Double colon targets have reqular targets as prerequisites.
+# Subtest 1. First run this test without .WAIT and observe and A recipes
+# interleave with B recipes.
+# The targets are specified in the makefile.
+
+unlink('D', 'D-done', 'E', 'E-done');
+unlink('A-1-done', 'A-2-done', 'A-3-done', 'B-1-done', 'B-2-done', 'B-3-done');
+
+run_make_test(q!
+all: A B
+A:: D; @#HELPER# -q out A-1 file A-1-done wait B-1-done out A-1-done
+A::; @#HELPER# -q out A-2 file A-2-done wait B-2-done out A-2-done
+A::; @#HELPER# -q out A-3 file A-3-done wait B-3-done out A-3-done
+B:: E; @#HELPER# -q wait A-1-done out B-1 out B-1-done file B-1-done
+B::; @#HELPER# -q wait A-2-done out B-2 out B-2-done file B-2-done
+B::; @#HELPER# -q wait A-3-done out B-3 out B-3-done file B-3-done
+
+D:; @#HELPER# -q out D file D wait E-done out D-done
+E:; @#HELPER# -q wait D out E out E-done file E-done
+
+.PHONY: D E
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10', "D\nE\nE-done\nD-done\nA-1\nB-1\nB-1-done\nA-1-done\nA-2\nB-2\nB-2-done\nA-2-done\nA-3\nB-3\nB-3-done\nA-3-done\n");
+
+# Wait for all double colon targets on the left, before building targets on the
+# right.
+# Double colon targets have reqular targets as prerequisites.
+# Subtest 2.
+# Run the same test with .WAIT and observe that all A recipes get started
+# sequentially before the 1st B recipe gets started and then all B recipes get
+# started sequentially.
+# The targets are specified in the makefile.
+
+unlink('D', 'D-done', 'E', 'E-done');
+unlink('A-1-done', 'A-2-done', 'A-3-done', 'B-1-done', 'B-2-done', 'B-3-done');
+
+run_make_test(q!
+all: A .WAIT B
+A:: D; @#HELPER# -q out $@-1 out $@-1-done
+A::  ; @#HELPER# -q out $@-2 out $@-2-done
+A::  ; @#HELPER# -q out $@-3 out $@-3-done
+B:: E; @#HELPER# -q out $@-1 out $@-1-done
+B::  ; @#HELPER# -q out $@-2 out $@-2-done
+B::  ; @#HELPER# -q out $@-3 out $@-3-done
+
+D:; @#HELPER# -q out D out D-done
+E:; @#HELPER# -q out E out E-done
+
+.PHONY: D E
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10', "D\nD-done\nA-1\nA-1-done\nA-2\nA-2-done\nA-3\nA-3-done\nE\nE-done\nB-1\nB-1-done\nB-2\nB-2-done\nB-3\nB-3-done\n");
+
+
+# Wait for all double colon targets on the left, before building targets on the
+# right.
+# Double colon targets have reqular targets as prerequisites.
+# Subtest 1. First run this test without .WAIT and observe and A recipes
+# interleave with B recipes.
+# The targets are specified on the command line.
+
+unlink('D', 'D-done', 'E', 'E-done');
+unlink('A-1-done', 'A-2-done', 'A-3-done', 'B-1-done', 'B-2-done', 'B-3-done');
+
+run_make_test(q!
+A:: D; @#HELPER# -q out A-1 file A-1-done wait B-1-done out A-1-done
+A::; @#HELPER# -q out A-2 file A-2-done wait B-2-done out A-2-done
+A::; @#HELPER# -q out A-3 file A-3-done wait B-3-done out A-3-done
+B:: E; @#HELPER# -q wait A-1-done out B-1 out B-1-done file B-1-done
+B::; @#HELPER# -q wait A-2-done out B-2 out B-2-done file B-2-done
+B::; @#HELPER# -q wait A-3-done out B-3 out B-3-done file B-3-done
+
+D:; @#HELPER# -q out D file D wait E-done out D-done
+E:; @#HELPER# -q wait D out E out E-done file E-done
+
+.PHONY: D E
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10 A B', "D\nE\nE-done\nD-done\nA-1\nB-1\nB-1-done\nA-1-done\nA-2\nB-2\nB-2-done\nA-2-done\nA-3\nB-3\nB-3-done\nA-3-done\n");
+
+# Wait for all double colon targets on the left, before building targets on the
+# right.
+# Double colon targets have reqular targets as prerequisites.
+# Subtest 2.
+# Run the same test with .WAIT and observe that all A recipes get started
+# sequentially before the 1st B recipe gets started and then all B recipes get
+# started sequentially.
+# The targets are specified on the command line.
+
+unlink('D', 'D-done', 'E', 'E-done');
+unlink('A-1-done', 'A-2-done', 'A-3-done', 'B-1-done', 'B-2-done', 'B-3-done');
+
+run_make_test(q!
+A:: D; @#HELPER# -q out $@-1 out $@-1-done
+A::  ; @#HELPER# -q out $@-2 out $@-2-done
+A::  ; @#HELPER# -q out $@-3 out $@-3-done
+B:: E; @#HELPER# -q out $@-1 out $@-1-done
+B::  ; @#HELPER# -q out $@-2 out $@-2-done
+B::  ; @#HELPER# -q out $@-3 out $@-3-done
+
+D:; @#HELPER# -q out D out D-done
+E:; @#HELPER# -q out E out E-done
+
+.PHONY: D E
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10 A .WAIT B', "D\nD-done\nA-1\nA-1-done\nA-2\nA-2-done\nA-3\nA-3-done\nE\nE-done\nB-1\nB-1-done\nB-2\nB-2-done\nB-3\nB-3-done\n");
+
+unlink('D', 'D-done', 'E', 'E-done');
+unlink('A-1-done', 'A-2-done', 'A-3-done', 'B-1-done', 'B-2-done', 'B-3-done');
+
 # This tells the test driver that the perl test script executed properly.
 1;

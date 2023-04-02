@@ -373,9 +373,15 @@ update_file (struct file *file, unsigned int depth)
     {
       /* Check for the case where a target has been tried and failed but
          the diagnostics haven't been issued. If we need the diagnostics
-         then we will have to continue. */
+         then we will have to continue.
+         In the case of double colon rules, this file cannot be pruned if
+         this recipe finished (file->command_state == cs_finished) and there
+         are more double colon rules for this file. Instead the recipe of the
+         next double colon rule of this file should be run.  */
       if (!(f->updated && f->update_status > us_none
-            && !f->dontcare && f->no_diag))
+            && !f->dontcare && f->no_diag)
+            && !(file->double_colon && file->command_state == cs_finished &&
+                 f->prev))
         {
           DBF (DB_VERBOSE, _("Pruning file '%s'.\n"));
           return f->command_state == cs_finished ? f->update_status : us_success;
