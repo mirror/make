@@ -56,6 +56,73 @@ pre2: ; @#HELPER# -q out $@
 
 run_make_test(undef, '-j10 pre2', "pre2\n");
 
+# sv 63856.
+# .WAIT on the command line.
+
+run_make_test(q!
+pre1: ; @#HELPER# -q out start-$@ sleep 1 out end-$@
+pre2: ; @#HELPER# -q out $@
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10 pre1 .WAIT pre2', "start-pre1\nend-pre1\npre2\n");
+
+# Multiple consecutive .WAITs.
+
+run_make_test(q!
+all : pre1 .WAIT .WAIT .WAIT pre2
+pre1: ; @#HELPER# -q out start-$@ sleep 1 out end-$@
+pre2: ; @#HELPER# -q out $@
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10', "start-pre1\nend-pre1\npre2\n");
+
+# First and last prerequsites are .WAIT.
+
+run_make_test(q!
+all : .WAIT pre1 .WAIT pre2 .WAIT
+pre1: ; @#HELPER# -q out start-$@ sleep 1 out end-$@
+pre2: ; @#HELPER# -q out $@
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10', "start-pre1\nend-pre1\npre2\n");
+
+# All prerequisites are .WAITs.
+
+run_make_test(q!
+all : .WAIT .WAIT .WAIT
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10', "#MAKE#: Nothing to be done for 'all'.\n");
+
+run_make_test(q!
+all:
+!,
+              '-j10 .WAIT', "#MAKE#: Nothing to be done for 'all'.\n");
+
+# Wait between the duplicate goals.
+
+run_make_test(q!
+all: hello.tsk .WAIT hello.tsk
+hello.tsk:; $(info $@)
+!,
+              '-j10', "hello.tsk\n#MAKE#: Nothing to be done for 'all'.\n");
+
+# Wait between the duplicate command line goals.
+
+run_make_test(q!
+hello.tsk:; $(info $@)
+!,
+              '-j10 hello.tsk .WAIT hello.tsk', "hello.tsk\n#MAKE#: 'hello.tsk' is up to date.\n#MAKE#: 'hello.tsk' is up to date.\n");
+
+
 # Ensure .WAIT doesn't wait between all targets
 
 run_make_test(q!
@@ -68,6 +135,20 @@ pre3: ; @#HELPER# -q wait TWO out $@ file THREE
 .WAIT:
 !,
               '-j10', "start-pre1\nend-pre1\nstart-pre2\npre3\nend-pre2\n");
+
+unlink(qw(TWO THREE));
+
+# Ensure .WAIT on the command line doesn't wait between all targets.
+
+run_make_test(q!
+pre1: ; @#HELPER# -q out start-$@ sleep 1 out end-$@
+pre2: ; @#HELPER# -q out start-$@ file TWO wait THREE out end-$@
+pre3: ; @#HELPER# -q wait TWO out $@ file THREE
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10 pre1 .WAIT pre2 pre3', "start-pre1\nend-pre1\nstart-pre2\npre3\nend-pre2\n");
 
 unlink(qw(TWO THREE));
 
@@ -85,6 +166,23 @@ post2: ; @#HELPER# -q file POST2 wait POST1 out $@
 .WAIT:
 !,
               '-j10', "start-pre1\npre2\nend-pre1\npost1\npost2\n");
+
+unlink(qw(PRE1 PRE2 POST1 POST2));
+
+# Ensure .WAIT on the command line waits for ALL targets on the left before ANY
+# targets on the right.
+
+run_make_test(q!
+pre1: ; @#HELPER# -q out start-$@ file PRE1 wait PRE2 sleep 1 out end-$@
+pre2: ; @#HELPER# -q wait PRE1 out $@ file PRE2
+
+post1: ; @#HELPER# -q wait POST2 out $@ file POST1
+post2: ; @#HELPER# -q file POST2 wait POST1 out $@
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10 pre1 pre2 .WAIT post1 post2', "start-pre1\npre2\nend-pre1\npost1\npost2\n");
 
 unlink(qw(PRE1 PRE2 POST1 POST2));
 
@@ -179,6 +277,17 @@ pre2: ; @#HELPER# -q out $@
 .WAIT:
 !,
               '-j10 --shuffle=reverse', "start-pre1\nend-pre1\npre2\n");
+
+# Ensure we don't shuffle if .WAIT is set on the command line.
+
+run_make_test(q!
+pre1: ; @#HELPER# -q out start-$@ sleep 1 out end-$@
+pre2: ; @#HELPER# -q out $@
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10 --shuffle=reverse pre1 .WAIT pre2', "start-pre1\nend-pre1\npre2\n");
 
 # Warn about invalid .WAIT definitions
 
