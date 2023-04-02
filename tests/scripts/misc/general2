@@ -10,7 +10,7 @@ open(MAKEFILE,"> $makefile");
 # The contents of the Makefile ...
 
 print MAKEFILE <<EOF;
-VPATH = $workdir
+VPATH = work
 objects = main.o kbd.o commands.o display.o insert.o
 edit:  \$(objects)
 \t\@echo cc -o edit \$(objects)
@@ -29,11 +29,12 @@ EOF
 close(MAKEFILE);
 
 
-@files_to_touch = ("$workdir${pathsep}main.c","$workdir${pathsep}defs.h",
-               "$workdir${pathsep}kbd.c","$workdir${pathsep}command.h",
-               "$workdir${pathsep}commands.c","$workdir${pathsep}display.c",
-               "$workdir${pathsep}buffer.h","$workdir${pathsep}insert.c",
-	       "$workdir${pathsep}command.c");
+mkdir('work');
+@files_to_touch = ("work${pathsep}main.c","work${pathsep}defs.h",
+               "work${pathsep}kbd.c","work${pathsep}command.h",
+               "work${pathsep}commands.c","work${pathsep}display.c",
+               "work${pathsep}buffer.h","work${pathsep}insert.c",
+               "work${pathsep}command.c");
 
 &touch(@files_to_touch);
 

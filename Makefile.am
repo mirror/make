@@ -152,8 +152,6 @@ check-local: check-regression
 # > check-regression
 #
 # Look for the make test suite, and run it if found and we can find perl.
-# If we're building outside the tree, we use symlinks to make a local copy of
-# the test suite.  Unfortunately the test suite itself isn't localizable yet.
 #
 MAKETESTFLAGS =
 
@@ -177,20 +175,12 @@ rand_char  = substr(c,int(rand()*36),1)
 rand_string = $(AWK) 'BEGIN{srand(); $(rand_value); print $(rand_char) "" $(rand_char) "" $(rand_char) "" $(rand_char);}'
 
 check-regression: tests/config-flags.pm
-	@rm -f $(testfiles)
-	@if test -f '$(top_srcdir)/tests/run_make_tests'; then \
+	$(AM_V_at) rm -f $(testfiles)
+	$(AM_V_at) if test -f '$(top_srcdir)/tests/run_make_tests.pl'; then \
 	  ulimit -n 128; \
 	  if $(PERL) -v >/dev/null 2>&1; then \
-	    case `cd '$(top_srcdir)'; pwd` in `pwd`) : ;; \
-	      *) test -d tests || mkdir tests; \
-		 rm -f srctests; \
-		 if ln -s '$(top_srcdir)/tests' srctests; then \
-		   for f in run_make_tests run_make_tests.pl test_driver.pl scripts thelp.pl; do \
-		     rm -f tests/$$f; ln -s ../srctests/$$f tests; \
-		   done; fi ;; \
-	    esac; \
-	    echo "cd tests && $(PERL) $(PERLFLAGS) ./run_make_tests.pl -srcdir $(abs_top_srcdir) -make $(GMK_OUTDIR)/make$(EXEEXT) $(MAKETESTFLAGS)"; \
-	    (cd tests && $(PERL) $(PERLFLAGS) ./run_make_tests.pl -srcdir '$(abs_top_srcdir)' -make '$(GMK_OUTDIR)/make$(EXEEXT)' $(MAKETESTFLAGS); echo $$? >.test-result) 2>&1 | tee $(testlog); \
+	    echo "cd tests && $(PERL) $(PERLFLAGS) $(abs_top_srcdir)/tests/run_make_tests.pl -make $(GMK_OUTDIR)/make$(EXEEXT) $(MAKETESTFLAGS)"; \
+	    (cd tests && $(PERL) $(PERLFLAGS) '$(abs_top_srcdir)/tests/run_make_tests.pl' -make '$(GMK_OUTDIR)/make$(EXEEXT)' $(MAKETESTFLAGS); echo $$? >.test-result) 2>&1 | tee $(testlog); \
 	    export TAR_OPTIONS='$(filter-out --sort%,$(TAR_OPTIONS))'; \
 	    er=$$(cat $(testresult)); if test "$$er" -ne 0; then \
 	      dirnm="$(errorpre)-$$($(rand_string))"; fnm="$$dirnm.tar.gz"; \

@@ -3,7 +3,9 @@ $description = "Tests the new VPATH+ functionality added in 3.76.";
 
 $details = "";
 
-$VP = "$workdir$pathsep";
+mkdir('work');
+
+$VP = "work$pathsep";
 
 @touchedfiles = ();
 

@@ -35,6 +35,12 @@ use Cwd;
 use File::Spec;
 use File::Temp;
 
+$debug = 0;                 # debug flag
+$profile = 0;               # profiling flag
+$verbose = 0;               # verbose mode flag
+$detail = 0;                # detailed verbosity
+$keep = 0;                  # keep temp files around
+
 # The number of test categories we've run
 $categories_run = 0;
 # The number of test categroies that have passed
@@ -55,6 +61,9 @@ $port_type = undef;
 $osname = undef;
 $vos = undef;
 $pathsep = undef;
+
+$testee = undef;
+$testee_version = undef;
 
 # Yeesh.  This whole test environment is such a hack!
 $test_passed = 1;
@@ -234,10 +243,21 @@ sub toplevel
   $tmpfilesuffix = "t";       # the suffix used on tmpfiles
   $default_output_stack_level = 0;  # used by attach_default_output, etc.
   $default_input_stack_level = 0;   # used by attach_default_input, etc.
-  $cwd = ".";                 # don't we wish we knew
-  $cwdslash = "";             # $cwd . $pathsep, but "" rather than "./"
 
   &get_osname;  # sets $osname, $vos, $pathsep, and $short_filenames
+
+  # Locate the test directory.  It's the one that contains this script.
+  my @sp = File::Spec->splitpath(__FILE__);
+  $srcpath = File::Spec->canonpath(File::Spec->catpath($sp[0], $sp[1], ''));
+
+  # Locate the top source directory.
+  $toppath = File::Spec->rel2abs(File::Spec->updir(), $srcpath);
+
+  $cwd = cwd();
+
+  $workpath = "$workdir";
+
+  $scriptpath = $srcpath eq $cwd ? $scriptdir : File::Spec->catdir($srcpath, $scriptdir);
 
   $perl_name = which($perl_name);
 
@@ -256,7 +276,6 @@ sub toplevel
   $temppath = File::Spec->rel2abs($tempdir);
 
   if (-d $temppath) {
-    print "Clearing $temppath...\n";
     &remove_directory_tree("$temppath/")
       or &error ("Couldn't wipe out $temppath: $!\n");
   } else {
@@ -273,14 +292,11 @@ sub toplevel
   # Replace the environment with the new one
   resetENV();
 
-  $workpath = "$cwdslash$workdir";
-  $scriptpath = "$cwdslash$scriptdir";
-
   &set_more_defaults;  # suite-defined
 
   &print_banner;
 
-  if ($osname eq 'VMS' && $cwdslash eq "") {
+  if ($osname eq 'VMS' && $scriptpath eq $scriptdir) {
     # Porting this script to VMS revealed a small bug in opendir() not
     # handling search lists correctly when the directory only exists in
     # one of the logical_devices.  Need to find the first directory in
@@ -297,6 +313,7 @@ sub toplevel
     }
   }
 
+  print "Finding tests in $scriptpath...\n";
   if (-d $workpath) {
     print "Clearing $workpath...\n";
     &remove_directory_tree("$workpath/")
@@ -310,7 +327,7 @@ sub toplevel
   }
 
   if (@TESTS) {
-    print "Making work dirs...\n";
+    print "Creating dirs in $workpath...\n";
     foreach $test (@TESTS) {
       if ($test =~ /^([^\/]+)\//) {
         $dir = $1;
@@ -321,11 +338,12 @@ sub toplevel
       }
     }
   } else {
-    print "Finding tests...\n";
+    print "Searching for tests...\n";
     opendir (SCRIPTDIR, $scriptpath)
         or &error ("Couldn't opendir $scriptpath: $!\n");
     @dirs = grep (!/^(\..*|CVS|RCS)$/, readdir (SCRIPTDIR) );
     closedir (SCRIPTDIR);
+    print "Creating dirs in $workpath...\n";
     foreach my $dir (@dirs) {
       next if ($dir =~ /^(\..*|CVS|RCS)$/ || ! -d "$scriptpath/$dir");
       push (@rmdirs, $dir);
@@ -355,6 +373,7 @@ sub toplevel
   foreach my $dir (@rmdirs) {
     rmdir ("$workpath/$dir");
   }
+  rmdir ($workpath);
 
   rmdir ($temppath);
 
@@ -368,7 +387,7 @@ sub toplevel
     print "s" unless $total_tests_failed == 1;
     print " in $categories_failed Categor";
     print ($categories_failed == 1 ? "y" : "ies");
-    print " Failed (See .$diffext* files in $workdir dir for details) :-(\n\n";
+    print " Failed (See .$diffext files in $workdir dir for details) :-(\n\n";
     return 0;
   } elsif ($some_test_failed) {
       # Something failed but no tests were marked failed... probably a syntax
@@ -596,7 +615,7 @@ sub run_all_tests
     $diffext = 'diff';
     $baseext = 'base';
     $runext = 'run';
-    $extext = '.';
+    $extext = $osname eq 'VMS' ? '_' : '.';
   }
 
   $lasttest = '';
@@ -613,17 +632,15 @@ sub run_all_tests
     $details = "";
     $old_makefile = undef;
     $testname =~ s/^$scriptpath$pathsep//;
-    $perl_testname = "$scriptpath$pathsep$testname";
     $testname =~ s/(\.pl|\.perl)$//;
-    $testpath = "$workpath$pathsep$testname";
-    $extext = '_' if $osname eq 'VMS';
-    $log_filename = "$testpath.$logext";
-    $diff_filename = "$testpath.$diffext";
-    $base_filename = "$testpath.$baseext";
-    $run_filename = "$testpath.$runext";
-    $tmp_filename = "$testpath.$tmpfilesuffix";
 
+    $perl_testname = "$scriptpath$pathsep$testname";
     -f $perl_testname or die "Invalid test: $testname\n\n";
+
+    $testpath = "$workpath$pathsep$testname";
+
+    remove_directory_tree($testpath);
+    mkdir($testpath, 0777) or &error("Couldn't mkdir $testpath: $!\n", 1);
 
     setup_for_test();
 
@@ -637,7 +654,9 @@ sub run_all_tests
     $tests_passed = 0;
 
     # Run the test!
+    chdir($testpath) or error("Can't change to $testpath: $!\n", 1);
     $code = do $perl_testname;
+    chdir($cwd) or error("Can't change back to $cwd: $!\n", 1);
 
     # Reset STDIN from the copy in case it was changed
     open(STDIN, "<&INCOPY");
@@ -685,12 +704,8 @@ sub run_all_tests
       $status = "ok     ($tests_passed passed)";
 
       # Clean up
-      for ($i = $num_of_tmpfiles; $i; $i--) {
-        rmfiles($tmp_filename . num_suffix($i));
-      }
-      for ($i = $num_of_logfiles ? $num_of_logfiles : 1; $i; $i--) {
-        rmfiles($log_filename . num_suffix($i));
-        rmfiles($base_filename . num_suffix($i));
+      if (!$keep) {
+        remove_directory_tree($testpath);
       }
     }
 
@@ -1493,19 +1508,26 @@ sub compare_dir_tree
   return !$bogus;
 }
 
-# this subroutine generates the numeric suffix used to keep tmp filenames,
-# log filenames, etc., unique.  If the number passed in is 1, then a null
-# string is returned; otherwise, we return ".n", where n + 1 is the number
-# we were given.
+# this subroutine generates the prefix name used to keep tmp filenames,
+# log filenames, etc., unique.
 
-sub num_suffix
+sub get_prefix
 {
   my ($num) = @_;
-  if (--$num > 0) {
-    return "$extext$num";
-  }
+  return sprintf("t%03d.", $num);
+}
 
-  return "";
+# just like logfile, only a generic tmp filename for use by the test.
+# they are automatically cleaned up unless -keep was used, or the test fails.
+# Pass an argument of 1 to return the same filename as the previous call.
+
+sub get_tmpfile
+{
+  my ($no_increment) = @_;
+
+  $num_of_tmpfiles += !$no_increment;
+
+  return (&get_prefix ($num_of_tmpfiles) . $tmpfilesuffix);
 }
 
 # This subroutine returns a log filename with a number appended to
@@ -1522,7 +1544,7 @@ sub get_logfile
 
   $num_of_logfiles += !$no_increment;
 
-  return ($log_filename . &num_suffix ($num_of_logfiles));
+  return (&get_prefix ($num_of_logfiles) . $logext);
 }
 
 # This subroutine returns a base (answer) filename with a number
@@ -1532,7 +1554,7 @@ sub get_logfile
 
 sub get_basefile
 {
-  return ($base_filename . &num_suffix ($num_of_logfiles));
+  return (&get_prefix ($num_of_logfiles) . $baseext);
 }
 
 # This subroutine returns a difference filename with a number appended
@@ -1541,7 +1563,7 @@ sub get_basefile
 
 sub get_difffile
 {
-  return ($diff_filename . &num_suffix ($num_of_logfiles));
+  return (&get_prefix ($num_of_logfiles) . $diffext);
 }
 
 # This subroutine returns a command filename with a number appended
@@ -1550,20 +1572,7 @@ sub get_difffile
 
 sub get_runfile
 {
-  return ($run_filename . &num_suffix ($num_of_logfiles));
-}
-
-# just like logfile, only a generic tmp filename for use by the test.
-# they are automatically cleaned up unless -keep was used, or the test fails.
-# Pass an argument of 1 to return the same filename as the previous call.
-
-sub get_tmpfile
-{
-  my ($no_increment) = @_;
-
-  $num_of_tmpfiles += !$no_increment;
-
-  return ($tmp_filename . &num_suffix ($num_of_tmpfiles));
+  return (&get_prefix ($num_of_logfiles) . $runext);
 }
 
 1;

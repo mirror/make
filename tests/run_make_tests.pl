@@ -56,16 +56,6 @@ $memcheck_args = '--num-callers=15 --tool=memcheck --leak-check=full --suppressi
 $massif_args = '--num-callers=15 --tool=massif --alloc-fn=xmalloc --alloc-fn=xcalloc --alloc-fn=xrealloc --alloc-fn=xstrdup --alloc-fn=xstrndup';
 $pure_log = undef;
 
-# The location of the GNU Make source directory
-$srcdir = undef;
-$fqsrcdir = undef;
-$srcvol = undef;
-
-# The location of the build directory
-$blddir = undef;
-$fqblddir = undef;
-$bldvol = undef;
-
 $make_path = undef;
 @make_command = ();
 
@@ -126,15 +116,6 @@ sub valid_option
        return 1;
    }
 
-   if ($option =~ /^-srcdir$/i) {
-       $srcdir = shift @argv;
-       if (! -f File::Spec->catfile($srcdir, 'src', 'gnumake.h')) {
-           print "$option $srcdir: Not a valid GNU Make source directory.\n";
-           exit 1;
-       }
-       return 1;
-   }
-
    if ($option =~ /^-all([-_]?tests)?$/i) {
        $all_tests = 1;
        return 1;
@@ -179,13 +160,13 @@ $helptool = undef;
 
 sub subst_make_string
 {
+    my $wd = cwd();
     local $_ = shift;
     $makefile and s/#MAKEFILE#/$makefile/g;
     s/#MAKEPATH#/$mkpath/g;
     s/#MAKE#/$make_name/g;
     s/#PERL#/$perl_name/g;
-    s/#PWD#/$cwdpath/g;
-    s/#WORK#/$workdir/g;
+    s/#PWD#/$wd/g;
     s/#HELPER#/$perl_name $helptool/g;
     return $_;
 }
@@ -372,7 +353,7 @@ sub run_make_with_options {
 sub print_usage
 {
    &print_standard_usage ("run_make_tests",
-                          "[-make MAKE_PATHNAME] [-srcdir SRCDIR] [-memcheck] [-massif]",);
+                          "[-make MAKE_PATHNAME] [-memcheck] [-massif]",);
 }
 
 sub print_help
@@ -380,8 +361,6 @@ sub print_help
    &print_standard_help (
         "-make",
         "\tYou may specify the pathname of the copy of make to run.",
-        "-srcdir",
-        "\tSpecify the make source directory.",
         "-valgrind",
         "-memcheck",
         "\tRun the test suite under valgrind's memcheck tool.",
@@ -525,55 +504,21 @@ sub set_more_defaults
 {
   my $string;
 
-  # Now that we have located make_path, locate the srcdir and blddir
-  my ($mpv, $mpd, $mpf) = find_prog($make_path);
+  # Try to find and load config-flags.pm.  They may be in the local directory
+  # or in the $srcpath if we're remote.
 
-  # We have a make program so try to compute the blddir.
-  if ($mpd) {
-    my $f = File::Spec->catpath($mpv, File::Spec->catdir($mpd, 'tests'), 'config-flags.pm');
-    if (-f $f) {
-      $bldvol = $mpv;
-      $blddir = $mpd;
-    }
+  my $d = $cwd;
+  my $cfg = File::Spec->catfile($d, 'config-flags.pm');
+  if (! -f $cfg) {
+      # Nope, so look in the srcpath
+      my $d = $srcpath;
+      $cfg = File::Spec->catfile($d, 'config-flags.pm');
   }
 
-  # If srcdir wasn't provided on the command line, try to find it.
-  if (! $srcdir && $blddir) {
-    # See if the blddir is the srcdir
-    my $f = File::Spec->catpath($bldvol, File::Spec->catdir($blddir, 'src'), 'gnumake.h');
-    if (-f $f) {
-      $srcdir = $blddir;
-      $srcvol = $bldvol;
-    }
-  }
+  -f $cfg or die "Can't locate config-flags.pm in $cwd" . ($cwd eq $srcpath ? '' : " or $srcpath") . "\n";
 
-  if (! $srcdir) {
-    # Not found, see if our parent is the source dir
-    my $f = File::Spec->catpath($cwdvol, File::Spec->catdir(File::Spec->updir(), 'src'), 'gnumake.h');
-    if (-f $f) {
-      $srcdir = File::Spec->updir();
-      $srcvol = $cwdvol;
-    }
-  }
-
-  # If we have srcdir but not blddir, set them equal
-  if ($srcdir && !$blddir) {
-    $blddir = $srcdir;
-    $bldvol = $srcvol;
-  }
-
-  # Load the config flags
-  if (!$blddir) {
-    warn "Cannot locate config-flags.pm (no blddir)\n";
-  } else {
-    my $f = File::Spec->catpath($bldvol, File::Spec->catdir($blddir, 'tests'), 'config-flags.pm');
-    if (! -f $f) {
-      warn "Cannot locate $f\n";
-    } else {
-      unshift(@INC, File::Spec->catpath($bldvol, File::Spec->catdir($blddir, 'tests'), ''));
-      require "config-flags.pm";
-    }
-  }
+  unshift(@INC, $d);
+  require "config-flags.pm";
 
   # Find the full pathname of Make.  For DOS systems this is more
   # complicated, so we ask make itself.
@@ -623,27 +568,14 @@ sub set_more_defaults
   # start with a slash, but contains one).  Thanks for the
   # clue, Roland.
 
-  if ($mpd && !File::Spec->file_name_is_absolute($make_path) && $cwdvol == $mpv) {
+  if ($mpd && !File::Spec->file_name_is_absolute($make_path) && $cwdvol eq $mpv) {
      $mkpath = File::Spec->catpath($cwdvol, File::Spec->catdir($cwd, $mpd), $mpf);
   } else {
      $mkpath = $make_path;
   }
 
-  # Not with the make program, so see if we can get it out of the makefile
-  if (! $srcdir && open(MF, '<', File::Spec->catfile(File::Spec->updir(), 'Makefile'))) {
-    local $/ = undef;
-    $_ = <MF>;
-    close(MF);
-    /^abs_srcdir\s*=\s*(.*?)\s*$/m;
-    -f File::Spec->catfile($1, 'src', 'gnumake.h') and $srcdir = $1;
-  }
-
-  # At this point we should have srcdir and blddir: get fq versions
-  $fqsrcdir = File::Spec->rel2abs($srcdir);
-  $fqblddir = File::Spec->rel2abs($blddir);
-
   # Find the helper tool
-  $helptool = File::Spec->catfile($fqsrcdir, 'tests', 'thelp.pl');
+  $helptool = File::Spec->catfile($srcpath, 'thelp.pl');
 
   # It's difficult to quote this properly in all the places it's used so
   # ensure it doesn't need to be quoted.

@@ -3,7 +3,9 @@ $description = "Tests VPATH+/GPATH functionality.";
 
 $details = "";
 
-$VP = "$workdir$pathsep";
+mkdir('work');
+
+$VP = "work$pathsep";
 
 open(MAKEFILE,"> $makefile");
 

@@ -4,18 +4,20 @@ $description = "Test vpath for particular classes of filenames.";
 
 $details = "";
 
-@files_to_touch = ("$workdir${pathsep}main.c","$workdir${pathsep}defs.h",
-                   "$workdir${pathsep}kbd.c","$workdir${pathsep}command.h",
-                   "$workdir${pathsep}commands.c","$workdir${pathsep}display.c",
-                   "$workdir${pathsep}buffer.h","$workdir${pathsep}insert.c",
-                   "$workdir${pathsep}command.c");
+mkdir('work');
+
+@files_to_touch = ("work${pathsep}main.c","work${pathsep}defs.h",
+                   "work${pathsep}kbd.c","work${pathsep}command.h",
+                   "work${pathsep}commands.c","work${pathsep}display.c",
+                   "work${pathsep}buffer.h","work${pathsep}insert.c",
+                   "work${pathsep}command.c");
 
 &touch(@files_to_touch);
 
 run_make_test(q!
 vpath %.c foo
-vpath %.c #WORK#
-vpath %.h #WORK#
+vpath %.c work
+vpath %.h work
 objects = main.o kbd.o commands.o display.o insert.o
 edit: $(objects) ; @echo cc -o $@ $^
 main.o : main.c defs.h ; @echo cc -c $(firstword $^)
@@ -24,7 +26,7 @@ commands.o : command.c defs.h command.h ; @echo cc -c commands.c
 display.o : display.c defs.h buffer.h ; @echo cc -c display.c
 insert.o : insert.c defs.h buffer.h ; @echo cc -c insert.c
 !,
-    '', "cc -c $workdir${pathsep}main.c\ncc -c kbd.c\ncc -c commands.c\n"
+    '', "cc -c work${pathsep}main.c\ncc -c kbd.c\ncc -c commands.c\n"
         ."cc -c display.c\ncc -c insert.c\n"
         ."cc -o edit main.o kbd.o commands.o display.o insert.o\n");
 
@@ -50,11 +52,11 @@ rmdir('vpath-d');
 # Test VPATH vs vpath
 
 run_make_test(q!
-VPATH = #WORK#:#PWD#
+VPATH = work:#PWD#
 vpath %.c foo
-vpath %.c #WORK#
+vpath %.c work
 vpath %.c #PWD#
-vpath %.h #WORK#
+vpath %.h work
 vpath %.c
 vpath
 all: ; @echo ALL IS WELL

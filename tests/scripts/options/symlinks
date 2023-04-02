@@ -15,8 +15,9 @@ use File::Spec;
 &utouch(-10, 'dep');
 &utouch(-5, 'targ');
 
-$dirnm = (File::Spec->splitdir($cwddir))[-1];
-symlink(File::Spec->catfile(File::Spec->updir(), $dirnm, 'dep'), 'sym');
+my $dirnm = (File::Spec->splitdir($testpath))[-1];
+my $dep = File::Spec->catfile(File::Spec->updir(), $dirnm, 'dep');
+symlink($dep, 'sym') or die "Cannot create symlink sym -> $dep\n";
 
 # Without -L, nothing should happen
 # With -L, it should update targ

@@ -41,13 +41,13 @@ unlink('x.mk');
 
 # Ensure that we don't add GNUMAKEFLAGS to the environment if it's not there
 run_make_test(q!
-all: ; @env | grep GNUMAKEFLAGS; true
+all: ; @#HELPER# env GNUMAKEFLAGS
 !,
-              '', '');
+              '', 'GNUMAKEFLAGS=<unset>');
 
 $ENV{GNUMAKEFLAGS} = '-Itst/bad';
 run_make_test(q!
-all: ; @env | grep GNUMAKEFLAGS; true
+all: ; @#HELPER# env GNUMAKEFLAGS
 !,
               '', 'GNUMAKEFLAGS=');
 
