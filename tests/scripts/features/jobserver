@@ -110,7 +110,7 @@ default: ; @ #MAKEPATH# -f Makefile2
   rmfiles('Makefile2');
 }
 
-# Ensure enter/leave directory messages appear before jobserver warnings
+# SV 63981: Don't generat warnings if the user specifically disabled -j
 
 run_make_test(q!
 all: ; @$(MAKE) -C . -f #MAKEFILE# recurse -j1
@@ -118,7 +118,19 @@ recurse: ; @echo hi
 !,
               '-w -j2', "#MAKE#: Entering directory '#PWD#'
 #MAKE#[1]: Entering directory '#PWD#'
-#MAKE#[1]: warning: -j1 forced in submake: resetting jobserver mode
+hi
+#MAKE#[1]: Leaving directory '#PWD#'
+#MAKE#: Leaving directory '#PWD#'");
+
+# Ensure enter/leave directory messages appear before jobserver warnings
+
+run_make_test(q!
+all: ; @$(MAKE) -C . -f #MAKEFILE# recurse -j10
+recurse: ; @echo hi
+!,
+              '-w -j2', "#MAKE#: Entering directory '#PWD#'
+#MAKE#[1]: Entering directory '#PWD#'
+#MAKE#[1]: warning: -j10 forced in submake: resetting jobserver mode
 hi
 #MAKE#[1]: Leaving directory '#PWD#'
 #MAKE#: Leaving directory '#PWD#'\n");

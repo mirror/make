@@ -1830,7 +1830,7 @@ main (int argc, char **argv, char **envp)
 
       /* The user provided a -j setting on the command line so use it: we're
          the master make of a new jobserver group.  */
-      else if (!restarts)
+      else if (!restarts && argv_slots != 1)
         ON (error, NILF,
             _("warning: -j%d forced in submake: resetting jobserver mode"),
             argv_slots);
