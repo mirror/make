@@ -18,6 +18,15 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <assert.h>
 
+#if MK_OS_W32
+# include <windows.h>
+# include "sub_proc.h"
+#elif MK_OS_VMS
+struct passwd *getpwnam (char *name);
+#else
+# include <pwd.h>
+#endif
+
 #include "filedef.h"
 #include "dep.h"
 #include "job.h"
@@ -28,15 +37,6 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "debug.h"
 #include "hash.h"
 #include "warning.h"
-
-#if MK_OS_W32
-# include <windows.h>
-# include "sub_proc.h"
-#elif MK_OS_VMS
-struct passwd *getpwnam (char *name);
-#else
-# include <pwd.h>
-#endif
 
 /* A 'struct ebuffer' controls the origin of the makefile we are currently
    eval'ing.

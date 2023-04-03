@@ -19,16 +19,6 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <assert.h>
 #include <string.h>
 
-#include "job.h"
-#include "debug.h"
-#include "filedef.h"
-#include "commands.h"
-#include "variable.h"
-#include "os.h"
-#include "dep.h"
-#include "shuffle.h"
-#include "warning.h"
-
 /* Default shell to use.  */
 #if MK_OS_W32
 # include <windows.h>
@@ -195,6 +185,16 @@ int getgid ();
 #if HAVE_DECL_GETLOADAVG == 0
 int getloadavg (double loadavg[], int nelem);
 #endif
+
+#include "job.h"
+#include "debug.h"
+#include "filedef.h"
+#include "commands.h"
+#include "variable.h"
+#include "os.h"
+#include "dep.h"
+#include "shuffle.h"
+#include "warning.h"
 
 /* Different systems have different requirements for pid_t.
    Plus we have to support gettext string translation... Argh.  */

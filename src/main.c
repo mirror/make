@@ -15,17 +15,6 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "makeint.h"
-#include "os.h"
-#include "filedef.h"
-#include "dep.h"
-#include "variable.h"
-#include "job.h"
-#include "commands.h"
-#include "rule.h"
-#include "debug.h"
-#include "getopt.h"
-#include "shuffle.h"
-#include "warning.h"
 
 #include <assert.h>
 #if MK_OS_W32
@@ -92,6 +81,18 @@ void exit (int) NORETURN;
 # endif
 double atof ();
 #endif
+
+#include "os.h"
+#include "filedef.h"
+#include "dep.h"
+#include "variable.h"
+#include "job.h"
+#include "commands.h"
+#include "rule.h"
+#include "debug.h"
+#include "getopt.h"
+#include "shuffle.h"
+#include "warning.h"
 
 static void clean_jobserver (int status);
 static void print_data_base (void);
