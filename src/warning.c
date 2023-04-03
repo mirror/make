@@ -136,35 +136,39 @@ decode_warn_actions (const char *value, const floc *flocp)
         {
           enum warning_type type;
           const char *cp = memchr (value, ':', ep - value);
+          int wl, al;
+
           if (!cp)
             cp = ep;
-          type = decode_warn_name (value, cp - value);
-          if (type == wt_max)
-            {
-              int l = (int)(cp - value);
-              if (!flocp)
-                ONS (fatal, NILF, _("unknown warning '%.*s'"), l, value);
-              ONS (error, flocp,
-                   _("unknown warning '%.*s': ignored"), l, value);
-            }
-
-          /* If there's a warning action, decode it.  */
+          wl = (int)(cp - value);
+          type = decode_warn_name (value, wl);
           if (cp == ep)
             action = w_warn;
           else
             {
+              /* There's a warning action: decode it.  */
               ++cp;
-              action = decode_warn_action (cp, ep - cp);
-              if (action == w_unset)
-                {
-                  int l = (int)(ep - cp);
-                  if (!flocp)
-                    ONS (fatal, NILF, _("unknown warning action '%.*s'"), l, cp);
-                  ONS (error, flocp,
-                       _("unknown warning action '%.*s': ignored"), l, cp);
-                }
+              al = (int)(ep - cp);
+              action = decode_warn_action (cp, al);
             }
-          data->actions[type] = action;
+
+          if (type == wt_max)
+            {
+              if (!flocp)
+                ONS (fatal, NILF, _("unknown warning '%.*s'"), wl, value);
+              ONS (error, flocp,
+                   _("unknown warning '%.*s': ignored"), wl, value);
+            }
+          else if (action == w_unset)
+            {
+              if (!flocp)
+                ONS (fatal, NILF,
+                     _("unknown warning action '%.*s'"), al, cp);
+              ONS (error, flocp,
+                   _("unknown warning action '%.*s': ignored"), al, cp);
+            }
+          else
+            data->actions[type] = action;
         }
 
       value = ep;
