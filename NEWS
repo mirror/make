@@ -33,6 +33,9 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&se
   invoked recursively, warnings can be controlled only for the current
   instance of make using the .WARNINGS variable.
 
+* Tests in the regression test suite now are run in their own directory to
+  avoid cross-contamination and allow cleanup if the tests are interrupted.
+
 
 Version 4.4.1 (26 Feb 2023)
 
