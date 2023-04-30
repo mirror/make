@@ -255,17 +255,27 @@ expand_variable_output (char *ptr, const char *name, size_t length)
 /* Expand a simple reference to variable NAME, which is LENGTH chars long.
    The result is written to BUF which must point into the variable_buffer.
    If BUF is NULL, start at the beginning of the current variable_buffer.
-   Returns BUF, or the beginning of the buffer if BUF is NULL.  */
+   Returns a pointer to the START of the expanded value of the variable.
+   The returned value is located inside variable_buffer.
+   The returned value is valid until the next call to one of the functions
+   which use variable_buffer.  expand_variable_buf may reallocate
+   variable_buffer and render the passed-in BUF invalid.  */
+
 
 char *
 expand_variable_buf (char *buf, const char *name, size_t length)
 {
+  size_t offs;
+
   if (!buf)
     buf = initialize_variable_output ();
 
-  expand_variable_output (buf, name, length);
+  assert (buf >= variable_buffer);
+  assert (buf < variable_buffer + variable_buffer_length);
+  offs = buf - variable_buffer;
 
-  return buf;
+  expand_variable_output (buf, name, length);
+  return variable_buffer + offs;
 }
 
 /* Expand a simple reference to variable NAME, which is LENGTH chars long.

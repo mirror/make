@@ -1,0 +1,26 @@
+#                                                                    -*-perl-*-
+
+$description = "Test variable expansion.";
+
+# sv 64124.
+# Expand a variable whose value exceeds 200 bytes.
+# 200 is the initial size of variable_buffer.
+# Value bigger than 200 bytes causes a realloc of variable_buffer.
+# In this test the variable being expanded is MAKEFLAGS and its value occupies
+# 11, 550 and 110000 bytes.
+
+my $s = "hello_world";
+my @mult = (1, 50, 10000);
+
+for my $m (@mult) {
+    my $answer = $s x $m;
+    $ENV{'MAKEFLAGS'} = " -- hello=$answer";
+    run_make_test(q!
+$(info x$(hello)y)
+all:
+!,
+              '', "x${answer}y\n#MAKE#: Nothing to be done for 'all'.\n");
+}
+
+# This tells the test driver that the perl test script executed properly.
+1;
