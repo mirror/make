@@ -223,7 +223,16 @@ unrelated: hello.x
 !,
               '', "#MAKE#: *** No rule to make target 'hello.x', needed by 'hello.z'.  Stop.\n", 512);
 
-unlink('hello.z');
+# SV 64016.
+# Test that update_goal_chain moves to the next target while the current
+# target is being built: hello.x recipe is started and update_goal_chain
+# begins to update bye.x.
+
+run_make_test(q!
+hello.x::; @#HELPER# -q wait bye.x out $@
+bye.x::; @#HELPER# sleep 1 file $@
+!,
+              '-j2 hello.x bye.x', "sleep 1\nfile bye.x\nhello.x");
 
 
 # This tells the test driver that the perl test script executed properly.
