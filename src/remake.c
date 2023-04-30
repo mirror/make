@@ -157,7 +157,7 @@ update_goal_chain (struct goaldep *goaldeps)
         {
           /* Iterate over all double-colon entries for this file.  */
           struct file *file, *dchead;
-          int stop = 0, any_not_updated = 0;
+          int stop = 0, all_updated = 1;
 
           g = gu->shuf ? gu->shuf : gu;
 
@@ -253,7 +253,7 @@ update_goal_chain (struct goaldep *goaldeps)
 
               /* Keep track if any double-colon entry is not finished.
                  When they are all finished, the goal is finished.  */
-              any_not_updated |= !file->updated;
+              all_updated &= file->updated;
 
               file->dontcare = 0;
 
@@ -267,7 +267,7 @@ update_goal_chain (struct goaldep *goaldeps)
           if (wait)
             break;
 
-          if (stop || !any_not_updated)
+          if (stop || all_updated)
             {
               /* If we have found nothing whatever to do for the goal,
                  print a message saying nothing needs doing.  */
@@ -290,16 +290,13 @@ update_goal_chain (struct goaldep *goaldeps)
               else
                 lastgoal->next = gu->next;
 
-              gu = lastgoal == 0 ? goals : lastgoal->next;
-
               if (stop)
                 break;
             }
           else
-            {
-              lastgoal = gu;
-              gu = gu->next;
-            }
+            lastgoal = gu;
+
+          gu = gu->next;
         }
 
       /* If we reached the end of the dependency graph update CONSIDERED
