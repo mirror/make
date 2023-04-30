@@ -16,6 +16,17 @@ all:; @#HELPER# env MAKEFLAGS
 !,
               '--warn-undefined-variables', "MF= --warn=undefined-var\nMAKEFLAGS= --warn=undefined-var");
 
+# sv 64115.
+# Verify that -R along with --warn-undefined-variables do not warn about
+# internal variables, such as GNUMAKEFLAGS.
+
+run_make_test(q!
+$(info MF=$(MAKEFLAGS))
+all:; @#HELPER# env MAKEFLAGS
+!,
+              '-R --warn-undefined-variables', "MF=rR --warn=undefined-var\nMAKEFLAGS=rR --warn=undefined-var");
+
+
 # Verify parsing of --warn in various forms.
 
 while (my ($f, $r) = each %warn_test) {

@@ -1916,6 +1916,7 @@ static const struct defined_vars defined_vars[] = {
   { STRING_SIZE_TUPLE ("VPATH") },
   { STRING_SIZE_TUPLE ("GPATH") },
   { STRING_SIZE_TUPLE (WARNINGS_NAME) },
+  { STRING_SIZE_TUPLE (GNUMAKEFLAGS_NAME) },
   { NULL, 0 }
 };
 
