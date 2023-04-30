@@ -2,8 +2,6 @@
 
 $description = "Test removing default rules and variables";
 
-$details = "DETAILS";
-
 touch('xxx.c');
 
 # Simple check
@@ -40,5 +38,66 @@ MAKEFLAGS := -R
 .PHONY: hello.c
 all: hello.o
 !, '', "#MAKE#: *** No rule to make target 'hello.o', needed by 'all'.  Stop.", 512);
+
+my @flavors = ('=', ':=', ':::=', '+=');
+
+# sv 64107.
+
+# Use $answer to test that -R in the makefile has the same effect as -R on the
+# command line.
+
+my $answer = "at parse time TEX=\nat build time TEX=\n#MAKE#: 'all' is up to date.\n";
+
+# Subtest 1.
+# First run with -R command line switch.
+
+for my $fl (@flavors) {
+run_make_test("
+\$(info at parse time TEX=\$(TEX))
+all:; \$(info at build time TEX=\$(TEX))
+", '-R', "$answer");
+}
+
+# Subtest 2.
+# Set -R in the makefile.
+# Also, test that setting -R in MAKEFLAGS takes effect immediately.
+
+for my $fl (@flavors) {
+run_make_test("
+\$(info at start time TEX=\$(TEX))
+MAKEFLAGS ${fl} -R
+\$(info at parse time TEX=\$(TEX))
+all:; \$(info at build time TEX=\$(TEX))
+", '', "at start time TEX=tex\n$answer");
+}
+
+# Same as above, but also set TEX conditionally.
+
+$answer = "at parse time TEX=hello\nat build time TEX=hello\n#MAKE#: 'all' is up to date.\n";
+
+# Subtest 3.
+# -R on the command line.
+
+for my $fl (@flavors) {
+run_make_test("
+TEX ?= hello
+\$(info at parse time TEX=\$(TEX))
+all:; \$(info at build time TEX=\$(TEX))
+", '-R', "$answer");
+}
+
+# Subtest 4.
+# -R in the makefile.
+
+for my $fl (@flavors) {
+run_make_test("
+\$(info at start time TEX=\$(TEX))
+MAKEFLAGS ${fl} -R
+TEX ?= hello
+\$(info at parse time TEX=\$(TEX))
+all:; \$(info at build time TEX=\$(TEX))
+", '', "at start time TEX=tex\n$answer");
+}
+
 
 1;

@@ -101,6 +101,7 @@ static void decode_switches (int argc, const char **argv,
                              enum variable_origin origin);
 static void decode_env_switches (const char *envar, size_t len,
                                  enum variable_origin origin);
+static void disable_builtins ();
 static char *quote_for_env (char *out, const char *in);
 static void initialize_global_hash_tables (void);
 
@@ -180,6 +181,8 @@ int question_flag = 0;
 
 int no_builtin_rules_flag = 0;
 int no_builtin_variables_flag = 0;
+static int old_builtin_rules_flag;
+static int old_builtin_variables_flag;
 
 /* Nonzero means all variables are automatically exported.  */
 
@@ -2052,9 +2055,9 @@ main (int argc, char **argv, char **envp)
     }
 
   {
-    int old_builtin_rules_flag = no_builtin_rules_flag;
-    int old_builtin_variables_flag = no_builtin_variables_flag;
     int old_arg_job_slots = arg_job_slots;
+    old_builtin_rules_flag = no_builtin_rules_flag;
+    old_builtin_variables_flag = no_builtin_variables_flag;
 
     /* Read all the makefiles.  */
     read_files = read_all_makefiles (makefiles == 0 ? 0 : makefiles->list);
@@ -2100,24 +2103,7 @@ main (int argc, char **argv, char **envp)
     make_sync.syncout = syncing;
     OUTPUT_SET (&make_sync);
 
-    /* If -R was given, set -r too (doesn't make sense otherwise!)  */
-    if (no_builtin_variables_flag)
-      no_builtin_rules_flag = 1;
-
-    /* If we've disabled builtin rules, get rid of them.  */
-    if (no_builtin_rules_flag && ! old_builtin_rules_flag)
-      {
-        if (suffix_file->builtin)
-          {
-            free_dep_chain (suffix_file->deps);
-            suffix_file->deps = 0;
-          }
-        define_variable_cname ("SUFFIXES", "", o_default, 0);
-      }
-
-    /* If we've disabled builtin variables, get rid of them.  */
-    if (no_builtin_variables_flag && ! old_builtin_variables_flag)
-      undefine_default_variables ();
+    disable_builtins ();
   }
 
 #if MK_OS_W32
@@ -3094,6 +3080,7 @@ reset_makeflags (enum variable_origin origin)
 {
   decode_env_switches (STRING_SIZE_TUPLE(MAKEFLAGS_NAME), origin);
   construct_include_path (include_dirs ? include_dirs->list : NULL);
+  disable_builtins ();
   define_makeflags (rebuilding_makefiles);
 }
 
@@ -3449,6 +3436,37 @@ quote_for_env (char *out, const char *in)
     }
 
   return out;
+}
+
+/* Disable builtin variables and rules, if -R or -r is specified.
+ * This function is called at parse time whenever MAKEFLAGS is modified and
+ * also when the parsing phase is over.  */
+
+static
+void disable_builtins ()
+{
+    /* If -R was given, set -r too (doesn't make sense otherwise!)  */
+    if (no_builtin_variables_flag)
+      no_builtin_rules_flag = 1;
+
+    /* If we've disabled builtin rules, get rid of them.  */
+    if (no_builtin_rules_flag && ! old_builtin_rules_flag)
+      {
+        old_builtin_rules_flag = 1;
+        if (suffix_file->builtin)
+          {
+            free_dep_chain (suffix_file->deps);
+            suffix_file->deps = 0;
+          }
+        define_variable_cname ("SUFFIXES", "", o_default, 0);
+      }
+
+    /* If we've disabled builtin variables, get rid of them.  */
+    if (no_builtin_variables_flag && ! old_builtin_variables_flag)
+      {
+        old_builtin_variables_flag = 1;
+        undefine_default_variables ();
+      }
 }
 
 /* Define the MAKEFLAGS and MFLAGS variables to reflect the settings of the

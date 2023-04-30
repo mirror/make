@@ -297,7 +297,7 @@ MAKEFLAGS${fl}R
 all:; \$(info \$(MAKEFLAGS))
 ", 'bye=moon',
 "$answer
-R$answer
+rR$answer
 rR$answer
 #MAKE#: 'all' is up to date.\n");
 }
