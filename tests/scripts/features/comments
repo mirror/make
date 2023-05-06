@@ -32,4 +32,6 @@ $answer = "There should be no errors for this makefile.\n";
 
 # COMPARE RESULTS
 
-&compare_output($answer,&get_logfile(1))
+&compare_output($answer,&get_logfile(1));
+
+1;
