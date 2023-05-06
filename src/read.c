@@ -621,6 +621,7 @@ eval (struct ebuffer *ebuf, int set_default)
       size_t wlen;
       char *p;
       char *p2;
+      unsigned int is_rule;
       struct vmodifiers vmod;
 
       /* At the top of this loop, we are starting a brand new line.  */
@@ -759,6 +760,8 @@ eval (struct ebuffer *ebuf, int set_default)
       p2 = end_of_token (p);
       wlen = p2 - p;
       NEXT_TOKEN (p2);
+
+      is_rule = *p2 == ':' || ((*p2 == '&' || *p2 == '|') && p2[1] == ':');
 
       /* If we're in an ignored define, skip this line (but maybe get out).  */
       if (in_ignored_define)
@@ -910,8 +913,8 @@ eval (struct ebuffer *ebuf, int set_default)
           continue;
         }
 
-      /* Handle the load operations.  */
-      if (word1eq ("load") || word1eq ("-load"))
+      /* Handle the load operations.  Allow targets named "load".  */
+      if ((word1eq ("load") || word1eq ("-load")) && !is_rule)
         {
           /* A 'load' line specifies a dynamic object to load.  */
           struct nameseq *files;

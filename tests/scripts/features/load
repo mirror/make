@@ -144,7 +144,25 @@ all: ; @echo pre=$(PRE) post=$(POST) $(TESTLOAD)
 testload.so: testload.c ; @echo "rebuilding $@"; !.$sobuild,
               '', "pre= post=testload.so implicit\n");
 
-unlink(qw(testload.c testload.so)) unless $keep;
+# Check using load as a target or variable name
+run_make_test(q!
+load: ; @echo $@
+-load&: ; @echo $@
+!,
+              "", "load\n");
+
+run_make_test(q!
+load : ; @echo $@
+-load &: ; echo $@
+!,
+              "", "load\n");
+
+run_make_test(q!
+load = @echo $@
+all: ; $(load)
+load |: ; echo $@
+!,
+              "", "all\n");
 
 # This tells the test driver that the perl test script executed properly.
 1;
