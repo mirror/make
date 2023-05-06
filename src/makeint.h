@@ -672,7 +672,6 @@ const char *strcache_add_len (const char *str, size_t len);
 int guile_gmake_setup (const floc *flocp);
 
 /* Loadable object support.  Sets to the strcached name of the loaded file.  */
-typedef int (*load_func_t)(const floc *flocp);
 int load_file (const floc *flocp, struct file *file, int noerror);
 int unload_file (const char *name);
 

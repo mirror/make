@@ -366,6 +366,7 @@ GNU Guile Integration
 Loading Dynamic Objects
 
 * load Directive::              Loading dynamic objects as extensions.
+* Initializing Functions::      How initializing functions are called.
 * Remaking Loaded Objects::     How loaded objects get remade.
 * Loaded Object API::           Programmatic interface for loaded objects.
 * Loaded Object Example::       Example of a loaded object
@@ -11936,37 +11937,27 @@ symbol to be stored in a @code{make} variable.
 @cindex objects, loaded
 @cindex extensions, loading
 
-@cartouche
-@quotation Warning
-The @code{load} directive and extension capability is considered a
-``technology preview'' in this release of GNU Make.  We encourage you
-to experiment with this feature and we appreciate any feedback on it.
-However we cannot guarantee to maintain backward-compatibility in the
-next release.  Consider using GNU Guile instead for extending GNU Make
-(@pxref{Guile Function, ,The @code{guile} Function}).
-@end quotation
-@end cartouche
+Many operating systems provide a facility for dynamically loading compiled
+objects.  If your system provides this facility, GNU @code{make} can make use
+of it to load dynamic objects at runtime, providing new capabilities which may
+then be invoked by your makefile.
 
-Many operating systems provide a facility for dynamically loading
-compiled objects.  If your system provides this facility, GNU
-@code{make} can make use of it to load dynamic objects at runtime,
-providing new capabilities which may then be invoked by your makefile.
-
-The @code{load} directive is used to load a dynamic object.  Once the
-object is loaded, a ``setup'' function will be invoked to allow the
-object to initialize itself and register new facilities with GNU
-@code{make}.  A dynamic object might include new @code{make} functions,
-for example, and the ``setup'' function would register them with GNU
-@code{make}'s function handling system.
+The @code{load} makefile directive is used to load a dynamic object.  Once the
+object is loaded, an initializing function will be invoked to allow the object
+to initialize itself and register new facilities with GNU @code{make}.  A
+dynamic object might include new @code{make} functions, for example, and the
+initializing function would register them with GNU @code{make}'s function
+handling system.
 
 @menu
 * load Directive::              Loading dynamic objects as extensions.
+* Initializing Functions::      How initializing functions are called.
 * Remaking Loaded Objects::     How loaded objects get remade.
 * Loaded Object API::           Programmatic interface for loaded objects.
 * Loaded Object Example::       Example of a loaded object
 @end menu
 
-@node load Directive, Remaking Loaded Objects, Loading Objects, Loading Objects
+@node load Directive, Initializing Functions, Loading Objects, Loading Objects
 @subsection The @code{load} Directive
 @cindex load directive
 @cindex extensions, load directive
@@ -11986,34 +11977,24 @@ or:
 load @var{object-file}(@var{symbol-name}) @dots{}
 @end example
 
-The file @var{object-file} is dynamically loaded by GNU @code{make}.
-If @var{object-file} does not include a directory path then it is
-first looked for in the current directory.  If it is not found there,
-or a directory path is included, then system-specific paths will be
-searched.  If the load fails for any reason, @code{make} will print a
-message and exit.
+More than one object file may be loaded with a single @code{load} directive,
+and both forms of @code{load} arguments may be used in the same directive.
 
-If the load succeeds @code{make} will invoke an initializing function.
+The file @var{object-file} is dynamically loaded by GNU @code{make}.  If
+@var{object-file} does not include a directory path then it is first looked
+for in the current directory.  If it is not found there, or a directory path
+is included, then system-specific paths will be searched.  If the load fails
+for any reason, @code{make} will print a message and exit.
 
-If @var{symbol-name} is provided, it will be used as the name of the
-initializing function.
+If the load succeeds @code{make} will invoke an initializing function.  If
+@var{symbol-name} is provided, it will be used as the name of the initializing
+function.
 
-If no @var{symbol-name} is provided, the initializing function name is
-created by taking the base file name of @var{object-file}, up to the
-first character which is not a valid symbol name character
-(alphanumerics and underscores are valid symbol name characters).  To
-this prefix will be appended the suffix @code{_gmk_setup}.
-
-More than one object file may be loaded with a single @code{load}
-directive, and both forms of @code{load} arguments may be used in the
-same directive.
-
-The initializing function will be provided the file name and line
-number of the invocation of the @code{load} operation.  It should
-return a value of type @code{int}, which must be @code{0} on failure
-and non-@code{0} on success.  If the return value is @code{-1}, then
-GNU Make will @emph{not} attempt to rebuild the object file
-(@pxref{Remaking Loaded Objects, ,How Loaded Objects Are Remade}).
+If no @var{symbol-name} is provided, the initializing function name is created
+by taking the base file name of @var{object-file}, up to the first character
+which is not a valid symbol name character (alphanumerics and underscores are
+valid symbol name characters).  To this prefix will be appended the suffix
+@code{_gmk_setup}.
 
 For example:
 
@@ -12021,9 +12002,9 @@ For example:
 load ../mk_funcs.so
 @end example
 
-will load the dynamic object @file{../mk_funcs.so}.  After the object
-is loaded, @code{make} will invoke the function (assumed to be defined
-by the shared object) @code{mk_funcs_gmk_setup}.
+will load the dynamic object @file{../mk_funcs.so}.  After the object is
+loaded, @code{make} will invoke the initializing function (assumed to be
+defined by the shared object) @code{mk_funcs_gmk_setup}.
 
 On the other hand:
 
@@ -12031,86 +12012,96 @@ On the other hand:
 load ../mk_funcs.so(init_mk_func)
 @end example
 
-will load the dynamic object @file{../mk_funcs.so}.  After the object
-is loaded, @code{make} will invoke the function @code{init_mk_func}.
+will load the dynamic object @file{../mk_funcs.so}.  After the object is
+loaded, @code{make} will invoke the initializing function @code{init_mk_func}.
 
 Regardless of how many times an object file appears in a @code{load}
-directive, it will only be loaded (and its setup function will only
-be invoked) once.
+directive, it will only be loaded (and its setup function will only be
+invoked) once.
 
 @vindex .LOADED
-After an object has been successfully loaded, its file name is
-appended to the @code{.LOADED} variable.
+After an object has been successfully loaded, its file name is appended to the
+@code{.LOADED} variable.
 
 @findex -load
-If you would prefer that failure to load a dynamic object not be
-reported as an error, you can use the @code{-load} directive instead
-of @code{load}.  GNU @code{make} will not fail and no message will be
-generated if an object fails to load.  The failed object is not added
-to the @code{.LOADED} variable, which can then be consulted to
-determine if the load was successful.
+If you would prefer that failure to load a dynamic object not be reported as
+an error, you can use the @code{-load} directive instead of @code{load}.  GNU
+@code{make} will not fail and no message will be generated if an object fails
+to load.  The failed object is not added to the @code{.LOADED} variable, which
+can then be consulted to determine if the load was successful.
 
-@node Remaking Loaded Objects, Loaded Object API, load Directive, Loading Objects
+@node Initializing Functions, Remaking Loaded Objects, load Directive, Loading Objects
+@subsection Initializing Functions
+@cindex loaded object initializing function
+@cindex initializing function, for loaded objects
+
+The initializing function defined by the loaded object must have this
+signature:
+
+@example
+int <name> (unsigned int abi_version, const gmk_floc *floc);
+@end example
+
+Where @emph{<name>} is described in the previous section.
+
+The @code{abi_version} value will be the value of the @code{GMK_ABI_VERSION}
+constant (see the @file{gnumake.h} file) for this GNU Make release.  The
+@code{floc} pointer provides the file name and line number of the invocation
+of the @code{load} operation.
+
+The initializing function should return an @code{int}, which must be @code{0}
+on failure and non-@code{0} on success.  If the return value is @code{-1},
+then GNU Make will @emph{not} attempt to rebuild the object file
+(@pxref{Remaking Loaded Objects, ,How Loaded Objects Are Remade}).
+
+@node Remaking Loaded Objects, Loaded Object API, Initializing Functions, Loading Objects
 @subsection How Loaded Objects Are Remade
 @cindex updating loaded objects
 @cindex remaking loaded objects
 @cindex loaded objects, remaking of
 
 Loaded objects undergo the same re-make procedure as makefiles
-(@pxref{Remaking Makefiles, ,How Makefiles Are Remade}).  If any
-loaded object is recreated, then @code{make} will start from scratch
-and re-read all the makefiles, and reload the object files again.  It
-is not necessary for the loaded object to do anything special to
-support this.
+(@pxref{Remaking Makefiles, ,How Makefiles Are Remade}).  If any loaded object
+is recreated, then @code{make} will start from scratch and re-read all the
+makefiles, and reload the object files again.  It is not necessary for the
+loaded object to do anything special to support this.
 
-It's up to the makefile author to provide the rules needed for
-rebuilding the loaded object.
+It's up to the makefile author to provide the rules needed for rebuilding the
+loaded object.
 
 @node Loaded Object API, Loaded Object Example, Remaking Loaded Objects, Loading Objects
 @subsection Loaded Object Interface
 @cindex loaded object API
 @cindex interface for loaded objects
 
-@cartouche
-@quotation Warning
-For this feature to be useful your extensions will need to invoke
-various functions internal to GNU @code{make}.  The programming
-interfaces provided in this release should not be considered stable:
-functions may be added, removed, or change calling signatures or
-implementations in future versions of GNU @code{make}.
-@end quotation
-@end cartouche
-
-To be useful, loaded objects must be able to interact with GNU
-@code{make}.  This interaction includes both interfaces the loaded
-object provides to makefiles and also interfaces @code{make} provides
-to the loaded object to manipulate @code{make}'s operation.
+To be useful, loaded objects must be able to interact with GNU @code{make}.
+This interaction includes both interfaces the loaded object provides to
+makefiles and also interfaces @code{make} provides to the loaded object to
+manipulate @code{make}'s operation.
 
 The interface between loaded objects and @code{make} is defined by the
-@file{gnumake.h} C header file.  All loaded objects written in C
-should include this header file.  Any loaded object not written in C
-will need to implement the interface defined in this header file.
+@file{gnumake.h} C header file.  All loaded objects written in C should
+include this header file.  Any loaded object not written in C will need to
+implement the interface defined in this header file.
 
-Typically, a loaded object will register one or more new GNU
-@code{make} functions using the @code{gmk_add_function} routine from
-within its setup function.  The implementations of these @code{make}
-functions may make use of the @code{gmk_expand} and @code{gmk_eval}
-routines to perform their tasks, then optionally return a string as
-the result of the function expansion.
+Typically, a loaded object will register one or more new GNU @code{make}
+functions using the @code{gmk_add_function} routine from within its setup
+function.  The implementations of these @code{make} functions may make use of
+the @code{gmk_expand} and @code{gmk_eval} routines to perform their tasks,
+then optionally return a string as the result of the function expansion.
 
 @subsubheading Loaded Object Licensing
 @cindex loaded object licensing
 @cindex plugin_is_GPL_compatible
 
 Every dynamic extension should define the global symbol
-@code{plugin_is_GPL_compatible} to assert that it has been licensed
-under a GPL-compatible license.  If this symbol does not exist,
-@code{make} emits a fatal error and exits when it tries to load your
-extension.
+@code{plugin_is_GPL_compatible} to assert that it has been licensed under a
+GPL-compatible license.  If this symbol does not exist, @code{make} emits a
+fatal error and exits when it tries to load your extension.
 
-The declared type of the symbol should be @code{int}. It does not need
-to be in any allocated section, though.  The code merely asserts that
-the symbol exists in the global scope. Something like this is enough:
+The declared type of the symbol should be @code{int}. It does not need to be
+in any allocated section, though.  The code merely asserts that the symbol
+exists in the global scope. Something like this is enough:
 
 @example
 int plugin_is_GPL_compatible;
@@ -12120,19 +12111,44 @@ int plugin_is_GPL_compatible;
 
 @table @code
 @item gmk_floc
-This structure represents a filename/location pair.  It is provided
-when defining items, so GNU @code{make} can inform the user later
-where the definition occurred if necessary.
+This structure represents a filename/location pair.  It is provided when
+defining items, so GNU @code{make} can inform the user where the definition
+occurred if necessary.
 @end table
+
+@subsubheading Checking Versions
+@findex gmk_get_version
+
+The @code{gmk_get_version} allows loaded objects to check which loaded object
+API version is supported by GNU Make.  The API version is specified as two
+values: the @emph{major} version and the @emph{minor} version.  Note, these
+two values are not the same as the version of GNU Make!
+
+The @emph{major} version is incremented when there is a change to the loaded
+object ABI, which might cause .
+
+It is called as:
+
+@example
+void gmk_get_version (unsigned int *major, unsigned int *minor);
+@end example
+
+@table @code
+@item major
+If not NULL, the major version number is placed here.
+
+@item minor
+If not NULL, the minor version number is placed here.
+@end table
+
 
 @subsubheading Registering Functions
 @findex gmk_add_function
 
-There is currently one way for makefiles to invoke operations provided
-by the loaded object: through the @code{make} function call
-interface.  A loaded object can register one or more new functions
-which may then be invoked from within the makefile in the same way as
-any other function.
+There is currently one way for makefiles to invoke operations provided by the
+loaded object: through the @code{make} function call interface.  A loaded
+object can register one or more new functions which may then be invoked from
+within the makefile in the same way as any other function.
 
 Use @code{gmk_add_function} to create a new @code{make} function.  Its
 arguments are as follows:
@@ -12140,109 +12156,101 @@ arguments are as follows:
 @table @code
 @item name
 The function name.  This is what the makefile should use to invoke the
-function.  The name must be between 1 and 255 characters long and it
-may only contain alphanumeric, period (@samp{.}), dash (@samp{-}), and
-underscore (@samp{_}) characters.  It may not begin with a period.
+function.  The name must be between 1 and 255 characters long and it may only
+contain alphanumeric, period (@samp{.}), dash (@samp{-}), and underscore
+(@samp{_}) characters.  It may not begin with a period.
 
 @item func_ptr
-A pointer to a function that @code{make} will invoke when it expands
-the function in a makefile.  This function must be defined by the
-loaded object.
+A pointer to a function that @code{make} will invoke when it expands the
+function in a makefile.  This function must be defined by the loaded object.
 
 @item min_args
-The minimum number of arguments the function will accept.  Must be
-between 0 and 255.  GNU @code{make} will check this and fail before
-invoking @code{func_ptr} if the function was invoked with too few
-arguments.
+The minimum number of arguments the function will accept.  Must be between 0
+and 255.  GNU @code{make} will check this and fail before invoking
+@code{func_ptr} if the function was invoked with too few arguments.
 
 @item max_args
-The maximum number of arguments the function will accept.  Must be
-between 0 and 255.  GNU @code{make} will check this and fail before
-invoking @code{func_ptr} if the function was invoked with too many
-arguments.  If the value is 0, then any number of arguments is
-accepted.  If the value is greater than 0, then it must be greater
-than or equal to @code{min_args}.
+The maximum number of arguments the function will accept.  Must be between 0
+and 255.  GNU @code{make} will check this and fail before invoking
+@code{func_ptr} if the function was invoked with too many arguments.  If the
+value is 0, then any number of arguments is accepted.  If the value is greater
+than 0, then it must be greater than or equal to @code{min_args}.
 
 @item flags
-Flags that specify how this function will operate; the desired flags
-should be OR'd together.  If the @code{GMK_FUNC_NOEXPAND} flag is
-given then the function arguments will not be expanded before the
-function is called; otherwise they will be expanded first.
+Flags that specify how this function will operate; the desired flags should be
+OR'd together.  If the @code{GMK_FUNC_NOEXPAND} flag is given then the
+function arguments will not be expanded before the function is called;
+otherwise they will be expanded first.
 @end table
 
 @subsubheading Registered Function Interface
 @findex gmk_func_ptr
 
-A function registered with @code{make} must match the
-@code{gmk_func_ptr} type.  It will be invoked with three parameters:
-@code{name} (the name of the function), @code{argc} (the number of
-arguments to the function), and @code{argv} (an array of pointers to
-arguments to the function).  The last pointer (that is,
-@code{argv[argc]}) will be null (@code{0}).
+A function registered with @code{make} must match the @code{gmk_func_ptr}
+type.  It will be invoked with three parameters: @code{name} (the name of the
+function), @code{argc} (the number of arguments to the function), and
+@code{argv} (an array of pointers to arguments to the function).  The last
+pointer (that is, @code{argv[argc]}) will be null (@code{0}).
 
-The return value of the function is the result of expanding the
-function.  If the function expands to nothing the return value may be
-null.  Otherwise, it must be a pointer to a string created with
-@code{gmk_alloc}.  Once the function returns, @code{make} owns this
-string and will free it when appropriate; it cannot be accessed by the
-loaded object.
+The return value of the function is the result of expanding the function.  If
+the function expands to nothing the return value may be null.  Otherwise, it
+must be a pointer to a string created with @code{gmk_alloc}.  Once the
+function returns, @code{make} owns this string and will free it when
+appropriate; it cannot be accessed by the loaded object.
 
 @subsubheading GNU @code{make} Facilities
 
-There are some facilities exported by GNU @code{make} for use by
-loaded objects.  Typically these would be run from within the
-setup function and/or the functions registered via
-@code{gmk_add_function}, to retrieve or modify the data @code{make}
-works with.
+There are some facilities exported by GNU @code{make} for use by loaded
+objects.  Typically these would be run from within the setup function and/or
+the functions registered via @code{gmk_add_function}, to retrieve or modify
+the data @code{make} works with.
 
 @table @code
 @item gmk_expand
 @findex gmk_expand
-This function takes a string and expands it using @code{make}
-expansion rules.  The result of the expansion is returned in a
-nil-terminated string buffer.  The caller is responsible for calling
-@code{gmk_free} with a pointer to the returned buffer when done.
+This function takes a string and expands it using @code{make} expansion rules.
+The result of the expansion is returned in a nil-terminated string buffer.
+The caller is responsible for calling @code{gmk_free} with a pointer to the
+returned buffer when done.
 
 @item gmk_eval
 @findex gmk_eval
-This function takes a buffer and evaluates it as a segment of makefile
-syntax.  This function can be used to define new variables, new rules,
-etc.  It is equivalent to using the @code{eval} @code{make} function.
+This function takes a buffer and evaluates it as a segment of makefile syntax.
+This function can be used to define new variables, new rules, etc.  It is
+equivalent to using the @code{eval} @code{make} function.
 @end table
 
 Note that there is a difference between @code{gmk_eval} and calling
-@code{gmk_expand} with a string using the @code{eval} function: in
-the latter case the string will be expanded @emph{twice}; once by
-@code{gmk_expand} and then again by the @code{eval} function.  Using
-@code{gmk_eval} the buffer is only expanded once, at most (as it's
-read by the @code{make} parser).
+@code{gmk_expand} with a string using the @code{eval} function: in the latter
+case the string will be expanded @emph{twice}; once by @code{gmk_expand} and
+then again by the @code{eval} function.  Using @code{gmk_eval} the buffer is
+only expanded once, at most (as it's read by the @code{make} parser).
 
 @subsubheading Memory Management
 
-Some systems allow for different memory management schemes.  Thus you
-should never pass memory that you've allocated directly to any
-@code{make} function, nor should you attempt to directly free any
-memory returned to you by any @code{make} function.  Instead, use the
-@code{gmk_alloc} and @code{gmk_free} functions.
+Some systems allow for different memory management schemes.  Thus you should
+never pass memory that you've allocated directly to any @code{make} function,
+nor should you attempt to directly free any memory returned to you by any
+@code{make} function.  Instead, use the @code{gmk_alloc} and @code{gmk_free}
+functions.
 
-In particular, the string returned to @code{make} by a function
-registered using @code{gmk_add_function} @emph{must} be allocated
-using @code{gmk_alloc}, and the string returned from the @code{make}
-@code{gmk_expand} function @emph{must} be freed (when no longer
-needed) using @code{gmk_free}.
+In particular, the string returned to @code{make} by a function registered
+using @code{gmk_add_function} @emph{must} be allocated using @code{gmk_alloc},
+and the string returned from the @code{make} @code{gmk_expand} function
+@emph{must} be freed (when no longer needed) using @code{gmk_free}.
 
 @table @code
 @item gmk_alloc
 @findex gmk_alloc
-Return a pointer to a newly-allocated buffer.  This function will
-always return a valid pointer; if not enough memory is available
-@code{make} will exit.  @code{gmk_alloc} does not initialize allocated memory.
+Return a pointer to a newly-allocated buffer.  This function will always
+return a valid pointer; if not enough memory is available @code{make} will
+exit.  @code{gmk_alloc} does not initialize allocated memory.
 
 @item gmk_free
 @findex gmk_free
-Free a buffer returned to you by @code{make}.  Once the
-@code{gmk_free} function returns the string will no longer be valid.
-If NULL is passed to @code{gmk_free}, no operation is performed.
+Free a buffer returned to you by @code{make}.  Once the @code{gmk_free}
+function returns the string will no longer be valid.  If NULL is passed to
+@code{gmk_free}, no operation is performed.
 @end table
 
 @node Loaded Object Example,  , Loaded Object API, Loading Objects
@@ -12250,10 +12258,10 @@ If NULL is passed to @code{gmk_free}, no operation is performed.
 @cindex loaded object example
 @cindex example of loaded objects
 
-Let's suppose we wanted to write a new GNU @code{make} function that
-would create a temporary file and return its name.  We would like our
-function to take a prefix as an argument.  First we can write the
-function in a file @file{mk_temp.c}:
+Let's suppose we wanted to write a new GNU @code{make} function that would
+create a temporary file and return its name.  We would like our function to
+take a prefix as an argument.  First we can write the function in a file
+@file{mk_temp.c}:
 
 @example
 @group
@@ -12294,9 +12302,10 @@ gen_tmpfile(const char *nm, int argc, char **argv)
 @}
 
 int
-mk_temp_gmk_setup (const gmk_floc *floc)
+mk_temp_gmk_setup (unsigned int abi, const gmk_floc *floc)
 @{
-  printf ("mk_temp plugin loaded from %s:%lu\n", floc->filenm, floc->lineno);
+  printf ("mk_temp abi %u plugin loaded from %s:%lu\n",
+          abi, floc->filenm, floc->lineno);
   /* Register the function with make name "mk-temp".  */
   gmk_add_function ("mk-temp", gen_tmpfile, 1, 1, 1);
   return 1;
@@ -12319,12 +12328,12 @@ mk_temp.so: mk_temp.c
 @end group
 @end example
 
-On MS-Windows, due to peculiarities of how shared objects are
-produced, the compiler needs to scan the @dfn{import library} produced
-when building @code{make}, typically called
-@file{libgnumake-@var{version}.dll.a}, where @var{version} is the
-version of the load object API.  So the recipe to produce a shared
-object will look on Windows like this (assuming the API version is 1):
+On MS-Windows, due to peculiarities of how shared objects are produced, the
+compiler needs to scan the @dfn{import library} produced when building
+@code{make}, typically called @file{libgnumake-@var{version}.dll.a}, where
+@var{version} is the version of the load object API.  So the recipe to produce
+a shared object will look on Windows like this (assuming the API version is
+1):
 
 @example
 @group
@@ -12337,7 +12346,7 @@ Now when you run @code{make} you'll see something like:
 
 @example
 $ make
-mk_temp plugin loaded from Makefile:4
+mk_temp abi 1 plugin loaded from Makefile:4
 cc -shared -fPIC -o mk_temp.so mk_temp.c
 Temporary filename: tmpfile.A7JEwd
 @end example

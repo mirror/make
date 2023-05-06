@@ -25,11 +25,11 @@ char* getenv (const char*);
 
 int plugin_is_GPL_compatible;
 
-int testload_gmk_setup (gmk_floc *);
-int explicit_setup (gmk_floc *);
+int testload_gmk_setup (unsigned int, gmk_floc *);
+int explicit_setup (unsigned int, gmk_floc *);
 
 int
-testload_gmk_setup (gmk_floc *pos)
+testload_gmk_setup (unsigned int abi, gmk_floc *pos)
 {
     (void)pos;
     gmk_eval ("TESTLOAD = implicit", 0);
@@ -39,7 +39,7 @@ testload_gmk_setup (gmk_floc *pos)
 }
 
 int
-explicit_setup (gmk_floc *pos)
+explicit_setup (unsigned int abi, gmk_floc *pos)
 {
     (void)pos;
     gmk_eval ("TESTLOAD = explicit", 0);

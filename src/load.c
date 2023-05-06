@@ -44,12 +44,14 @@ struct load_list
 
 static struct load_list *loaded_syms = NULL;
 
-static load_func_t
+typedef int (*setup_func_t)(unsigned int abi, const floc *flocp);
+
+static setup_func_t
 load_object (const floc *flocp, int noerror, const char *ldname,
              const char *symname)
 {
   static void *global_dl = NULL;
-  load_func_t symp;
+  setup_func_t symp;
 
   if (! global_dl)
     {
@@ -61,7 +63,7 @@ load_object (const floc *flocp, int noerror, const char *ldname,
         }
     }
 
-  symp = (load_func_t) dlsym (global_dl, symname);
+  symp = (setup_func_t) dlsym (global_dl, symname);
   if (! symp)
     {
       struct load_list *new;
@@ -93,13 +95,13 @@ load_object (const floc *flocp, int noerror, const char *ldname,
       DB (DB_VERBOSE, (_("Loaded shared object %s\n"), ldname));
 
       /* Assert that the GPL license symbol is defined.  */
-      symp = (load_func_t) dlsym (dlp, "plugin_is_GPL_compatible");
+      symp = (setup_func_t) dlsym (dlp, "plugin_is_GPL_compatible");
       if (! symp)
         OS (fatal, flocp,
              _("loaded object %s is not declared to be GPL compatible"),
              ldname);
 
-      symp = (load_func_t) dlsym (dlp, symname);
+      symp = (setup_func_t) dlsym (dlp, symname);
       if (! symp)
         {
           const char *err = dlerror ();
@@ -129,7 +131,7 @@ load_file (const floc *flocp, struct file *file, int noerror)
   char *symname = NULL;
   const char *fp;
   int r;
-  load_func_t symp;
+  setup_func_t symp;
 
   /* Break the input into an object file name and a symbol name.  If no symbol
      name was provided, compute one from the object file name.  */
@@ -210,8 +212,11 @@ load_file (const floc *flocp, struct file *file, int noerror)
   if (! symp)
     return 0;
 
-  /* Invoke the symbol.  */
-  r = (*symp) (flocp);
+  /* Invoke the setup function.  */
+  {
+    unsigned int abi = GMK_ABI_VERSION;
+    r = (*symp) (abi, flocp);
+  }
 
   /* If the load didn't fail, add the file to the .LOADED variable.  */
   if (r)

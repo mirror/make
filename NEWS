@@ -20,6 +20,15 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&se
   This version of GNU Make no longer supports AmigaOS.  If you need support
   for AmigaOS please use one of the older versions of GNU Make.
 
+* WARNING: Loaded Object ABI incompatibility!
+  This release changes the loaded object feature from "technology preview" to
+  fully-supported feature.  However, it introduces an ABI incompatibility with
+  previous releases: the setup function now takes an ABI version as its first
+  argument.  When compiling your loaded object you can test the GMK_ABI_VERSION 
+  constant at compile time to detect which ABI should be used.  At runtime
+  your initialization function can check the provided ABI version to verify
+  it's being loaded correctly.
+
 * New feature: Makefile warning reporting control
   A new option "--warn" controls reporting of warnings for makefiles.  Actions
   can be set to "ignore", "warn", or "error".  Two new warnings are reported:
