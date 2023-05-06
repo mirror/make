@@ -35,6 +35,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&se
 
 * Tests in the regression test suite now are run in their own directory to
   avoid cross-contamination and allow cleanup if the tests are interrupted.
+  More information is printed about failing tests.
 
 
 Version 4.4.1 (26 Feb 2023)

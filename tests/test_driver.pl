@@ -56,6 +56,8 @@ $some_test_failed = 0;
 $tests_run = 0;
 # The number of tests in this category that have passed
 $tests_passed = 0;
+# Info on which tests failed
+@failure_info = ();
 
 $port_type = undef;
 $osname = undef;
@@ -387,9 +389,19 @@ sub toplevel
     print "s" unless $total_tests_failed == 1;
     print " in $categories_failed Categor";
     print ($categories_failed == 1 ? "y" : "ies");
-    print " Failed (See .$diffext files in $workdir dir for details) :-(\n\n";
+    print " Failed :-(\n\n";
+    my $i = 0;
+    for my $e (@failure_info) {
+        ++$i;
+        print "  Failure $i:\n";
+        print "    run:  $e->{'run'}\n" if exists($e->{'run'});
+        print "    base: $e->{'base'}\n";
+        print "    diff: $e->{'diff'}\n" if exists($e->{'diff'});
+    }
     return 0;
-  } elsif ($some_test_failed) {
+  }
+
+  if ($some_test_failed) {
       # Something failed but no tests were marked failed... probably a syntax
       # error in a test script
     print "\nSome tests failed (See output for details) :-(\n\n";
@@ -634,10 +646,10 @@ sub run_all_tests
     $testname =~ s/^$scriptpath$pathsep//;
     $testname =~ s/(\.pl|\.perl)$//;
 
-    $perl_testname = "$scriptpath$pathsep$testname";
+    $perl_testname = File::Spec->catfile($scriptpath, $testname);
     -f $perl_testname or die "Invalid test: $testname\n\n";
 
-    $testpath = "$workpath$pathsep$testname";
+    $testpath = File::Spec->catdir($workpath, $testname);
 
     remove_directory_tree($testpath);
     mkdir($testpath, 0777) or &error("Couldn't mkdir $testpath: $!\n", 1);
@@ -680,6 +692,7 @@ sub run_all_tests
       # Skipped... not supported
       $status = "N/A";
       --$categories_run;
+      remove_directory_tree($testpath);
 
     } elsif ($code != 1) {
       # Bad result... this shouldn't really happen.  Usually means that
@@ -737,18 +750,11 @@ sub run_all_tests
   close(INCOPY);
 }
 
-# If the keep flag is not set, this subroutine deletes all filenames that
-# are sent to it.
+# Deletes all filenames that are sent to it.
 
 sub rmfiles
 {
-  my (@files) = @_;
-
-  if (!$keep) {
-    return (unlink @files);
-  }
-
-  return 1;
+  return (unlink @_);
 }
 
 sub print_standard_usage
@@ -995,6 +1001,7 @@ sub compare_output
 
   ++$tests_run;
 
+  # Check to see if any temporary files were leftover after the run completes
   my @tf = ();
   foreach my $file (glob(File::Spec->catfile($temppath, "*"))) {
     if (!exists $old_tempfiles{$file}) {
@@ -1014,13 +1021,19 @@ sub compare_output
     $matched = 1;
   } else {
     print "Comparing output ........ " if $debug;
-
     $matched = compare_answer($answer, &read_file_into_string ($logfile));
   }
 
-  if ($keep || ! $matched) {
-    &create_file(&get_basefile, $answer);
-    &create_file(&get_runfile, $command_string);
+  my $base = get_basefile();
+  my $run = get_runfile();
+  my $diff = get_difffile();
+
+  my %e = ('base' => File::Spec->catdir($testpath, $base));
+
+  if (! $matched) {
+    &create_file($base, $answer);
+    &create_file($run, $command_string);
+    $e{'run'} = File::Spec->catdir($testpath, $run);
   }
 
   if ($matched && $test_passed && !$extra) {
@@ -1030,20 +1043,17 @@ sub compare_output
   }
 
   if (! $matched) {
-    print "DIFFERENT OUTPUT\n" if $debug;
-
-    print "\nCreating Difference File ...\n" if $debug;
-
     # Create the difference file
-    my $base = get_basefile();
     if ($diff_name) {
-        &run_command_with_output(get_difffile(),
-                                 "$diff_name -c $base $logfile");
+        run_command_with_output($diff, "$diff_name -c $base $logfile");
     } else {
-        create_file(get_difffile(),
-                    "Log file $logfile differs from base file $base\n");
+        create_file($diff, "Log file $logfile differs from base file $base\n");
     }
+
+    $e{'diff'} = File::Spec->catdir($testpath, $diff);
   }
+
+  push @failure_info, \%e;
 
   return 0;
 }
