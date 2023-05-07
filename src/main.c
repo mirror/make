@@ -3815,6 +3815,10 @@ die (int status)
       if (verify_flag)
         verify_file_data_base ();
 
+      /* Unload plugins before jobserver integrity check in case a plugin
+       * participates in jobserver.  */
+      unload_all ();
+
       clean_jobserver (status);
 
       if (output_context)

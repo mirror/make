@@ -35,7 +35,16 @@ typedef char *(*gmk_func_ptr)(const char *nm, unsigned int argc, char **argv);
 
      int <setup_fn> (unsigned int abi_version, const gmk_floc *flocp);
 
-   The abi_version will be set to GMK_ABI_VERSION.  */
+   The abi_version will be set to GMK_ABI_VERSION.
+
+   When an object is unloaded by GNU Make, an unload method will be invoked.
+   The name of the method is derived from the filename of the object, with
+   _gmk_unload appended.  It has the signature:
+
+     void <object>_gmk_unload (void);
+
+  There will only be one unload method invoked regardless of the number of
+  setup methods within the object.  */
 
 #ifdef _WIN32
 # ifdef GMK_BUILDING_MAKE

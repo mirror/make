@@ -11990,7 +11990,7 @@ If the load succeeds @code{make} will invoke an initializing function.  If
 @var{symbol-name} is provided, it will be used as the name of the initializing
 function.
 
-If no @var{symbol-name} is provided, the initializing function name is created
+If @var{symbol-name} is not provided, the initializing function name is created
 by taking the base file name of @var{object-file}, up to the first character
 which is not a valid symbol name character (alphanumerics and underscores are
 valid symbol name characters).  To this prefix will be appended the suffix
@@ -12029,6 +12029,31 @@ an error, you can use the @code{-load} directive instead of @code{load}.  GNU
 @code{make} will not fail and no message will be generated if an object fails
 to load.  The failed object is not added to the @code{.LOADED} variable, which
 can then be consulted to determine if the load was successful.
+
+@subsubheading Unloading Objects
+@cindex unloading objects
+@cindex unload function for loaded objects
+
+When GNU Make needs to unload a loaded object, either because it is exiting or
+because the loaded object has been rebuilt, it will invoke an unload function.
+The unload function name is created by taking the base file name of the object
+file, up to the first character which is not a valid symbol name character
+(alphanumerics and underscores are valid symbol name characters), then
+appending the suffix @code{_gmk_unload}.
+
+If that function exists it will be called using the signature:
+
+@example
+void <name>_gmk_unload (void);
+@end example
+
+If the function does not exist, it will not be called.
+
+Note that only one unload function may be defined per loaded object,
+regardless of how many different setup methods are provided in that loaded
+object.  If your loaded object provides multiple setup methods that require
+unload support it's up to you to coordinate which setups have been invoked in
+the unload function.
 
 @node Initializing Functions, Remaking Loaded Objects, load Directive, Loading Objects
 @subsection Initializing Functions
@@ -12275,8 +12300,16 @@ take a prefix as an argument.  First we can write the function in a file
 
 int plugin_is_GPL_compatible;
 
-char *
-gen_tmpfile(const char *nm, int argc, char **argv)
+struct tmpfile @{
+  struct tmpfile *next;
+  char *name;
+@};
+static struct tmpfile *files = NULL;
+@end group
+
+@group
+static char *
+gen_tmpfile(const char *nm, unsigned int argc, char **argv)
 @{
   int fd;
 
@@ -12290,6 +12323,11 @@ gen_tmpfile(const char *nm, int argc, char **argv)
   fd = mkstemp(buf);
   if (fd >= 0)
     @{
+      struct tmpfile *new = malloc (sizeof (struct tmpfile));
+      new->name = strdup (buf);
+      new->next = files;
+      files = new;
+
       /* Don't leak the file descriptor.  */
       close (fd);
       return buf;
@@ -12300,7 +12338,9 @@ gen_tmpfile(const char *nm, int argc, char **argv)
   gmk_free (buf);
   return NULL;
 @}
+@end group
 
+@group
 int
 mk_temp_gmk_setup (unsigned int abi, const gmk_floc *floc)
 @{
@@ -12309,6 +12349,23 @@ mk_temp_gmk_setup (unsigned int abi, const gmk_floc *floc)
   /* Register the function with make name "mk-temp".  */
   gmk_add_function ("mk-temp", gen_tmpfile, 1, 1, 1);
   return 1;
+@}
+@end group
+
+@group
+void
+mk_temp_gmk_close ()
+@{
+  while (files)
+    @{
+      struct tmpfile *f = files;
+      files = f->next;
+      printf ("mk_temp removing %s\n", f->name);
+      remove (f->name);
+      free (f->name);
+      free (f);
+    @}
+  printf ("mk_temp plugin closed\n");
 @}
 @end group
 @end example
@@ -12320,8 +12377,9 @@ it, and use it:
 @group
 all:
         @@echo Temporary file: $(mk-temp tmpfile.)
+        @@echo Temporary file: $(mk-temp tmpfile.)
 
-load mk_temp.so
+-load mk_temp.so
 
 mk_temp.so: mk_temp.c
         $(CC) -shared -fPIC -o $@@ $<
@@ -12332,7 +12390,7 @@ On MS-Windows, due to peculiarities of how shared objects are produced, the
 compiler needs to scan the @dfn{import library} produced when building
 @code{make}, typically called @file{libgnumake-@var{version}.dll.a}, where
 @var{version} is the version of the load object API.  So the recipe to produce
-a shared object will look on Windows like this (assuming the API version is
+a shared object will look like this on Windows (assuming the API version is
 1):
 
 @example
@@ -12345,10 +12403,16 @@ mk_temp.dll: mk_temp.c
 Now when you run @code{make} you'll see something like:
 
 @example
+@group
 $ make
-mk_temp abi 1 plugin loaded from Makefile:4
 cc -shared -fPIC -o mk_temp.so mk_temp.c
-Temporary filename: tmpfile.A7JEwd
+mk_temp abi 1 plugin loaded from Makefile:5
+Temporary file: tmpfile.OYkGMT
+Temporary file: tmpfile.sYsJO0
+mk_temp removing tmpfile.sYsJO0
+mk_temp removing tmpfile.OYkGMT
+mk_temp plugin closed
+@end group
 @end example
 
 @node Integrating make, Features, Extending make, Top

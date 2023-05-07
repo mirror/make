@@ -93,6 +93,32 @@ testapi_gmk_setup (unsigned int abi, const gmk_floc *floc)
 
     return 1;
 }
+
+int
+alternative_setup ()
+{
+    gmk_add_function ("test-expand", func_test, 1, 1, GMK_FUNC_DEFAULT);
+    gmk_add_function ("test-noexpand", func_test, 1, 1, GMK_FUNC_NOEXPAND);
+    gmk_add_function ("test-eval", func_test, 1, 1, GMK_FUNC_DEFAULT);
+    gmk_add_function ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.", func_test, 0, 0, 0);
+
+    if (getenv ("TESTAPI_VERBOSE"))
+      printf ("alternative_setup\n");
+
+    if (getenv ("TESTAPI_KEEP"))
+      return -1;
+
+    return 1;
+}
+
+void
+testapi_gmk_unload ()
+{
+    const char *s = getenv ("TESTAPI_VERBOSE");
+    if (s && *s == '3')
+      printf ("testapi_gmk_unload\n");
+}
+
 EOF
 close($F) or die "close: testapi.c: $!\n";
 
@@ -222,7 +248,70 @@ force:;
 ", '', "testapi_gmk_setup\n#MAKEFILE#:2\ntestapi.so\ntestapi_gmk_setup\n#MAKEFILE#:2\nhello\n#MAKE#: 'all' is up to date.\n");
 }
 
+my @names  = ('testapi.so', './testapi.so', '#PWD#/testapi.so');
+
+for my $name (@names) {
+
+# Test the make correctly figures out the name of the close function and runs
+# the close function.
+$ENV{TESTAPI_VERBOSE} = 3;
+run_make_test("
+load $name
+all:; \$(info \$(test-expand hello))
+", '', "testapi_gmk_setup\nhello\n#MAKE#: 'all' is up to date.\ntestapi_gmk_unload\n");
+}
+
+# Same as above, but the setup function is custom.
+@names  = ('testapi.so(alternative_setup)', './testapi.so(alternative_setup)',
+           '#PWD#/testapi.so(alternative_setup)');
+for my $name (@names) {
+
+# Test the close function.
+$ENV{TESTAPI_VERBOSE} = 3;
+run_make_test("
+load $name
+all:; \$(info \$(test-expand hello))
+", '', "alternative_setup\nhello\n#MAKE#: 'all' is up to date.\ntestapi_gmk_unload\n");
+}
+
+# Test that makes runs the close function on failure.
+$ENV{TESTAPI_VERBOSE} = 3;
+run_make_test(q!
+load testapi.so
+all: bad_preqreq; :
+!, '', "testapi_gmk_setup\n#MAKE#: *** No rule to make target 'bad_preqreq', needed by 'all'.  Stop.\ntestapi_gmk_unload\n", 512);
+
+# Test that make unloads a shared object, calls the close function, loads
+# the plugin again, and then calls the close function again on exit.
+&utouch(-10, 'testapi.so');
+$ENV{TESTAPI_VERBOSE} = 3;
+run_make_test("
+load testapi.so
+all:; \$(info \$(test-expand hello))
+testapi.so: testapi.c; $sobuild
+", '', "testapi_gmk_setup\ntestapi_gmk_unload\n$sobuild\ntestapi_gmk_setup\nhello\n#MAKE#: 'all' is up to date.\ntestapi_gmk_unload");
+
+# Test that make unloads a shared object, calls the close function, loads
+# the plugin again, and then calls the close function again on exit.
+$ENV{TESTAPI_VERBOSE} = 3;
+run_make_test(q!
+load testapi.so
+all:; $(info $(test-expand hello))
+testapi.so: force; $(info $@)
+force:;
+.PHONY: force
+!, '', "testapi_gmk_setup\ntestapi_gmk_unload\ntestapi.so\ntestapi_gmk_setup\nhello\n#MAKE#: 'all' is up to date.\ntestapi_gmk_unload\n");
+
 unlink(qw(testapi.c testapi.so)) unless $keep;
+
+# Test that make does not run the close function, unless the shared object
+# loaded successfully.
+unlink('testapi.so');
+$ENV{TESTAPI_VERBOSE} = 3;
+run_make_test(q!
+load testapi.so
+all:; :
+!, '', "#MAKEFILE#:2: testapi.so: cannot open shared object file: $ERR_no_such_file\n#MAKEFILE#:2: *** testapi.so: failed to load.  Stop.\n", 512);
 
 # This tells the test driver that the perl test script executed properly.
 1;

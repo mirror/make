@@ -29,6 +29,12 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&se
   your initialization function can check the provided ABI version to verify
   it's being loaded correctly.
 
+* New feature: Unload function for loaded objects
+  When a loaded object needs to be unloaded by GNU Make, it will invoke an
+  unload function (if one is defined) beforehand that allows the object to
+  perform cleanup operations.
+  Original idea and implementation: Dmitry Goncharov <dgoncharov@users.sf.net>
+
 * New feature: Makefile warning reporting control
   A new option "--warn" controls reporting of warnings for makefiles.  Actions
   can be set to "ignore", "warn", or "error".  Two new warnings are reported:
@@ -38,7 +44,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&se
   deprecated, and is translated to "--warn=undefined-vars" internally.
 
 * New feature: Control warnings with the .WARNINGS variable
-  In addition to --warn from the command line, which take effect for make
+  In addition to --warn from the command line, which takes effect for make
   invoked recursively, warnings can be controlled only for the current
   instance of make using the .WARNINGS variable.
 

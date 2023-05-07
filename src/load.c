@@ -24,8 +24,6 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <dlfcn.h>
 #include <errno.h>
 
-#define SYMBOL_EXTENSION        "_gmk_setup"
-
 #include "debug.h"
 #include "filedef.h"
 #include "variable.h"
@@ -35,22 +33,32 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 # define RTLD_GLOBAL 0
 #endif
 
+#define GMK_SETUP       "_gmk_setup"
+#define GMK_UNLOAD      "_gmk_unload"
+
+typedef int (*setup_func_t)(unsigned int abi, const floc *flocp);
+typedef void (*unload_func_t)(void);
+
 struct load_list
   {
     struct load_list *next;
     const char *name;
     void *dlp;
+    unload_func_t unload;
   };
 
 static struct load_list *loaded_syms = NULL;
 
-typedef int (*setup_func_t)(unsigned int abi, const floc *flocp);
-
 static setup_func_t
 load_object (const floc *flocp, int noerror, const char *ldname,
-             const char *symname)
+             const char *setupnm)
 {
   static void *global_dl = NULL;
+  char *buf;
+  const char *fp;
+  char *endp;
+  void *dlp;
+  struct load_list *new;
   setup_func_t symp;
 
   if (! global_dl)
@@ -63,61 +71,96 @@ load_object (const floc *flocp, int noerror, const char *ldname,
         }
     }
 
-  symp = (setup_func_t) dlsym (global_dl, symname);
+  /* Find the prefix of the ldname.  */
+  fp = strrchr (ldname, '/');
+#ifdef HAVE_DOS_PATHS
+  if (fp)
+    {
+      const char *fp2 = strchr (fp, '\\');
+
+      if (fp2 > fp)
+        fp = fp2;
+    }
+  else
+    fp = strrchr (ldname, '\\');
+  /* The (improbable) case of d:foo.  */
+  if (fp && *fp && fp[1] == ':')
+    fp++;
+#endif
+  if (!fp)
+    fp = ldname;
+  else
+    ++fp;
+
+  endp = buf = alloca (strlen (fp) + CSTRLEN (GMK_UNLOAD) + 1);
+  while (isalnum ((unsigned char) *fp) || *fp == '_')
+    *(endp++) = *(fp++);
+
+  /* If we didn't find a symbol name yet, construct it from the prefix.  */
+  if (! setupnm)
+    {
+      memcpy (endp, GMK_SETUP, CSTRLEN (GMK_SETUP) + 1);
+      setupnm = buf;
+    }
+
+  DB (DB_VERBOSE, (_("Loading symbol %s from %s\n"), setupnm, ldname));
+
+  symp = (setup_func_t) dlsym (global_dl, setupnm);
+  if (symp)
+    return symp;
+
+  /* If the path has no "/", try the current directory first.  */
+  dlp = NULL;
+  if (! strchr (ldname, '/')
+#ifdef HAVE_DOS_PATHS
+      && ! strchr (ldname, '\\')
+#endif
+      )
+    dlp = dlopen (concat (2, "./", ldname), RTLD_LAZY|RTLD_GLOBAL);
+
+  /* If we haven't opened it yet, try the default search path.  */
+  if (! dlp)
+    dlp = dlopen (ldname, RTLD_LAZY|RTLD_GLOBAL);
+
+  /* Still no?  Then fail.  */
+  if (! dlp)
+    {
+      const char *err = dlerror ();
+      if (noerror)
+        DB (DB_BASIC, ("%s\n", err));
+      else
+        OS (error, flocp, "%s", err);
+      return NULL;
+    }
+
+  DB (DB_VERBOSE, (_("Loaded shared object %s\n"), ldname));
+
+  /* Assert that the GPL license symbol is defined.  */
+  symp = (setup_func_t) dlsym (dlp, "plugin_is_GPL_compatible");
+  if (! symp)
+    OS (fatal, flocp,
+        _("loaded object %s is not declared to be GPL compatible"), ldname);
+
+  symp = (setup_func_t) dlsym (dlp, setupnm);
   if (! symp)
     {
-      struct load_list *new;
-      void *dlp = NULL;
-
-    /* If the path has no "/", try the current directory first.  */
-      if (! strchr (ldname, '/')
-#ifdef HAVE_DOS_PATHS
-          && ! strchr (ldname, '\\')
-#endif
-         )
-        dlp = dlopen (concat (2, "./", ldname), RTLD_LAZY|RTLD_GLOBAL);
-
-      /* If we haven't opened it yet, try the default search path.  */
-      if (! dlp)
-        dlp = dlopen (ldname, RTLD_LAZY|RTLD_GLOBAL);
-
-      /* Still no?  Then fail.  */
-      if (! dlp)
-        {
-          const char *err = dlerror ();
-          if (noerror)
-            DB (DB_BASIC, ("%s\n", err));
-          else
-            OS (error, flocp, "%s", err);
-          return NULL;
-        }
-
-      DB (DB_VERBOSE, (_("Loaded shared object %s\n"), ldname));
-
-      /* Assert that the GPL license symbol is defined.  */
-      symp = (setup_func_t) dlsym (dlp, "plugin_is_GPL_compatible");
-      if (! symp)
-        OS (fatal, flocp,
-             _("loaded object %s is not declared to be GPL compatible"),
-             ldname);
-
-      symp = (setup_func_t) dlsym (dlp, symname);
-      if (! symp)
-        {
-          const char *err = dlerror ();
-          OSSS (fatal, flocp, _("failed to load symbol %s from %s: %s"),
-                symname, ldname, err);
-        }
-
-      /* Add this symbol to a trivial lookup table.  This is not efficient but
-         it's highly unlikely we'll be loading lots of objects, and we only
-         need it to look them up on unload, if we rebuild them.  */
-      new = xmalloc (sizeof (struct load_list));
-      new->name = xstrdup (ldname);
-      new->dlp = dlp;
-      new->next = loaded_syms;
-      loaded_syms = new;
+      const char *err = dlerror ();
+      OSSS (fatal, flocp, _("failed to load symbol %s from %s: %s"),
+            setupnm, ldname, err);
     }
+
+  new = xcalloc (sizeof (struct load_list));
+  new->next = loaded_syms;
+  loaded_syms = new;
+  new->name = ldname;
+  new->dlp = dlp;
+
+  /* Compute the name of the unload function and look it up.  */
+  memcpy (endp, GMK_UNLOAD, CSTRLEN (GMK_UNLOAD) + 1);
+
+  new->unload = (unload_func_t) dlsym (dlp, buf);
+  if (new->unload)
+    DB (DB_VERBOSE, (_("Detected symbol %s in %s\n"), buf, ldname));
 
   return symp;
 }
@@ -126,9 +169,8 @@ int
 load_file (const floc *flocp, struct file *file, int noerror)
 {
   const char *ldname = file->name;
-  size_t nmlen = strlen (ldname);
-  char *new = alloca (nmlen + CSTRLEN (SYMBOL_EXTENSION) + 1);
-  char *symname = NULL;
+  char *buf;
+  char *setupnm = NULL;
   const char *fp;
   int r;
   setup_func_t symp;
@@ -153,15 +195,15 @@ load_file (const floc *flocp, struct file *file, int noerror)
             OS (fatal, flocp, _("empty symbol name for load: %s"), ldname);
 
           /* Make a copy of the ldname part.  */
-          memcpy (new, ldname, l);
-          new[l] = '\0';
-          ldname = new;
-          nmlen = l;
+          buf = alloca (strlen (ldname) + 1);
+          memcpy (buf, ldname, l);
+          buf[l] = '\0';
+          ldname = buf;
 
           /* Make a copy of the symbol name part.  */
-          symname = new + l + 1;
-          memcpy (symname, fp, ep - fp);
-          symname[ep - fp] = '\0';
+          setupnm = buf + l + 1;
+          memcpy (setupnm, fp, ep - fp);
+          setupnm[ep - fp] = '\0';
         }
     }
 
@@ -175,40 +217,8 @@ load_file (const floc *flocp, struct file *file, int noerror)
   if (file && file->loaded)
     return -1;
 
-  /* If we didn't find a symbol name yet, construct it from the ldname.  */
-  if (! symname)
-    {
-      char *p = new;
-
-      fp = strrchr (ldname, '/');
-#ifdef HAVE_DOS_PATHS
-      if (fp)
-        {
-          const char *fp2 = strchr (fp, '\\');
-
-          if (fp2 > fp)
-            fp = fp2;
-        }
-      else
-        fp = strrchr (ldname, '\\');
-      /* The (improbable) case of d:foo.  */
-      if (fp && *fp && fp[1] == ':')
-        fp++;
-#endif
-      if (!fp)
-        fp = ldname;
-      else
-        ++fp;
-      while (isalnum ((unsigned char) *fp) || *fp == '_')
-        *(p++) = *(fp++);
-      strcpy (p, SYMBOL_EXTENSION);
-      symname = new;
-    }
-
-  DB (DB_VERBOSE, (_("Loading symbol %s from %s\n"), symname, ldname));
-
   /* Load it!  */
-  symp = load_object (flocp, noerror, ldname, symname);
+  symp = load_object (flocp, noerror, ldname, setupnm);
   if (! symp)
     return 0;
 
@@ -228,22 +238,53 @@ load_file (const floc *flocp, struct file *file, int noerror)
 int
 unload_file (const char *name)
 {
-  int rc = 0;
-  struct load_list *d;
+  struct load_list **dp = &loaded_syms;
 
-  for (d = loaded_syms; d != NULL; d = d->next)
-    if (streq (d->name, name) && d->dlp)
-      {
-        DB (DB_VERBOSE, (_("Unloading shared object %s\n"), name));
-        rc = dlclose (d->dlp);
-        if (rc)
-          perror_with_name ("dlclose: ", d->name);
-        else
-          d->dlp = NULL;
-        break;
-      }
+  /* Unload and remove the entry for this file.  */
+  while (*dp != NULL)
+    {
+      struct load_list *d = *dp;
 
-  return rc;
+      if (streq (d->name, name))
+        {
+          int rc;
+
+          DB (DB_VERBOSE, (_("Unloading shared object %s\n"), name));
+
+          if (d->unload)
+            (*d->unload) ();
+
+          rc = dlclose (d->dlp);
+          if (rc)
+            perror_with_name ("dlclose: ", d->name);
+
+          *dp = d->next;
+          free (d);
+          return rc;
+        }
+
+      dp = &d->next;
+    }
+
+  return 0;
+}
+
+void
+unload_all ()
+{
+  while (loaded_syms)
+    {
+      struct load_list *d = loaded_syms;
+      loaded_syms = loaded_syms->next;
+
+      if (d->unload)
+        (*d->unload) ();
+
+      if (dlclose (d->dlp))
+        perror_with_name ("dlclose: ", d->name);
+
+      free (d);
+    }
 }
 
 #else
@@ -262,6 +303,11 @@ int
 unload_file (const char *name UNUSED)
 {
   O (fatal, NILF, "INTERNAL: cannot unload when load is not supported");
+}
+
+void
+unload_all ()
+{
 }
 
 #endif  /* MAKE_LOAD */
