@@ -3720,12 +3720,41 @@ print_version (void)
   printed_version = 1;
 }
 
+static time_t
+time_now (void)
+{
+  /* Use an algorithm like file_timestamp_now's, extracting just the
+     seconds part of the timestamp.  This avoids a race that would
+     generate output that incorrectly makes it look like the system
+     clock jumped backwards on platforms like GNU/Linux where the
+     'time' function does not use the CLOCK_REALTIME clock and the two
+     clocks can disagree in their seconds component.  */
+#if FILE_TIMESTAMP_HI_RES
+# if HAVE_CLOCK_GETTIME && defined CLOCK_REALTIME
+  {
+    struct timespec timespec;
+    if (clock_gettime (CLOCK_REALTIME, &timespec) == 0)
+      return timespec.tv_sec;
+  }
+# endif
+# if HAVE_GETTIMEOFDAY
+  {
+    struct timeval timeval;
+    if (gettimeofday (&timeval, 0) == 0)
+      return timeval.tv_sec;
+  }
+# endif
+#endif
+
+  return time ((time_t *) 0);
+}
+
 /* Print a bunch of information about this and that.  */
 
 static void
 print_data_base (void)
 {
-  time_t when = time ((time_t *) 0);
+  time_t when = time_now ();
 
   print_version ();
 
@@ -3738,7 +3767,7 @@ print_data_base (void)
   print_vpath_data_base ();
   strcache_print_stats ("#");
 
-  when = time ((time_t *) 0);
+  when = time_now ();
   printf (_("\n# Finished Make data base on %s\n"), ctime (&when));
 }
 
