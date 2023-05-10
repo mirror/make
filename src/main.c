@@ -3720,57 +3720,18 @@ print_version (void)
   printed_version = 1;
 }
 
-/* Like ctime, except do not have undefined behavior with timestamps
-   out of ctime range.  */
-static char const *
-safer_ctime (time_t *t)
-{
-  struct tm *tm = localtime (t);
-  if (tm && -999 - 1900 <= tm->tm_year && tm->tm_year <= 9999 - 1900)
-    return ctime (t);
-  else
-    return "(time out of range)\n";
-}
-
-static time_t
-time_now (void)
-{
-  /* Use an algorithm like file_timestamp_now's, extracting just the
-     seconds part of the timestamp.  This avoids a race that would
-     generate output that incorrectly makes it look like the system
-     clock jumped backwards on platforms like GNU/Linux where the
-     'time' function does not use the CLOCK_REALTIME clock and the two
-     clocks can disagree in their seconds component.  */
-#if FILE_TIMESTAMP_HI_RES
-# if HAVE_CLOCK_GETTIME && defined CLOCK_REALTIME
-  {
-    struct timespec timespec;
-    if (clock_gettime (CLOCK_REALTIME, &timespec) == 0)
-      return timespec.tv_sec;
-  }
-# endif
-# if HAVE_GETTIMEOFDAY
-  {
-    struct timeval timeval;
-    if (gettimeofday (&timeval, 0) == 0)
-      return timeval.tv_sec;
-  }
-# endif
-#endif
-
-  return time ((time_t *) 0);
-}
-
 /* Print a bunch of information about this and that.  */
 
 static void
 print_data_base (void)
 {
-  time_t when = time_now ();
+  int resolution;
+  char buf[FILE_TIMESTAMP_PRINT_LEN_BOUND + 1];
+  file_timestamp_sprintf (buf, file_timestamp_now (&resolution));
 
   print_version ();
 
-  printf (_("\n# Make data base, printed on %s"), safer_ctime (&when));
+  printf (_("\n# Make data base, printed on %s\n"), buf);
 
   print_variable_data_base ();
   print_dir_data_base ();
@@ -3779,8 +3740,8 @@ print_data_base (void)
   print_vpath_data_base ();
   strcache_print_stats ("#");
 
-  when = time_now ();
-  printf (_("\n# Finished Make data base on %s\n"), safer_ctime (&when));
+  file_timestamp_sprintf (buf, file_timestamp_now (&resolution));
+  printf (_("\n# Finished Make data base on %s\n\n"), buf);
 }
 
 static void

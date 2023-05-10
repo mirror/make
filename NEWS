@@ -9,6 +9,11 @@ which is contained in this distribution as the file doc/make.texi.
 See the README file and the GNU Make manual for instructions for
 reporting bugs.
 
+* 'make --print-data-base' (or 'make -p') now outputs time of day
+  using the same form as for file timestamps, e.g., "2023-05-10
+  10:43:57.570558743".  Previously it used the form "Wed May 10
+  10:43:57 2023", which has less detail and is harder to compare.
+
 
 Version 4.5 (26 Feb 2023)
 
