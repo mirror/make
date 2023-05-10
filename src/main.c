@@ -3720,6 +3720,18 @@ print_version (void)
   printed_version = 1;
 }
 
+/* Like ctime, except do not have undefined behavior with timestamps
+   out of ctime range.  */
+static char const *
+safer_ctime (time_t *t)
+{
+  struct tm *tm = localtime (t);
+  if (tm && -999 - 1900 <= tm->tm_year && tm->tm_year <= 9999 - 1900)
+    return ctime (t);
+  else
+    return "(time out of range)\n";
+}
+
 static time_t
 time_now (void)
 {
@@ -3758,7 +3770,7 @@ print_data_base (void)
 
   print_version ();
 
-  printf (_("\n# Make data base, printed on %s"), ctime (&when));
+  printf (_("\n# Make data base, printed on %s"), safer_ctime (&when));
 
   print_variable_data_base ();
   print_dir_data_base ();
@@ -3768,7 +3780,7 @@ print_data_base (void)
   strcache_print_stats ("#");
 
   when = time_now ();
-  printf (_("\n# Finished Make data base on %s\n"), ctime (&when));
+  printf (_("\n# Finished Make data base on %s\n"), safer_ctime (&when));
 }
 
 static void
