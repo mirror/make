@@ -53,6 +53,10 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&se
   invoked recursively, warnings can be controlled only for the current
   instance of make using the .WARNINGS variable.
 
+* Conditional statements starting with the recipe prefix were sometimes
+  interpreted in previous versions.  As per the documentation, lines starting
+  with the recipe prefix are now never considered conditional statements.
+
 * Tests in the regression test suite now are run in their own directory to
   avoid cross-contamination and allow cleanup if the tests are interrupted.
   More information is printed about failing tests.

@@ -153,6 +153,67 @@ endif
 ',
               '', "one\n");
 
+# SV 64085: Ensure recipe prefixed conditionals are never considered
+run_make_test(q!
+blah=1
+ifdef blah
+else
+	else
+endif
+all:;
+!,
+    '', "#MAKE#: 'all' is up to date.");
+
+run_make_test(q!
+blah=1
+ifdef blah
+else
+	endif
+endif
+all:;
+!,
+    '', "#MAKE#: 'all' is up to date.");
+
+run_make_test(q!
+blah=1
+ifdef blah
+else
+	ifdef blah
+endif
+all:;
+!,
+    '', "#MAKE#: 'all' is up to date.");
+
+run_make_test(q!
+blah=1
+all:;
+foo:
+ifdef blah
+	ifdef blah
+endif
+!,
+    '', "#MAKE#: 'all' is up to date.");
+
+run_make_test(q!
+blah=1
+all:;
+foo:
+ifdef blah
+	endif
+endif
+!,
+    '', "#MAKE#: 'all' is up to date.");
+
+run_make_test(q!
+blah=1
+all:;
+foo:
+ifdef blah
+	else
+else
+endif
+!,
+    '', "#MAKE#: 'all' is up to date.");
 
 # This tells the test driver that the perl test script executed properly.
 1;

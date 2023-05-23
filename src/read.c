@@ -666,16 +666,16 @@ eval (struct ebuffer *ebuf, int set_default)
             /* Ignore the commands in a rule with no targets.  */
             continue;
 
+          if (ignoring)
+            /* Yep, this is a shell command, and we don't care.  */
+            continue;
+
           /* If there is no preceding rule line, don't treat this line
              as a command, even though it begins with a recipe prefix.
              SunOS 4 make appears to behave this way.  */
 
           if (filenames != 0)
             {
-              if (ignoring)
-                /* Yep, this is a shell command, and we don't care.  */
-                continue;
-
               if (commands_idx == 0)
                 cmds_started = ebuf->floc.lineno;
 
