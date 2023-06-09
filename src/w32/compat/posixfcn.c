@@ -147,5 +147,6 @@ ttyname (int fd UNUSED)
      sophisticated implementation should test whether FD is open for
      input or output.  We can do that by looking at the mode returned
      by GetConsoleMode.  */
-  return "CONOUT$";
+  static char name[] = "CONOUT$";
+  return name;
 }
