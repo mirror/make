@@ -362,7 +362,7 @@ create_batch_file (char const *base, int unixy, int *fd)
   *fd = -1;
   if (error_string == NULL)
     error_string = _("Cannot create a temporary file");
-  O (fatal, NILF, error_string);
+  OS (fatal, NILF, "%s", error_string);
 
   /* not reached */
   return NULL;

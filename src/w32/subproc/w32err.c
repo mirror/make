@@ -56,7 +56,7 @@ map_windows32_error_to_string (DWORD ercode) {
    *  Special code for winsock error handling.
    */
   if (ercode > WSABASEERR) {
-    O (fatal, NILF, szMessageBuffer);
+    OS (fatal, NILF, "%s", szMessageBuffer);
   }
 
   /*
