@@ -816,7 +816,7 @@ reap_children (int block, int err)
                   {
                     DWORD e = GetLastError ();
                     fprintf (stderr,
-                             "Determine main thread ID (Error %ld: %s)\n",
+                             "Determine main thread ID (Error %lu: %s)\n",
                              e, map_windows32_error_to_string (e));
                   }
                 else

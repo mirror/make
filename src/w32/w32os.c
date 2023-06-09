@@ -238,7 +238,7 @@ jobserver_setup (int slots, const char *style)
       DWORD err = GetLastError ();
       const char *estr = map_windows32_error_to_string (err);
       ONS (fatal, NILF,
-           _("creating jobserver semaphore: (Error %ld: %s)"), err, estr);
+           _("creating jobserver semaphore: (Error %lu: %s)"), err, estr);
     }
 
   return 1;
@@ -257,7 +257,7 @@ jobserver_parse_auth (const char *auth)
       DWORD err = GetLastError ();
       const char *estr = map_windows32_error_to_string (err);
       error (NILF, strlen (auth) + INTSTR_LENGTH + strlen (estr),
-             _("unable to open jobserver semaphore '%s': (Error %ld: %s)"),
+             _("unable to open jobserver semaphore '%s': (Error %lu: %s)"),
              auth, err, estr);
       return 0;
     }
@@ -310,7 +310,7 @@ jobserver_release (int is_fatal)
           DWORD err = GetLastError ();
           const char *estr = map_windows32_error_to_string (err);
           ONS (fatal, NILF,
-               _("release jobserver semaphore: (Error %ld: %s)"), err, estr);
+               _("release jobserver semaphore: (Error %lu: %s)"), err, estr);
         }
       perror_with_name ("release_jobserver_semaphore", "");
     }
@@ -381,7 +381,7 @@ jobserver_acquire (int timeout UNUSED)
         DWORD err = GetLastError ();
         const char *estr = map_windows32_error_to_string (err);
         ONS (fatal, NILF,
-             _("semaphore or child process wait: (Error %ld: %s)"),
+             _("semaphore or child process wait: (Error %lu: %s)"),
              err, estr);
       }
 

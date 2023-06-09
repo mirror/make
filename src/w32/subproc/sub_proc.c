@@ -1476,7 +1476,7 @@ process_easy(
         CloseHandle(tmpIn);
     }
     if (hIn == INVALID_HANDLE_VALUE) {
-      fprintf(stderr, "process_easy: DuplicateHandle(In) failed (e=%ld)\n", e);
+      fprintf(stderr, "process_easy: DuplicateHandle(In) failed (e=%lu)\n", e);
       return INVALID_HANDLE_VALUE;
     }
   }
@@ -1506,7 +1506,7 @@ process_easy(
         CloseHandle(tmpOut);
     }
     if (hOut == INVALID_HANDLE_VALUE) {
-      fprintf(stderr, "process_easy: DuplicateHandle(Out) failed (e=%ld)\n", e);
+      fprintf(stderr, "process_easy: DuplicateHandle(Out) failed (e=%lu)\n", e);
       return INVALID_HANDLE_VALUE;
     }
   }
@@ -1536,7 +1536,7 @@ process_easy(
         CloseHandle(tmpErr);
     }
     if (hErr == INVALID_HANDLE_VALUE) {
-      fprintf(stderr, "process_easy: DuplicateHandle(Err) failed (e=%ld)\n", e);
+      fprintf(stderr, "process_easy: DuplicateHandle(Err) failed (e=%lu)\n", e);
       return INVALID_HANDLE_VALUE;
     }
   }
