@@ -141,7 +141,7 @@ isatty (int fd)
 }
 
 char *
-ttyname (int fd)
+ttyname (int fd UNUSED)
 {
   /* This "knows" that Make only asks about stdout and stderr.  A more
      sophisticated implementation should test whether FD is open for

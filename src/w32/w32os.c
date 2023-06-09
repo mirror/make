@@ -338,11 +338,11 @@ jobserver_signal ()
 {
 }
 
-void jobserver_pre_child (int recursive)
+void jobserver_pre_child (int recursive UNUSED)
 {
 }
 
-void jobserver_post_child (int recursive)
+void jobserver_post_child (int recursive UNUSED)
 {
 }
 
@@ -354,7 +354,7 @@ jobserver_pre_acquire ()
 /* Returns 1 if we got a token, or 0 if a child has completed.
    The Windows implementation doesn't support load detection.  */
 unsigned int
-jobserver_acquire (int timeout)
+jobserver_acquire (int timeout UNUSED)
 {
     HANDLE *handles;
     DWORD dwHandleCount;
@@ -513,5 +513,5 @@ fd_noinherit(int fd)
 }
 
 void
-fd_set_append (int fd)
+fd_set_append (int fd UNUSED)
 {}
