@@ -35,6 +35,7 @@ unsigned int
 check_io_state ()
 {
   static unsigned int state = IO_UNKNOWN;
+  HANDLE outfd, errfd;
 
   /* We only need to compute this once per process.  */
   if (state != IO_UNKNOWN)
@@ -42,8 +43,8 @@ check_io_state ()
 
   /* Could have used GetHandleInformation, but that isn't supported
      on Windows 9X.  */
-  HANDLE outfd = (HANDLE)_get_osfhandle (fileno (stdout));
-  HANDLE errfd = (HANDLE)_get_osfhandle (fileno (stderr));
+  outfd = (HANDLE)_get_osfhandle (fileno (stdout));
+  errfd = (HANDLE)_get_osfhandle (fileno (stderr));
 
   if ((HANDLE)_get_osfhandle (fileno (stdin)) != INVALID_HANDLE_VALUE)
     state |= IO_STDIN_OK;
