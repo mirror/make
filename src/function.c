@@ -1674,7 +1674,7 @@ windows32_openpipe (int *pipedes, int errfd, pid_t *pid_p, char **command_argv, 
           return -1;
         }
     }
-  tmpErr = (HANDLE)_get_osfhandle (errfd);
+  tmpErr = get_handle_for_fd (errfd);
   if (DuplicateHandle (GetCurrentProcess (), tmpErr,
                        GetCurrentProcess (), &hErr,
                        0, TRUE, DUPLICATE_SAME_ACCESS) == FALSE)

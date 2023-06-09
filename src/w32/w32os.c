@@ -43,10 +43,10 @@ check_io_state ()
 
   /* Could have used GetHandleInformation, but that isn't supported
      on Windows 9X.  */
-  outfd = (HANDLE)_get_osfhandle (fileno (stdout));
-  errfd = (HANDLE)_get_osfhandle (fileno (stderr));
+  outfd = get_handle_for_fd (fileno (stdout));
+  errfd = get_handle_for_fd (fileno (stderr));
 
-  if ((HANDLE)_get_osfhandle (fileno (stdin)) != INVALID_HANDLE_VALUE)
+  if (get_handle_for_fd (fileno (stdin)) != INVALID_HANDLE_VALUE)
     state |= IO_STDIN_OK;
   if (outfd != INVALID_HANDLE_VALUE)
     state |= IO_STDOUT_OK;
@@ -497,21 +497,31 @@ osync_release ()
 void
 fd_inherit(int fd)
 {
-  HANDLE fh = (HANDLE)_get_osfhandle(fd);
+  HANDLE fh = get_handle_for_fd (fd);
 
   if (fh && fh != INVALID_HANDLE_VALUE)
-        SetHandleInformation(fh, HANDLE_FLAG_INHERIT, 1);
+        SetHandleInformation (fh, HANDLE_FLAG_INHERIT, 1);
 }
 
 void
 fd_noinherit(int fd)
 {
-  HANDLE fh = (HANDLE)_get_osfhandle(fd);
+  HANDLE fh = get_handle_for_fd (fd);
 
   if (fh && fh != INVALID_HANDLE_VALUE)
-        SetHandleInformation(fh, HANDLE_FLAG_INHERIT, 0);
+        SetHandleInformation (fh, HANDLE_FLAG_INHERIT, 0);
 }
 
 void
 fd_set_append (int fd UNUSED)
 {}
+
+
+HANDLE
+get_handle_for_fd (int fd)
+{
+  /* This funcion call is needed to get around the "bad-function-cast"-warning
+     emitted by GCC when casting and assigning in the same statement.  */
+  intptr_t fh = _get_osfhandle (fd);
+  return (HANDLE) fh;
+}

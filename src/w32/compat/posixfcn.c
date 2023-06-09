@@ -22,6 +22,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdarg.h>
 #include <errno.h>
 #include <windows.h>
+#include "os.h"
 
 #include "dlfcn.h"
 
@@ -125,7 +126,7 @@ dlclose (void *handle)
 int
 isatty (int fd)
 {
-  HANDLE fh = (HANDLE) _get_osfhandle (fd);
+  HANDLE fh = get_handle_for_fd (fd);
   DWORD con_mode;
 
   if (fh == INVALID_HANDLE_VALUE)

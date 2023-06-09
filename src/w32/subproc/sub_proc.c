@@ -1481,7 +1481,7 @@ process_easy(
     }
   }
   if (outfd >= 0)
-    tmpOut = (HANDLE)_get_osfhandle (outfd);
+    tmpOut = get_handle_for_fd (outfd);
   else
     tmpOut = GetStdHandle (STD_OUTPUT_HANDLE);
   if (DuplicateHandle(GetCurrentProcess(),
@@ -1511,7 +1511,7 @@ process_easy(
     }
   }
   if (errfd >= 0)
-    tmpErr = (HANDLE)_get_osfhandle (errfd);
+    tmpErr = get_handle_for_fd (errfd);
   else
     tmpErr = GetStdHandle(STD_ERROR_HANDLE);
   if (DuplicateHandle(GetCurrentProcess(),

@@ -156,3 +156,8 @@ void osync_release (void);
 #else
 int get_bad_stdin (void);
 #endif
+
+#if MK_OS_W32
+#include <windows.h> /* Needed for HANDLE */
+HANDLE get_handle_for_fd (int);
+#endif
