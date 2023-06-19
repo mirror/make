@@ -7,9 +7,9 @@ $description = "Test variable expansion.";
 # 200 is the initial size of variable_buffer.
 # Value bigger than 200 bytes causes a realloc of variable_buffer.
 # In this test the variable being expanded is MAKEFLAGS and its value occupies
-# 11, 550 and 110000 bytes.
+# 12, 600 and 120000 bytes.
 
-my $s = "hello_world";
+my $s = "hello_world\n";
 my @mult = (1, 50, 10000);
 
 for my $m (@mult) {

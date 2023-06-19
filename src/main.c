@@ -1879,7 +1879,7 @@ main (int argc, char **argv, char **envp)
         }
 
       /* Now allocate a buffer big enough and fill it.  */
-      p = value = alloca (len);
+      p = value = xmalloc (len);
       for (cv = command_variables; cv != 0; cv = cv->next)
         {
           v = cv->variable;
@@ -1895,6 +1895,7 @@ main (int argc, char **argv, char **envp)
       /* Define an unchangeable variable with a name that no POSIX.2
          makefile could validly use for its own variable.  */
       define_variable_cname ("-*-command-variables-*-", value, o_automatic, 0);
+      free (value);
 
       /* Define the variable; this will not override any user definition.
          Normally a reference to this variable is written into the value of
@@ -2041,7 +2042,7 @@ main (int argc, char **argv, char **envp)
           free (p);
         }
 
-      p = endp = value = alloca (len);
+      p = endp = value = xmalloc (len);
       for (i = 0; i < eval_strings->idx; ++i)
         {
           p = stpcpy (p, "--eval=");
@@ -2052,6 +2053,7 @@ main (int argc, char **argv, char **envp)
       *endp = '\0';
 
       define_variable_cname ("-*-eval-flags-*-", value, o_automatic, 0);
+      free (value);
     }
 
   {
@@ -3374,8 +3376,8 @@ decode_env_switches (const char *envar, size_t len, enum variable_origin origin)
   if (len == 0)
     return;
 
-  /* Allocate a vector that is definitely big enough.  */
-  argv = alloca ((1 + len + 1) * sizeof (char *));
+  /* Allocate an array that is definitely big enough.  */
+  argv = xmalloc ((1 + len + 1) * sizeof (char *));
 
   /* getopt will look at the arguments starting at ARGV[1].
      Prepend a spacer word.  */
@@ -3384,7 +3386,7 @@ decode_env_switches (const char *envar, size_t len, enum variable_origin origin)
 
   /* We need a buffer to copy the value into while we split it into words
      and unquote it.  Set up in case we need to prepend a dash later.  */
-  buf = alloca (1 + len + 1);
+  buf = xmalloc (1 + len + 1);
   buf[0] = '-';
   p = buf+1;
   argv[argc] = p;
@@ -3415,6 +3417,8 @@ decode_env_switches (const char *envar, size_t len, enum variable_origin origin)
 
   /* Parse those words.  */
   decode_switches (argc, argv, origin);
+  free (buf);
+  free (argv);
 }
 
 /* Quote the string IN so that it will be interpreted as a single word with

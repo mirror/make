@@ -1175,11 +1175,12 @@ func_error (char *o, char **argv, const char *funcname)
     case 'i':
       {
         size_t len = strlen (argv[0]);
-        char *msg = alloca (len + 2);
+        char *msg = xmalloc (len + 2);
         memcpy (msg, argv[0], len);
         msg[len] = '\n';
         msg[len + 1] = '\0';
         outputs (0, msg);
+        free (msg);
         break;
       }
 
