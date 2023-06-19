@@ -147,7 +147,7 @@ That is, you can just run:
 to build and test GNU Make.
 
 NOTE! This method builds GNU Make in "maintainer mode".  Make programs built
-      in this mode it will be slower, possibly MUCH slower: there are various
+      in this mode will be slower, possibly MUCH slower: there are various
       sanity checks enabled.  Further this mode assumes a modern GCC, GNU
       libc, and well-formed system headers and enables a high level of
       warnings AND enables -Werror to turn warnings into failures.

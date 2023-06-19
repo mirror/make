@@ -3708,6 +3708,11 @@ print_version (void)
     printf (_("%sBuilt for %s (%s)\n"),
             precede, make_host, remote_description);
 
+#if MK_OS_W32
+  printf (_("%sANSI code page: %u\n"), precede, GetACP ());
+  printf (_("%sConsole code page: %u\n"), precede, GetConsoleOutputCP ());
+#endif
+
   /* Print this untranslated.  The coding standards recommend translating the
      (C) to the copyright symbol, but this string is going to change every
      year, and none of the rest of it should be translated (including the

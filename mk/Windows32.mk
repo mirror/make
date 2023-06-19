@@ -30,6 +30,8 @@ P2W = $(subst /,\,$1)
 
 prog_SOURCES += $(loadavg_SOURCES) $(glob_SOURCES) $(w32_SOURCES)
 
+utf8_SOURCES = $(src)w32/utf8.rc $(src)w32/utf8.manifest
+
 BUILT_SOURCES += $(lib)alloca.h $(lib)fnmatch.h $(lib)glob.h
 
 w32_LIBS = kernel32 user32 gdi32 winspool comdlg32 advapi32 shell32 ole32 \
@@ -41,6 +43,7 @@ LDFLAGS =
 
 # --- Visual Studio
 msvc_CC = cl.exe
+msvc_RC = rc.exe
 msvc_LD = link.exe
 
 msvc_CPPFLAGS = /DHAVE_CONFIG_H /DMK_OS_W32=1 /DWIN32 /D_CONSOLE
@@ -54,6 +57,7 @@ msvc_LDFLAGS = /nologo /SUBSYSTEM:console /PDB:$(BASE_PROG).pdb
 msvc_LDLIBS = $(addsuffix .lib,$(w32_LIBS))
 
 msvc_C_SOURCE = /c
+msvc_RC_SOURCE =
 msvc_OUTPUT_OPTION = /Fo$@
 msvc_LINK_OUTPUT = /OUT:$@
 
@@ -68,6 +72,7 @@ debug_msvc_LDFLAGS = /DEBUG
 
 # --- GCC
 gcc_CC = gcc
+gcc_RC = windres
 gcc_LD = $(gcc_CC)
 
 release_gcc_OUTDIR = ./GccRel/
@@ -79,6 +84,7 @@ gcc_LDFLAGS = -mthreads -gdwarf-2 -g3
 gcc_LDLIBS = $(addprefix -l,$(w32_libs))
 
 gcc_C_SOURCE = -c
+gcc_RC_SOURCE = -i
 gcc_OUTPUT_OPTION = -o $@
 gcc_LINK_OUTPUT = -o $@
 
@@ -87,6 +93,7 @@ release_gcc_CFLAGS = -O2
 
 # ---
 
+RES_COMPILE.cmd = $(RC) $(OUTPUT_OPTION) $(RC_SOURCE) $1
 LINK.cmd = $(LD) $(extra_LDFLAGS) $(LDFLAGS) $(TARGET_ARCH) $1 $(LDLIBS) $(LINK_OUTPUT)
 
 CHECK.cmd = cmd /c cd tests \& .\run_make_tests.bat -make ../$(PROG)
@@ -96,9 +103,11 @@ RM.cmd = cmd /c del /F /Q $(call P2W,$1)
 CP.cmd = cmd /c copy /Y $(call P2W,$1 $2)
 
 CC = $($(TOOLCHAIN)_CC)
+RC = $($(TOOLCHAIN)_RC)
 LD = $($(TOOLCHAIN)_LD)
 
 C_SOURCE = $($(TOOLCHAIN)_C_SOURCE)
+RC_SOURCE = $($(TOOLCHAIN)_RC_SOURCE)
 OUTPUT_OPTION = $($(TOOLCHAIN)_OUTPUT_OPTION)
 LINK_OUTPUT = $($(TOOLCHAIN)_LINK_OUTPUT)
 
@@ -120,3 +129,11 @@ LDLIBS = $(call _CUSTOM,LDLIBS)
 
 $(OUTDIR)src/config.h: $(SRCDIR)/src/config.h.W32
 	$(call CP.cmd,$<,$@)
+
+w32_UTF8OBJ = $(OUTDIR)src/w32/utf8.$(OBJEXT)
+$(w32_UTF8OBJ): $(utf8_SOURCES)
+	$(call RES_COMPILE.cmd,$<)
+
+ifneq (, $(shell where $(RC) 2>nul))
+RESOURCE_OBJECTS = $(w32_UTF8OBJ)
+endif

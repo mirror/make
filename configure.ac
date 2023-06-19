@@ -444,6 +444,7 @@ AC_SUBST([MAKE_HOST])
 
 w32_target_env=no
 AM_CONDITIONAL([WINDOWSENV], [false])
+AM_CONDITIONAL([HAVE_WINDRES], [false])
 
 AS_CASE([$host],
   [*-*-mingw32],
@@ -451,6 +452,10 @@ AS_CASE([$host],
     w32_target_env=yes
     AC_DEFINE([MK_OS_W32], [1], [Build for the Windows32 API.])
     AC_DEFINE([HAVE_DOS_PATHS], [1], [Support DOS-style pathnames.])
+    # Windows host tools.
+    # If windres is available, make will use UTF-8.
+    AC_CHECK_TOOL([WINDRES], [windres], [:])
+    AM_CONDITIONAL([HAVE_WINDRES], [test "$WINDRES" != ':'])
   ])
 
 AC_DEFINE_UNQUOTED([PATH_SEPARATOR_CHAR],['$PATH_SEPARATOR'],

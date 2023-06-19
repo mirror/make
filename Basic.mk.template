@@ -59,6 +59,8 @@ BUILT_SOURCES =
 
 OBJECTS = $(patsubst %.c,$(OUTDIR)%.$(OBJEXT),$(prog_SOURCES))
 
+RESOURCE_OBJECTS =
+
 OBJDIRS = $(addsuffix .,$(sort $(dir $(OBJECTS))))
 
 # Use the default value of CC
@@ -99,7 +101,7 @@ RM.cmd = rm -f $1
 # $(call CP.cmd,<from>,<to>)
 CP.cmd = cp $1 $2
 
-CLEANSPACE = $(call RM.cmd,$(OBJECTS) $(PROG) $(BUILT_SOURCES))
+CLEANSPACE = $(call RM.cmd,$(OBJECTS) $(RESOURCE_OBJECTS) $(PROG) $(BUILT_SOURCES))
 
 # Load overrides for the above variables.
 include $(firstword $(wildcard $(SRCDIR)/mk/$(lastword $(subst -, ,$(MAKE_HOST)).mk)))
@@ -108,7 +110,7 @@ VPATH = $(SRCDIR)
 
 all: $(PROG)
 
-$(PROG): $(OBJECTS)
+$(PROG): $(OBJECTS) $(RESOURCE_OBJECTS)
 	$(call LINK.cmd,$^)
 
 $(OBJECTS): $(OUTDIR)%.$(OBJEXT): %.c

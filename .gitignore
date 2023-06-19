@@ -59,6 +59,8 @@ WinDebug/
 WinRel/
 GccDebug/
 GccRel/
+TccDebug/
+TccRel/
 
 # Test artifacts
 makeerror-*

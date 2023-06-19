@@ -46,6 +46,8 @@ w32_SRCS =	src/w32/pathstuff.c src/w32/w32os.c src/w32/compat/dirent.c \
 		src/w32/subproc/misc.c src/w32/subproc/proc.h \
 		src/w32/subproc/sub_proc.c src/w32/subproc/w32err.c
 
+w32_utf8_SRCS = src/w32/utf8.rc src/w32/utf8.manifest
+
 vms_SRCS =	src/vms_exit.c src/vms_export_symbol.c src/vms_progname.c \
 		src/vmsdir.h src/vmsfunctions.c src/vmsify.c
 
@@ -88,6 +90,15 @@ else
   make_SOURCES += src/posixos.c
 endif
 
+UTF8OBJ = src/w32/utf8.$(OBJEXT)
+
+if HAVE_WINDRES
+  make_LDADD += $(UTF8OBJ)
+endif
+
+$(UTF8OBJ) : $(w32_utf8_SRCS)
+	$(WINDRES) -o $@ -i $<
+
 if USE_CUSTOMS
   make_SOURCES += src/remote-cstms.c
 else
@@ -116,7 +127,7 @@ EXTRA_DIST =	ChangeLog INSTALL README build.sh build.cfg.in $(man_MANS) \
 		README.VMS makefile.com src/config.h-vms src/vmsjobs.c \
 		vms_export_symbol_test.com \
 		src/gmk-default.scm src/gmk-default.h \
-		$(mk_FILES) $(m4_FILES) $(test_FILES)
+		$(mk_FILES) $(m4_FILES) $(test_FILES) $(w32_utf8_SRCS)
 
 # --------------- Generate the Guile default module content
 

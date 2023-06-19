@@ -34,6 +34,7 @@ echo.
 set MAKE=gnumake
 set GUILE=Y
 set COMPILER=cl.exe
+set RC=rc.exe
 set O=obj
 set ARCH=x64
 set DEBUG=N
@@ -81,6 +82,7 @@ goto ParseSW
 
 :SetCC
 set COMPILER=gcc
+set RC=windres
 set O=o
 echo - Building with GCC
 shift
@@ -88,6 +90,7 @@ goto ParseSW
 
 :SetTCC
 set COMPILER=tcc
+set RC=windres
 set O=o
 echo - Building with TinyC
 shift
@@ -103,7 +106,7 @@ if "%COMPILER%" == "tcc" goto FindTcc
 call %COMPILER% >nul 2>&1
 if not ERRORLEVEL 1 goto FoundMSVC
 
-:: Visual Studio 17 and above provides the "vswhere" tool
+:: Visual Studio 15 2017 and above provides the "vswhere" tool
 call :FindVswhere
 if ERRORLEVEL 1 goto LegacyVS
 
@@ -183,7 +186,7 @@ if "%MAINT%" == "Y" set "OPTS=%OPTS% /D MAKE_MAINTAINER_MODE"
 :: Unfortunately this also shows a "usage" note; I can't find anything better.
 echo.
 call %COMPILER%
-goto Build
+goto FindRC
 
 :FindGcc
 set OUTDIR=.\GccRel
@@ -197,7 +200,7 @@ if "%MAINT%" == "Y" set "OPTS=%OPTS% -DMAKE_MAINTAINER_MODE"
 :: Show the compiler version that we found
 echo.
 call %COMPILER% --version
-if not ERRORLEVEL 1 goto Build
+if not ERRORLEVEL 1 goto FindRC
 echo No %COMPILER% found.
 exit 1
 
@@ -212,11 +215,20 @@ if "%MAINT%" == "Y" set "OPTS=%OPTS% -DMAKE_MAINTAINER_MODE"
 :: Show the compiler version that we found
 echo.
 call %COMPILER% -v
-if not ERRORLEVEL 1 goto Build
+if not ERRORLEVEL 1 goto FindRC
 echo No %COMPILER% found.
 exit 1
 
+:FindRC
+set HAVE_RC=Y
+call where %RC% >nul 2>&1
+if not ERRORLEVEL 1 goto Build
+echo.
+echo %RC% was not found. Building without UTF-8 resource.
+set HAVE_RC=N
+
 :Build
+echo.
 :: Clean the directory if it exists
 if exist %OUTDIR%\nul rmdir /S /Q %OUTDIR%
 
@@ -285,6 +297,9 @@ call :Compile lib/getloadavg
 :: Compile dirent unless it is supported by compiler library (like with gcc).
 if "%DIRENT%" == "Y" call :Compile src\w32\compat\dirent
 
+:: Compile UTF-8 resource if a resource compiler is available.
+if "%HAVE_RC%" == "Y" call :ResourceCompile src/w32/utf8
+
 call :Link
 
 echo.
@@ -331,6 +346,30 @@ if "%VERBOSE%" == "Y" echo on
 call %COMPILER% -mthreads -Wall -std=c11 %OPTS% -I%OUTDIR%/src -I./src -I%OUTDIR%/lib -I./lib -I./src/w32/include -D_cdecl= -D_MSC_VER -DHAVE_CONFIG_H %EXTRAS% -o %OUTDIR%/%1.%O% -c %1.c
 @echo off
 goto CompileDone
+
+:ResourceCompile
+if "%VERBOSE%" == "N" echo - Compiling %1.rc
+echo %LNKOUT%/%1.%O% >>%OUTDIR%\link.sc
+if exist "%OUTDIR%\%1.%O%" del "%OUTDIR%\%1.%O%"
+if "%COMPILER%" == "gcc" goto GccResourceCompile
+if "%COMPILER%" == "tcc" goto TccResourceCompile
+
+:: MSVC Resource Compile
+if "%VERBOSE%" == "Y" echo on
+call %RC% /fo %OUTDIR%\%1.%O% %1.rc
+@echo off
+goto CompileDone
+
+:GccResourceCompile
+:: GCC Resource Compile
+if "%VERBOSE%" == "Y" echo on
+call %RC% -o %OUTDIR%/%1.%O% -i %1.rc
+@echo off
+goto CompileDone
+
+:TccResourceCompile
+:: TCC Resource Compile
+goto GccResourceCompile
 
 :CompileDone
 if not exist "%OUTDIR%\%1.%O%" exit 1
