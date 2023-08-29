@@ -48,7 +48,7 @@ developing GNU and promoting software freedom.''
 
 @c ISPELL CHECK: done, 10 June 1993 --roland
 @c ISPELL CHECK: done, 2000-06-25 --Martin Buchholz
-
+@c ISPELL CHECK: done, 2023-08-30 --pds
 
 @dircategory Software development
 @direntry
@@ -412,8 +412,8 @@ GNU @code{make} conforms to @cite{IEEE Standard 1003.2-2017} (POSIX.1-2017).
 
 Our examples show C programs, since they are most common, but you can use
 @code{make} with any programming language whose compiler can be run with a
-shell command.  Indeed, @code{make} is not limited to programs.  You can
-use it to describe any task where some files must be updated automatically
+shell command.  Indeed, @code{make} is not limited to building programs.  You
+can use it to describe any task where some files must be updated automatically
 from others whenever the others change.
 
 @menu
@@ -427,11 +427,11 @@ from others whenever the others change.
 @heading Preparing and Running Make
 @end ifnottex
 
-To prepare to use @code{make}, you must write a file called
-the @dfn{makefile} that describes the relationships among files
-in your program and provides commands for updating each file.
-In a program, typically, the executable file is updated from object
-files, which are in turn made by compiling source files.
+To use @code{make}, you must write a file called the @dfn{makefile} that
+describes the relationships among files in your program and provides commands
+for updating each file.  For example, in a typical program the executable file
+is updated from object files, which are in turn made by compiling source
+files.
 
 Once a suitable makefile exists, each time you change some source files,
 this simple shell command:
@@ -442,9 +442,9 @@ make
 
 @noindent
 suffices to perform all necessary recompilations.  The @code{make} program
-uses the makefile data base and the last-modification times of the files to
-decide which of the files need to be updated.  For each of those files, it
-issues the recipes recorded in the data base.
+uses the information in the makefile and the last-modification times of the
+files to decide which of the files need to be updated.  For each of those
+files, it issues the recipes provided in the makefile.
 
 You can provide command line arguments to @code{make} to control which
 files should be recompiled, or how.  @xref{Running, ,How to Run
@@ -468,10 +468,9 @@ all of which is introductory.
 @end iftex
 
 If you are familiar with other @code{make} programs, see @ref{Features,
-,Features of GNU @code{make}}, which lists the enhancements GNU
-@code{make} has, and @ref{Missing, ,Incompatibilities and Missing
-Features}, which explains the few things GNU @code{make} lacks that
-others have.
+,Features of GNU @code{make}}, which lists the enhancements GNU Make has, and
+@ref{Missing, ,Incompatibilities and Missing Features}, which explains the few
+things GNU Make lacks that others have.
 
 For a quick summary, see @ref{Options Summary}, @ref{Quick Reference},
 and @ref{Special Targets}.
@@ -524,9 +523,7 @@ or use our Web-based project management tool, at:
 In addition to the information above, please be careful to include the
 version number of @code{make} you are using.  You can get this
 information with the command @samp{make --version}.  Be sure also to
-include the type of machine and operating system you are using.  One
-way to obtain this information is by looking at the final lines of
-output from the command @samp{make --help}.
+include the type of machine and operating system you are using.
 
 If you have a code change you'd like to submit, see the @file{README} file
 section ``Submitting Patches'' for information.
@@ -535,10 +532,26 @@ section ``Submitting Patches'' for information.
 @comment  node-name,  next,  previous,  up
 @chapter An Introduction to Makefiles
 
-You need a file called a @dfn{makefile} to tell @code{make} what to do.
-Most often, the makefile tells @code{make} how to compile and link a
+You need a file called a @dfn{makefile} to tell @code{make} what to do.  For
+example, the makefile might tell @code{make} how to compile and link a
 program.
 @cindex makefile
+
+A makefile is a combination of two different ``languages'' in a single file.
+Most of the makefile is written to be parsed by @code{make}, but also included
+in the makefile are @emph{recipes} which contain the commands used to update
+targets.  These commands are passed to a shell to be parsed and run so they
+use shell syntax, not @code{make} syntax.  It's important to keep in mind the
+difference between these two syntaxes when writing makefiles.
+
+For a detailed description of the content of makefiles, @pxref{Makefile
+Contents, ,What Makefiles Contain}.
+
+A makefile is not a procedural list of steps to be taken.  Instead, it
+describes a @dfn{directed acyclic graph}, where each node in the graph is a
+potential target to be created and each edge in the graph is a prerequisite
+relationship.  Every rule in a makefile defines (or updates) a node and
+(optionally) some of the edges starting from that node.
 
 In this chapter, we will discuss a simple makefile that describes how to
 compile and link a text editor which consists of eight C source files
@@ -687,18 +700,18 @@ files from the directory, type:
 make clean
 @end example
 
-In the example makefile, the targets include the executable file
-@samp{edit}, and the object files @samp{main.o} and @samp{kbd.o}.  The
-prerequisites are files such as @samp{main.c} and @samp{defs.h}.
-In fact, each @samp{.o} file is both a target and a prerequisite.
-Recipes include @w{@samp{cc -c main.c}} and @w{@samp{cc -c kbd.c}}.
+In the example makefile, the targets include the executable file @samp{edit},
+and the object files @samp{main.o}, @samp{kbd.o}, etc.  The prerequisites are
+files such as @samp{main.c} and @samp{defs.h}.  You can see that each
+@samp{.o} file is both a target and a prerequisite: this is common in
+makefiles.  Recipes include @w{@samp{cc -c main.c}} and @w{@samp{cc -c
+kbd.c}}.
 
-When a target is a file, it needs to be recompiled or relinked if any
-of its prerequisites change.  In addition, any prerequisites that are
-themselves automatically generated should be updated first.  In this
-example, @file{edit} depends on each of the eight object files; the
-object file @file{main.o} depends on the source file @file{main.c} and
-on the header file @file{defs.h}.
+When a target is a program, it needs to be recompiled or relinked if any of
+its prerequisites change.  In addition, any prerequisites that are themselves
+automatically generated should be updated first.  In this example, @file{edit}
+depends on the eight object files; the object file @file{main.o} depends on
+the source file @file{main.c} and on the header file @file{defs.h}.
 
 A recipe may follow each line that contains a target and
 prerequisites.  These recipes say how to update the target file.  A
@@ -1751,8 +1764,8 @@ myfile: $(ONEVAR) $$(TWOVAR)
 
 After the first expansion phase the prerequisites list of the
 @file{myfile} target will be @code{onefile} and @code{$(TWOVAR)}; the
-first (unescaped) variable reference to @var{ONEVAR} is expanded,
-while the second (escaped) variable reference is simply unescaped,
+first (un-escaped) variable reference to @var{ONEVAR} is expanded,
+while the second (escaped) variable reference is simply un-escaped,
 without being recognized as a variable reference.  Now during the
 secondary expansion the first word is expanded again but since it
 contains no variable or function references it remains the value
@@ -1763,7 +1776,7 @@ and @file{twofile}.
 
 Obviously, this is not a very interesting case since the same result
 could more easily have been achieved simply by having both variables
-appear, unescaped, in the prerequisites list.  One difference becomes
+appear, un-escaped, in the prerequisites list.  One difference becomes
 apparent if the variables are reset; consider this example:
 
 @example
@@ -9526,8 +9539,7 @@ option also enables @samp{basic} messages.
 
 @item p (@i{print})
 Prints the recipe to be executed, even when the recipe is normally
-silent (due to @code{.SILENT} or @samp{@@}).  Also prints the makefile
-name and line number where the recipe was defined.
+silent (due to @code{.SILENT} or @samp{@@}).
 
 @item w (@i{why})
 Explains why each target must be remade by showing which prerequisites
@@ -12498,7 +12510,7 @@ of the build if it detects an incorrect number of slots available in
 the jobserver.
 
 As an example, suppose you are implementing a linker which provides
-for multithreaded operation.  You would like to enhance the linker so
+for multi-threaded operation.  You would like to enhance the linker so
 that if it is invoked by GNU @code{make} it can participate in the
 jobserver protocol to control how many threads are used during link.
 First you will need to modify the linker to determine if the
