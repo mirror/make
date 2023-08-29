@@ -5,7 +5,7 @@
 @include version.texi
 @set EDITION 0.77
 
-@settitle GNU @code{make}
+@settitle GNU Make
 @setchapternewpage odd
 @c Combine the variable and function indices:
 @syncodeindex vr fn
@@ -17,9 +17,9 @@
 @c %**end of header
 
 @copying
-This file documents the GNU @code{make} utility, which determines
-automatically which pieces of a large program need to be recompiled,
-and issues the commands to recompile them.
+This file documents the GNU implementation of the @code{make} utility.
+@code{make} determines automatically which pieces of a large program need to
+be recompiled, and issues the commands to recompile them.
 
 This is Edition @value{EDITION}, last updated @value{UPDATED},
 of @cite{The GNU Make Manual}, for GNU @code{make} version @value{VERSION}.
@@ -81,7 +81,7 @@ Cover art by Etienne Suvasa.
 
 @ifnottex
 @node Top, Overview, (dir), (dir)
-@top GNU @code{make}
+@top GNU Make
 
 @insertcopying
 @end ifnottex
@@ -102,8 +102,8 @@ Cover art by Etienne Suvasa.
 * Archives::                    How @code{make} can update library archives.
 * Extending make::              Using extensions to @code{make}.
 * Integrating make::            Integrating @code{make} with other tools.
-* Features::                    Features GNU @code{make} has over other @code{make}s.
-* Missing::                     What GNU @code{make} lacks from other @code{make}s.
+* Features::                    Features GNU Make has over other @code{make}s.
+* Missing::                     What GNU Make lacks from other @code{make}s.
 * Makefile Conventions::        Conventions for writing makefiles for
                                   GNU programs.
 * Quick Reference::             A quick reference for experienced users.
@@ -373,7 +373,7 @@ Loading Dynamic Objects
 
 Integrating GNU @code{make}
 
-* Job Slots::                   Share job slots with GNU @code{make}.
+* Job Slots::                   Share job slots with GNU Make.
 * Terminal Output::             Control output to terminals.
 
 Sharing Job Slots with GNU @code{make}
@@ -389,13 +389,12 @@ Sharing Job Slots with GNU @code{make}
 @chapter Overview of @code{make}
 
 The @code{make} utility automatically determines which pieces of a large
-program need to be recompiled, and issues commands to recompile them.
-This manual describes GNU @code{make}, which was implemented by Richard
-Stallman and Roland McGrath.  Development since Version 3.76 has been
-handled by Paul D. Smith.
+program need to be recompiled, and issues commands to recompile them.  This
+manual describes GNU Make, which was implemented by Richard Stallman and
+Roland McGrath.  Paul D. Smith has handled development and maintenance since
+Version 3.76 (1997).
 
-GNU @code{make} conforms to section 6.2 of @cite{IEEE Standard
-1003.2-1992} (POSIX.2).
+GNU @code{make} conforms to @cite{IEEE Standard 1003.2-2017} (POSIX.1-2017).
 @cindex POSIX
 @cindex IEEE Standard 1003.2
 @cindex standards conformance
@@ -12429,7 +12428,7 @@ higher-level (tools that invoke @code{make}) and lower-level (tools
 that @code{make} invokes).
 
 @menu
-* Job Slots::                   Share job slots with GNU @code{make}.
+* Job Slots::                   Share job slots with GNU Make.
 * Terminal Output::             Control output to terminals.
 @end menu
 
