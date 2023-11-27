@@ -382,6 +382,13 @@ Sharing Job Slots with GNU @code{make}
 * POSIX Jobserver::             Using the jobserver on POSIX systems.
 * Windows Jobserver::           Using the jobserver on Windows systems.
 
+Quick Reference
+
+* Makefile Directives::         All makefile directives.
+* Makefile Functions::          All makefile built-in functions.
+* Automatic Variable Reference::  All automatic variables for recipes.
+* Special Variable Reference::  All special variables for makefiles.
+
 Troubleshooting Make and Makefiles
 
 * Parse Error::                 Syntax errors when parsing makefiles.
@@ -1557,7 +1564,7 @@ We say that expansion is @dfn{immediate} if it happens during the
 first phase: @code{make} will expand that part of the construct as the
 makefile is parsed.  We say that expansion is @dfn{deferred} if it is
 not immediate.  Expansion of a deferred construct part is delayed
-until the expansion is used: either when it is referenced in an
+until the construct is used: either when it is referenced in an
 immediate context, or when it is needed during the second phase.
 
 You may not be familiar with some of these constructs yet.  You can
@@ -13067,6 +13074,16 @@ and special variables which GNU @code{make} understands.
 and @ref{Options Summary, ,Summary of Options},
 for other summaries.
 
+@menu
+* Makefile Directives::         All makefile directives.
+* Makefile Functions::          All makefile built-in functions.
+* Automatic Variable Reference::  All automatic variables for recipes.
+* Special Variable Reference::  All special variables for makefiles.
+@end menu
+
+@node Makefile Directives
+@appendixsec Makefile Directives Reference
+
 Here is a summary of the directives GNU @code{make} recognizes:
 
 @table @code
@@ -13129,136 +13146,89 @@ Specify a search path for files matching a @samp{%} pattern.@*
 @xref{Selective Search, , The @code{vpath} Directive}.
 
 @item vpath @var{pattern}
-Remove all search paths previously specified for @var{pattern}.
+Remove all search paths previously specified for @var{pattern}.@*
+@xref{Selective Search, , The @code{vpath} Directive}.
 
 @item vpath
-Remove all search paths previously specified in any @code{vpath}
-directive.
+Remove all search paths previously specified in any @code{vpath} directive.@*
+@xref{Selective Search, , The @code{vpath} Directive}.
 @end table
+
+@node Makefile Functions
+@appendixsec Makefile Functions Reference
 
 Here is a summary of the built-in functions (@pxref{Functions}):
 
 @table @code
-@item $(subst @var{from},@var{to},@var{text})
-Replace @var{from} with @var{to} in @var{text}.@*
-@xref{Text Functions, , Functions for String Substitution and Analysis}.
-
-@item $(patsubst @var{pattern},@var{replacement},@var{text})
-Replace words matching @var{pattern} with @var{replacement} in @var{text}.@*
-@xref{Text Functions, , Functions for String Substitution and Analysis}.
-
-@item $(strip @var{string})
-Remove excess whitespace characters from @var{string}.@*
-@xref{Text Functions, , Functions for String Substitution and Analysis}.
-
-@item $(findstring @var{find},@var{text})
-Locate @var{find} in @var{text}.@*
-@xref{Text Functions, , Functions for String Substitution and Analysis}.
-
-@item $(filter @var{pattern}@dots{},@var{text})
-Select words in @var{text} that match one of the @var{pattern} words.@*
-@xref{Text Functions, , Functions for String Substitution and Analysis}.
-
-@item $(filter-out @var{pattern}@dots{},@var{text})
-Select words in @var{text} that @emph{do not} match any of the @var{pattern} words.@*
-@xref{Text Functions, , Functions for String Substitution and Analysis}.
-
-@item $(sort @var{list})
-Sort the words in @var{list} lexicographically, removing duplicates.@*
-@xref{Text Functions, , Functions for String Substitution and Analysis}.
-
-@item $(word @var{n},@var{text})
-Extract the @var{n}th word (one-origin) of @var{text}.@*
-@xref{Text Functions, , Functions for String Substitution and Analysis}.
-
-@item $(words @var{text})
-Count the number of words in @var{text}.@*
-@xref{Text Functions, , Functions for String Substitution and Analysis}.
-
-@item $(wordlist @var{s},@var{e},@var{text})
-Returns the list of words in @var{text} from @var{s} to @var{e}.@*
-@xref{Text Functions, , Functions for String Substitution and Analysis}.
-
-@item $(firstword @var{names}@dots{})
-Extract the first word of @var{names}.@*
-@xref{Text Functions, , Functions for String Substitution and Analysis}.
-
-@item $(lastword @var{names}@dots{})
-Extract the last word of @var{names}.@*
-@xref{Text Functions, , Functions for String Substitution and Analysis}.
-
-@item $(dir @var{names}@dots{})
-Extract the directory part of each file name.@*
-@xref{File Name Functions, ,Functions for File Names}.
-
-@item $(notdir @var{names}@dots{})
-Extract the non-directory part of each file name.@*
-@xref{File Name Functions, ,Functions for File Names}.
-
-@item $(suffix @var{names}@dots{})
-Extract the suffix (the last @samp{.} and following characters) of each file name.@*
-@xref{File Name Functions, ,Functions for File Names}.
-
-@item $(basename @var{names}@dots{})
-Extract the base name (name without suffix) of each file name.@*
-@xref{File Name Functions, ,Functions for File Names}.
-
-@item $(addsuffix @var{suffix},@var{names}@dots{})
-Append @var{suffix} to each word in @var{names}.@*
+@item $(abspath @var{names}@dots{})
+For each file name in @var{names}, expand to an absolute name that does not
+contain any @code{.} or @code{..} components, but preserves symlinks.@*
 @xref{File Name Functions, ,Functions for File Names}.
 
 @item $(addprefix @var{prefix},@var{names}@dots{})
 Prepend @var{prefix} to each word in @var{names}.@*
 @xref{File Name Functions, ,Functions for File Names}.
 
-@item $(join @var{list1},@var{list2})
-Join two parallel lists of words.@*
+@item $(addsuffix @var{suffix},@var{names}@dots{})
+Append @var{suffix} to each word in @var{names}.@*
 @xref{File Name Functions, ,Functions for File Names}.
 
-@item $(wildcard @var{pattern}@dots{})
-Find file names matching a shell file name pattern (@emph{not} a
-@samp{%} pattern).@*
-@xref{Wildcard Function, ,The Function @code{wildcard}}.
+@item $(and @var{condition1}[,@var{condition2}[,@var{condition3}@dots{}]])
+Evaluate each condition @var{conditionN} one at a time; if any
+expansion results in the empty string substitute the empty string.  If
+all expansions result in a non-empty string, substitute the expansion
+of the last @var{condition}.@*
+@xref{Conditional Functions, ,Functions for Conditionals}.
 
-@item $(realpath @var{names}@dots{})
-For each file name in @var{names}, expand to an absolute name that
-does not contain any @code{.}, @code{..}, nor symlinks.@*
+@item $(basename @var{names}@dots{})
+Extract the base name (name without suffix) of each file name.@*
 @xref{File Name Functions, ,Functions for File Names}.
 
-@item $(abspath @var{names}@dots{})
-For each file name in @var{names}, expand to an absolute name that
-does not contain any @code{.} or @code{..} components, but preserves
-symlinks.@*
+@item $(call @var{var},@var{param},@dots{})
+Evaluate the variable @var{var} replacing any references to @code{$(1)},
+@code{$(2)} with the first, second, etc.@: @var{param} values.@*
+@xref{Call Function, ,The @code{call} Function}.
+
+@item $(dir @var{names}@dots{})
+Extract the directory part of each file name.@*
 @xref{File Name Functions, ,Functions for File Names}.
 
 @item $(error @var{text}@dots{})
-When this function is evaluated, @code{make} generates a fatal error
-with the message @var{text}.@*
+When this function is expanded, @code{make} prints @var{text} to standard
+error, then @code{make} exits with a failure code.@*
 @xref{Make Control Functions, ,Functions That Control Make}.
 
-@item $(warning @var{text}@dots{})
-When this function is evaluated, @code{make} generates a warning with
-the message @var{text}.@*
-@xref{Make Control Functions, ,Functions That Control Make}.
+@item $(eval @var{text})
+Evaluate @var{text} then read the results as makefile commands.
+Expands to the empty string.@*
+@xref{Eval Function, ,The @code{eval} Function}.
 
-@item $(shell @var{command})
-Execute a shell command and return its output.@*
-@xref{Shell Function, , The @code{shell} Function}.
+@item $(file @var{op} @var{filename},@var{text})
+Expand the arguments, then open the file @var{filename} using mode
+@var{op} and write @var{text} to that file.@*
+@xref{File Function, ,The @code{file} Function}.
 
-@item $(origin @var{variable})
-Return a string describing how the @code{make} variable @var{variable} was
-defined.@*
-@xref{Origin Function, , The @code{origin} Function}.
+@item $(filter @var{pattern}@dots{},@var{text})
+Select words in @var{text} that match one of the @var{pattern} words.@*
+@xref{Text Functions, , Functions for String Substitution and Analysis}.
+
+@item $(filter-out @var{pattern}@dots{},@var{text})
+Select words in @var{text} that @emph{do not} match any of the @var{pattern}
+words.@*
+@xref{Text Functions, , Functions for String Substitution and Analysis}.
+
+@item $(findstring @var{find},@var{text})
+Locate @var{find} in @var{text}.@*
+@xref{Text Functions, , Functions for String Substitution and Analysis}.
+
+@item $(firstword @var{names}@dots{})
+Extract the first word of @var{names}.@*
+@xref{Text Functions, , Functions for String Substitution and Analysis}.
 
 @item $(flavor @var{variable})
 Return a string describing the flavor of the @code{make} variable
 @var{variable}.@*
 @xref{Flavor Function, , The @code{flavor} Function}.
-
-@item $(let @var{var} [@var{var} ...],@var{words},@var{text})
-Evaluate @var{text} with the @var{var}s bound to the words in
-@var{words}.@*
-@xref{Let Function, ,The @code{let} Function}.
 
 @item $(foreach @var{var},@var{words},@var{text})
 Evaluate @var{text} with @var{var} bound to each word in @var{words},
@@ -13271,49 +13241,109 @@ the expansion of the @var{then-part} otherwise substitute the
 expansion of the @var{else-part}.@*
 @xref{Conditional Functions, ,Functions for Conditionals}.
 
+@item $(info @var{text}@dots{})
+When this function is expanded, @code{make} prints @var{text} to standard
+output and the function expands to the empty string.@*
+@xref{Make Control Functions, ,Functions That Control Make}.
+
+@item $(intcmp @var{lhs},@var{rhs}[,@var{lt-part}[,@var{eq-part}[,@var{gt-part}]]])
+Compare @var{lhs} and @var{rhs} numerically; substitute the expansion of
+@var{lt-part}, @var{eq-part}, or @var{gt-part} depending on whether the
+left-hand side is less-than, equal-to, or greater-than the right-hand side,
+respectively.@*
+@xref{Conditional Functions, ,Functions for Conditionals}.
+
+@item $(join @var{list1},@var{list2})
+Join two parallel lists of words.@*
+@xref{File Name Functions, ,Functions for File Names}.
+
+@item $(lastword @var{names}@dots{})
+Extract the last word of @var{names}.@*
+@xref{Text Functions, , Functions for String Substitution and Analysis}.
+
+@item $(let @var{var} [@var{var} ...],@var{words},@var{text})
+Evaluate @var{text} with the @var{var}s bound to the words in
+@var{words}.@*
+@xref{Let Function, ,The @code{let} Function}.
+
+@item $(notdir @var{names}@dots{})
+Extract the non-directory part of each file name.@*
+@xref{File Name Functions, ,Functions for File Names}.
+
 @item $(or @var{condition1}[,@var{condition2}[,@var{condition3}@dots{}]])
 Evaluate each condition @var{conditionN} one at a time; substitute the
 first non-empty expansion.  If all expansions are empty, substitute
 the empty string.@*
 @xref{Conditional Functions, ,Functions for Conditionals}.
 
-@item $(and @var{condition1}[,@var{condition2}[,@var{condition3}@dots{}]])
-Evaluate each condition @var{conditionN} one at a time; if any
-expansion results in the empty string substitute the empty string.  If
-all expansions result in a non-empty string, substitute the expansion
-of the last @var{condition}.@*
-@xref{Conditional Functions, ,Functions for Conditionals}.
+@item $(origin @var{variable})
+Return a string describing how the @code{make} variable @var{variable} was
+defined.@*
+@xref{Origin Function, , The @code{origin} Function}.
 
-@item $(intcmp @var{lhs},@var{rhs}[,@var{lt-part}[,@var{eq-part}[,@var{gt-part}]]])
-Compare @var{lhs} and @var{rhs} numerically; substitute the expansion of
-@var{lt-part}, @var{eq-part}, or @var{gt-part} depending on whether the
-left-hand side is less-than, equal-to, or greater-than the right-hand
-side, respectively.@*
-@xref{Conditional Functions, ,Functions for Conditionals}.
+@item $(patsubst @var{pattern},@var{replacement},@var{text})
+Replace words matching @var{pattern} with @var{replacement} in @var{text}.@*
+@xref{Text Functions, , Functions for String Substitution and Analysis}.
 
-@item $(call @var{var},@var{param},@dots{})
-Evaluate the variable @var{var} replacing any references to @code{$(1)},
-@code{$(2)} with the first, second, etc.@: @var{param} values.@*
-@xref{Call Function, ,The @code{call} Function}.
+@item $(realpath @var{names}@dots{})
+For each file name in @var{names}, expand to an absolute name that does not
+contain any @code{.}, @code{..}, nor symlinks.@*
+@xref{File Name Functions, ,Functions for File Names}.
 
-@item $(eval @var{text})
-Evaluate @var{text} then read the results as makefile commands.
-Expands to the empty string.@*
-@xref{Eval Function, ,The @code{eval} Function}.
+@item $(shell @var{command})
+Execute a shell command and expand to its standard output.@*
+@xref{Shell Function, , The @code{shell} Function}.
 
-@item $(file @var{op} @var{filename},@var{text})
-Expand the arguments, then open the file @var{filename} using mode
-@var{op} and write @var{text} to that file.@*
-@xref{File Function, ,The @code{file} Function}.
+@item $(sort @var{list})
+Sort the words in @var{list} lexicographically, removing duplicates.@*
+@xref{Text Functions, , Functions for String Substitution and Analysis}.
+
+@item $(strip @var{string})
+Remove excess whitespace characters from @var{string}.@*
+@xref{Text Functions, , Functions for String Substitution and Analysis}.
+
+@item $(subst @var{from},@var{to},@var{text})
+Replace @var{from} with @var{to} in @var{text}.@*
+@xref{Text Functions, , Functions for String Substitution and Analysis}.
+
+@item $(suffix @var{names}@dots{})
+Extract the suffix (the last @samp{.} and following characters) of each file
+name.@*
+@xref{File Name Functions, ,Functions for File Names}.
 
 @item $(value @var{var})
 Evaluates to the contents of the variable @var{var}, with no expansion
 performed on it.@*
 @xref{Value Function, ,The @code{value} Function}.
+
+@item $(warning @var{text}@dots{})
+When this function is expanded, @code{make} prints @var{text} to standard
+error, prefixed with the current filename and line number.@*
+@xref{Make Control Functions, ,Functions That Control Make}.
+
+@item $(wildcard @var{pattern}@dots{})
+Find file names matching a shell file name pattern (@emph{not} a @samp{%}
+pattern).@*
+@xref{Wildcard Function, ,The Function @code{wildcard}}.
+
+@item $(word @var{n},@var{text})
+Extract the @var{n}th word (one-origin) of @var{text}.@*
+@xref{Text Functions, , Functions for String Substitution and Analysis}.
+
+@item $(wordlist @var{s},@var{e},@var{text})
+Returns the list of words in @var{text} from @var{s} to @var{e}.@*
+@xref{Text Functions, , Functions for String Substitution and Analysis}.
+
+@item $(words @var{text})
+Count the number of words in @var{text}.@*
+@xref{Text Functions, , Functions for String Substitution and Analysis}.
 @end table
 
-Here is a summary of the automatic variables.
-@xref{Automatic Variables},
+@node Automatic Variable Reference
+@appendixsec Automatic Variable Reference
+
+Here is a summary of the automatic variables.  Remember automatic variables
+@emph{only} have values @emph{inside} a recipe.  @xref{Automatic Variables},
 for full information.
 
 @table @code
@@ -13372,99 +13402,91 @@ The directory part and the file-within-directory part of @code{$+}.
 The directory part and the file-within-directory part of @code{$?}.
 @end table
 
+@node Special Variable Reference
+@appendixsec Special Variable Reference
+
 These variables are used specially by GNU @code{make}:
 
 @table @code
-@item MAKEFILES
-
-Makefiles to be read on every invocation of @code{make}.@*
-@xref{MAKEFILES Variable, ,The Variable @code{MAKEFILES}}.
-
-@item VPATH
-
-Directory search path for files not found in the current directory.@*
-@xref{General Search, , @code{VPATH} Search Path for All Prerequisites}.
-
-@item SHELL
-
-The name of the system default command interpreter, usually @file{/bin/sh}.
-You can set @code{SHELL} in the makefile to change the shell used to run
-recipes.  @xref{Execution, ,Recipe Execution}.  The @code{SHELL}
-variable is handled specially when importing from and exporting to the
-environment.  @xref{Choosing the Shell}.
-
-@item MAKESHELL
-
-On MS-DOS only, the name of the command interpreter that is to be used
-by @code{make}.  This value takes precedence over the value of
-@code{SHELL}.  @xref{Choosing the Shell}.
-
-@item MAKE
-
-The name with which @code{make} was invoked.  Using this variable in
-recipes has special meaning.  @xref{MAKE Variable, ,How the
-@code{MAKE} Variable Works}.
-
-@item MAKE_VERSION
-
-The built-in variable @samp{MAKE_VERSION} expands to the version
-number of the GNU @code{make} program.
-@vindex MAKE_VERSION
-
-@item MAKE_HOST
-
-The built-in variable @samp{MAKE_HOST} expands to a string
-representing the host that GNU @code{make} was built to run on.
-@vindex MAKE_HOST
-
-@item MAKELEVEL
-
-The number of levels of recursion (sub-@code{make}s).@*
-@xref{Variables/Recursion}.
-
-@item MAKEFLAGS
-
-The flags given to @code{make}.  You can set this in the environment or
-a makefile to set flags.@*
-@xref{Options/Recursion, ,Communicating Options to a Sub-@code{make}}.
-
-It is @emph{never} appropriate to use @code{MAKEFLAGS} directly in a
-recipe line: its contents may not be quoted correctly for use in the
-shell.  Always allow recursive @code{make}'s to obtain these values
-through the environment from its parent.
+@item CURDIR
+Set to the absolute pathname of the current working directory (after
+all @code{-C} options are processed, if any).  Setting this variable
+has no effect on the operation of @code{make}.@*
+@xref{Recursion, ,Recursive Use of @code{make}}.
 
 @item GNUMAKEFLAGS
-
 Other flags parsed by @code{make}.  You can set this in the environment or
 a makefile to set @code{make} command-line flags.  GNU @code{make}
 never sets this variable itself.  This variable is only needed if
 you'd like to set GNU @code{make}-specific flags in a POSIX-compliant
 makefile.  This variable will be seen by GNU @code{make} and ignored
 by other @code{make} implementations.  It's not needed if you only use
-GNU @code{make}; just use @code{MAKEFLAGS} directly.
+GNU @code{make}; just use @code{MAKEFLAGS} directly.@*
 @xref{Options/Recursion, ,Communicating Options to a Sub-@code{make}}.
-
-@item MAKECMDGOALS
-
-The targets given to @code{make} on the command line.  Setting this
-variable has no effect on the operation of @code{make}.@*
-@xref{Goals, ,Arguments to Specify the Goals}.
-
-@item CURDIR
-
-Set to the absolute pathname of the current working directory (after
-all @code{-C} options are processed, if any).  Setting this variable
-has no effect on the operation of @code{make}.@*
-@xref{Recursion, ,Recursive Use of @code{make}}.
-
-@item SUFFIXES
-
-The default list of suffixes before @code{make} reads any makefiles.
 
 @item .LIBPATTERNS
 Defines the naming of the libraries @code{make} searches for, and their
 order.@*
 @xref{Libraries/Search, ,Directory Search for Link Libraries}.
+
+@item MAKE
+The name with which @code{make} was invoked.  Using this variable in
+recipes has special meaning.@*
+@xref{MAKE Variable, ,How the @code{MAKE} Variable Works}.
+
+@item MAKECMDGOALS
+The targets given to @code{make} on the command line.  Setting this
+variable has no effect on the operation of @code{make}.@*
+@xref{Goals, ,Arguments to Specify the Goals}.
+
+@item MAKEFILES
+Makefiles to be read on every invocation of @code{make}.@*
+@xref{MAKEFILES Variable, ,The Variable @code{MAKEFILES}}.
+
+@item MAKEFLAGS
+The flags given to @code{make}.  You can set this in the environment or
+a makefile to set flags.@*
+@xref{Options/Recursion, ,Communicating Options to a Sub-@code{make}}.
+
+Don't use @code{MAKEFLAGS} explicitly in a recipe line: its contents may not
+be quoted correctly for use in the shell.  Always allow recursive @code{make}
+invocations to obtain these values through the environment from its parent.
+
+@item MAKELEVEL
+The number of levels of recursion (sub-@code{make}s).@*
+@xref{Variables/Recursion}.
+
+@item MAKESHELL
+On MS-DOS only, the name of the command interpreter that is to be used
+by @code{make}.  This value takes precedence over the value of
+@code{SHELL}.@*
+@xref{Choosing the Shell}.
+
+@item MAKE_VERSION
+The built-in variable @samp{MAKE_VERSION} expands to the version
+number of the GNU @code{make} program.
+@vindex MAKE_VERSION
+
+@item MAKE_HOST
+The built-in variable @samp{MAKE_HOST} expands to a string
+representing the host that GNU @code{make} was built to run on.
+@vindex MAKE_HOST
+
+@item SHELL
+The name of the system default command interpreter, usually @file{/bin/sh}.
+You can set @code{SHELL} in the makefile to change the shell used to run
+recipes.  @xref{Execution, ,Recipe Execution}.  The @code{SHELL}
+variable is handled specially when importing from and exporting to the
+environment.@*
+@xref{Choosing the Shell}.
+
+@item SUFFIXES
+The default list of suffixes before @code{make} reads any makefiles.@*
+@xref{Suffix Rules, ,Old-Fashioned Suffix Rules}.
+
+@item VPATH
+Directory search path for files not found in the current directory.@*
+@xref{General Search, , @code{VPATH} Search Path for All Prerequisites}.
 @end table
 
 @node Error Messages
