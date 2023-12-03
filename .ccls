@@ -4,7 +4,6 @@ clang
 -Isrc
 -Ilib
 -DLIBDIR="/usr/local/lib"
--DINCLUDEDIR="/usr/local/include"
 -DLOCALEDIR="/usr/local/share/locale"
 -DMAKE_MAINTAINER_MODE
 -pthread
@@ -13,7 +12,6 @@ clang
 -Wall
 -Wextra
 -Werror
--Wno-address
 -Wwrite-strings
 -Wshadow
 -Wdeclaration-after-statement
@@ -26,3 +24,5 @@ clang
 -Wignored-qualifiers
 -Wformat-signedness
 -Wduplicated-cond
+-Wno-address
+-Wno-string-compare

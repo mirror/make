@@ -1,0 +1,14 @@
+CompileFlags:
+  Add: [-xc, -DHAVE_CONFIG_H, -DMAKE_MAINTAINER_MODE, -DLIBDIR="/usr/local/lib", -DLOCALEDIR="/usr/local/share/locale", -I../src, -Isrc, -I../lib, -Ilib, -Wall, -Wextra, -Wwrite-strings, -Wshadow, -Wdeclaration-after-statement, -Wbad-function-cast, -Wformat-security, -Wtype-limits, -Wunused-but-set-parameter, -Wlogical-op, -Wpointer-arith, -Wignored-qualifiers, -Wformat-signedness, -Wduplicated-cond, -Wno-string-compare, -Wno-unused-includes]
+
+---
+If:
+  PathMatch: .*\.h
+CompileFlags:
+  Add: [-xc-header, --include=makeint.h]
+
+---
+If:
+  PathMatch: .*/makeint\.h
+Diagnostics:
+  UnusedIncludes: None
