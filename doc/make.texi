@@ -7559,53 +7559,7 @@ produces the value @samp{x.c.o bar.o}.
 
 Substitution references (@pxref{Substitution Refs, ,Substitution
 References}) are a simpler way to get the effect of the @code{patsubst}
-function:
-
-@example
-$(@var{var}:@var{pattern}=@var{replacement})
-@end example
-
-@noindent
-is equivalent to
-
-@example
-$(patsubst @var{pattern},@var{replacement},$(@var{var}))
-@end example
-
-The second shorthand simplifies one of the most common uses of
-@code{patsubst}: replacing the suffix at the end of file names.
-
-@example
-$(@var{var}:@var{suffix}=@var{replacement})
-@end example
-
-@noindent
-is equivalent to
-
-@example
-$(patsubst %@var{suffix},%@var{replacement},$(@var{var}))
-@end example
-
-@noindent
-For example, you might have a list of object files:
-
-@example
-objects = foo.o bar.o baz.o
-@end example
-
-@noindent
-To get the list of corresponding source files, you could simply write:
-
-@example
-$(objects:.o=.c)
-@end example
-
-@noindent
-instead of using the general form:
-
-@example
-$(patsubst %.o,%.c,$(objects))
-@end example
+function.
 
 @item $(strip @var{string})
 @cindex stripping whitespace
