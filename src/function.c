@@ -915,8 +915,6 @@ func_let (char *o, char **argv, const char *funcname UNUSED)
   const char *vp;
   const char *vp_next = varnames;
   const char *list_iterator = list;
-  char *p;
-  size_t len;
   size_t vlen;
 
   push_new_variable_scope ();
@@ -926,8 +924,9 @@ func_let (char *o, char **argv, const char *funcname UNUSED)
   NEXT_TOKEN (vp_next);
   while (*vp_next != '\0')
     {
-      p = find_next_token (&list_iterator, &len);
-      if (*list_iterator != '\0')
+      size_t len;
+      char *p = find_next_token (&list_iterator, &len);
+      if (p && *list_iterator != '\0')
         {
           ++list_iterator;
           p[len] = '\0';
