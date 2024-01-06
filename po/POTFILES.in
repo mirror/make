@@ -1,5 +1,5 @@
 # List of source files containing translatable strings.
-# Copyright (C) 2000-2023 Free Software Foundation, Inc.
+# Copyright (C) 2000-2024 Free Software Foundation, Inc.
 # This file is part of GNU Make.
 #
 # GNU Make is free software; you can redistribute it and/or modify it under
@@ -31,7 +31,6 @@ src/load.c
 src/main.c
 src/misc.c
 src/output.c
-src/output.h
 src/posixos.c
 src/read.c
 src/remake.c
@@ -41,9 +40,9 @@ src/shuffle.c
 src/signame.c
 src/strcache.c
 src/variable.c
-src/variable.h
 src/vmsfunctions.c
 src/vmsjobs.c
 src/vpath.c
 src/warning.c
+src/warning.h
 src/w32/w32os.c
