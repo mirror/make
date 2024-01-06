@@ -9,11 +9,6 @@ which is contained in this distribution as the file doc/make.texi.
 See the README file and the GNU Make manual for instructions for
 reporting bugs.
 
-* 'make --print-data-base' (or 'make -p') now outputs time of day
-  using the same form as for file timestamps, e.g., "2023-05-10
-  10:43:57.570558743".  Previously it used the form "Wed May 10
-  10:43:57 2023", which has less detail and is harder to compare.
-
 
 Version 4.4.90 (26 Feb 2023)
 
@@ -34,6 +29,14 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&se
   your initialization function can check the provided ABI version to verify
   it's being loaded correctly.
 
+* WARNING: Backward-incompatibility!
+  Parsing of the first argument in ifeq/ifneq with () has been cleaned up.
+  When locating the separating "," any variable reference (single char as well
+  as using $() or ${}) is skipped.  However parentheses that are not part of
+  or contained in variable references will not be counted.  This means that
+  things like "ifeq ((foo,bar),)" are now syntax errors.  Use a variable to
+  hide the comma if needed: "COMMA = ," / "ifeq ((foo$(COMMA)bar),)".
+
 * New feature: Unload function for loaded objects
   When a loaded object needs to be unloaded by GNU Make, it will invoke an
   unload function (if one is defined) beforehand that allows the object to
@@ -52,6 +55,11 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&se
   In addition to --warn from the command line, which takes effect for make
   invoked recursively, warnings can be controlled only for the current
   instance of make using the .WARNINGS variable.
+
+* 'make --print-data-base' (or 'make -p') now outputs time of day
+  using the same form as for file timestamps, e.g., "2023-05-10
+  10:43:57.570558743".  Previously it used the form "Wed May 10
+  10:43:57 2023", which has less detail and is harder to compare.
 
 * Conditional statements starting with the recipe prefix were sometimes
   interpreted in previous versions.  As per the documentation, lines starting

@@ -215,6 +215,44 @@ endif
 !,
     '', "#MAKE#: 'all' is up to date.");
 
+# SV 64402: parse braces in ifeq/ifneq properly
+
+run_make_test(q!
+ifeq ($(and a,b),)
+endif
+ifeq (${and a,b},)
+endif
+ifeq (${and $(x),${or $(z),${q}}},)
+endif
+ifeq (${and ),(},)
+endif
+ifeq ($(and },{),)
+endif
+# We can hide the comma in a variable
+C = ,
+ifeq ((and a$Cb),)
+endif
+all:;
+!,
+    '', "#MAKE#: 'all' is up to date.");
+
+# The "," in "$," is a variable name not a comma
+run_make_test(q!
+ifeq ($,,)
+$(info ok)
+endif
+all:;
+!,
+    '', "ok\n#MAKE#: 'all' is up to date.");
+
+# Without variable references we don't do anything special with parens
+run_make_test(q!
+ifeq ((and a,b),)
+endif
+all:;
+!,
+    '', "#MAKEFILE#:2: extraneous text after 'ifeq' directive\n#MAKE#: 'all' is up to date.");
+
 # This tells the test driver that the perl test script executed properly.
 1;
 

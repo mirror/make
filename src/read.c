@@ -1672,13 +1672,27 @@ conditional_line (char *line, size_t len, const floc *flocp)
       if (termin == ',')
         {
           int count = 0;
-          for (; *line != '\0'; ++line)
-            if (*line == '(')
-              ++count;
-            else if (*line == ')')
-              --count;
-            else if (*line == ',' && count <= 0)
-              break;
+          char *delim = xmalloc (strlen (line));
+          while (*line != '\0')
+            {
+              if (*line == '$')
+                {
+                  ++line;
+                  if (*line == '(')
+                    delim[count++] = ')';
+                  else if (*line == '{')
+                    delim[count++] = '}';
+                }
+              else if (count == 0)
+                {
+                  if (*line == ',')
+                    break;
+                }
+              else if (*line == delim[count-1])
+                --count;
+              ++line;
+            }
+          free (delim);
         }
       else
         while (*line != '\0' && *line != termin)
