@@ -722,6 +722,7 @@ snap_file (const void *item, void *arg)
 {
   struct file *f = (struct file*)item;
   struct dep *prereqs = NULL;
+  struct dep *d;
 
   /* If we're not doing second expansion then reset updating.  */
   if (!second_expansion)
@@ -741,14 +742,22 @@ snap_file (const void *item, void *arg)
 
   /* If .EXTRA_PREREQS is set, add them as ignored by automatic variables.  */
   if (f->variables)
-    prereqs = expand_extra_prereqs (lookup_variable_in_set (STRING_SIZE_TUPLE(".EXTRA_PREREQS"), f->variables->set));
-
+    {
+      prereqs = expand_extra_prereqs (lookup_variable_in_set (
+                      STRING_SIZE_TUPLE(".EXTRA_PREREQS"), f->variables->set));
+      if (second_expansion)
+        for (d = prereqs; d; d = d->next)
+          {
+            if (!d->name)
+              d->name = xstrdup (d->file->name);
+            d->need_2nd_expansion = 1;
+          }
+    }
   else if (f->is_target)
     prereqs = copy_dep_chain (arg);
 
   if (prereqs)
     {
-      struct dep *d;
       for (d = prereqs; d; d = d->next)
         if (streq (f->name, dep_name (d)))
           /* Skip circular dependencies.  */

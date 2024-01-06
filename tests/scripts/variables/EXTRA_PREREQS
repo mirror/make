@@ -145,7 +145,40 @@ tick tack: ; @echo $@
 ',
               'all', "tack\ntick\ntack tick\n");
 
+# SV 65006. Second expansion of global .EXTRA_PREQREQS.
+run_make_test('
+.SECONDEXPANSION:
+extradep:=tick tack
+.EXTRA_PREREQS=$$(extradep)
+%.x:; @echo $@
+',
+              'hello.x', "hello.x\n");
+
 unlink('tick', 'tack');
+
+# SV 65006. Second expansion of a target-specific .EXTRA_PREQREQS.
+run_make_test('
+.SECONDEXPANSION:
+all: hello.x;
+extradep=tick tack
+hello.x: .EXTRA_PREREQS=$$(extradep)
+%.x:; @echo $@
+tick tack:; @echo $@
+',
+              '', "tick\ntack\nhello.x\n");
+
+# SV 65006. Second expansion of a target-specific .EXTRA_PREQREQS.
+# The value of .EXTRA_PREQREQS contains automatic variables.
+run_make_test('
+.SECONDEXPANSION:
+all: hello.x world.x
+hello.x world.x: .EXTRA_PREREQS=$$@.d
+%.x:; @echo $@
+%.d:; @echo $@
+',
+              '', "hello.x.d\nhello.x\nworld.x.d\nworld.x\n");
+
+
 
 # This tells the test driver that the perl test script executed properly.
 1;

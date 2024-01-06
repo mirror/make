@@ -140,6 +140,12 @@ snap_implicit_rules (void)
       const char *d = dep_name (dep);
       size_t l = strlen (d);
 
+      if (second_expansion)
+        {
+          if (!dep->name)
+            dep->name = xstrdup (dep->file->name);
+          dep->need_2nd_expansion = 1;
+        }
       if (dep->need_2nd_expansion)
         /* When pattern_search allocates a buffer, allow 5 bytes per each % to
            substitute each % with $(*F) while avoiding realloc.  */
