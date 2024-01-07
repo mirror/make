@@ -7519,15 +7519,17 @@ produces the value @samp{fEEt on the strEEt}.
 
 @item $(patsubst @var{pattern},@var{replacement},@var{text})
 @findex patsubst
-Finds whitespace-separated words in @var{text} that match
-@var{pattern} and replaces them with @var{replacement}.  Here
-@var{pattern} may contain a @samp{%} which acts as a wildcard,
-matching any number of any characters within a word.  If
-@var{replacement} also contains a @samp{%}, the @samp{%} is replaced
-by the text that matched the @samp{%} in @var{pattern}.  Words that do
-not match the pattern are kept without change in the output.  Only the
-first @samp{%} in the @var{pattern} and @var{replacement} is treated
-this way; any subsequent @samp{%} is unchanged.
+Finds whitespace-separated words in @var{text} that match @var{pattern} and
+replaces them with @var{replacement}.  Here @var{pattern} may contain a
+@samp{%} which acts as a wildcard, matching any number of any characters
+within a word.  If @var{replacement} also contains a @samp{%}, the @samp{%} is
+replaced by the text that matched the @samp{%} in @var{pattern}.  Words that
+do not match the pattern are kept without change in the output.  Only the
+first @samp{%} in the @var{pattern} and @var{replacement} is treated this way;
+any subsequent @samp{%} is unchanged.
+
+If @var{pattern} does not contain a @samp{%} then the entire word must compare
+equal to be a match.
 
 @cindex @code{%}, quoting in @code{patsubst}
 @cindex @code{\} (backslash), to quote @code{%}
@@ -7555,7 +7557,14 @@ $(patsubst %.c,%.o,x.c.c bar.c)
 @end example
 
 @noindent
-produces the value @samp{x.c.o bar.o}.
+produces the value @samp{x.c.o bar.o}, while
+
+@example
+$(patsubst foo.c,foo.o,foo.c foobar.c)
+@end example
+
+@noindent
+produces the value @samp{foo.o foobar.c}.
 
 Substitution references (@pxref{Substitution Refs, ,Substitution
 References}) are a simpler way to get the effect of the @code{patsubst}
@@ -7618,11 +7627,8 @@ respectively.  @xref{Testing Flags}, for a practical application of
 @item $(filter @var{pattern}@dots{},@var{text})
 Returns all whitespace-separated words in @var{text} that @emph{do} match
 any of the @var{pattern} words, removing any words that @emph{do not}
-match.  The patterns are written using @samp{%}, just like the patterns
-used in the @code{patsubst} function above.
-
-The @code{filter} function can be used to separate out different types
-of strings (such as file names) in a variable.  For example:
+match.  Each word in @var{pattern} is compared to every word in @var{text}
+using the same algorithm as the @code{patsubst} function above.
 
 @example
 sources := foo.c bar.c baz.s ugh.h
@@ -7640,17 +7646,18 @@ compiler.
 @findex filter-out
 @cindex filtering out words
 @cindex words, filtering out
-Returns all whitespace-separated words in @var{text} that @emph{do not}
-match any of the @var{pattern} words, removing the words that @emph{do}
-match one or more.  This is the exact opposite of the @code{filter}
-function.
+Returns all whitespace-separated words in @var{text} that @emph{do not} match
+any of the @var{pattern} words, removing the words that @emph{do} match one or
+more.  Each word in @var{pattern} is compared to every word in @var{text}
+using the same algorithm as the @code{patsubst} function above.  This is the
+exact opposite of the @code{filter} function.
 
 For example, given:
 
 @example
 @group
-objects=main1.o foo.o main2.o bar.o
-mains=main1.o main2.o
+objects = main1.o foo.o main2.o bar.o remain1.o
+mains = main1.o main2.o
 @end group
 @end example
 
@@ -7661,6 +7668,9 @@ in @samp{mains}:
 @example
 $(filter-out $(mains),$(objects))
 @end example
+
+@noindent
+This would expand to @samp{foo.o bar.o remain1.o}.
 
 @need 1500
 @findex sort
