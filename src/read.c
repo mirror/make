@@ -2964,7 +2964,7 @@ construct_include_path (const char **arg_dirs)
   int disable = 0;
 
   /* Compute the number of pointers we need in the table.  */
-  idx = sizeof (default_include_directories) / sizeof (const char *);
+  idx = ARRAYLEN (default_include_directories);
   if (arg_dirs)
     for (cpp = arg_dirs; *cpp != 0; ++cpp)
       ++idx;

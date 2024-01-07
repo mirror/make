@@ -506,6 +506,9 @@ extern struct rlimit stack_limit;
 
 #define NILF ((floc *)0)
 
+/* Number of elements in an array.  */
+#define ARRAYLEN(_a)          (sizeof (_a) / sizeof ((_a)[0]))
+
 /* Number of characters in a string constant.  Does NOT include the \0 byte.  */
 #define CSTRLEN(_s)           (sizeof (_s)-1)
 

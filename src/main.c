@@ -2898,10 +2898,8 @@ main (int argc, char **argv, char **envp)
 
 /* Parsing of arguments, decoding of switches.  */
 
-static char options[1 + sizeof (switches) / sizeof (switches[0]) * 3];
-static struct option long_options[(sizeof (switches) / sizeof (switches[0])) +
-                                  (sizeof (long_option_aliases) /
-                                   sizeof (long_option_aliases[0]))];
+static char options[1 + ARRAYLEN (switches) * 3];
+static struct option long_options[ARRAYLEN (switches) + ARRAYLEN (long_option_aliases)];
 
 /* Fill in the string and vector for getopt.  */
 static void
@@ -2956,9 +2954,7 @@ init_switches (void)
         }
     }
   *p = '\0';
-  for (c = 0; c < (sizeof (long_option_aliases) /
-                   sizeof (long_option_aliases[0]));
-       ++c)
+  for (c = 0; c < ARRAYLEN (long_option_aliases); ++c)
     long_options[i++] = long_option_aliases[c];
   long_options[i].name = 0;
 }

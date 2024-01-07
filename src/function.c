@@ -2436,8 +2436,6 @@ static struct function_table_entry function_table_init[] =
   FT_ENTRY ("not",           0,  1,  1,  func_not),
 #endif
 };
-
-#define FUNCTION_TABLE_ENTRIES (sizeof (function_table_init) / sizeof (struct function_table_entry))
 
 
 /* These must come after the definition of function_table.  */
@@ -2736,9 +2734,9 @@ define_new_function (const floc *flocp, const char *name,
 void
 hash_init_function_table (void)
 {
-  hash_init (&function_table, FUNCTION_TABLE_ENTRIES * 2,
+  hash_init (&function_table, ARRAYLEN (function_table_init) * 2,
              function_table_entry_hash_1, function_table_entry_hash_2,
              function_table_entry_hash_cmp);
   hash_load (&function_table, function_table_init,
-             FUNCTION_TABLE_ENTRIES, sizeof (struct function_table_entry));
+             ARRAYLEN (function_table_init), sizeof (struct function_table_entry));
 }
