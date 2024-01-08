@@ -395,16 +395,12 @@ parse_int (const char *ptr, const size_t len, const int base, uintmax_t max,
 
   while (ptr < ep && *ptr != ' ')
     {
-      uintmax_t nv;
-
-      if (*ptr < '0' || *ptr > maxchar)
+      if (*ptr < '0' || *ptr > maxchar
+          || INT_MULTIPLY_WRAPV (val, base, &val)
+          || INT_ADD_WRAPV (val, *ptr - '0', &val)
+          || val > max)
         OSSS (fatal, NILF,
               _("invalid %s for archive %s member %s"), type, archive, name);
-      nv = (val * base) + (*ptr - '0');
-      if (nv < val || nv > max)
-        OSSS (fatal, NILF,
-              _("invalid %s for archive %s member %s"), type, archive, name);
-      val = nv;
       ++ptr;
     }
 
