@@ -56,10 +56,6 @@ size_t max_pattern_dep_length;
 
 struct file *suffix_file;
 
-/* Maximum length of a suffix.  */
-
-static size_t maxsuffix;
-
 /* Return the rule definition: space separated rule targets, followed by
    either a colon or two colons in the case of a terminal rule, followed by
    space separated rule prerequisites, followed by a pipe, followed by
@@ -304,7 +300,7 @@ convert_to_pattern (void)
      suffixes in the .SUFFIXES target's dependencies and see if it exists.
      First find the longest of the suffixes.  */
 
-  maxsuffix = 0;
+  size_t maxsuffix = 0;
   for (d = suffix_file->deps; d != 0; d = d->next)
     {
       size_t l = strlen (dep_name (d));
@@ -317,6 +313,7 @@ convert_to_pattern (void)
 
   for (d = suffix_file->deps; d != 0; d = d->next)
     {
+      struct file *f;
       size_t slen;
 
       /* Make a rule that is just the suffix, with no deps or commands.
@@ -327,14 +324,26 @@ convert_to_pattern (void)
         /* Record a pattern for this suffix's null-suffix rule.  */
         convert_suffix_rule ("", dep_name (d), d->file->cmds);
 
+      slen = strlen (dep_name (d));
+      memcpy (rulename, dep_name (d), slen + 1);
+
+      f = lookup_file (rulename);
+      if (f && f->cmds)
+        {
+          if (!f->deps)
+            f->suffix = 1;
+          else if (!posix_pedantic)
+            {
+              O (error, &f->cmds->fileinfo,
+                 _("warning: ignoring prerequisites on suffix rule definition"));
+              f->suffix = 1;
+            }
+        }
+
       /* Add every other suffix to this one and see if it exists as a
          two-suffix rule.  */
-      slen = strlen (dep_name (d));
-      memcpy (rulename, dep_name (d), slen);
-
       for (d2 = suffix_file->deps; d2 != 0; d2 = d2->next)
         {
-          struct file *f;
           size_t s2len;
 
           s2len = strlen (dep_name (d2));
@@ -359,9 +368,11 @@ convert_to_pattern (void)
             {
               if (posix_pedantic)
                 continue;
-              error (&f->cmds->fileinfo, 0,
-                     _("warning: ignoring prerequisites on suffix rule definition"));
+              O (error, &f->cmds->fileinfo,
+                 _("warning: ignoring prerequisites on suffix rule definition"));
             }
+
+          f->suffix = 1;
 
           if (s2len == 2 && rulename[slen] == '.' && rulename[slen + 1] == 'a')
             /* A suffix rule '.X.a:' generates the pattern rule '(%.o): %.X'.

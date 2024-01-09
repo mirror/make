@@ -1,0 +1,32 @@
+#                                                                    -*-perl-*-
+
+$description = "Test the --print-targets option to GNU Make.";
+
+# Define various things and verify the output
+run_make_test(q!
+.PHONY: all
+all: ;@:
+
+# "special" target
+.BOGUS: ;@:
+
+# Check various forms of suffix rule
+.SUFFIXES: .q
+.q: ;@:
+.c.o: ;@:
+
+# Not a suffix rule
+.x.z: ;@:
+
+# Verify included files aren't built / don't fail
+
+include badfile
+include goodfile
+
+submake: ; $(MAKE) all
+always: ; +echo always
+goodfile: ; touch goodfile
+!,
+        "--print-targets", "submake\n.x.z\nalways\nall\ngoodfile\n");
+
+1;

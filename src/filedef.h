@@ -113,6 +113,7 @@ struct file
                                     --shuffle passes through the graph.  */
     unsigned int snapped:1;     /* True if the deps of this file have been
                                    secondary expanded.  */
+    unsigned int suffix:1;      /* True if this is a suffix rule. */
   };
 
 
@@ -134,8 +135,8 @@ void notice_finished_file (struct file *file);
 void init_hash_files (void);
 void verify_file_data_base (void);
 char *build_target_list (char *old_list);
-void print_prereqs (const struct dep *deps);
 void print_file_data_base (void);
+void print_targets (void);
 int try_implicit_rule (struct file *file, unsigned int depth);
 int stemlen_compare (const void *v1, const void *v2);
 

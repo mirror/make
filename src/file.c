@@ -26,6 +26,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "debug.h"
 #include "hash.h"
 #include "shuffle.h"
+#include "rule.h"
 
 
 /* Remember whether snap_deps has been invoked: we need this to be sure we
@@ -334,6 +335,7 @@ rehash_file (struct file *from_file, const char *to_hname)
   MERGE (notintermediate);
   MERGE (ignore_vpath);
   MERGE (snapped);
+  MERGE (suffix);
 #undef MERGE
 
   to_file->builtin = 0;
@@ -1050,7 +1052,7 @@ file_timestamp_sprintf (char *p, FILE_TIMESTAMP ts)
 
 /* Print the data base of files.  */
 
-void
+static void
 print_prereqs (const struct dep *deps)
 {
   const struct dep *ood = 0;
@@ -1200,6 +1202,34 @@ print_file_data_base (void)
 
   fputs (_("\n# files hash-table stats:\n# "), stdout);
   hash_print_stats (&files, stdout);
+}
+
+static void
+print_target (const void *item)
+{
+  const struct file *f = item;
+
+  if (!f->is_target || f->suffix)
+    return;
+
+  /* Ignore any special targets, as defined by POSIX. */
+  if (f->name[0] == '.' && isupper ((unsigned char)f->name[1]))
+    {
+      const char *cp = f->name + 1;
+      while (*(++cp) != '\0')
+        if (!isupper ((unsigned char)*cp))
+          break;
+      if (*cp == '\0')
+        return;
+    }
+
+  puts (f->name);
+}
+
+void
+print_targets (void)
+{
+  hash_map (&files, print_target);
 }
 
 /* Verify the integrity of the data base of files.  */

@@ -9677,15 +9677,28 @@ performed.  @xref{Parallel Output, ,Output During Parallel Execution}.
 @cindex @code{--print-data-base}
 @cindex data base of @code{make} rules
 @cindex predefined rules and variables, printing
-Print the data base (rules and variable values) that results from
-reading the makefiles; then execute as usual or as otherwise
-specified.  This also prints the version information given by the
-@samp{-v} switch (see below).  To print the data base without trying
-to remake any files, use @w{@samp{make -qp}}.  To print the data base
-of predefined rules and variables, use @w{@samp{make -p -f /dev/null}}.
-The data base output contains file name and line number information for
-recipe and variable definitions, so it can be a useful debugging tool
-in complex environments.
+Print the data base (rules and variable values) that results from reading the
+makefiles; then execute as usual or as otherwise specified.  This also prints
+the version information given by the @samp{-v} switch (see below).  To print
+the data base without trying to remake any files, use @w{@samp{make -qp}}.  To
+print the data base of predefined rules and variables, use @w{@samp{make -p -f
+/dev/null}}.  The data base output contains file name and line number
+information for recipe and variable definitions, so it can be a useful
+debugging tool in complex environments.
+
+@item --print-targets
+@cindex @code{--print-targets}
+@cindex print @file{makefile} targets
+@cindex targets, printing
+Print all the targets defined by reading the makefiles, one target per line,
+then exit immediately with success.  No implicit targets are printed.  No
+special targets (target names consisting of ``.'' followed by all upper-case
+letters) are printed.
+
+No commands are run, including commands that would rebuild makefiles
+(@pxref{Remaking Makefiles, ,How Makefiles Are Remade}); if makefiles need to
+be rebuilt then the targets listed might be outdated.  Also, @code{make} will
+not generate any errors or warnings for missing @code{include} files.
 
 @item -q
 @cindex @code{-q}
@@ -11237,26 +11250,26 @@ You can use a last-resort rule to override part of another makefile.
 @section Old-Fashioned Suffix Rules
 @cindex old-fashioned suffix rules
 @cindex suffix rule
+@cindex inference rule
 
-@dfn{Suffix rules} are the old-fashioned way of defining implicit rules for
-@code{make}.  Suffix rules are obsolete because pattern rules are more
-general and clearer.  They are supported in GNU @code{make} for
-compatibility with old makefiles.  They come in two kinds:
-@dfn{double-suffix} and @dfn{single-suffix}.
-
-A double-suffix rule is defined by a pair of suffixes: the target
-suffix and the source suffix.  It matches any file whose name ends
-with the target suffix.  The corresponding implicit prerequisite is
-made by replacing the target suffix with the source suffix in the file
-name.  A two-suffix rule @samp{.c.o} (whose target and source suffixes
-are @samp{.o} and @samp{.c}) is equivalent to the pattern rule
-@samp{%.o : %.c}.
+@dfn{Suffix rules} (called @dfn{inference rules} in POSIX) are an
+old-fashioned way of defining implicit rules for @code{make}.  Suffix rules
+are less powerful and harder to use than pattern rules (@pxref{Pattern Rules,
+,Defining and Redefining Pattern Rules}); they are supported by GNU Make
+primarily for POSIX compatibility.  They come in two flavors:
+@dfn{single-suffix} and @dfn{double-suffix}.
 
 A single-suffix rule is defined by a single suffix, which is the source
-suffix.  It matches any file name, and the corresponding implicit
-prerequisite name is made by appending the source suffix.  A single-suffix
-rule whose source suffix is @samp{.c} is equivalent to the pattern rule
-@samp{% : %.c}.
+suffix.  It matches any file name, and the corresponding implicit prerequisite
+name is made by appending the source suffix.  A single-suffix rule whose
+source suffix is @samp{.c} is equivalent to the pattern rule @samp{% : %.c}.
+
+A double-suffix rule is defined by a pair of suffixes: the source suffix and
+the target suffix.  It matches any file whose name ends with the target
+suffix.  The corresponding implicit prerequisite is made by replacing the
+target suffix with the source suffix in the file name.  A two-suffix rule
+@samp{.c.o} has a source suffix @samp{.c} and a target suffix @samp{.o}, and
+is equivalent to the pattern rule @samp{%.o : %.c}.
 
 Suffix rule definitions are recognized by comparing each rule's target
 against a defined list of known suffixes.  When @code{make} sees a rule

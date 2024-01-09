@@ -270,9 +270,14 @@ reading the makefiles; then execute as usual or as otherwise
 specified.
 This also prints the version information given by the
 .B \-v
-switch (see below).
-To print the data base without trying to remake any files, use
+switch (see below).  To print the built-in data base only, use
 .IR "make \-p \-f/dev/null" .
+.TP 0.5i
+\fB\-\-print\-targets\fR
+Print each target defined as a result of reading the makefiles, one target per
+line, then exit with success.  Implicit rule targets are not printed, nor are
+special targets (target names that consist of "." followed by all upper-case
+letters).  No recipe commands are invoked and no makefiles are rebuilt.
 .TP 0.5i
 \fB\-q\fR, \fB\-\-question\fR
 ``Question mode''.
