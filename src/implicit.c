@@ -87,12 +87,10 @@ get_next_word (const char *buffer, size_t *length)
     return 0;
 
 
-  /* We already found the first value of "c", above.  */
   while (1)
     {
-      char closeparen;
-      int count;
-
+      /* Each time through the loop, "c" has the current char
+         and "p" points to the next char.  */
       switch (c)
         {
         case '\0':
@@ -101,31 +99,8 @@ get_next_word (const char *buffer, size_t *length)
           goto done_word;
 
         case '$':
-          c = *(p++);
-          if (c == '$')
-            break;
-
-          /* This is a variable reference, so read it to the matching
-             close paren.  */
-
-          if (c == '(')
-            closeparen = ')';
-          else if (c == '{')
-            closeparen = '}';
-          else
-            /* This is a single-letter variable reference.  */
-            break;
-
-          for (count = 0; *p != '\0'; ++p)
-            {
-              if (*p == c)
-                ++count;
-              else if (*p == closeparen && --count < 0)
-                {
-                  ++p;
-                  break;
-                }
-            }
+          /* This is a variable reference, so skip it.  */
+          p = skip_reference (p);
           break;
 
         case '|':

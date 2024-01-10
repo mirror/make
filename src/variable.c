@@ -1732,7 +1732,7 @@ parse_variable_definition (const char *str, struct variable *var)
           if (!end)
             end = p - 1;
 
-          /* We need to distinguish :=, ::=, and :::=, and : outside of an
+          /* We need to distinguish :=, ::=, and :::=, versus : outside of an
              assignment (which means this is not a variable definition).  */
           c = *p++;
           if (c == '=')
@@ -1789,41 +1789,7 @@ parse_variable_definition (const char *str, struct variable *var)
         return NULL;
 
       if (c == '$')
-        {
-          /* Skip any variable reference, to ensure we don't treat chars
-             inside the reference as assignment operators.  */
-          char closeparen;
-          unsigned int count;
-
-          c = *p++;
-          switch (c)
-            {
-            case '(':
-              closeparen = ')';
-              break;
-            case '{':
-              closeparen = '}';
-              break;
-            case '\0':
-              return NULL;
-            default:
-              /* '$$' or '$X': skip it.  */
-              continue;
-            }
-
-          /* P now points past the opening paren or brace.  Count parens or
-             braces until we find the closing paren/brace.  */
-          for (count = 1; *p != '\0'; ++p)
-            {
-              if (*p == closeparen && --count == 0)
-                {
-                  ++p;
-                  break;
-                }
-              if (*p == c)
-                ++count;
-            }
-        }
+        p = skip_reference (p);
     }
 
   /* We found a valid variable assignment: END points to the char after the

@@ -1726,14 +1726,13 @@ new_job (struct file *file)
 
               *out++ = *in++;   /* Copy OPENPAREN.  */
               outref = out;
-              /* IN now points past the opening paren or brace.
-                 Count parens or braces until it is matched.  */
+              /* IN now points past the opening paren or brace.  Count parens
+                 or braces until it is matched.  We don't use skip_reference
+                 since we want to handle internal backslash/newlines.  */
               count = 0;
               while (*in != '\0')
                 {
-                  if (*in == closeparen && --count < 0)
-                    break;
-                  else if (*in == '\\' && in[1] == '\n')
+                  if (*in == '\\' && in[1] == '\n')
                     {
                       /* We have found a backslash-newline inside a
                          variable or function reference.  Eat it and
@@ -1744,11 +1743,11 @@ new_job (struct file *file)
                         quoted = !quoted;
 
                       if (quoted)
-                        /* There were two or more backslashes, so this is
-                           not really a continuation line.  We don't collapse
-                           the quoting backslashes here as is done in
-                           collapse_continuations, because the line will
-                           be collapsed again after expansion.  */
+                        /* There were an even number of backslashes, so this
+                           is not really a continuation line.  We don't
+                           collapse the quoting backslashes here as is done in
+                           collapse_continuations, because the line will be
+                           collapsed again after expansion.  */
                         *out++ = *in++;
                       else
                         {
@@ -1764,14 +1763,14 @@ new_job (struct file *file)
                           /* Replace it all with a single space.  */
                           *out++ = ' ';
                         }
+                      continue;
                     }
-                  else
-                    {
-                      if (*in == openparen)
-                        ++count;
+                  if (*in == closeparen && --count < 0)
+                    break;
+                  if (*in == openparen)
+                    ++count;
 
-                      *out++ = *in++;
-                    }
+                  *out++ = *in++;
                 }
             }
         }

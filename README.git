@@ -209,6 +209,13 @@ work on non-GNU systems (Windows, MacOS, etc.)
 
     make clean
     make -j8 CFLAGS='-ggdb3 -fsanitize=address' LDFLAGS='-ggdb3 -fsanitize=address'
+
+  Then to check for corruption only but not memory leaks run:
+
+    ASAN_OPTIONS='detect_stack_after_use_return=true:detect_leaks=false' make check
+
+  To check for leaks too run:
+
     make check
 
   Note that ASAN is reporting many more errors than valgrind.  I don't know

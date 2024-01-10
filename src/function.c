@@ -2484,7 +2484,8 @@ expand_builtin_function (char *o, unsigned int argc, char **argv,
 /* Check for a function invocation in *STRINGP.  *STRINGP points at the
    opening ( or { and is not null-terminated.  If a function invocation
    is found, expand it into the buffer at *OP, updating *OP, incrementing
-   *STRINGP past the reference and returning nonzero.  If not, return zero.  */
+   *STRINGP past the reference, and return nonzero.
+   If no function is found, return zero and don't change *OP or *STRINGP.  */
 
 int
 handle_function (char **op, const char **stringp)
@@ -2512,10 +2513,10 @@ handle_function (char **op, const char **stringp)
   beg += entry_p->len;
   NEXT_TOKEN (beg);
 
-  /* Find the end of the function invocation, counting nested use of
-     whichever kind of parens we use.  Since we're looking, count commas
-     to get a rough estimate of how many arguments we might have.  The
-     count might be high, but it'll never be low.  */
+  /* Find the end of the function invocation, counting nested use of whichever
+     kind of parens we use.  Don't use skip_reference so we can count commas
+     to get a rough estimate of how many arguments we might have.  The count
+     might be high, but it'll never be low.  */
 
   for (nargs=1, end=beg; *end != '\0'; ++end)
     if (!STOP_SET (*end, MAP_VARSEP|MAP_COMMA))

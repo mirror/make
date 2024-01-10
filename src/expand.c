@@ -382,47 +382,40 @@ expand_string_buf (char *buf, const char *string, size_t length)
           {
             char openparen = *p;
             char closeparen = (openparen == '(') ? ')' : '}';
-            const char *begp;
             const char *beg = p + 1;
-            char *op;
             char *abeg = NULL;
             const char *end, *colon;
 
-            op = o;
-            begp = p;
-            if (handle_function (&op, &begp))
-              {
-                o = op;
-                p = begp;
-                break;
-              }
+            if (handle_function (&o, &p))
+              break;
 
             /* Is there a variable reference inside the parens or braces?
                If so, expand it before expanding the entire reference.  */
 
             end = strchr (beg, closeparen);
-            if (end == 0)
+            if (end == NULL)
               /* Unterminated variable reference.  */
               O (fatal, *expanding_var, _("unterminated variable reference"));
             p1 = lindex (beg, end, '$');
-            if (p1 != 0)
+            if (p1 != NULL)
               {
                 /* BEG now points past the opening paren or brace.
                    Count parens or braces until it is matched.  */
-                int count = 0;
+                int count = 1;
                 for (p = beg; *p != '\0'; ++p)
                   {
                     if (*p == openparen)
                       ++count;
-                    else if (*p == closeparen && --count < 0)
+                    else if (*p == closeparen && --count == 0)
                       break;
                   }
-                /* If COUNT is >= 0, there were unmatched opening parens
+                /* If COUNT is > 0, there were unmatched opening parens
                    or braces, so we go to the simple case of a variable name
                    such as '$($(a)'.  */
-                if (count < 0)
+                if (count == 0)
                   {
-                    abeg = expand_argument (beg, p); /* Expand the name.  */
+                    /* Expand the name.  */
+                    abeg = expand_argument (beg, p);
                     beg = abeg;
                     end = strchr (beg, '\0');
                   }

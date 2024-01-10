@@ -1669,33 +1669,10 @@ conditional_line (char *line, size_t len, const floc *flocp)
 
       s1 = ++line;
       /* Find the end of the first string.  */
-      if (termin == ',')
-        {
-          int count = 0;
-          char *delim = xmalloc (strlen (line));
-          while (*line != '\0')
-            {
-              if (*line == '$')
-                {
-                  ++line;
-                  if (*line == '(')
-                    delim[count++] = ')';
-                  else if (*line == '{')
-                    delim[count++] = '}';
-                }
-              else if (count == 0)
-                {
-                  if (*line == ',')
-                    break;
-                }
-              else if (*line == delim[count-1])
-                --count;
-              ++line;
-            }
-          free (delim);
-        }
-      else
-        while (*line != '\0' && *line != termin)
+      while (*line != '\0' && *line != termin)
+        if (*line == '$')
+          line = skip_reference (line+1);
+        else
           ++line;
 
       if (*line == '\0')
@@ -1703,7 +1680,7 @@ conditional_line (char *line, size_t len, const floc *flocp)
 
       if (termin == ',')
         {
-          /* Strip blanks after the first string.  */
+          /* Strip blanks before the comma.  */
           char *p = line++;
           while (ISBLANK (p[-1]))
             --p;
@@ -2355,35 +2332,7 @@ find_map_unquote (char *string, int stopmap)
       /* If we stopped due to a variable reference, skip over its contents.  */
       if (*p == '$')
         {
-          char openparen = p[1];
-
-          /* Check if '$' is the last character in the string.  */
-          if (openparen == '\0')
-            break;
-
-          p += 2;
-
-          /* Skip the contents of a non-quoted, multi-char variable ref.  */
-          if (openparen == '(' || openparen == '{')
-            {
-              unsigned int pcount = 1;
-              char closeparen = (openparen == '(' ? ')' : '}');
-
-              while (*p)
-                {
-                  if (*p == openparen)
-                    ++pcount;
-                  else if (*p == closeparen)
-                    if (--pcount == 0)
-                      {
-                        ++p;
-                        break;
-                      }
-                  ++p;
-                }
-            }
-
-          /* Skipped the variable reference: look for STOPCHARS again.  */
+          p = skip_reference (p+1);
           continue;
         }
 
@@ -2851,12 +2800,10 @@ get_next_mword (char *buffer, char **startp, size_t *length)
      adjust our assumptions then.  */
   wtype = w_static;
 
-  /* We already found the first value of "c", above.  */
   while (1)
     {
-      char closeparen;
-      int count;
-
+      /* Each time through the loop, "c" has the current character
+         and "p" points to the next character.  */
       if (END_OF_TOKEN (c))
         goto done_word;
 
@@ -2883,28 +2830,9 @@ get_next_mword (char *buffer, char **startp, size_t *length)
           if (c == '\0')
             goto done_word;
 
-          /* This is a variable reference, so note that it's expandable.
-             Then read it to the matching close paren.  */
+          /* This is a variable reference: note that then skip it.  */
           wtype = w_variable;
-
-          if (c == '(')
-            closeparen = ')';
-          else if (c == '{')
-            closeparen = '}';
-          else
-            /* This is a single-letter variable reference.  */
-            break;
-
-          for (count=0; *p != '\0'; ++p)
-            {
-              if (*p == c)
-                ++count;
-              else if (*p == closeparen && --count < 0)
-                {
-                  ++p;
-                  break;
-                }
-            }
+          p = skip_reference (p-1);
           break;
 
         case '?':
