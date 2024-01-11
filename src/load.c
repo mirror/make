@@ -230,7 +230,7 @@ load_file (const floc *flocp, struct file *file, int noerror)
 
   /* If the load didn't fail, add the file to the .LOADED variable.  */
   if (r)
-    do_variable_definition(flocp, ".LOADED", ldname, o_file, f_append_value, 0);
+    do_variable_definition(flocp, ".LOADED", ldname, o_file, f_append_value, 0, 0);
 
   return r;
 }

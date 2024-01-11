@@ -708,7 +708,7 @@ initialize_file_variables (struct file *file, int reading)
                   v = do_variable_definition (
                     &p->variable.fileinfo, p->variable.name,
                     p->variable.value, p->variable.origin,
-                    p->variable.flavor, 1);
+                    p->variable.flavor, p->variable.conditional, 1);
                 }
 
               /* Also mark it as a per-target and copy export status. */
@@ -1370,15 +1370,22 @@ shell_result (const char *p)
    See the try_variable_definition() function for details on the parameters. */
 
 struct variable *
-do_variable_definition (const floc *flocp, const char *varname,
-                        const char *value, enum variable_origin origin,
-                        enum variable_flavor flavor, int target_var)
+do_variable_definition (const floc *flocp, const char *varname, const char *value,
+                        enum variable_origin origin, enum variable_flavor flavor,
+                        int conditional, int target_var)
 {
   const char *newval;
   char *alloc_value = NULL;
   struct variable *v;
   int append = 0;
-  int conditional = 0;
+
+  /* Conditional variable definition: only set if the var is not defined. */
+  if (conditional)
+    {
+      v = lookup_variable (varname, strlen (varname));
+      if (v)
+        return v;
+    }
 
   /* Calculate the variable's new value in VALUE.  */
 
@@ -1421,16 +1428,6 @@ do_variable_definition (const floc *flocp, const char *varname,
         newval = alloc_value;
         break;
       }
-    case f_conditional:
-      /* A conditional variable definition "var ?= value".
-         The value is set IFF the variable is not defined yet. */
-      v = lookup_variable (varname, strlen (varname));
-      if (v)
-        goto done;
-
-      conditional = 1;
-      flavor = f_recursive;
-      /* FALLTHROUGH */
     case f_recursive:
       /* A recursive variable definition "var = value".
          The value is used verbatim.  */
@@ -1680,10 +1677,11 @@ do_variable_definition (const floc *flocp, const char *varname,
 
    If it is a variable definition, return a pointer to the char after the
    assignment token and set the following fields (only) of *VAR:
-    name   : name of the variable (ALWAYS SET) (NOT NUL-TERMINATED!)
-    length : length of the variable name
-    value  : value of the variable (nul-terminated)
-    flavor : flavor of the variable
+    name        : name of the variable (ALWAYS SET) (NOT NUL-TERMINATED!)
+    length      : length of the variable name
+    value       : value of the variable (nul-terminated)
+    flavor      : flavor of the variable
+    conditional : whether it's a conditional assignment
    Other values in *VAR are unchanged.
   */
 
@@ -1696,11 +1694,13 @@ parse_variable_definition (const char *str, struct variable *var)
   NEXT_TOKEN (p);
   var->name = (char *)p;
   var->length = 0;
+  var->conditional = 0;
 
   /* Walk through STR until we find a valid assignment operator.  Each time
      through this loop P points to the next character to consider.  */
   while (1)
     {
+      const char *start;
       int c = *p++;
 
       /* If we find a comment or EOS, it's not a variable definition.  */
@@ -1718,26 +1718,36 @@ parse_variable_definition (const char *str, struct variable *var)
           continue;
         }
 
+      /* This is the start of a token.  */
+      start = p - 1;
+
+      /* If we see a ? then it could be a conditional assignment. */
+      if (c == '?')
+        {
+          var->conditional = 1;
+          c = *p++;
+        }
+
       /* If we found = we're done!  */
       if (c == '=')
         {
           if (!end)
-            end = p - 1;
-          var->flavor = f_recursive;
+            end = start;
+          var->flavor = f_recursive; /* = */
           break;
         }
 
       if (c == ':')
         {
           if (!end)
-            end = p - 1;
+            end = start;
 
           /* We need to distinguish :=, ::=, and :::=, versus : outside of an
              assignment (which means this is not a variable definition).  */
           c = *p++;
           if (c == '=')
             {
-              var->flavor = f_simple;
+              var->flavor = f_simple; /* := */
               break;
             }
           if (c == ':')
@@ -1745,12 +1755,12 @@ parse_variable_definition (const char *str, struct variable *var)
               c = *p++;
               if (c == '=')
                 {
-                  var->flavor = f_simple;
+                  var->flavor = f_simple; /* ::= */
                   break;
                 }
               if (c == ':' && *p++ == '=')
                 {
-                  var->flavor = f_expand;
+                  var->flavor = f_expand; /* :::= */
                   break;
                 }
             }
@@ -1763,20 +1773,17 @@ parse_variable_definition (const char *str, struct variable *var)
           switch (c)
             {
             case '+':
-              var->flavor = f_append;
-              break;
-            case '?':
-              var->flavor = f_conditional;
+              var->flavor = f_append; /* += */
               break;
             case '!':
-              var->flavor = f_shell;
+              var->flavor = f_shell; /* != */
               break;
             default:
               goto other;
             }
 
           if (!end)
-            end = p - 1;
+            end = start;
           ++p;
           break;
         }
@@ -1790,12 +1797,15 @@ parse_variable_definition (const char *str, struct variable *var)
 
       if (c == '$')
         p = skip_reference (p);
+
+      var->conditional = 0;
     }
 
   /* We found a valid variable assignment: END points to the char after the
      end of the variable name and P points to the char after the =.  */
   var->length = (unsigned int) (end - var->name);
   var->value = next_token (p);
+
   return (char *)p;
 }
 
@@ -1854,7 +1864,7 @@ try_variable_definition (const floc *flocp, const char *line,
     return 0;
 
   vp = do_variable_definition (flocp, v.name, v.value,
-                               origin, v.flavor, target_var);
+                               origin, v.flavor, v.conditional, target_var);
 
   free (v.name);
 

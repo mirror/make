@@ -39,7 +39,6 @@ enum variable_flavor
     f_recursive,        /* Recursive definition (=) */
     f_expand,           /* POSIX :::= assignment */
     f_append,           /* Appending definition (+=) */
-    f_conditional,      /* Conditional definition (?=) */
     f_shell,            /* Shell assignment (!=) */
     f_append_value      /* Append unexpanded value */
   };
@@ -172,7 +171,7 @@ struct variable *do_variable_definition (const floc *flocp,
                                          const char *name, const char *value,
                                          enum variable_origin origin,
                                          enum variable_flavor flavor,
-                                         int target_var);
+                                         int conditional, int target_var);
 char *parse_variable_definition (const char *line,
                                  struct variable *v);
 struct variable *assign_variable_definition (struct variable *v, const char *line);

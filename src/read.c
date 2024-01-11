@@ -413,7 +413,7 @@ eval_makefile (const char *filename, unsigned short flags)
 
   /* Add this makefile to the list. */
   do_variable_definition (&ebuf.floc, "MAKEFILE_LIST", filename, o_file,
-                          f_append_value, 0);
+                          f_append_value, 0, 0);
 
   /* Evaluate the makefile */
 
@@ -733,11 +733,11 @@ eval (struct ebuffer *ebuf, int set_default)
           record_waiting_files ();
 
           if (vmod.undefine_v)
-          {
-            do_undefine (p, origin, ebuf);
-            continue;
-          }
-          else if (vmod.define_v)
+            {
+              do_undefine (p, origin, ebuf);
+              continue;
+            }
+          if (vmod.define_v)
             v = do_define (p, origin, ebuf);
           else
             v = try_variable_definition (fstart, p, origin, 0);
@@ -1395,8 +1395,11 @@ do_define (char *name, enum variable_origin origin, struct ebuffer *ebuf)
 
   p = parse_variable_definition (name, &var);
   if (p == NULL)
-    /* No assignment token, so assume recursive.  */
-    var.flavor = f_recursive;
+    {
+      /* No assignment token, so assume recursive.  */
+      var.flavor = f_recursive;
+      var.conditional = 0;
+    }
   else
     {
       if (var.value[0] != '\0')
@@ -1480,8 +1483,8 @@ do_define (char *name, enum variable_origin origin, struct ebuffer *ebuf)
   else
     definition[idx - 1] = '\0';
 
-  v = do_variable_definition (&defstart, name,
-                              definition, origin, var.flavor, 0);
+  v = do_variable_definition (&defstart, name, definition,
+                              origin, var.flavor, var.conditional, 0);
   free (definition);
   free (n);
   return (v);
@@ -2954,10 +2957,10 @@ construct_include_path (const char **arg_dirs)
 
   /* Now add each dir to the .INCLUDE_DIRS variable.  */
 
-  do_variable_definition (NILF, ".INCLUDE_DIRS", "", o_default, f_simple, 0);
+  do_variable_definition (NILF, ".INCLUDE_DIRS", "", o_default, f_simple, 0, 0);
   for (cpp = dirs; *cpp != 0; ++cpp)
     do_variable_definition (NILF, ".INCLUDE_DIRS", *cpp,
-                            o_default, f_append, 0);
+                            o_default, f_append, 0, 0);
 
   free ((void *) include_directories);
   include_directories = dirs;

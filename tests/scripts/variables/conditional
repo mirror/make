@@ -1,0 +1,137 @@
+#                                                                    -*-perl-*-
+
+$description = "Test various flavors of conditional variable setting.";
+
+$details = "";
+
+# Test ?=
+
+run_make_test(q!
+x = bar
+y = baz
+foo ?= $(x)
+biz?=$(y)
+x = 10
+y = 20
+all:;@: $(info foo=$(foo) biz=$(biz))
+!,
+              '', "foo=10 biz=20");
+
+run_make_test(q!
+foo=1
+biz=2
+x = bar
+y = baz
+foo ?= $(x)
+biz?=$(y)
+x = 10
+y = 20
+all:;@: $(info foo=$(foo) biz=$(biz))
+!,
+              '', "foo=1 biz=2");
+
+# Test ?:=
+
+run_make_test(q!
+x = bar
+y = baz
+foo ?:= $(x)
+biz?:=$(y)
+x = 10
+y = 20
+all:;@: $(info foo=$(foo) biz=$(biz))
+!,
+              '', "foo=bar biz=baz");
+
+run_make_test(q!
+foo=1
+biz=2
+x = bar
+y = baz
+foo ?:= $(x)$(info expanded)
+biz?:=$(y)$(info expanded)
+x = 10
+y = 20
+all:;@: $(info foo=$(foo) biz=$(biz))
+!,
+              '', "foo=1 biz=2");
+
+# Test ?::=
+
+run_make_test(q!
+x = bar
+y = baz
+foo ?::= $(x)
+biz?::=$(y)
+x = 10
+y = 20
+all:;@: $(info foo=$(foo) biz=$(biz))
+!,
+              '', "foo=bar biz=baz");
+
+run_make_test(q!
+foo=1
+biz=2
+x = bar
+y = baz
+foo ?::= $(x)$(info expanded)
+biz?::=$(y)$(info expanded)
+x = 10
+y = 20
+all:;@: $(info foo=$(foo) biz=$(biz))
+!,
+              '', "foo=1 biz=2");
+
+# Test ?:::=
+
+run_make_test(q!
+x = bar
+y = baz
+foo ?:::= $(x)
+biz?:::=$(y)
+x = 10
+y = 20
+all:;@: $(info foo=$(foo) biz=$(biz))
+!,
+              '', "foo=bar biz=baz");
+
+run_make_test(q!
+foo=1
+biz=2
+x = bar
+y = baz
+foo ?:::= $(x)$(info expanded)
+biz?:::=$(y)$(info expanded)
+x = 10
+y = 20
+all:;@: $(info foo=$(foo) biz=$(biz))
+!,
+              '', "foo=1 biz=2");
+
+# Test ?!=
+
+run_make_test(q/
+x = bar
+y = baz
+foo ?!= echo $(x)
+biz?!=echo $(y)
+x = 10
+y = 20
+all:;@: $(info foo=$(foo) biz=$(biz))
+/,
+              '', "foo=bar biz=baz");
+
+run_make_test(q/
+foo=1
+biz=2
+x = bar
+y = baz
+foo ?!= echo $(x)$(info expanded)
+biz?!=echo $(y)$(info expanded)
+x = 10
+y = 20
+all:;@: $(info foo=$(foo) biz=$(biz))
+/,
+              '', "foo=1 biz=2");
+
+1;

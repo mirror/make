@@ -1572,18 +1572,18 @@ reference this section as you become familiar with them, in later
 chapters.
 
 @subheading Variable Assignment
-@cindex +=, expansion
 @cindex =, expansion
-@cindex ?=, expansion
-@cindex +=, expansion
+@cindex :=, expansion
+@cindex ::=, expansion
+@cindex :::=, expansion
 @cindex !=, expansion
+@cindex +=, expansion
 @cindex define, expansion
 
 Variable definitions are parsed as follows:
 
 @example
 @var{immediate} = @var{deferred}
-@var{immediate} ?= @var{deferred}
 @var{immediate} := @var{immediate}
 @var{immediate} ::= @var{immediate}
 @var{immediate} :::= @var{immediate-with-escape}
@@ -1595,10 +1595,6 @@ define @var{immediate}
 endef
 
 define @var{immediate} =
-  @var{deferred}
-endef
-
-define @var{immediate} ?=
   @var{deferred}
 endef
 
@@ -1637,6 +1633,21 @@ evaluated immediately and handed to the shell.  The result is stored
 in the variable named on the left, and that variable is considered a
 recursively expanded variable (and will thus be re-evaluated on each
 reference).
+
+@subsubheading Conditional Assignment Modifier
+@cindex ?=, expansion
+@cindex ?:=, expansion
+@cindex ?::=, expansion
+@cindex ?:::=, expansion
+@cindex ?!=, expansion
+
+Adding a conditional modifier (@pxref{Conditional Assignment, ,Conditional
+Variable Assignment}) to an assignment operator does not change the expansion
+style for that operator: if the variable is not defined then the assignment
+will be made using expansion as defined above.
+
+If the variable is already defined, then the right-hand side of the assignment
+is ignored and not expanded.
 
 @subheading Conditional Directives
 @cindex ifdef, expansion
@@ -5822,9 +5833,19 @@ POSIX specification in Issue 8 to provide portability.
 @cindex conditional variable assignment
 @cindex variables, conditional assignment
 @cindex ?=
-There is another assignment operator for variables, @samp{?=}.  This
-is called a conditional variable assignment operator, because it only
-has an effect if the variable is not yet defined.  This statement:
+@cindex ?:=
+@cindex ?::=
+@cindex ?:::=
+@cindex ?!=
+
+Any assignment operator can be prefixed with a conditional operator, @samp{?}.
+If this modifier is provided then the assignment will proceed normally, but
+@emph{only if} the variable is not already defined.
+
+If the variable is already defined, the assignment is ignored and the
+right-hand side (value) of the assignment is not processed.
+
+For example this statement:
 
 @example
 FOO ?= bar
@@ -5840,8 +5861,18 @@ ifeq ($(origin FOO), undefined)
 endif
 @end example
 
-Note that a variable set to an empty value is still defined, so
-@samp{?=} will not set that variable.
+More generally a statement of the form:
+
+@example
+NAME ?<op> VALUE
+@end example
+
+will do nothing if the variable @samp{NAME} is defined, and will perform the
+operation @code{NAME <op> VALUE} for any assignment operation @samp{<op>} if
+@samp{NAME} is not defined.
+
+Note that a variable set to an empty value is still defined, so assignments
+modified with @samp{?} will not set that variable.
 
 @node Advanced
 @section Advanced Features for Reference to Variables
@@ -6142,7 +6173,6 @@ Several variables have constant initial values.
 @cindex :=
 @cindex ::=
 @cindex :::=
-@cindex ?=
 @cindex !=
 
 To set a variable from the makefile, write a line starting with the variable
@@ -6174,31 +6204,12 @@ amount of memory on the computer.  You can split the value of a
 variable into multiple physical lines for readability
 (@pxref{Splitting Lines, ,Splitting Long Lines}).
 
-Most variable names are considered to have the empty string as a value if
-you have never set them.  Several variables have built-in initial values
-that are not empty, but you can set them in the usual ways
-(@pxref{Implicit Variables, ,Variables Used by Implicit Rules}).
-Several special variables are set
-automatically to a new value for each rule; these are called the
-@dfn{automatic} variables (@pxref{Automatic Variables}).
-
-If you'd like a variable to be set to a value only if it's not already
-set, then you can use the shorthand operator @samp{?=} instead of
-@samp{=}.  These two settings of the variable @samp{FOO} are identical
-(@pxref{Origin Function, ,The @code{origin} Function}):
-
-@example
-FOO ?= bar
-@end example
-
-@noindent
-and
-
-@example
-ifeq ($(origin FOO), undefined)
-FOO = bar
-endif
-@end example
+Most variable names are considered to have the empty string as a value if you
+have never set them.  Several variables have built-in initial values that are
+not empty, but you can set them in the usual ways (@pxref{Implicit Variables,
+,Variables Used by Implicit Rules}).  Several special variables are set
+automatically to a new value while running the recipe for a rule; these are
+called the @dfn{automatic} variables (@pxref{Automatic Variables}).
 
 The shell assignment operator @samp{!=} can be used to execute a
 shell script and set a variable to its output.  This operator first
@@ -6229,6 +6240,55 @@ var := $(shell find . -name "*.c")
 As with the @code{shell} function, the exit status of the just-invoked
 shell script is stored in the @code{.SHELLSTATUS} variable.
 
+@node Conditionalizing
+@section Conditionally Assigning to Variables
+@cindex ?=
+@cindex ?:=
+@cindex ?::=
+@cindex ?:::=
+@cindex ?!=
+
+Sometimes you want to set a variable but only if it's not already defined.
+One way to do this is to test using the @code{origin} function (@pxref{Origin
+Function}), like this:
+
+@example
+ifeq ($(origin FOO), undefined)
+  FOO = value
+endif
+@end example
+
+However this is a lot to type, and read, and so GNU Make provides a way to
+conditionally assign variables, only if they are not already defined.
+
+To do this, prepend the conditional modifier @samp{?} to the assignment
+operator.  In this form @code{make} will first check to see if the variable is
+defined; only if it is not will it proceed to execute the assignment (using
+whichever operator you specified).
+
+Instead of the above example, you get identical behavior by writing:
+
+@example
+FOO ?= value
+@end example
+
+And of course, you can also use:
+
+@example
+FOO ?:= value
+@end example
+
+@noindent
+rather than writing:
+
+@example
+ifeq ($(origin FOO), undefined)
+  FOO := value
+endif
+@end example
+
+The other assignment operators @samp{::=}, @samp{:::=}, and @samp{!=} can also
+be used.
 
 @node Appending
 @section Appending More Text to Variables
@@ -6625,13 +6685,13 @@ Multiple @var{target} values create a target-specific variable value for
 each member of the target list individually.
 
 The @var{variable-assignment} can be any valid form of assignment; recursive
-(@samp{=}), simple (@samp{:=} or @samp{::=}), immediate (@samp{::=}),
-appending (@samp{+=}), or conditional (@samp{?=}).  All variables that appear
-within the @var{variable-assignment} are evaluated within the context of the
-target: thus, any previously-defined target-specific variable values will be
-in effect.  Note that this variable is actually distinct from any ``global''
-value: the two variables do not have to have the same flavor (recursive vs.@:
-simple).
+(@samp{=}), simple (@samp{:=} or @samp{::=}), immediate (@samp{::=}), shell
+(@samp{!=}), or appending (@samp{+=}), and may be preceded by a conditional
+modifier (@samp{?}).  The variable that appears within the
+@var{variable-assignment} is evaluated within the context of the target: thus,
+any previously-defined target-specific variable values will be in effect.
+Note that this variable is actually distinct from any ``global'' value: the
+two variables do not have to have the same flavor (recursive vs.@: simple).
 
 Target-specific variables have the same priority as any other makefile
 variable.  Variables provided on the command line (and in the
@@ -13069,8 +13129,13 @@ Here is a summary of the directives GNU @code{make} recognizes:
 @itemx define @var{variable} :=
 @itemx define @var{variable} ::=
 @itemx define @var{variable} :::=
-@itemx define @var{variable} +=
+@itemx define @var{variable} !=
 @itemx define @var{variable} ?=
+@itemx define @var{variable} ?:=
+@itemx define @var{variable} ?::=
+@itemx define @var{variable} ?:::=
+@itemx define @var{variable} ?!=
+@itemx define @var{variable} +=
 @itemx endef
 Define multi-line variables.@*
 @xref{Multi-Line}.

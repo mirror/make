@@ -41,6 +41,14 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&se
   The check in GNU Make 4.3 for suffix rules with prerequisites didn't check
   single-suffix rules, only double-suffix rules.  Add the missing check.
 
+* New feature: Any assignment operator can be made conditional
+  GNU Make has long supported the conditional operator "?=" which creates a
+  recursive variable set to a value if and only if the variable is not already
+  defined.  In this release, the "?" can precede any assignment operator to
+  make it conditional.  For example, "?:=" creates a simply-expanded variable
+  and expands the right-hand side if and only if the variable is not already
+  defined.  The constructs "?::=", "?:::=", and "?!=" also behave as expected.
+
 * New feature: Unload function for loaded objects
   When a loaded object needs to be unloaded by GNU Make, it will invoke an
   unload function (if one is defined) beforehand that allows the object to
