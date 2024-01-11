@@ -68,7 +68,7 @@ struct vmodifiers
 enum make_word_type
   {
      w_bogus, w_eol, w_static, w_variable, w_colon, w_dcolon, w_semicolon,
-     w_varassign, w_ampcolon, w_ampdcolon
+     w_ampcolon, w_ampdcolon
   };
 
 
@@ -2693,7 +2693,8 @@ readline (struct ebuffer *ebuf)
 }
 
 /* Parse the next "makefile word" from the input buffer, and return info
-   about it.
+   about it.  This function won't be called in any context where we might need
+   to parse a variable assignment so we don't need to check that.
 
    A "makefile word" is one of:
 
@@ -2706,11 +2707,10 @@ readline (struct ebuffer *ebuf)
      w_ampcolon     An ampersand-colon (&:) token
      w_ampdcolon    An ampersand-double-colon (&::) token
      w_semicolon    A semicolon
-     w_varassign    A variable assignment operator (=, :=, ::=, +=, ?=, or !=)
 
    Note that this function is only used when reading certain parts of the
    makefile.  Don't use it where special rules hold sway (RHS of a variable,
-   in a command list, etc.)  */
+   in a recipe, etc.)  */
 
 static enum make_word_type
 get_next_mword (char *buffer, char **startp, size_t *length)
@@ -2737,29 +2737,13 @@ get_next_mword (char *buffer, char **startp, size_t *length)
       wtype = w_semicolon;
       goto done;
 
-    case '=':
-      wtype = w_varassign;
-      goto done;
-
     case ':':
-      if (*p == '=')
+      wtype = w_colon;
+      if (*p == ':')
         {
           ++p;
-          wtype = w_varassign; /* := */
+          wtype = w_dcolon;
         }
-      else if (*p == ':')
-        {
-          ++p;
-          if (p[1] == '=')
-            {
-              ++p;
-              wtype = w_varassign; /* ::= */
-            }
-          else
-            wtype = w_dcolon;
-        }
-      else
-        wtype = w_colon;
       goto done;
 
     case '&':
@@ -2777,24 +2761,12 @@ get_next_mword (char *buffer, char **startp, size_t *length)
         }
       break;
 
-    case '+':
-    case '?':
-    case '!':
-      if (*p == '=')
-        {
-          ++p;
-          wtype = w_varassign; /* += or ?= or != */
-          goto done;
-        }
-      break;
-
     default:
       break;
     }
 
-  /* This is some non-operator word.  A word consists of the longest
-     string of characters that doesn't contain whitespace, one of [:=#],
-     or [?+!]=, or &:.  */
+  /* This is some non-operator word.  A word consists of the longest string of
+     characters that doesn't contain whitespace, one of [:#], or &:.  */
 
   /* We start out assuming a static word; if we see a variable we'll
      adjust our assumptions then.  */
@@ -2809,9 +2781,6 @@ get_next_mword (char *buffer, char **startp, size_t *length)
 
       switch (c)
         {
-        case '=':
-          goto done_word;
-
         case ':':
 #ifdef HAVE_DOS_PATHS
           /* A word CAN include a colon in its drive spec.  The drive
@@ -2833,12 +2802,6 @@ get_next_mword (char *buffer, char **startp, size_t *length)
           /* This is a variable reference: note that then skip it.  */
           wtype = w_variable;
           p = skip_reference (p-1);
-          break;
-
-        case '?':
-        case '+':
-          if (*p == '=')
-            goto done_word;
           break;
 
         case '\\':
@@ -2872,6 +2835,7 @@ get_next_mword (char *buffer, char **startp, size_t *length)
     *startp = beg;
   if (length)
     *length = p - beg;
+
   return wtype;
 }
 

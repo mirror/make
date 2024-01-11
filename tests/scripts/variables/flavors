@@ -201,4 +201,12 @@ all: ; @echo '$(foo)'
 !,
               '', 'Good$bye $what Hello');
 
+# Target-specific variable
+run_make_test(q!
+bar = Good$$bye
+all: foo :::= $(bar)
+all: ; @echo '$(foo)'
+!,
+              '', 'Good$bye');
+
 1;
