@@ -163,7 +163,7 @@ recursively_expand_for_file (struct variable *v, struct file *file)
       /* We could create a hash for the original environment for speed, but a
          reasonably written makefile shouldn't hit this situation...  */
       for (ep = environ; *ep != 0; ++ep)
-        if ((*ep)[nl] == '=' && strncmp (*ep, v->name, nl) == 0)
+        if (strncmp (*ep, v->name, nl) == 0 && (*ep)[nl] == '=')
           return xstrdup ((*ep) + nl + 1);
 
       /* If there's nothing in the parent environment, use the empty string.
