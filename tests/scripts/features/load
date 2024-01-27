@@ -31,6 +31,7 @@ int explicit_setup (unsigned int, gmk_floc *);
 int
 testload_gmk_setup (unsigned int abi, gmk_floc *pos)
 {
+    (void)abi;
     (void)pos;
     gmk_eval ("TESTLOAD = implicit", 0);
     if (getenv("TESTAPI_KEEP"))
@@ -41,6 +42,7 @@ testload_gmk_setup (unsigned int abi, gmk_floc *pos)
 int
 explicit_setup (unsigned int abi, gmk_floc *pos)
 {
+    (void)abi;
     (void)pos;
     gmk_eval ("TESTLOAD = explicit", 0);
     if (getenv("TESTAPI_KEEP"))

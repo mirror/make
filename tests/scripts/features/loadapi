@@ -56,6 +56,8 @@ func_test (const char *funcname, unsigned int argc, char **argv)
 {
     char *mem;
 
+    (void)argc;
+
     if (strcmp (funcname, "test-expand") == 0)
         return test_expand (argv[0]);
 
@@ -74,6 +76,8 @@ int
 testapi_gmk_setup (unsigned int abi, const gmk_floc *floc)
 {
     const char *verbose = getenv ("TESTAPI_VERBOSE");
+
+    (void)abi;
 
     gmk_add_function ("test-expand", func_test, 1, 1, GMK_FUNC_DEFAULT);
     gmk_add_function ("test-noexpand", func_test, 1, 1, GMK_FUNC_NOEXPAND);
