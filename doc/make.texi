@@ -7599,7 +7599,7 @@ equal to be a match.
 quoted with preceding backslashes (@samp{\}).  Backslashes that would
 otherwise quote @samp{%} characters can be quoted with more backslashes.
 Backslashes that quote @samp{%} characters or other backslashes are
-removed from the pattern before it is compared file names or has a stem
+removed from the pattern before it is compared to file names or has a stem
 substituted into it.  Backslashes that are not in danger of quoting
 @samp{%} characters go unmolested.  For example, the pattern
 @file{the\%weird\\%pattern\\} has @samp{the%weird\} preceding the
@@ -7697,7 +7697,7 @@ foo: $(sources)
 @end example
 
 @noindent
-says that @file{foo} depends of @file{foo.c}, @file{bar.c},
+says that @file{foo} depends on @file{foo.c}, @file{bar.c},
 @file{baz.s} and @file{ugh.h} but only @file{foo.c}, @file{bar.c} and
 @file{baz.s} should be specified in the command to the
 compiler.
@@ -7943,11 +7943,10 @@ produces the result @samp{.c .c}.
 @findex basename
 @cindex basename
 @cindex file name, basename of
-Extracts all but the suffix of each file name in @var{names}.  If the
-file name contains a period, the basename is everything starting up to
-(and not including) the last period.  Periods in the directory part are
-ignored.  If there is no period, the basename is the entire file name.
-For example,
+Extracts all but the suffix of each file name in @var{names}.  If the file
+name contains a period, the basename is everything up to (and not including)
+the last period.  Periods in the directory part are ignored.  If there is no
+period, the basename is the entire file name.  For example,
 
 @example
 $(basename src/foo.c src-1.0/bar hacks)
@@ -7999,7 +7998,7 @@ Concatenates the two arguments word by word: the two first words (one
 from each argument) concatenated form the first word of the result, the
 two second words form the second word of the result, and so on.  So the
 @var{n}th word of the result comes from the @var{n}th word of each
-argument.  If one argument has more words that the other, the extra
+argument.  If one argument has more words than the other, the extra
 words are copied unchanged into the result.
 
 For example, @samp{$(join a b,.c .o)} produces @samp{a.c b.o}.
@@ -8035,9 +8034,9 @@ documentation for a list of possible failure causes.
 @cindex file name, abspath of
 For each file name in @var{names} return an absolute name that does
 not contain any @code{.} or @code{..} components, nor any repeated path
-separators (@code{/}).  Note that, in contrast to @code{realpath}
+separators (@code{/}).  Note that, in contrast to the @code{realpath}
 function, @code{abspath} does not resolve symlinks and does not require
-the file names to refer to an existing file or directory.  Use the
+the file names to refer to existing files or directories.  Use the
 @code{wildcard} function to test for existence.
 @end table
 
@@ -8425,10 +8424,10 @@ LS := $(call pathsearch,ls)
 @noindent
 Now the variable @code{LS} contains @code{/bin/ls} or similar.
 
-The @code{call} function can be nested.  Each recursive invocation gets
-its own local values for @code{$(1)}, etc.@: that mask the values of
-higher-level @code{call}.  For example, here is an implementation of a
-@dfn{map} function:
+The @code{call} function can be nested.  Each recursive invocation gets its
+own local values for @code{$(1)}, etc.@: that mask the values of higher-level
+@code{call} functions.  For example, here is an implementation of a @dfn{map}
+function:
 
 @smallexample
 map = $(foreach a,$(2),$(call $(1),$(a)))
@@ -9112,7 +9111,7 @@ needed to update included makefiles are still executed
 
 ``Touch''.  Marks targets as up to date without actually changing
 them.  In other words, @code{make} pretends to update the targets but
-does not really change their contents; instead only their modified
+does not really change their contents; instead only their modification
 times are updated.
 
 @item -q
@@ -9338,12 +9337,12 @@ without @samp{-k}, it is a fatal error (@pxref{Options Summary,
 ,Summary of Options}).
 
 The usual behavior of @code{make} assumes that your purpose is to get the
-goals up to date; once @code{make} learns that this is impossible, it might
-as well report the failure immediately.  The @samp{-k} flag says that the
-real purpose is to test as much as possible of the changes made in the
-program, perhaps to find several independent problems so that you can
-correct them all before the next attempt to compile.  This is why Emacs'
-@kbd{M-x compile} command passes the @samp{-k} flag by default.
+goals up to date; once @code{make} learns that this is impossible, it might as
+well report the failure immediately.  The @samp{-k} flag allows testing as
+many of the changes made in the program as possible, perhaps to find several
+independent problems so that you can correct them all before the next attempt
+to compile.  This is why Emacs' @kbd{M-x compile} command passes the @samp{-k}
+flag by default.
 
 @node Warnings
 @section Makefile Warnings
@@ -9563,10 +9562,10 @@ This option also enables @samp{basic} messages.
 Prints messages giving details on the invocation of specific sub-commands.
 
 @item m (@i{makefile})
-By default, the above messages are not enabled while trying to remake
-the makefiles.  This option enables messages while rebuilding makefiles,
-too.  Note that the @samp{all} option does enable this option.  This
-option also enables @samp{basic} messages.
+By default, the above messages are not enabled while trying to remake the
+makefiles.  This option enables messages while rebuilding makefiles, too.  The
+@samp{all} option enables this option as well.  This option also enables
+@samp{basic} messages.
 
 @item p (@i{print})
 Prints the recipe to be executed, even when the recipe is normally
@@ -9653,7 +9652,7 @@ Chooses the style of jobserver to use.  This option only has effect if
 parallel builds are enabled (@pxref{Parallel, ,Parallel Execution}).  On POSIX
 systems @var{style} can be one of @code{fifo} (the default) or @code{pipe}.
 On Windows the only acceptable @var{style} is @code{sem} (the default).  This
-option is useful if you need to use an older versions of GNU @code{make}, or a
+option is useful if you need to use an older version of GNU @code{make}, or a
 different tool that requires a specific jobserver style.
 
 @item -k
@@ -10347,7 +10346,7 @@ shell scripts that are checked into SCCS.  Since RCS preserves the
 execution permission of a file, you do not need to use this feature
 with RCS.
 
-We recommend that you avoid using of SCCS.  RCS is widely held to be
+We recommend that you avoid using SCCS.  RCS is widely held to be
 superior, and is also free.  By choosing free software in place of
 comparable (or inferior) proprietary software, you support the free
 software movement.
@@ -10407,7 +10406,7 @@ some command arguments, but it must start with an actual executable program
 name.)  If a variable value contains more than one argument, separate them
 with spaces.
 
-The following tables describe of some of the more commonly-used predefined
+The following tables describe some of the more commonly used built-in
 variables.  This list is not exhaustive, and the default values shown here may
 not be what @code{make} selects for your environment.  To see the
 complete list of predefined variables for your instance of GNU @code{make} you
@@ -11507,13 +11506,12 @@ applies.  In that case, give @var{t} the same recipe that
 @code{.DEFAULT} has.  Otherwise, there is no recipe for @var{t}.
 @end enumerate
 
-Once a rule that applies has been found, for each target pattern of
-the rule other than the one that matched @var{t} or @var{n}, the
-@samp{%} in the pattern is replaced with @var{s} and the resultant
-file name is stored until the recipe to remake the target file @var{t}
-is executed.  After the recipe is executed, each of these stored file
-names are entered into the data base and marked as having been updated
-and having the same update status as the file @var{t}.
+Once a rule that applies has been found, for each target pattern of the rule
+other than the one that matched @var{t} or @var{n}, the @samp{%} in the
+pattern is replaced with @var{s} and the resultant file name is stored until
+the recipe to remake the target file @var{t} is executed.  After the recipe is
+executed each of these stored file names is entered into the data base, marked
+as having been updated, and given the same update status as the file @var{t}.
 
 When the recipe of a pattern rule is executed for @var{t}, the
 automatic variables are set corresponding to the target and
@@ -13698,7 +13696,7 @@ suffix rule was created, however all prerequisites were ignored and were not
 part of the suffix rule.  Starting with GNU @code{make} 4.3 the behavior is
 the same, and in addition this warning is generated.  In a future version
 the POSIX-conforming behavior will be the only behavior: no rule with a
-prerequisite can be suffix rule and this warning will be removed.
+prerequisite can be a suffix rule and this warning will be removed.
 
 @end table
 
