@@ -451,7 +451,7 @@ writebuf (int fd, const void *buffer, size_t len)
 
       EINTRLOOP (r, write (fd, msg, l));
       if (r < 0)
-        return r;
+        return -1;
 
       l -= r;
       msg += r;
@@ -461,8 +461,7 @@ writebuf (int fd, const void *buffer, size_t len)
 }
 
 /* Read until we get LEN bytes from file descriptor FD, into BUFFER.
-   Retry short reads on EINTR.  If we get an error, return it.
-   Return 0 at EOF.  */
+   Retry short reads on EINTR. Return 0 at EOF and -1 on error.  */
 ssize_t
 readbuf (int fd, void *buffer, size_t len)
 {
@@ -473,7 +472,7 @@ readbuf (int fd, void *buffer, size_t len)
 
       EINTRLOOP (r, read (fd, msg, len));
       if (r < 0)
-        return r;
+        return -1;
       if (r == 0)
         break;
 
