@@ -706,9 +706,9 @@ initialize_file_variables (struct file *file, int reading)
               else
                 {
                   v = do_variable_definition (
-                    &p->variable.fileinfo, p->variable.name,
-                    p->variable.value, p->variable.origin,
-                    p->variable.flavor, p->variable.conditional, 1);
+                    &p->variable.fileinfo, p->variable.name, p->variable.value,
+                    p->variable.origin, p->variable.flavor,
+                    p->variable.conditional, s_pattern);
                 }
 
               /* Also mark it as a per-target and copy export status. */
@@ -1372,7 +1372,7 @@ shell_result (const char *p)
 struct variable *
 do_variable_definition (const floc *flocp, const char *varname, const char *value,
                         enum variable_origin origin, enum variable_flavor flavor,
-                        int conditional, int target_var)
+                        int conditional, enum variable_scope scope)
 {
   const char *newval;
   char *alloc_value = NULL;
@@ -1438,7 +1438,7 @@ do_variable_definition (const floc *flocp, const char *varname, const char *valu
       {
         /* If we have += but we're in a target variable context, we want to
            append only with other variables in the context of this target.  */
-        if (target_var)
+        if (scope)
           {
             append = 1;
             v = lookup_variable_in_set (varname, strlen (varname),
@@ -1615,7 +1615,7 @@ do_variable_definition (const floc *flocp, const char *varname, const char *valu
         {
           v = define_variable_in_set (varname, strlen (varname), default_shell,
                                       origin, flavor == f_recursive,
-                                      (target_var
+                                      (specificity
                                        ? current_variable_set_list->set
                                        : NULL),
                                       flocp);
@@ -1631,7 +1631,7 @@ do_variable_definition (const floc *flocp, const char *varname, const char *valu
             {
               v = define_variable_in_set (varname, strlen (varname), newval,
                                           origin, flavor == f_recursive,
-                                          (target_var
+                                          (specificity
                                            ? current_variable_set_list->set
                                            : NULL),
                                           flocp);
@@ -1659,8 +1659,8 @@ do_variable_definition (const floc *flocp, const char *varname, const char *valu
 
   v = define_variable_in_set (varname, strlen (varname), newval, origin,
                               flavor == f_recursive || flavor == f_expand,
-                              (target_var
-                               ? current_variable_set_list->set : NULL),
+                              (scope == s_global
+                               ? NULL : current_variable_set_list->set),
                               flocp);
   v->append = append;
   v->conditional = conditional;
@@ -1850,7 +1850,7 @@ assign_variable_definition (struct variable *v, const char *line)
 
 struct variable *
 try_variable_definition (const floc *flocp, const char *line,
-                         enum variable_origin origin, int target_var)
+                         enum variable_origin origin, enum variable_scope scope)
 {
   struct variable v;
   struct variable *vp;
@@ -1863,8 +1863,8 @@ try_variable_definition (const floc *flocp, const char *line,
   if (!assign_variable_definition (&v, line))
     return 0;
 
-  vp = do_variable_definition (flocp, v.name, v.value,
-                               origin, v.flavor, v.conditional, target_var);
+  vp = do_variable_definition (flocp, v.name, v.value, origin, v.flavor,
+                               v.conditional, scope);
 
   free (v.name);
 

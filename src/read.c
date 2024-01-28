@@ -413,7 +413,7 @@ eval_makefile (const char *filename, unsigned short flags)
 
   /* Add this makefile to the list. */
   do_variable_definition (&ebuf.floc, "MAKEFILE_LIST", filename, o_file,
-                          f_append_value, 0, 0);
+                          f_append_value, 0, s_global);
 
   /* Evaluate the makefile */
 
@@ -740,7 +740,7 @@ eval (struct ebuffer *ebuf, int set_default)
           if (vmod.define_v)
             v = do_define (p, origin, ebuf);
           else
-            v = try_variable_definition (fstart, p, origin, 0);
+            v = try_variable_definition (fstart, p, origin, s_global);
 
           assert (v != NULL);
 
@@ -1483,8 +1483,8 @@ do_define (char *name, enum variable_origin origin, struct ebuffer *ebuf)
   else
     definition[idx - 1] = '\0';
 
-  v = do_variable_definition (&defstart, name, definition,
-                              origin, var.flavor, var.conditional, 0);
+  v = do_variable_definition (&defstart, name, definition, origin, var.flavor,
+                              var.conditional, s_global);
   free (definition);
   free (n);
   return (v);
@@ -1822,7 +1822,7 @@ record_target_var (struct nameseq *filenames, char *defn,
           initialize_file_variables (f, 1);
 
           current_variable_set_list = f->variables;
-          v = try_variable_definition (flocp, defn, origin, 1);
+          v = try_variable_definition (flocp, defn, origin, s_target);
           if (!v)
             O (fatal, flocp, _("malformed target-specific variable definition"));
           current_variable_set_list = global;
@@ -2957,10 +2957,11 @@ construct_include_path (const char **arg_dirs)
 
   /* Now add each dir to the .INCLUDE_DIRS variable.  */
 
-  do_variable_definition (NILF, ".INCLUDE_DIRS", "", o_default, f_simple, 0, 0);
+  do_variable_definition (NILF, ".INCLUDE_DIRS", "", o_default, f_simple, 0,
+                          s_global);
   for (cpp = dirs; *cpp != 0; ++cpp)
-    do_variable_definition (NILF, ".INCLUDE_DIRS", *cpp,
-                            o_default, f_append, 0, 0);
+    do_variable_definition (NILF, ".INCLUDE_DIRS", *cpp, o_default, f_append,
+                            0, s_global);
 
   free ((void *) include_directories);
   include_directories = dirs;

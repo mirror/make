@@ -3011,7 +3011,7 @@ handle_non_switch_argument (const char *arg, enum variable_origin origin)
       }
   }
 #endif
-  v = try_variable_definition (0, arg, origin, 0);
+  v = try_variable_definition (0, arg, origin, s_global);
   if (v != 0)
     {
       /* It is indeed a variable definition.  If we don't already have this
