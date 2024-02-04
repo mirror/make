@@ -24,10 +24,9 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&se
   This release changes the loaded object feature from "technology preview" to
   fully-supported feature.  However, it introduces an ABI incompatibility with
   previous releases: the setup function now takes an ABI version as its first
-  argument.  When compiling your loaded object you can test the GMK_ABI_VERSION 
-  constant at compile time to detect which ABI should be used.  At runtime
-  your initialization function can check the provided ABI version to verify
-  it's being loaded correctly.
+  argument.  At compile time you can test the GMK_ABI_VERSION constant to
+  detect which ABI should be used.  At runtime your initialization function
+  can check the provided ABI version to verify it's being loaded correctly.
 
 * WARNING: Backward-incompatibility!
   Parsing of the first argument in ifeq/ifneq with () has been cleaned up.
@@ -36,6 +35,7 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&se
   or contained in variable references will not be counted.  This means that
   things like "ifeq ((foo,bar),)" are now syntax errors.  Use a variable to
   hide the comma if needed: "COMMA = ," / "ifeq ((foo$(COMMA)bar),)".
+  See https://savannah.gnu.org/bugs/index.php?64402
 
 * WARNING: Backward-incompatibility!
   If -e is given all environment variables will now have an origin of
