@@ -6466,22 +6466,15 @@ switches with a command argument just as usual.  You could use this
 override CFLAGS += -g
 @end example
 
-You can also use @code{override} directives with @code{define} directives.
-This is done as you might expect:
+You can also use @code{override} directives with @code{define} directives
+(@pxref{Multi-Line, , Defining Multi-Line Variables}).  This is done as you
+might expect:
 
 @example
 override define foo =
 bar
 endef
 @end example
-
-@noindent
-@iftex
-See the next section for information about @code{define}.
-@end iftex
-@ifnottex
-@xref{Multi-Line, ,Defining Multi-Line Variables}.
-@end ifnottex
 
 @node Multi-Line
 @section Defining Multi-Line Variables

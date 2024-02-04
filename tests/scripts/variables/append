@@ -1,0 +1,280 @@
+#                                                                    -*-perl-*-
+
+use warnings;
+
+my $description = "Test appending to variables of various origins.";
+
+# sv 64822, sv 36486.
+# Test various combinations of appends in the presence and absence of command
+# line definitions, env overrides and makefile overrides.
+# Test the following statements.
+# A target or pattern specific definition or append is available at build time
+# only.
+# A definition with a makefile override can only be appended to with another
+# override.
+# A definition with a makefile override can only be redefined with another
+# override.
+# A target or pattern specific definition takes precedence over a global
+# definition for that target.
+# A global variable is immune to a target or pattern specific definition or
+# append.
+# A target or pattern specific definition is immune to another target or pattern
+# specific definition or append.
+# A prerequisite inherits a target or pattern specific value from its target.
+# "phobos" inherits the value of "hello" from "mars".
+
+my @goals = ('phobos', 'mars');
+my @specificities = ('', 's: ', '%: ');
+my @inits = ('', 'hello=file', 'hello:=file', 'override hello=file');
+my @global_append = ('', 'hello+=red');
+my @blue_override = ('', 'override ');
+my @yellow_override = ('', 'override ');
+my @cmdline = ('', 'hello=cmd', 'hello:=cmd hello+=cmd2');
+my @env_ovr = ('', '-e');
+my @envs = ('', 'env');
+
+for my $goal (@goals) {
+ for my $spec (@specificities) {
+  for my $init (@inits) {
+   for my $ga (@global_append) {
+    for my $bovr (@blue_override) {
+     for my $yovr (@yellow_override) {
+      for my $dashe (@env_ovr) {
+       for my $env (@envs) {
+        for my $cmd (@cmdline) {
+
+        if ($env) {
+            $ENV{'hello'} = 'env';
+        } else {
+            delete $ENV{'hello'};
+        }
+
+        my $parse_time_answer = '';
+        my $build_time_answer = '';
+
+        # For goal "phobos" target is "", "phobos: " and "phobo%: ".
+        # For goal "mars" target is "", "mars: " and "mar%: ".
+        my $target = '';
+        if ($spec) {
+            $target = $goal;
+            chop($target);
+            $target .= $spec;
+        }
+
+        if ($init =~ 'override') {
+            $build_time_answer = 'file';
+        } elsif ($cmd) {
+            $build_time_answer = $cmd =~ 'cmd2' ? 'cmd cmd2' : 'cmd';
+        } elsif ($dashe and $env) {
+            $build_time_answer = 'env';
+        } elsif ($init and !$target and $ga) {
+            $build_time_answer = 'file red';
+        } elsif ($init) {
+            $build_time_answer = 'file';
+        } elsif ($env and $ga) {
+            $build_time_answer = 'env red';
+        } elsif ($env) {
+            $build_time_answer = 'env';
+        } elsif ($ga) {
+            $build_time_answer = 'red';
+        }
+
+        if ($bovr and $yovr) {
+            $build_time_answer .= ' ' if ($build_time_answer);
+            $build_time_answer .= 'blue yellow';
+        } elsif ($bovr) {
+            $build_time_answer .= ' ' if ($build_time_answer);
+            $build_time_answer .= 'blue';
+        } elsif ($yovr and !($init =~ 'override') and !$cmd and !($dashe and $env)) {
+            $build_time_answer .= ' ' if ($build_time_answer);
+            $build_time_answer .= 'blue yellow';
+        } elsif ($yovr) {
+            $build_time_answer .= ' ' if ($build_time_answer);
+            $build_time_answer .= 'yellow';
+        } elsif ($init =~ 'override') {
+        } elsif ($cmd) {
+        } elsif ($dashe and $env) {
+        } else {
+            $build_time_answer .= ' ' if ($build_time_answer);
+            $build_time_answer .= 'blue yellow';
+        }
+
+
+        if ($cmd and $target) {
+            $parse_time_answer = $cmd =~ 'cmd2' ? 'cmd cmd2' : 'cmd';
+        } elsif ($env and !$dashe and $target and $ga) {
+            $parse_time_answer = 'env red';
+        } elsif ($env and $target) {
+            $parse_time_answer = 'env';
+        } elsif ($target and $ga) {
+            $parse_time_answer = 'red';
+        } elsif ($target) {
+            $parse_time_answer = '';
+        } else {
+            $parse_time_answer = $build_time_answer;
+        }
+
+        my $i = $init ? "$target$init" : '';
+
+        # moon and satur% specific settings test that target and pattern
+        # settings specific to one target do not affect another target.
+
+        my $answer = $goal eq "mars" ?
+            "$parse_time_answer\n$build_time_answer\n" # From parse time and from "phobos" recipe.
+          . "$build_time_answer\n#MAKE#: 'mars' is up to date.\n" :  # From "mars" recipe.
+            "$parse_time_answer\n$build_time_answer\n#MAKE#: 'phobos' is up to date.\n";
+
+
+        run_make_test("
+# goal = $goal
+# init = $init
+# target = $target
+# ga = $ga
+# bovr = $bovr
+# yovr = $yovr
+# cmd = $cmd
+# env = $env
+# dashe = $dashe
+
+moon: hello=1
+moon: override hello+=2
+
+$i
+$ga
+$target${bovr}hello+=blue
+$target${yovr}hello+=yellow
+
+satur%: override hello:=3
+satur%: hello+=4
+
+\$(info \$(hello))
+phobos:; \$(info \$(hello))
+mars: phobos; \$(info \$(hello))
+saturn:; \$(info \$(hello))
+", "$dashe $cmd $goal", "$answer");
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}
+
+# Preferably, we would want to run the tests below for all the combinations,
+# generated by the loop above. However, that causes the test to take a lot of
+# time.
+
+# The fix for sv 64822 went to recursively_expand_for_file.
+# There are three code paths that lead to recursively_expand_for_file.
+#  - export of a variable to target environment.
+#  - expansion of a substitution reference.
+#  - other expansions of a variable that was appended to.
+# Test target env, substitution reference in parse and build modes.;
+# Also test a mix of pattern and target specific definitions and appends.
+
+run_make_test(q!
+al%: hello=file
+al%: hello+=one
+all: hello+=two
+$(info $(hello))
+all:; $(info $(hello))
+!, "", "\nfile one two\n#MAKE#: 'all' is up to date.\n");
+
+run_make_test(q!
+hello=file
+al%: hello+=one
+all: hello+=two
+$(info $(hello:X=Y))
+all:; $(info $(hello:X=Y))
+!, "", "file\nfile one two\n#MAKE#: 'all' is up to date.\n");
+
+run_make_test(q!
+hello=file
+al%: hello+=one
+all: hello+=two
+export hello
+$(info $(shell echo $$hello))
+all:; $(info $(shell echo $$hello))
+!, "", "file\nfile one two\n#MAKE#: 'all' is up to date.\n");
+
+# "phobos" inherits the value of "hello" from "mars". On top of that there are
+# also "phobos" specific appends.
+for my $goal (@goals) {
+my $answer = $goal eq "mars" ?
+    "\nminit mone mtwo pone ptwo\n" # From parse time and from "phobos" recipe.
+  . "minit mone mtwo\n#MAKE#: 'mars' is up to date.\n" :  # From "mars" recipe.
+    "\npone ptwo\n#MAKE#: 'phobos' is up to date.\n"; # From parse time and from "phobos" recipe.
+
+run_make_test("
+mar%: hello=minit
+mar%: hello+=mone
+mars: hello+=mtwo
+phobo%: hello+=pone
+phobos: hello+=ptwo
+\$(info \$(hello))
+phobos:; \$(info \$(hello))
+mars: phobos; \$(info \$(hello))
+", "$goal", "$answer");
+}
+
+# This test is similar to the one above. The difference is that here there is a
+# pattern-specific definition of "hello" that matches "phobos".
+run_make_test(q!
+mar%: hello:=minit
+mar%: hello+=mone
+mars: hello+=mtwo
+phobo%: hello:=pinit
+phobo%: hello+=pone
+phobos: hello+=ptwo
+$(info $(hello))
+phobos:; $(info $(hello))
+mars: phobos; $(info $(hello))
+!, 'phobos', "\npinit pone ptwo\n#MAKE#: 'phobos' is up to date.\n");
+
+# Test pattern and target specific appends to a global variable that has origin override.
+# sv 36486.
+my @ops = ('=', '+=', ':=');
+@inits = ('', 'override ', 'al%: override ');
+@specificities = ('', 'all: ', 'al%: ');
+for my $init (@inits) {
+ for my $spec (@specificities) {
+  for my $op (@ops) {
+
+  my $build_time_answer = '';
+  if ($init =~ ':' and $op eq '+=' and !$spec) {
+      # This is the case where global variable obtains value 'one two three' at
+      # parse time and later at build time a pattern or target specific
+      # 'hello+=file' appends 'file'.
+      # e.g.
+      # al%: override hello+=file
+      # hello+=one
+      # hello+=two
+      # hello+=three
+      $build_time_answer = 'one two three file';
+  } elsif ($init =~ 'override') {
+      $build_time_answer = 'file';
+  } else {
+      $build_time_answer = 'file one two three';
+  }
+
+  my $parse_time_answer = $init =~ ':' ? '' : 'file';
+  if (!$spec and ($init ne 'override ')) {
+      $parse_time_answer .= ' ' if $parse_time_answer;
+      $parse_time_answer .= 'one two three';
+  }
+
+  run_make_test("
+${init}hello${op}file
+${spec}hello+=one
+${spec}hello+=two
+${spec}hello+=three
+\$(info \$(hello))
+all:; \$(info \$(hello))
+", "", "$parse_time_answer\n$build_time_answer\n#MAKE#: 'all' is up to date.\n");
+  }
+ }
+}
+
+1;

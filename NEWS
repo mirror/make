@@ -42,6 +42,11 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&se
   "environment override" even if they are not otherwise set in the makefile.
   See https://savannah.gnu.org/bugs/index.php?64803
 
+* WARNING: Backward-incompatibility!
+  The behavior of appending to pattern-specific variables has been clarified
+  when combined with command-line settings or -e overrides.
+  See https://savannah.gnu.org/bugs/index.php?64822
+
 * NOTE: Deprecated behavior.
   The check in GNU Make 4.3 for suffix rules with prerequisites didn't check
   single-suffix rules, only double-suffix rules.  Add the missing check.

@@ -148,13 +148,14 @@ recursively_expand_for_file (struct variable *v, struct file *file)
   const floc **saved_varp;
   struct variable_set_list *savev = 0;
   int set_reading = 0;
+  size_t nl = strlen (v->name);
+  struct variable *parent = NULL;
 
   /* If we're expanding to put into the environment of a shell function then
      ignore any recursion issues: for backward-compatibility we will use
      the value of the environment variable we were started with.  */
   if (v->expanding && env_recursion)
     {
-      size_t nl = strlen (v->name);
       char **ep;
       DB (DB_VERBOSE,
           (_("%s:%lu: not recursively expanding %s to export to shell function\n"),
@@ -203,8 +204,49 @@ recursively_expand_for_file (struct variable *v, struct file *file)
 
   v->expanding = 1;
   if (v->append)
+    {
+      /* Find a parent definition which is marked override.  */
+      struct variable_set_list *sl;
+      for (sl = current_variable_set_list; sl && !parent; sl = sl->next)
+        {
+          struct variable *vp = lookup_variable_in_set (v->name, nl, sl->set);
+          if (vp && vp != v && vp->origin == o_override)
+            parent = vp;
+        }
+    }
+
+  if (parent)
+    /* PARENT is an override, V is appending.  If V is also an override:
+         override hello := first
+         al%: override hello += second
+       Then construct the value from its appended parts in the parent sets.
+       Else if V is not an override:
+         override hello := first
+         al%: hello += second
+       Then ignore the value of V and use the value of PARENT.  */
+    value = v->origin == o_override
+      ? allocated_variable_append (v)
+      : xstrdup (parent->value);
+  else if (v->origin == o_command || v->origin == o_env_override)
+    /* Avoid appending to a pattern-specific variable, unless the origin of this
+       pattern-specific variable beats or equals the origin of one of the parent
+       definitions of this variable.
+       This is needed, because if there is a command line definition or an env
+       override, then the value defined in the makefile should only be appended
+       in the case of a file override.
+       In the presence of command line definition or env override and absence of
+       makefile override, the value should be expanded, rather than appended. In
+       this case, at parse time record_target_var already set the value of this
+       pattern-specific variable to the value defined on the command line or to
+       the env override value.
+       User provided a command line definition or an env override.
+       PARENT does not have an override directive, so ignore it.  */
+    value = allocated_expand_string (v->value);
+  else if (v->append)
+    /* Construct the value from its appended parts in the parent sets.  */
     value = allocated_variable_append (v);
   else
+    /* A definition without appending.  */
     value = allocated_expand_string (v->value);
   v->expanding = 0;
 
