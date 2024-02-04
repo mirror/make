@@ -184,21 +184,25 @@ sub resetENV
 # so it can either be a ref of a list or a string.
 sub cmd2str
 {
+    my @c;
     my $cmd = $_[0];
     if (!ref($cmd)) {
-        return $cmd;
-    }
-
-    my @c;
-    foreach (@$cmd) {
-        if (/[][#;"*?&|<>(){}\$`^~!]/) {
-            s/\'/\'\\'\'/g;
-            push @c, "'$_'";
-        } else {
-            push @c, $_;
+        push @c, $cmd;
+    } else {
+        foreach (@$cmd) {
+            if (/[][#;"*?&|<>(){}\$`^~!]/) {
+                s/\'/\'\\'\'/g;
+                push @c, "'$_'";
+            } else {
+                push @c, $_;
+            }
         }
     }
-    return join(' ', @c);
+
+    if ($testpath eq $cwd) {
+        return join(' ', @c);
+    }
+    return "(cd $testpath && " . join(' ', @c) . ')';
 }
 
 sub toplevel
@@ -255,7 +259,7 @@ sub toplevel
   # Locate the top source directory.
   $toppath = File::Spec->rel2abs(File::Spec->updir(), $srcpath);
 
-  $cwd = cwd();
+  local $cwd = cwd();
 
   $workpath = "$workdir";
 
@@ -649,7 +653,7 @@ sub run_all_tests
     $perl_testname = File::Spec->catfile($scriptpath, $testname);
     -f $perl_testname or die "Invalid test: $testname\n\n";
 
-    $testpath = File::Spec->catdir($workpath, $testname);
+    local $testpath = File::Spec->catdir($workpath, $testname);
 
     remove_directory_tree($testpath);
     mkdir($testpath, 0777) or &error("Couldn't mkdir $testpath: $!\n", 1);
