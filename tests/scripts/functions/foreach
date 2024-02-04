@@ -28,8 +28,8 @@ all: auto for2
 auto : ; @echo $(av)
 for2: ; @echo $(fe)',
               '-e WHITE=WHITE CFLAGS=',
-              "undefined file default file environment default file command line override automatic automatic
-foo.o bletch.o null.o @.o garf.o .o    .o undefined.o file.o default.o file.o environment.o default.o file.o command.o line.o override.o automatic.o automatic.o");
+              "undefined file default file environment override default file command line override automatic automatic
+foo.o bletch.o null.o @.o garf.o .o    .o undefined.o file.o default.o file.o environment.o override.o default.o file.o command.o line.o override.o automatic.o automatic.o");
 
 # TEST 1: Test that foreach variables take precedence over global
 # variables in a global scope (like inside an eval).  Tests bug #11913

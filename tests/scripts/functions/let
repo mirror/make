@@ -85,7 +85,7 @@ all: auto target
 auto: ; @echo $(let $(auto_var),,$(av)) $(av)
 $(let AR foo,bar foo ,$(eval $(value mktarget)))',
               '-e WHITE=WHITE CFLAGS=',
-              "automatic automatic automatic automatic automatic automatic automatic automatic automatic undefined default environment default file command line override automatic automatic
+              "automatic automatic automatic automatic automatic automatic automatic automatic automatic undefined default environment override default file command line override automatic automatic
 ar_foo _
 ");
 

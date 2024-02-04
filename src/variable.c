@@ -564,9 +564,7 @@ lookup_variable (const char *name, size_t length)
                     *nptr++ = '$';
                   }
                 else
-                  {
-                    *nptr++ = *sptr;
-                  }
+                  *nptr++ = *sptr;
                 sptr++;
               }
 
@@ -704,12 +702,10 @@ initialize_file_variables (struct file *file, int reading)
                   v->flavor = f_simple;
                 }
               else
-                {
-                  v = do_variable_definition (
-                    &p->variable.fileinfo, p->variable.name, p->variable.value,
-                    p->variable.origin, p->variable.flavor,
-                    p->variable.conditional, s_pattern);
-                }
+                v = do_variable_definition (
+                  &p->variable.fileinfo, p->variable.name, p->variable.value,
+                  p->variable.origin, p->variable.flavor,
+                  p->variable.conditional, s_pattern);
 
               /* Also mark it as a per-target and copy export status. */
               v->per_target = p->variable.per_target;
@@ -1911,6 +1907,23 @@ warn_undefined (const char *name, size_t len)
                     (int)len, name));
     }
 }
+
+static void
+set_env_override (const void *item, void *arg UNUSED)
+{
+  struct variable *v = (struct variable *)item;
+  enum variable_origin old = env_overrides ? o_env : o_env_override;
+  enum variable_origin new = env_overrides ? o_env_override : o_env;
+
+  if (v->origin == old)
+    v->origin = new;
+}
+
+void
+reset_env_override ()
+{
+  hash_map_arg (&global_variable_set.table, set_env_override, NULL);
+}
 
 /* Print information for variable V, prefixing it with PREFIX.  */
 
@@ -1985,7 +1998,6 @@ print_variable (const void *item, void *arg)
     }
 }
 
-
 static void
 print_auto_variable (const void *item, void *arg)
 {
@@ -1995,7 +2007,6 @@ print_auto_variable (const void *item, void *arg)
     print_variable (item, arg);
 }
 
-
 static void
 print_noauto_variable (const void *item, void *arg)
 {
@@ -2004,7 +2015,6 @@ print_noauto_variable (const void *item, void *arg)
   if (v->origin != o_automatic)
     print_variable (item, arg);
 }
-
 
 /* Print all the variables in SET.  PREFIX is printed before
    the actual variable definitions (everything else is comments).  */

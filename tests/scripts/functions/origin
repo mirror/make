@@ -36,10 +36,10 @@ all: auto
 auto :
 > @echo $(av)',
     '-e WHITE=WHITE CFLAGS=',
-    'undefined default environment default file command line override automatic
+    'undefined default environment override default file command line override automatic
 undefined
 default
-environment
+environment override
 default
 file
 command line

@@ -37,6 +37,11 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&se
   things like "ifeq ((foo,bar),)" are now syntax errors.  Use a variable to
   hide the comma if needed: "COMMA = ," / "ifeq ((foo$(COMMA)bar),)".
 
+* WARNING: Backward-incompatibility!
+  If -e is given all environment variables will now have an origin of
+  "environment override" even if they are not otherwise set in the makefile.
+  See https://savannah.gnu.org/bugs/index.php?64803
+
 * NOTE: Deprecated behavior.
   The check in GNU Make 4.3 for suffix rules with prerequisites didn't check
   single-suffix rules, only double-suffix rules.  Add the missing check.

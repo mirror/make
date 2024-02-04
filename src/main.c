@@ -1445,6 +1445,7 @@ main (int argc, char **argv, char **envp)
 #endif
 
   /* Initialize the special variables.  */
+  define_variable_cname ("MAKEFLAGS", "", o_default, 0)->special = 1;
   define_variable_cname (".VARIABLES", "", o_default, 0)->special = 1;
   /* define_variable_cname (".TARGETS", "", o_default, 0)->special = 1; */
   define_variable_cname (".RECIPEPREFIX", "", o_default, 0)->special = 1;
@@ -3090,6 +3091,8 @@ handle_non_switch_argument (const char *arg, enum variable_origin origin)
 void
 reset_makeflags (enum variable_origin origin)
 {
+  /* Reset to default values.  */
+  env_overrides = 0;
   decode_env_switches (STRING_SIZE_TUPLE(MAKEFLAGS_NAME), origin);
   construct_include_path (include_dirs ? include_dirs->list : NULL);
   disable_builtins ();
@@ -3363,6 +3366,9 @@ decode_switches (int argc, const char **argv, enum variable_origin origin)
 
   /* Perform any special switch handling.  */
   run_silent = silent_flag;
+
+  /* Check variable priorities.  */
+  reset_env_override ();
 }
 
 /* Decode switches from environment variable ENVAR (which is LEN chars long).
@@ -3453,8 +3459,8 @@ quote_for_env (char *out, const char *in)
 }
 
 /* Disable builtin variables and rules, if -R or -r is specified.
- * This function is called at parse time whenever MAKEFLAGS is modified and
- * also when the parsing phase is over.  */
+   This function is called at parse time whenever MAKEFLAGS is modified and
+   also when the parsing phase is over.  */
 
 static
 void disable_builtins ()
@@ -3837,7 +3843,7 @@ die (int status)
         verify_file_data_base ();
 
       /* Unload plugins before jobserver integrity check in case a plugin
-       * participates in jobserver.  */
+         participates in jobserver.  */
       unload_all ();
 
       clean_jobserver (status);

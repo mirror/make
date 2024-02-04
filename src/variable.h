@@ -205,6 +205,7 @@ struct variable *define_variable_in_set (const char *name, size_t length,
                                          struct variable_set *set,
                                          const floc *flocp);
 void warn_undefined (const char* name, size_t length);
+void reset_env_override (void);
 
 /* Define a variable in the current variable set.  */
 

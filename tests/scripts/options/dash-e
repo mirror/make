@@ -21,4 +21,125 @@ recurse: ; @$(MAKE) -f #MAKEFILE#
               '-e --no-print-directory FOO=1 recurse',
               "FOO [command line]: 1\nFOO [command line]: 1\n#MAKE#[1]: 'all' is up to date.");
 
+# SV 64803.
+# Test that the origin of an env variable is 'enviroment override' when -e
+# is set and the makefile does not modify the variable.
+# First run the test without -e and then with -e.
+
+mkdir('lib', 0777);
+
+create_file('lib/makefile',
+'$(info in submake value=$(hello), origin=$(origin hello))
+all:; @echo "value=$(hello), origin=$(origin hello)"'."\n");
+
+# No -e.
+$ENV{hello} = 'world';
+run_make_test(q!
+.RECIPEPREFIX = >
+$(info value=$(hello), origin=$(origin hello))
+all:
+> @echo "value=$(hello), origin=$(origin hello)"
+> @$(MAKE) -C lib
+.PHONY: lib all
+!,
+              '-s',
+              "value=world, origin=environment\nvalue=world, origin=environment\n".
+              "in submake value=world, origin=environment\nvalue=world, origin=environment");
+
+# -e is specified on the command line.
+my @opts = ('-e', '--environment-overrides');
+for my $opt (@opts) {
+$ENV{hello} = 'world';
+run_make_test(q!
+.RECIPEPREFIX = >
+$(info value=$(hello), origin=$(origin hello))
+all:
+> @echo "value=$(hello), origin=$(origin hello)"
+> @$(MAKE) -C lib
+.PHONY: lib all
+!,
+              "-s $opt",
+              "value=world, origin=environment override\nvalue=world, origin=environment override\n".
+              "in submake value=world, origin=environment override\nvalue=world, origin=environment override");
+}
+
+# MAKEFLAGS from env affects top level make.
+$ENV{hello} = 'world';
+$ENV{MAKEFLAGS} = 'e';
+run_make_test(q!
+.RECIPEPREFIX = >
+$(info value=$(hello), origin=$(origin hello))
+all:
+> @echo "value=$(hello), origin=$(origin hello)"
+> @$(MAKE) -C lib
+.PHONY: lib all
+!,
+              "-s",
+              "value=world, origin=environment override\nvalue=world, origin=environment override\n".
+              "in submake value=world, origin=environment override\nvalue=world, origin=environment override");
+
+# -e is passed to submake on the command line.
+$ENV{hello} = 'world';
+run_make_test(q!
+.RECIPEPREFIX = >
+$(info value=$(hello), origin=$(origin hello))
+all:
+> @echo "value=$(hello), origin=$(origin hello)"
+> @$(MAKE) -e -C lib
+.PHONY: lib all
+!,
+              "-s",
+              "value=world, origin=environment\nvalue=world, origin=environment\n".
+              "in submake value=world, origin=environment override\nvalue=world, origin=environment override");
+
+# MAKEFLAGS is reset for submake.
+$ENV{hello} = 'world';
+run_make_test(q!
+.RECIPEPREFIX = >
+$(info value=$(hello), origin=$(origin hello))
+all:
+> @echo "value=$(hello), origin=$(origin hello)"
+> @$(MAKE) -C lib MAKEFLAGS=
+.PHONY: lib all
+!,
+              "-se",
+              "value=world, origin=environment override\nvalue=world, origin=environment override\n".
+              "in submake value=world, origin=environment\nvalue=world, origin=environment");
+
+# Some MAKEFLAGS in top make env.
+# This MAKEFLAGS does not conform to the format that make itself produces for
+# submake. However, make still parses and honors this MAKEFLAGS.
+# This test checks that make does not confuse 'e' in 'extramk' with '-e'.
+$ENV{MAKEFLAGS} = 'r -Iextramk -k bye=moon';
+$ENV{hello} = 'world';
+run_make_test(q!
+.RECIPEPREFIX = >
+$(info value=$(hello), origin=$(origin hello))
+all:
+> @echo "value=$(hello), origin=$(origin hello)"
+> @$(MAKE) -C lib
+.PHONY: lib all
+!,
+              "-s",
+              "value=world, origin=environment\nvalue=world, origin=environment\n".
+              "in submake value=world, origin=environment\nvalue=world, origin=environment");
+
+# Some MAKEFLAGS in top make env.
+# This MAKEFLAGS does not conform to the format that make itself produces for
+# submake. However, make still parses and honors this MAKEFLAGS.
+# This test checks that make detects '-e' in this MAKEFLAGS.
+$ENV{MAKEFLAGS} = 'r -Iextramk -ke bye=moon';
+$ENV{hello} = 'world';
+run_make_test(q!
+.RECIPEPREFIX = >
+$(info value=$(hello), origin=$(origin hello))
+all:
+> @echo "value=$(hello), origin=$(origin hello)"
+> @$(MAKE) -C lib
+.PHONY: lib all
+!,
+              "-s",
+              "value=world, origin=environment override\nvalue=world, origin=environment override\n".
+              "in submake value=world, origin=environment override\nvalue=world, origin=environment override");
+
 1;
