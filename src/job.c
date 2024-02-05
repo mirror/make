@@ -1257,7 +1257,7 @@ start_job_command (struct child *child)
       }
 #else
     argv = construct_command_argv (p, &end, child->file,
-                                   child->file->cmds->lines_flags[child->command_line - 1],
+                                   child->file->cmds->lines_flags[child->command_line - 1] | child->file->command_flags,
                                    &child->sh_batch_file);
 #endif
     if (end == NULL)
@@ -2836,9 +2836,6 @@ construct_command_argv_internal (char *line, char **restp, const char *shell,
   if (*line == '\0')
     return 0;
 
-  if (shellflags == 0)
-    shellflags = posix_pedantic && NONE_SET (flags, COMMANDS_NOERROR) ? "-ec" : "-c";
-
   /* See if it is safe to parse commands internally.  */
   if (shell == 0)
     shell = default_shell;
@@ -3628,7 +3625,9 @@ char **
 construct_command_argv (char *line, char **restp, struct file *file,
                         int cmd_flags, char **batch_filename)
 {
-  char *shell, *ifs, *shellflags;
+  char *shell, *ifs;
+  char *allocflags = NULL;
+  const char *shellflags;
   char **argv;
 
   {
@@ -3695,12 +3694,14 @@ construct_command_argv (char *line, char **restp, struct file *file,
 
     var = lookup_variable_for_file (STRING_SIZE_TUPLE (".SHELLFLAGS"), file);
     if (!var)
-      shellflags = xstrdup ("");
-    else if (posix_pedantic && var->origin == o_default)
+      shellflags = "";
+    else if (var->origin != o_default)
+      shellflags = allocflags = allocated_expand_string_for_file (var->value, file);
+    else if (posix_pedantic && !ignore_errors_flag && NONE_SET (cmd_flags, COMMANDS_NOERROR))
       /* In POSIX mode we default to -ec, unless we're ignoring errors.  */
-      shellflags = xstrdup (ANY_SET (cmd_flags, COMMANDS_NOERROR) ? "-c" : "-ec");
+      shellflags = "-ec";
     else
-      shellflags = allocated_expand_string_for_file (var->value, file);
+      shellflags = "-c";
 
     ifs = allocated_expand_variable_for_file (STRING_SIZE_TUPLE ("IFS"), file);
 
@@ -3711,7 +3712,7 @@ construct_command_argv (char *line, char **restp, struct file *file,
                                           cmd_flags, batch_filename);
 
   free (shell);
-  free (shellflags);
+  free (allocflags);
   free (ifs);
 
   return argv;

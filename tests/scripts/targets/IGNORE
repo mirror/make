@@ -1,0 +1,28 @@
+#                                                                    -*-perl-*-
+
+$description = "Test the behaviour of the .IGNORE target.";
+
+$details = "";
+
+# Without any ignore
+run_make_test(q!
+all: ; @#HELPER# -q fail 1
+!,
+              '', "#MAKE#: *** [#MAKEFILE#:2: all] Error 1", 512);
+
+# Global .IGNORE
+run_make_test(q!
+.IGNORE:
+all: ; @#HELPER# -q fail 1
+!,
+              '', "#MAKE#: [#MAKEFILE#:3: all] Error 1 (ignored)");
+
+# Specific .IGNORE
+
+run_make_test(q!
+.IGNORE: all
+all: ; @#HELPER# -q fail 1
+!,
+              '', "#MAKE#: [#MAKEFILE#:3: all] Error 1 (ignored)");
+
+1;

@@ -37,6 +37,28 @@ all: ; @-#HELPER# -q fail 1; #HELPER# out hello
 !,
               '', "hello\n");
 
+# SV 64085: Also don't add -e if -i or .IGNORE is used
+
+run_make_test(q!
+.POSIX:
+all: ; @#HELPER# -q fail 1; #HELPER# out hello
+!,
+              '-i', "hello\n");
+
+run_make_test(q!
+.POSIX:
+.IGNORE:
+all: ; @#HELPER# -q fail 1; #HELPER# out hello
+!,
+              '', "hello\n");
+
+run_make_test(q!
+.POSIX:
+.IGNORE: all
+all: ; @#HELPER# -q fail 1; #HELPER# out hello
+!,
+              '', "hello\n");
+
 # But explicit settings must still take precedence
 
 run_make_test(q!
