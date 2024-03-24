@@ -1638,9 +1638,8 @@ do_variable_definition (const floc *flocp, const char *varname, const char *valu
         {
           v = define_variable_in_set (varname, strlen (varname), default_shell,
                                       origin, flavor == f_recursive,
-                                      (specificity
-                                       ? current_variable_set_list->set
-                                       : NULL),
+                                      (scope == s_global ? NULL
+                                       : current_variable_set_list->set),
                                       flocp);
           no_default_sh_exe = 0;
         }
@@ -1654,9 +1653,8 @@ do_variable_definition (const floc *flocp, const char *varname, const char *valu
             {
               v = define_variable_in_set (varname, strlen (varname), newval,
                                           origin, flavor == f_recursive,
-                                          (specificity
-                                           ? current_variable_set_list->set
-                                           : NULL),
+                                          (scope == s_global ? NULL
+                                           : current_variable_set_list->set),
                                           flocp);
               no_default_sh_exe = 0;
             }
