@@ -10,8 +10,7 @@ n = -10
 z = 0
 # Positive
 p = 888
-min = -9223372036854775808
-max = 9223372036854775807
+q = 889
 huge = 8857889956778499040639527525992734031025567913257255490371761260681427
 .RECIPEPREFIX = >
 all:
@@ -31,15 +30,39 @@ all:
 > @echo 3_1 $(intcmp $z,$p,lt,eq,gt)
 > @echo 3_2 $(intcmp $p,$z,lt,eq,gt)
 > @echo 3_3 $(intcmp $p,$p,lt,eq,gt)
-> @echo 4_0 $(intcmp $(min),$(max),lt,eq,gt)
-> @echo 4_1 $(intcmp $(max),$(min),lt,eq,gt)
-> @echo 4_2 $(intcmp $(min),$(min),lt,eq,gt)
-> @echo 4_3 $(intcmp $(max),$(max),lt,eq,gt)
-> @echo 5_0 $(intcmp -$(huge),$(huge),lt,eq,gt)
-> @echo 5_1 $(intcmp $(huge),-$(huge),lt,eq,gt)
-> @echo 5_2 $(intcmp -$(huge),-$(huge),lt,eq,gt)
-> @echo 5_3 $(intcmp +$(huge),$(huge),lt,eq,gt)
-', '', "0_1 -10\n0_2 0\n0_3 0\n0_4 888\n0_5\n0_6\n1_1\n1_2 lt\n1_3\n2_1 lt\n2_2 ge\n2_3 ge\n3_0\n3_1 lt\n3_2 gt\n3_3 eq\n4_0 lt\n4_1 gt\n4_2 eq\n4_3 eq\n5_0 lt\n5_1 gt\n5_2 eq\n5_3 eq\n");
+> @echo 3_4 $(intcmp $p,$q,lt,eq,gt)
+> @echo 3_5 $(intcmp $q,$p,lt,eq,gt)
+> @echo 3_6 $(intcmp -$p,-$q,lt,eq,gt)
+> @echo 3_7 $(intcmp -$q,-$p,lt,eq,gt)
+> @echo 4_1 $(intcmp -$(huge),$(huge),lt,eq,gt)
+> @echo 4_2 $(intcmp $(huge),-$(huge),lt,eq,gt)
+> @echo 4_3 $(intcmp -$(huge),-$(huge),lt,eq,gt)
+> @echo 4_4 $(intcmp +$(huge),$(huge),lt,eq,gt)
+', '', '0_1 -10
+0_2 0
+0_3 0
+0_4 888
+0_5
+0_6
+1_1
+1_2 lt
+1_3
+2_1 lt
+2_2 ge
+2_3 ge
+3_0
+3_1 lt
+3_2 gt
+3_3 eq
+3_4 lt
+3_5 gt
+3_6 gt
+3_7 lt
+4_1 lt
+4_2 gt
+4_3 eq
+4_4 eq
+');
 
 # Test error conditions
 

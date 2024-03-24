@@ -1328,6 +1328,8 @@ func_intcmp (char *o, char **argv, const char *funcname UNUSED)
       cmp = (llen > rlen) - (llen < rlen);
       if (cmp == 0)
         cmp = memcmp (lnum, rnum, llen);
+      if (lsign < 0)
+        cmp *= -1;
     }
 
   argv += 2;
