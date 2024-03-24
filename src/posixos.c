@@ -152,13 +152,14 @@ jobserver_setup (int slots, const char *style)
     {
   /* Unfortunately glibc warns about uses of mktemp even though we aren't
      using it in dangerous way here.  So avoid this by generating our own
-     temporary file name.  */
-# define  FNAME_PREFIX "GMfifo"
+     temporary file name.  The template in misc.c uses 6 X's so be sure this
+     name cannot conflict with that.  */
+# define  FNAME_PREFIX "GmFIFO"
       const char *tmpdir = get_tmpdir ();
 
       fifo_name = xmalloc (strlen (tmpdir) + CSTRLEN (FNAME_PREFIX)
                            + INTSTR_LENGTH + 2);
-      sprintf (fifo_name, "%s/" FNAME_PREFIX "%" MK_PRI64_PREFIX "d",
+      sprintf (fifo_name, "%s/" FNAME_PREFIX "%03" MK_PRI64_PREFIX "d",
                tmpdir, (long long)make_pid ());
 
       EINTRLOOP (r, mkfifo (fifo_name, 0600));

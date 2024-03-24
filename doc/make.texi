@@ -9462,7 +9462,8 @@ regardless of any @code{.WARNINGS} assignments.
 
 In some situations, @code{make} will need to create its own temporary files.
 These files must not be disturbed while @code{make} is running, including all
-recursively-invoked instances of @code{make}.
+recursively-invoked instances of @code{make}.  All temporary filenames created
+by GNU Make will start with the letters @samp{Gm}.
 
 @cindex @code{MAKE_TMPDIR}
 If the environment variable @code{MAKE_TMPDIR} is set then all temporary files

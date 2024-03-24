@@ -129,7 +129,7 @@ os_anontmp ()
   static unsigned uniq = 0;
   static int second_loop = 0;
 
-  const char base[] = "gmake_tmpf";
+  const char base[] = "GmTMPF";
   const unsigned sizemax = sizeof (base) - 1 + 4 + 10 + 10;
   unsigned pid = GetCurrentProcessId ();
 
