@@ -66,11 +66,6 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <ctype.h>
 
-#ifdef HAVE_SYS_TIMEB_H
-/* SCO 3.2 "devsys 4.2" has a prototype for 'ftime' in <time.h> that bombs
-   unless <sys/timeb.h> has been included first.  */
-# include <sys/timeb.h>
-#endif
 #if HAVE_SYS_TIME_H
 # include <sys/time.h>
 #endif

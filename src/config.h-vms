@@ -339,11 +339,6 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <sys/param.h> header file.  */
 /* #undef HAVE_SYS_PARAM_H */
 
-/* Define to 1 if you have the <sys/timeb.h> header file.  */
-#ifndef __GNUC__
-#define HAVE_SYS_TIMEB_H 1
-#endif
-
 /* Define to 1 if you have the <sys/wait.h> header file.  */
 /* #undef HAVE_SYS_WAIT_H */
 
