@@ -36,12 +36,11 @@ To run the test suite on a UNIX system, use "perl ./run_make_tests"
 To run the test suite on Windows NT or DOS systems, use
 "perl.exe ./run_make-tests.pl".
 
-By default, the test engine picks up the first executable called "make"
-that it finds in your path.  You may use the -make_path option (i.e.,
-"perl run_make_tests -make_path /usr/local/src/make-3.78/make") if
-you want to run a particular copy.  This now works correctly with
-relative paths and when make is called something other than "make" (like
-"gmake").
+By default, the test engine picks up the first executable called "make" that
+it finds in your path.  You may use the -make option (i.e.,
+"perl run_make_tests -make /usr/local/src/make-latest/make") if you want to
+run a particular copy.  This now works correctly with relative paths and
+when make is called something other than "make" (like "gmake").
 
 Tests cannot end with a "~" character, as the test suite will ignore any
 that do (I was tired of having it run my Emacs backup files as tests :))
