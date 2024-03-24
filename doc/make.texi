@@ -13460,14 +13460,13 @@ has no effect on the operation of @code{make}.@*
 @xref{Recursion, ,Recursive Use of @code{make}}.
 
 @item GNUMAKEFLAGS
-Other flags parsed by @code{make}.  You can set this in the environment or
-a makefile to set @code{make} command-line flags.  GNU @code{make}
-never sets this variable itself.  This variable is only needed if
-you'd like to set GNU @code{make}-specific flags in a POSIX-compliant
-makefile.  This variable will be seen by GNU @code{make} and ignored
-by other @code{make} implementations.  It's not needed if you only use
-GNU @code{make}; just use @code{MAKEFLAGS} directly.@*
-@xref{Options/Recursion, ,Communicating Options to a Sub-@code{make}}.
+Other flags parsed by @code{make}.  You can set this in the environment or a
+makefile to set @code{make} command-line flags.  This variable is only needed
+if you'd like to set GNU @code{make}-specific flags in a POSIX-compliant
+makefile.  This variable will be seen by GNU @code{make} and ignored by other
+@code{make} implementations.  It's not needed if you only use GNU @code{make};
+just use @code{MAKEFLAGS} directly.@* @xref{Options/Recursion, ,Communicating
+Options to a Sub-@code{make}}.
 
 @item .LIBPATTERNS
 Defines the naming of the libraries @code{make} searches for, and their
