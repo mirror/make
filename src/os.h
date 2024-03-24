@@ -21,22 +21,27 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #define IO_STDERR_OK            0x0010
 
 #if MK_OS_VMS || MK_OS_DOS
-# define check_io_state()  (IO_STDIN_OK|IO_STDOUT_OK|IO_STDERR_OK)
-# define fd_inherit(_i)    (0)
-# define fd_noinherit(_i)  (0)
-# define fd_set_append(_i) (void)(0)
-# define os_anontmp()      (-1)
+# define check_io_state()       (IO_STDIN_OK|IO_STDOUT_OK|IO_STDERR_OK)
+# define fd_inherit(_i)         (0)
+# define fd_noinherit(_i)       (0)
+# define fd_set_append(_i)      (-1)
+# define fd_reset_append(_i,_f) (void)(0)
+# define os_anontmp()           (-1)
 #else
 
 /* Determine the state of stdin/stdout/stderr.  */
 unsigned int check_io_state (void);
 
 /* Set a file descriptor to close/not close in a subprocess.  */
-void fd_inherit (int);
-void fd_noinherit (int);
+void fd_inherit (int fd);
+void fd_noinherit (int fd);
 
-/* If the file descriptor is for a file put it into append mode.  */
-void fd_set_append (int);
+/* If the file descriptor is for a file put it into append mode.
+   Return the original flags for the file descriptor, or -1 if not found.  */
+int fd_set_append (int fd);
+
+/* Reset the append mode to the flags returned by fd_set_append().  */
+void fd_reset_append (int fd, int flags);
 
 /* Return a file descriptor for a new anonymous temp file, or -1.  */
 int os_anontmp (void);

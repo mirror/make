@@ -830,12 +830,12 @@ fd_noinherit (int fd)
 /* Set a file descriptor referring to a regular file to be in O_APPEND mode.
    If it fails, just ignore it.  */
 
-void
+int
 fd_set_append (int fd)
 {
+  int flags = -1;
 #if defined(F_GETFL) && defined(F_SETFL) && defined(O_APPEND)
   struct stat stbuf;
-  int flags;
   if (fstat (fd, &stbuf) == 0 && S_ISREG (stbuf.st_mode))
     {
       flags = fcntl (fd, F_GETFL, 0);
@@ -844,6 +844,22 @@ fd_set_append (int fd)
           int r;
           EINTRLOOP(r, fcntl (fd, F_SETFL, flags | O_APPEND));
         }
+    }
+#endif
+  return flags;
+}
+
+/* Reset a file descriptor referring to a regular file to be in O_APPEND mode.
+   If it fails, just ignore it.  */
+
+void
+fd_reset_append (int fd, int flags)
+{
+#if defined(F_GETFL) && defined(F_SETFL) && defined(O_APPEND)
+  if (flags >= 0)
+    {
+      int r;
+      EINTRLOOP(r, fcntl (fd, F_SETFL, flags));
     }
 #endif
 }

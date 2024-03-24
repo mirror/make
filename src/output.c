@@ -318,6 +318,9 @@ output_dump (struct output *out)
 #endif /* NO_OUTPUT_SYNC */
 
 
+static int stdout_flags = -1;
+static int stderr_flags = -1;
+
 void
 output_init (struct output *out)
 {
@@ -330,8 +333,8 @@ output_init (struct output *out)
 
   /* Force stdout/stderr into append mode (if they are files) to ensure
      parallel jobs won't lose output due to overlapping writes.  */
-  fd_set_append (fileno (stdout));
-  fd_set_append (fileno (stderr));
+  stdout_flags = fd_set_append (fileno (stdout));
+  stderr_flags = fd_set_append (fileno (stderr));
 }
 
 void
@@ -341,6 +344,8 @@ output_close (struct output *out)
     {
       if (stdio_traced)
         log_working_directory (0);
+      fd_reset_append(fileno (stdout), stdout_flags);
+      fd_reset_append(fileno (stderr), stderr_flags);
       return;
     }
 
