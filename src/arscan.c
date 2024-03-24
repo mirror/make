@@ -852,6 +852,11 @@ ar_name_equal (const char *name, const char *mem, int truncated)
 {
   const char *p;
 
+  /* GNU ar allows -P to preserve parent paths, so test the literal name
+     before stripping off the directory.  */
+  if (streq (name, mem))
+    return 1;
+
   p = strrchr (name, '/');
   if (p != 0)
     name = p + 1;
