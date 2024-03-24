@@ -768,8 +768,8 @@ extern unsigned int no_intermediates;
 
 #if HAVE_MKFIFO
 /* It seems that mkfifo() is not working correctly, or at least not the way
-   GNU make wants it to work, on GNU/Hurd and Cygwin so don't use it there.  */
-# if !defined(JOBSERVER_USE_FIFO) && !MK_OS_HURD && !MK_OS_CYGWIN
+   GNU make wants it to work, on: GNU/Hurd, Cygwin, OS2; don't use it there.  */
+# if !defined(JOBSERVER_USE_FIFO) && !MK_OS_HURD && !MK_OS_CYGWIN && !MK_OS_OS2
 #  define JOBSERVER_USE_FIFO 1
 # endif
 #endif
