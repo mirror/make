@@ -10716,8 +10716,13 @@ pattern for matching file names; the @samp{%} can match any nonempty
 substring, while other characters match only themselves.  The prerequisites
 likewise use @samp{%} to show how their names relate to the target name.
 
-Thus, a pattern rule @samp{%.o : %.c} says how to make any file
-@file{@var{stem}.o} from another file @file{@var{stem}.c}.
+Thus, a pattern rule @samp{%.o : %.c ; @var{recipe}} describes a process for
+building any file @file{@var{stem}.o} from another file @file{@var{stem}.c}
+using the recipe @var{recipe}.
+
+It is not possible to create a pattern rule that does not have a recipe;
+omitting the recipe removes that pattern rule instead (@pxref{Canceling Rules,
+,Canceling Implicit Rules}).
 
 Note that expansion using @samp{%} in pattern rules occurs
 @strong{after} any variable or function expansions, which take place
