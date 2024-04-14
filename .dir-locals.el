@@ -1,5 +1,5 @@
 (
- (nil . ((bug-reference-bug-regexp . "\\(\\)\\bSV[- ]\\([0-9]+\\)")
+ (nil . ((bug-reference-bug-regexp . "\\(\\bSV[- ]\\([0-9]+\\)\\)")
          (bug-reference-url-format . "https://savannah.gnu.org/bugs/?%s")
          (ccls-initialization-options
           . (:index (:threads 6
