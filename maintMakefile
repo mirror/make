@@ -34,7 +34,10 @@ MAKE_CFLAGS := -C -Wall -Wextra -Werror -Wwrite-strings -Wshadow \
 	-Wtype-limits -Wunused-but-set-parameter -Wlogical-op -Wpointer-arith \
 	-Wignored-qualifiers -Wformat-signedness -Wduplicated-cond
 
-AM_CFLAGS += $(MAKE_CFLAGS)
+# Allow extra options without overriding MAKE_CFLAGS
+EXTRA_CFLAGS :=
+
+AM_CFLAGS += $(MAKE_CFLAGS) $(EXTRA_CFLAGS)
 
 # Unfortunately the Guile headers are sometimes broken.  Convince GCC
 # to treat them as system headers so warnings are ignored.

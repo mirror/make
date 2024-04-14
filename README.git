@@ -155,7 +155,8 @@ NOTE! This method builds GNU Make in "maintainer mode".  Make programs built
       If you want to build from Git with "maintainer mode" disabled, add
       "MAKE_MAINTAINER_MODE=" to the make command line.  If you want to turn
       off the extra warning flags, add "MAKE_CFLAGS=" to the make command
-      line.
+      line.  If you want to keep the warnings but not fail, add
+      "EXTRA_CFLAGS=-Wno-error" to the make command line.
 
       For example:
         $ ./configure
