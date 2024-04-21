@@ -213,12 +213,15 @@ endif
                   '--no-print-directory -j2', ": 2\n: 1");
 }
 
-if ($port_type eq 'UNIX') {
+# sv 65323. Check for bash, because such long variable name causes ksh to
+# segfault.
+if (-x '/bin/bash') {
     # sv 65172.
     # Buffer overrun in recursively_expand_for_file on a variable with a long
     # name.
     my $v = "a1234567890" x 4 x 1000;
     run_make_test("
+SHELL:=/bin/bash
 export $v=\$(shell echo hello)
 all:; \@echo \$\$$v
 ", '', "hello\n");
