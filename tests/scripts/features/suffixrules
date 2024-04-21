@@ -178,5 +178,12 @@ MAKEFLAGS += -r
 
 unlink('hello.c', 'hello.o');
 
+# sv 65324.
+# Crash in disable_builtins.
+run_make_test(q!
+all:;
+!, '-r MAKEFLAGS=', "#MAKE#: 'all' is up to date.\n");
+
+
 # Complete
 1;

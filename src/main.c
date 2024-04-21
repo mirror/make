@@ -3473,7 +3473,7 @@ void disable_builtins ()
     if (no_builtin_rules_flag && ! old_builtin_rules_flag)
       {
         old_builtin_rules_flag = 1;
-        if (suffix_file->builtin)
+        if (suffix_file && suffix_file->builtin)
           {
             free_dep_chain (suffix_file->deps);
             suffix_file->deps = 0;
