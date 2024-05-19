@@ -9447,17 +9447,25 @@ Show an error for the usage and immediately stop processing the makefile.
 The types of warnings GNU Make can detect are:
 
 @table @samp
-@item invalid-var
-@findex invalid-var
-@cindex warning invalid variable
-Assigning to an invalid variable name (e.g., a name containing whitespace).
-The default action is @samp{warn}.
+@item circular-dep
+@findex circular-dep
+@cindex warning circular dependency
+Finding a loop in the dependency graph (the prerequisites of a target contain
+or depend on the target itself).  If the action is not @samp{error}, the
+circular reference is dropped from the graph before continuing.  The default
+action is @samp{warn}.
 
 @item invalid-ref
 @findex invalid-ref
 @cindex warning invalid reference
 Using an invalid variable name in a variable reference.  The default action is
 @samp{warn}.
+
+@item invalid-var
+@findex invalid-var
+@cindex warning invalid variable
+Assigning to an invalid variable name (e.g., a name containing whitespace).
+The default action is @samp{warn}.
 
 @item undefined-var
 @findex undefined-var

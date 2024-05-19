@@ -154,6 +154,27 @@ all:;
 !,
     '',"#MAKEFILE#:2: unknown warning action 'no-such-action': ignored\n#MAKE#: 'all' is up to date.");
 
+# sv 65739. Circular dependency.
+run_make_test(q!
+hello: hello; @:
+!,
+              '', "#MAKE#: circular hello <- hello dependency dropped\n");
+run_make_test(q!
+.WARNINGS = circular-dep:error
+hello: hello; @:
+!,
+              '', "#MAKE#: *** circular hello <- hello dependency detected.  Stop.\n", 512);
+run_make_test(q!
+.WARNINGS = circular-dep:warn
+hello: hello; @:
+!,
+              '', "#MAKE#: circular hello <- hello dependency dropped\n");
+run_make_test(q!
+.WARNINGS = circular-dep:ignore
+hello: hello; @:
+!,
+              '', '');
+
 
 # Validate .WARNINGS set as target-specific variables
 # This is not supported (yet...?)

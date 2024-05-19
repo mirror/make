@@ -379,10 +379,13 @@ can be an action; one of
 or
 .I error
 to set the default action for all warnings, or it can be a specific warning:
+.I circular-dep
+(finding a circular dependency),
+.I invalid-ref
+(referencing an invalid variable name),
 .I invalid-var
 (assigning to an invalid variable name),
-.I invalid-ref
-(referencing an invalid variable name), or
+or
 .I undefined-var
 (referencing an undefined variable).  The behavior of each warning can be set
 by adding

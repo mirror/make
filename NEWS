@@ -83,6 +83,9 @@ https://sv.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=111&se
   defined in the makefiles, one per line, then exit with success.  No recipes
   are invoked and no makefiles are re-built.
 
+* Warnings for detecting circular dependencies are controllable via warning
+  reporting, with the name "circular-dep".
+
 * 'make --print-data-base' (or 'make -p') now outputs time of day
   using the same form as for file timestamps, e.g., "2023-05-10
   10:43:57.570558743".  Previously it used the form "Wed May 10

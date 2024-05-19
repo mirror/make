@@ -34,7 +34,8 @@ static const char *w_action_map[w_error+1] = {NULL, "ignore", "warn", "error"};
 static const char *w_name_map[wt_max] = {
                                           "invalid-var",
                                           "invalid-ref",
-                                          "undefined-var"
+                                          "undefined-var",
+                                          "circular-dep"
                                         };
 
 #define encode_warn_action(_b,_s) \
@@ -66,6 +67,7 @@ warn_init ()
   warn_default.actions[wt_invalid_var] = w_warn;
   warn_default.actions[wt_invalid_ref] = w_warn;
   warn_default.actions[wt_undefined_var] = w_ignore;
+  warn_default.actions[wt_circular_dep] = w_warn;
 
   set_warnings ();
 }

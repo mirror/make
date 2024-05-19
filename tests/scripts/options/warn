@@ -166,4 +166,17 @@ run_make_test(undef, '--warn=no-such-warn',
 run_make_test(undef, '--warn=invalid-var:no-such-action',
     "#MAKE#: *** unknown warning action 'no-such-action'.  Stop.", 512);
 
+# sv 65739. Circular dependency.
+run_make_test(q!
+hello: hello; @:
+!,
+              '', "#MAKE#: circular hello <- hello dependency dropped\n");
+
+run_make_test(undef, '--warn=error', "#MAKE#: *** circular hello <- hello dependency detected.  Stop.\n", 512);
+run_make_test(undef, '--warn=circular-dep:error', "#MAKE#: *** circular hello <- hello dependency detected.  Stop.\n", 512);
+run_make_test(undef, '--warn=warn', "#MAKE#: circular hello <- hello dependency dropped\n");
+run_make_test(undef, '--warn=circular-dep:warn', "#MAKE#: circular hello <- hello dependency dropped\n");
+run_make_test(undef, '--warn=ignore', '');
+run_make_test(undef, '--warn=circular-dep:ignore', '');
+
 1;

@@ -20,6 +20,7 @@ this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "commands.h"
 #include "dep.h"
 #include "variable.h"
+#include "warning.h"
 #include "debug.h"
 
 #include <assert.h>
@@ -635,8 +636,14 @@ update_file_1 (struct file *file, unsigned int depth)
 
           if (is_updating (d->file))
             {
-              OSS (error, NILF, _("circular %s <- %s dependency dropped"),
-                   file->name, d->file->name);
+              /* Avoid macro warning, bacause its output differs from that of
+                 older makes. */
+              if (warn_error (wt_circular_dep))
+                OSS (fatal, NILF, _("circular %s <- %s dependency detected"),
+                     file->name, d->file->name);
+              if (warn_check (wt_circular_dep))
+                OSS (error, NILF, _("circular %s <- %s dependency dropped"),
+                     file->name, d->file->name);
 
               if (lastd == 0)
                 file->deps = du->next;

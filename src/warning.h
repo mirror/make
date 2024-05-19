@@ -20,6 +20,7 @@ enum warning_type
     wt_invalid_var = 0, /* Assign to an invalid variable name.  */
     wt_invalid_ref,     /* Reference an invalid variable name.  */
     wt_undefined_var,   /* Reference an undefined variable name.  */
+    wt_circular_dep,    /* A target depends on itself.  */
     wt_max
   };
 
