@@ -14,17 +14,18 @@ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
-/* Types of warnings we can show.  */
+/* Types of warnings we can show.
+   These can be rearranged but the first value must be 0.  */
 enum warning_type
   {
-    wt_invalid_var = 0, /* Assign to an invalid variable name.  */
-    wt_invalid_ref,     /* Reference an invalid variable name.  */
-    wt_undefined_var,   /* Reference an undefined variable name.  */
-    wt_circular_dep,    /* A target depends on itself.  */
+    wt_circular_dep = 0, /* A target depends on itself.  */
+    wt_invalid_ref,      /* Reference an invalid variable name.  */
+    wt_invalid_var,      /* Assign to an invalid variable name.  */
+    wt_undefined_var,    /* Reference an undefined variable name.  */
     wt_max
   };
 
-/* Action taken for a given warning.  */
+/* Action taken for a given warning.  Unset must be 0.  */
 enum warning_action
   {
     w_unset = 0,

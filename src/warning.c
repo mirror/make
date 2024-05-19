@@ -32,10 +32,10 @@ static struct warning_data warn_flag;
 
 static const char *w_action_map[w_error+1] = {NULL, "ignore", "warn", "error"};
 static const char *w_name_map[wt_max] = {
-                                          "invalid-var",
+                                          "circular-dep",
                                           "invalid-ref",
-                                          "undefined-var",
-                                          "circular-dep"
+                                          "invalid-var",
+                                          "undefined-var"
                                         };
 
 #define encode_warn_action(_b,_s) \
@@ -64,10 +64,10 @@ warn_init ()
 
   /* All warnings must have a default.  */
   warn_default.global = w_warn;
-  warn_default.actions[wt_invalid_var] = w_warn;
-  warn_default.actions[wt_invalid_ref] = w_warn;
-  warn_default.actions[wt_undefined_var] = w_ignore;
   warn_default.actions[wt_circular_dep] = w_warn;
+  warn_default.actions[wt_invalid_ref] = w_warn;
+  warn_default.actions[wt_invalid_var] = w_warn;
+  warn_default.actions[wt_undefined_var] = w_ignore;
 
   set_warnings ();
 }
@@ -76,7 +76,7 @@ static void
 init_data (struct warning_data *data)
 {
   data->global = w_unset;
-  for (enum warning_type wt = wt_invalid_var; wt < wt_max; ++wt)
+  for (enum warning_type wt = 0; wt < wt_max; ++wt)
     data->actions[wt] = w_unset;
 }
 
@@ -96,7 +96,7 @@ decode_warn_action (const char *action, size_t length)
 static enum warning_type
 decode_warn_name (const char *name, size_t length)
 {
-  for (enum warning_type wt = wt_invalid_var; wt < wt_max; ++wt)
+  for (enum warning_type wt = 0; wt < wt_max; ++wt)
     {
       size_t len = strlen (w_name_map[wt]);
       if (length == len && strncasecmp (name, w_name_map[wt], length) == 0)

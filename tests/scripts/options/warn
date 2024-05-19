@@ -5,8 +5,8 @@ $description = "Test the --warn option.";
 my %warn_test = (
     '--warn' => '', '--warn=warn' => '', '--warn=error --warn=warn' => '',
     '--warn --warn=error' => '=error',
-    '--warn=ignore --warn=error --warn=ignore --warn=invalid-var,invalid-ref,undefined-var' => '=ignore,invalid-var,invalid-ref,undefined-var',
-    '--warn=invalid-ref:ignore --warn=error --warn=invalid-var:warn,,,,,undefined-var:error,,,,,' => '=error,invalid-var,invalid-ref:ignore,undefined-var:error'
+    '--warn=ignore --warn=error --warn=ignore --warn=invalid-ref,invalid-var,undefined-var' => '=ignore,invalid-ref,invalid-var,undefined-var',
+    '--warn=invalid-ref:ignore --warn=error --warn=invalid-var:warn,,,,,undefined-var:error,,,,,' => '=error,invalid-ref:ignore,invalid-var,undefined-var:error'
 );
 
 # Verify the deprecated --warn-undefined-variables option
