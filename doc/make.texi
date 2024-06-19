@@ -410,22 +410,22 @@ Troubleshooting Make and Makefiles
 @comment  node-name,  next,  previous,  up
 @chapter Overview of @code{make}
 
-The @code{make} utility automatically determines which pieces of a large
-program need to be recompiled, and issues commands to recompile them.  This
-manual describes GNU Make, which was implemented by Richard Stallman and
-Roland McGrath.  Paul D. Smith has handled development and maintenance since
-Version 3.76 (1997).
+The @code{make} utility determines which files in a project are out of date,
+and runs commands to bring them up to date.  This manual describes the GNU
+project's implementation of @code{make}, GNU Make, which was created by
+Richard Stallman and Roland McGrath.  Paul D. Smith has handled development
+and maintenance since Version 3.76 (1997).
 
-GNU @code{make} conforms to @cite{IEEE Standard 1003.2-2017} (POSIX.1-2017).
+GNU @code{make} conforms to @cite{IEEE Standard 1003.1-2024} (POSIX.1-2024).
 @cindex POSIX
-@cindex IEEE Standard 1003.2
+@cindex IEEE Standard 1003.1
 @cindex standards conformance
 
-Our examples show C programs, since they are most common, but you can use
+Our examples show C programs, since they are common, but you can use
 @code{make} with any programming language whose compiler can be run with a
-shell command.  Indeed, @code{make} is not limited to building programs.  You
-can use it to describe any task where some files must be updated automatically
-from others whenever the others change.
+shell command.  Indeed, @code{make} is not limited to compiling programs: it
+can be used to automate any task where some files need to be updated
+automatically whenever other files have been changed.
 
 @menu
 * Preparing::                   Preparing and running @code{make}.
@@ -436,10 +436,10 @@ from others whenever the others change.
 @node Preparing
 @section Preparing and Running Make
 
-To use @code{make}, you must write a file called the @dfn{makefile} that
-describes the relationships among files in your program and provides commands
-for updating each file.  For example, in a typical program the executable file
-is updated from object files, which are in turn made by compiling source
+To use @code{make}, you must write a file, called a @dfn{makefile}, that
+describes the relationships among files in your project and provides commands
+for updating each file.  For example, in a typical C program the executable
+file is updated from object files, which are in turn made by compiling source
 files.
 
 Once a suitable makefile exists, each time you change some source files,
@@ -1160,10 +1160,10 @@ whitespace preceding the backslash, all whitespace at the beginning of
 the line after the backslash/newline, and any consecutive
 backslash/newline combinations.
 
-If the @code{.POSIX} special target is defined then backslash/newline
-handling is modified slightly to conform to POSIX.2: first, whitespace
-preceding a backslash is not removed and second, consecutive
-backslash/newlines are not condensed.
+If the @code{.POSIX} special target is defined then backslash/newline handling
+is modified slightly to conform to POSIX: first, whitespace preceding a
+backslash is not removed and second, consecutive backslash/newlines are not
+condensed.
 
 @subsubheading Splitting Without Adding Whitespace
 @cindex whitespace, avoiding on line split
@@ -5203,7 +5203,7 @@ This is not usually useful to do.  However, some systems have a small
 fixed limit on the size of the environment, and putting so much
 information into the value of @code{MAKEFLAGS} can exceed it.  If you
 see the error message @samp{Arg list too long}, this may be the problem.
-(For strict compliance with POSIX.2, changing @code{MAKEOVERRIDES} does
+(For strict compliance with POSIX, changing @code{MAKEOVERRIDES} does
 not affect @code{MAKEFLAGS} if the special target @samp{.POSIX} appears
 in the makefile.  You probably do not care about this.)
 
@@ -12939,7 +12939,7 @@ inspired whom, since GNU @code{make} had @code{patsubst} before SunOS
 @item
 The special significance of @samp{+} characters preceding recipe lines
 (@pxref{Instead of Execution, ,Instead of Executing Recipes}) is
-mandated by @cite{IEEE Standard 1003.2-1992} (POSIX.2).
+mandated by @cite{IEEE Standard 1003.1-2024} (POSIX).
 
 @item
 The @samp{+=} syntax to append to the value of a variable comes from SunOS
@@ -13084,8 +13084,8 @@ Load dynamic objects which can modify the behavior of @code{make}.
 @cindex features, missing
 
 The @code{make} programs in various other systems support a few features
-that are not implemented in GNU @code{make}.  The POSIX.2 standard
-(@cite{IEEE Standard 1003.2-1992}) which specifies @code{make} does not
+that are not implemented in GNU @code{make}.  The POSIX standard
+(@cite{IEEE Standard 1003.1-2024}) which specifies @code{make} does not
 require any of these features.
 
 @itemize @bullet
