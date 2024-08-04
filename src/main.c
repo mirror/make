@@ -3108,8 +3108,20 @@ decode_switches (int argc, const char **argv, enum variable_origin origin)
   int bad = 0;
   struct command_switch *cs;
   struct stringlist *sl;
+  struct stringlist targets;
   int c;
   unsigned int found_wait = 0;
+  const char **a;
+
+  /* This is for safety/double-checking.  */
+  static int using_getopt = 0;
+  assert (using_getopt == 0);
+  using_getopt = 1;
+
+  /* Get enough space for all the arguments, just in case.  */
+  targets.max = argc + 1;
+  targets.list = alloca (targets.max * sizeof (const char **));
+  targets.idx = 0;
 
   /* getopt does most of the parsing for us.
      First, get its vectors set up.  */
@@ -3138,14 +3150,9 @@ decode_switches (int argc, const char **argv, enum variable_origin origin)
            see all he did wrong.  */
         bad = 1;
       else if (c == 1)
-        {
-          /* An argument not starting with a dash.  */
-          const unsigned int prior_found_wait = found_wait;
-          found_wait = handle_non_switch_argument (coptarg, origin);
-          if (prior_found_wait && lastgoal)
-            /* If the argument before this was .WAIT, wait here.  */
-            lastgoal->wait_here = 1;
-        }
+        /* An argument not starting with a dash.  Defer handling until later,
+           since handle_non_switch_argument() might corrupt getopt().  */
+        targets.list[targets.idx++] = coptarg;
       else
         /* An option starting with a dash.  */
         for (cs = switches; cs->c != '\0'; ++cs)
@@ -3339,9 +3346,19 @@ decode_switches (int argc, const char **argv, enum variable_origin origin)
      to be returned in order, this only happens when there is a "--"
      argument to prevent later arguments from being options.  */
   while (optind < argc)
+    targets.list[targets.idx++] = argv[optind++];
+  targets.list[targets.idx] = NULL;
+
+  /* Cannot call getopt below this line.  */
+  using_getopt = 0;
+
+  /* handle_non_switch_argument() can only be called after getopt is done;
+     if one of the arguments is MAKEFLAGS=<value> then it will recurse here
+     and call getopt() again, corrupting the state if the outer method.  */
+  for (a = targets.list; *a; ++a)
     {
       const int prior_found_wait = found_wait;
-      found_wait = handle_non_switch_argument (argv[optind++], origin);
+      found_wait = handle_non_switch_argument (*a, origin);
       if (prior_found_wait && lastgoal)
         lastgoal->wait_here = 1;
     }

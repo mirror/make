@@ -902,5 +902,28 @@ unlink('hello');
 
 rmdir('localtmp');
 
+# sv 66037. An infinite loop when MAKEFLAGS is specified on the command line.
+my @cli= ('-r MAKEFLAGS=-k hello=world',
+'-r MAKEFLAGS=-k hello=world MAKEFLAGS=-R',
+'-r MAKEFLAGS="-R -- hello=world MAKEFLAGS=-k"');
+for my $c (@cli) {
+run_make_test(q!
+$(info hello=$(hello))
+all:;
+!, $c, "hello=world\n#MAKE#: 'all' is up to date.\n");
+}
+
+run_make_test(q!
+$(info hello=$(hello))
+all:;
+!, '-r MAKEFLAGS="-R -- hello=world MAKEFLAGS=hello=bye"',
+"hello=bye\n#MAKE#: 'all' is up to date.\n");
+
+run_make_test(q!
+$(info hello=$(hello))
+all:;
+!, '-r MAKEFLAGS="-R -- hello=world MAKEFLAGS=-s"',
+"hello=world\n");
+
 # This tells the test driver that the perl test script executed properly.
 1;
