@@ -9654,7 +9654,7 @@ This option also enables @samp{basic} messages.
 Prints messages giving details on the invocation of specific sub-commands.
 
 @item m (@i{makefile})
-By default, the above messages are not enabled while trying to remake the
+By default, debug messages are not enabled while trying to remake the
 makefiles.  This option enables messages while rebuilding makefiles, too.  The
 @samp{all} option enables this option as well.  This option also enables
 @samp{basic} messages.
