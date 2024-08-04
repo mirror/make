@@ -546,7 +546,12 @@ update_file_1 (struct file *file, unsigned int depth)
   check_renamed (file);
   noexist = this_mtime == NONEXISTENT_MTIME;
   if (noexist)
-    DBF (DB_BASIC, _("File '%s' does not exist.\n"));
+    {
+      if (file->phony)
+        DBF (DB_BASIC, _("Target '%s' is phony.\n"));
+      else
+        DBF (DB_BASIC, _("File '%s' does not exist.\n"));
+    }
   else if (is_ordinary_mtime (this_mtime) && file->low_resolution_time)
     {
       /* Avoid spurious rebuilds due to low resolution time stamps.  */
@@ -570,9 +575,14 @@ update_file_1 (struct file *file, unsigned int depth)
       if (noexist)
         {
           check_renamed (adfile);
-          DBS (DB_BASIC,
-               (_("Grouped target peer '%s' of file '%s' does not exist.\n"),
-                adfile->name, file->name));
+          if (adfile->phony)
+            DBS (DB_BASIC,
+                 (_("Grouped target peer '%s' of file '%s' is phony.\n"),
+                  adfile->name, file->name));
+          else
+            DBS (DB_BASIC,
+                 (_("Grouped target peer '%s' of file '%s' does not exist.\n"),
+                  adfile->name, file->name));
         }
       else if (fmtime < this_mtime)
         this_mtime = fmtime;
@@ -864,7 +874,12 @@ update_file_1 (struct file *file, unsigned int depth)
           else if (d_mtime == NONEXISTENT_MTIME)
             {
               if (ISDB (DB_BASIC))
-                fmt = _("Prerequisite '%s' of target '%s' does not exist.\n");
+                {
+                  if (d->file->phony)
+                    fmt = _("Prerequisite '%s' of target '%s' is phony.\n");
+                  else
+                    fmt = _("Prerequisite '%s' of target '%s' does not exist.\n");
+                }
             }
           else if (d->changed)
             {
