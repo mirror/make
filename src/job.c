@@ -1862,7 +1862,9 @@ new_job (struct file *file)
      Use message here so that changes to working directories are logged.  */
   if (ISDB (DB_WHY))
     {
+      char *nmbuf = NULL;
       const char *nm;
+      const char *tp;
 
       if (! cmds->fileinfo.filenm)
         nm = _("<builtin>");
@@ -1873,20 +1875,36 @@ new_job (struct file *file)
           nm = n;
         }
 
+      if (c->file->also_make == NULL)
+        tp = c->file->name;
+      else
+        {
+          const struct dep *dp;
+          char *cp;
+          size_t len = strlen (c->file->name);
+          for (dp = c->file->also_make; dp; dp = dp->next)
+            /* space for "', '<name>".  */
+            len += strlen (dp->file->name) + 4;
+          tp = nmbuf = xmalloc (len + 1);
+          cp = stpcpy (nmbuf, c->file->name);
+          for (dp = c->file->also_make; dp; dp = dp->next)
+            cp = stpcpy (stpcpy (cp, "', '"), dp->file->name);
+        }
+
       if (c->file->phony)
         OSS (message, 0, _("%s: update target '%s' due to: target is .PHONY"),
-             nm, c->file->name);
+             nm, tp);
       else if (c->file->last_mtime == NONEXISTENT_MTIME)
         OSS (message, 0,
              _("%s: update target '%s' due to: target does not exist"),
-             nm, c->file->name);
+             nm, tp);
       else
         {
           char *newer = allocated_expand_variable_for_file (STRING_SIZE_TUPLE ("?"), c->file);
           if (newer[0] != '\0')
             {
               OSSS (message, 0, _("%s: update target '%s' due to: %s"),
-                    nm, c->file->name, newer);
+                    nm, tp, newer);
               free (newer);
             }
           else
@@ -1902,7 +1920,7 @@ new_job (struct file *file)
               if (!len)
                 OSS (message, 0,
                      _("%s: update target '%s' due to: unknown reasons"),
-                     nm, c->file->name);
+                     nm, tp);
               else
                 {
                   char *cp = newer = alloca (len);
@@ -1914,10 +1932,12 @@ new_job (struct file *file)
                         cp = stpcpy (cp, d->file->name);
                       }
                   OSSS (message, 0, _("%s: update target '%s' due to: %s"),
-                        nm, c->file->name, newer);
+                        nm, tp, newer);
                 }
             }
         }
+
+      free (nmbuf);
     }
 
   /* The job is now primed.  Start it running.
