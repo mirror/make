@@ -528,23 +528,38 @@ readbuf (int fd, void *buffer, size_t len)
 }
 
 
+/* Copy a 'struct dep'.  For 2nd expansion deps, dup the name.  */
+
+struct dep *
+copy_dep (const struct dep *d)
+{
+  struct dep *new = NULL;
+
+  if (d)
+    {
+      new = xmalloc (sizeof (struct dep));
+      memcpy (new, d, sizeof (struct dep));
+
+      if (new->need_2nd_expansion)
+        new->name = xstrdup (new->name);
+      new->next = 0;
+    }
+
+  return new;
+}
+
 /* Copy a chain of 'struct dep'.  For 2nd expansion deps, dup the name.  */
 
 struct dep *
 copy_dep_chain (const struct dep *d)
 {
-  struct dep *firstnew = 0;
-  struct dep *lastnew = 0;
+  struct dep *firstnew = NULL;
+  struct dep *lastnew = NULL;
 
   while (d != 0)
     {
-      struct dep *c = xmalloc (sizeof (struct dep));
-      memcpy (c, d, sizeof (struct dep));
+      struct dep *c = copy_dep (d);
 
-      if (c->need_2nd_expansion)
-        c->name = xstrdup (c->name);
-
-      c->next = 0;
       if (firstnew == 0)
         firstnew = lastnew = c;
       else
@@ -562,7 +577,7 @@ copy_dep_chain (const struct dep *d)
 void
 free_ns_chain (struct nameseq *ns)
 {
-  while (ns != 0)
+  while (ns != NULL)
     {
       struct nameseq *t = ns;
       ns = ns->next;

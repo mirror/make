@@ -2110,7 +2110,6 @@ record_files (struct nameseq *filenames, int are_also_makes,
       return;
     }
 
-
   /* Walk through each target and create it in the database.
      We already set up the first target, above.  */
   while (1)
@@ -2283,15 +2282,14 @@ record_files (struct nameseq *filenames, int are_also_makes,
     }
 
   /* If there are also-makes, then populate a copy of the also-make list into
-     each one. For the last file, we take our original also_make list instead
-     wastefully copying it one more time and freeing it.  */
+     each one.  Omit the file from its also-make list.  */
   {
     struct dep *i;
 
     for (i = also_make; i != NULL; i = i->next)
       {
         struct file *f = i->file;
-        struct dep *cpy = i->next ? copy_dep_chain (also_make) : also_make;
+        struct dep *dp;
 
         if (f->also_make)
           {
@@ -2299,11 +2297,20 @@ record_files (struct nameseq *filenames, int are_also_makes,
                 _("warning: overriding group membership for target '%s'"),
                 f->name);
             free_dep_chain (f->also_make);
+            f->also_make = NULL;
           }
 
-        f->also_make = cpy;
+        for (dp = also_make; dp != NULL; dp = dp->next)
+          if (dp->file != f)
+            {
+              struct dep *cpy = copy_dep (dp);
+              cpy->next = f->also_make;
+              f->also_make = cpy;
+            }
       }
-    }
+
+    free_dep_chain (also_make);
+  }
 }
 
 /* Search STRING for an unquoted STOPMAP.

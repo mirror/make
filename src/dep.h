@@ -42,7 +42,6 @@ struct nameseq
    explicit is set when implicit rule search is performed and the prerequisite
    does not contain %. When explicit is set the file is not intermediate.  */
 
-
 #define DEP(_t)                                 \
     NAMESEQ (_t);                               \
     struct file *file;                          \
@@ -132,6 +131,7 @@ SI void free_goal_chain (struct goaldep *g) { free_dep_chain((struct dep *)g); }
 # define free_goal_chain(_g) free_ns_chain ((struct nameseq *)(_g))
 #endif
 
+struct dep *copy_dep (const struct dep *d);
 struct dep *copy_dep_chain (const struct dep *d);
 
 struct goaldep *read_all_makefiles (const char **makefiles);
