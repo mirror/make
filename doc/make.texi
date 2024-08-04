@@ -4090,6 +4090,9 @@ the makefile:
 @@echo About to make distribution files
 @end example
 
+Note that the start of a recipe line is interpreted differently when
+using @code{.ONESHELL} (@pxref{One Shell, ,Using One Shell}).
+
 @cindex @code{-n}
 @cindex @code{--just-print}
 @cindex @code{--dry-run}
@@ -4675,6 +4678,9 @@ To ignore errors in a recipe line, write a @samp{-} at the beginning
 of the line's text (after the initial tab).  The @samp{-} is discarded
 before the line is passed to the shell for execution.
 
+Note that the beginning of a recipe line is interpreted differently when
+using @code{.ONESHELL} (@pxref{One Shell, ,Using One Shell}).
+
 For example,
 
 @example
@@ -4880,6 +4886,9 @@ is only enabled if the @code{MAKE} variable appears directly in the
 recipe: it does not apply if the @code{MAKE} variable is referenced
 through expansion of another variable.  In the latter case you must
 use the @samp{+} token to get these special effects.
+
+Note that the beginning of a recipe line is interpreted differently when
+using @code{.ONESHELL} (@pxref{One Shell, ,Using One Shell}).
 
 Consider the command @samp{make -t} in the above example.  (The
 @samp{-t} option marks targets as up to date without actually running
