@@ -1112,11 +1112,17 @@ notice_finished_file (struct file *file)
           d->file->update_status = file->update_status;
 
           if (ran && !d->file->phony)
-            /* Fetch the new modification time.
-               We do this instead of just invalidating the cached time
-               so that a vpath_search can happen.  Otherwise, it would
-               never be done because the target is already updated.  */
-            f_mtime (d->file, 0);
+            {
+              /* Fetch the new modification time.
+                 We do this instead of just invalidating the cached time
+                 so that a vpath_search can happen.  Otherwise, it would
+                 never be done because the target is already updated.  */
+              f_mtime (d->file, 0);
+
+              if (just_print_flag)
+                /* Nothing got updated, but pretend it did.  */
+                d->file->last_mtime = NEW_MTIME;
+            }
         }
 
       /* If the target was created by an implicit rule, and it was updated,

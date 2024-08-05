@@ -15,8 +15,6 @@ intermediate: orig ; echo >> $@
 
 run_make_test(undef, '-Worig -n', "echo >> intermediate\necho >> final\n");
 
-rmfiles(qw(orig intermediate final));
-
 # We consider the actual updated timestamp of targets with all
 # recursive commands, even with -n.  Switching this to the new model
 # is non-trivial because we use a trick below to change the log content
@@ -65,10 +63,6 @@ close(DASH_N_LOG);
 
 &compare_output("touch b\ntouch a\n", &get_logfile(1));
 
-# CLEANUP
-
-unlink(qw(a b c));
-
 # Ensure -n continues to be included with recursive/re-execed make
 # See Savannah bug #38051
 
@@ -80,7 +74,6 @@ print MAKEFILE <<"EOF";
 foo: ; \@\$(MAKE) -f "$submake" bar
 EOF
 close(MAKEFILE);
-
 
 # The bar target should print what would happen, but not actually run
 open(MAKEFILE, "> $submake");
@@ -95,6 +88,71 @@ close(MAKEFILE);
 $answer = subst_make_string("#MAKEPATH# -f \"$submake\" bar\ntouch inc\necho n --no-print-directory\n");
 &compare_output($answer, &get_logfile(1));
 
-unlink('inc');
+# SV 65917: Verify handling of -n with multi-target pattern rules
+
+# This is what the makefile below would run
+utouch(-12, qw(alpha.p));
+utouch(-10, qw(alpha.x alpha.y));
+utouch(-8, qw(beta.p));
+utouch(-6, qw(beta.x beta.y));
+utouch(-4, qw(alpha.q));
+utouch(-2, qw(beta.q));
+
+# Now make some things out of date
+touch(qw(alpha.p));
+
+run_make_test(q!
+.SUFFIXES:
+.RECIPEPREFIX := >
+
+all: alpha.q beta.q
+
+alpha.p beta.p:
+> touch $@
+
+%.x %.y: %.p
+> touch $*.x $*.y
+
+alpha.q: alpha.x alpha.y beta.y
+> touch $@
+
+beta.q: beta.x beta.y alpha.y
+> touch $@
+!,
+    '-n', "touch alpha.x alpha.y\ntouch alpha.q\ntouch beta.q\n");
+
+# This is what the makefile below would run
+utouch(-12, qw(quark.p));
+utouch(-10, qw(quark.x quark.y));
+utouch(-8, qw(meson.p));
+utouch(-6, qw(meson.x meson.y));
+utouch(-4, qw(quark.q));
+utouch(-2, qw(meson.q));
+
+# Now make some things out of date
+touch(qw(quark.p));
+
+run_make_test(q!
+.SUFFIXES:
+.RECIPEPREFIX := >
+
+all: quark.q meson.q
+
+quark.p meson.p:
+> touch $@
+
+quark.x quark.y &: quark.p
+> touch quark.x quark.y
+
+meson.x meson.y &: meson.p
+> touch meson.x meson.y
+
+quark.q: quark.x quark.y meson.y
+> touch $@
+
+meson.q: meson.x meson.y quark.y
+> touch $@
+!,
+    '-n', "touch quark.x quark.y\ntouch quark.q\ntouch meson.q\n");
 
 1;
